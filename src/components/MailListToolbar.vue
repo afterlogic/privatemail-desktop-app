@@ -1,0 +1,64 @@
+<template>
+  <q-toolbar>
+    <q-btn flat color="primary" icon="alternate_email" @click="showNotif()" />
+    <q-btn flat color="primary" icon="code" align="right"/>
+    <q-btn flat color="primary" icon="done" />
+    <q-btn flat color="primary" icon="mail_outline" />
+    <q-btn flat color="primary" icon="delete_outline" />
+    <q-space/>
+    <q-btn flat color="primary" icon="cached" />
+    <!-- <q-btn flat color="primary" label="Flat" /> -->
+  </q-toolbar>
+</template>
+
+<style></style>
+
+<script>
+const alerts = [
+  { color: 'negative', message: 'Woah! Danger! You are getting good at this!', icon: 'report_problem' },
+  { message: 'You need to know about this!', icon: 'warning' },
+  { message: 'Wow! Nice job!', icon: 'thumb_up' },
+  { color: 'teal', message: 'Quasar is cool! Right?', icon: 'tag_faces' },
+  { color: 'purple', message: 'Jim just pinged you', avatar: 'https://cdn.quasar.dev/img/boy-avatar.png' },
+  { multiLine: true, message: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Hic quisquam non ad sit assumenda consequuntur esse inventore officia. Corrupti reiciendis impedit vel, fugit odit quisquam quae porro exercitationem eveniet quasi.' }
+]
+
+export default {
+  name: "MailListToolbar",
+  data () {
+    return {
+
+    }
+  },
+  methods: {
+    showNotif () {
+      const position = 'top-right'
+      const { color, textColor, multiLine, icon, message, avatar } = alerts[ Math.floor(Math.random(alerts.length) * 10) % alerts.length ]
+      const random = Math.random() * 100
+
+      const twoActions = random > 70
+      const buttonColor = color ? 'white' : void 0
+
+      this.$q.notify({
+        color,
+        textColor,
+        icon: random > 30 ? icon : null,
+        message,
+        position,
+        avatar,
+        multiLine,
+        actions: twoActions
+          ? [
+            { label: 'Reply', color: buttonColor, handler: () => console.log('wooow') },
+            { label: 'Dismiss', color: 'yellow', handler: () => console.log('wooow') }
+          ]
+          : (random > 40
+            ? [ { label: 'Reply', color: buttonColor, handler: () => console.log('wooow') } ]
+            : null
+          ),
+        timeout: Math.random() * 5000 + 3000
+      })
+    }
+  }
+};
+</script>

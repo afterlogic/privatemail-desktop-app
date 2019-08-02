@@ -1,8 +1,19 @@
 const routes = [
   {
-    path: "/",
+    path: "/old",
     component: () => import("layouts/MyLayout.vue"),
     children: [{ path: "", component: () => import("pages/Index.vue") }]
+  },
+  {
+    path: "/",
+    component: () => import("layouts/MainLayout.vue"),
+    children: [
+      {path: "", component: () => import("pages/MailUI.vue") },
+      {path: "contacts", component: () => import("pages/ContactsUI.vue") },
+      {path: "files", component: () => import("pages/FilesUI.vue") },
+      {path: "calendar", component: () => import("pages/CalendarUI.vue") },
+      {path: "settings", component: () => import("pages/SettingsUI.vue") }
+    ]
   }
 ];
 

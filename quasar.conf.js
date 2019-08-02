@@ -1,5 +1,6 @@
 // Configuration for your app
 // https://quasar.dev/quasar-cli/quasar-conf-js
+/* eslint-disable */
 
 module.exports = function (ctx) {
   return {
@@ -45,7 +46,23 @@ module.exports = function (ctx) {
         'QList',
         'QItem',
         'QItemSection',
-        'QItemLabel'
+        'QItemLabel',
+        'QSplitter',
+        'QTabs',
+        'QTab',
+        'QRouteTab',
+        'QExpansionItem',
+        'QCheckbox',
+        'QInput',
+        'QScrollArea',
+        'QSpace',
+        'QAvatar',
+        'QSeparator',
+        'QTabPanels',
+        'QTabPanel',
+        'QToggle',
+        'QSelect',
+        'QBtnToggle'
       ],
 
       directives: [

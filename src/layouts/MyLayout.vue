@@ -94,11 +94,9 @@
       <!-- drawer content -->
       <div style="height: 800px;">Message view</div>
     </q-drawer>
-
     <q-page-container>
       <router-view />
     </q-page-container>
-
   </q-layout>
 </template>
 
@@ -111,7 +109,7 @@ export default {
     return {
       leftDrawerOpen: this.$q.platform.is.desktop,
       showLeft: true,
-      showRight: true,
+      showRight: true
     };
   },
   methods: {

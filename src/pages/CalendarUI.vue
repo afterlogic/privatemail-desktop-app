@@ -3,44 +3,70 @@
     <q-page class="flex flex-stretch" style="height: 100%">
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
-          calendar
-          <folder-list />
+          <div class="column full-height">
+            <div class="col-auto">
+              <q-btn color="accent" flat size=md label="New event" style="width: 100%; border: 2px solid #BC4799" />
+            </div>
+            <div class="col">
+              <q-list>
+                <q-item clickable v-ripple>
+                  <q-item-section avatar>
+                    <q-icon name="event" />
+                  </q-item-section>
+                  <q-item-section>My calendar</q-item-section>
+                </q-item>
+                <q-item clickable v-ripple>
+                  <q-item-section avatar>
+                    <q-icon name="event" />
+                  </q-item-section>
+                  <q-item-section>Holydays</q-item-section>
+                </q-item>
+              </q-list>
+            </div>
+            <div class="col-auto full-width">
+              <q-date v-model="date" dark color="purple" class="full-width"
+         />
+            </div>
+          </div>
         </template>
 
         <template v-slot:after>
-           <mail-list-toolbar />
-            <q-toolbar style="width: 100%; background: #eee;">
-              <q-checkbox v-model="checkboxVal" />
-              <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
-                <template v-slot:prepend>
-                  <q-icon name="search" ></q-icon>
-                </template>
-                <!-- <template v-slot:after>
-                  <q-btn round dense flat icon="send" ></q-btn>
-                </template> -->
-              </q-input>
-            </q-toolbar>
-            <q-scroll-area style="height: calc(100% - 110px);">
-              <contacts-list />
-            </q-scroll-area>
+          <div class="column full-height bg-white text-black panel-rounded">
+            <div class="col-auto">
+              <mail-list-toolbar />
+            </div>
+            <div class="col bg-white text-black">
+              
+              <!-- <q-scroll-area class="full-height" style="min-height: 800px;"> -->
+
+                <div class="column full-height">
+                  <div class="col-2 row full-width" v-for="r in 6" :key="r">
+                    <div class="col cell" v-for="n in 7" :key="n">{{(r- 1)*7 + n}}</div>
+                  </div>
+                </div>
+              <!-- </q-scroll-area> -->
+            </div>
+          </div>
         </template>
       </q-splitter>
     </q-page>
   </q-page-container>
 </template>
 
-<style></style>
+<style lang="scss">
+.cell {
+  border: 1px solid #eee;
+  border-width: 1px 0px 0px 1px;
+}
+</style>
 
 <script>
-import FolderList from "components/FolderList.vue"
-import ContactsList from "components/ContactsList.vue"
 import MailListToolbar from "components/MailListToolbar.vue"
+
 
 export default {
   name: "CalendarUI",
   components: {
-    FolderList,
-    ContactsList,
     MailListToolbar,
   },
   data () {
@@ -48,7 +74,9 @@ export default {
       splitterFolderModel: 20,
       splitterMessageModel: 50,
       checkboxVal: false,
-      searchText: ''
+      searchText: '',
+      date: '2019/02/01',
+      dayCounter: 1
     }
   }
 };

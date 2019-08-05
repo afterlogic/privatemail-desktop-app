@@ -10,11 +10,10 @@
     "lint": "eslint --ext .js,.vue src",
     "test": "echo \"No test specified\" && exit 0",
     "dev:web": "quasar dev",
-	"dev:app": "quasar dev -m electron",
+    "dev:app": "quasar dev -m electron",
     "build:web": "quasar build",
-	"build:app": "quasar build -m electron",
+    "build:app": "quasar build -m electron",
     "build:pwa": "quasar build -m pwa"
-	
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
@@ -30,9 +29,12 @@
     "electron": "^5.0.8",
     "electron-debug": "^3.0.1",
     "electron-devtools-installer": "^2.2.4",
+    "electron-packager": "^13.1.1",
     "eslint": "^5.10.0",
     "eslint-loader": "^2.1.1",
-    "eslint-plugin-vue": "^5.0.0"
+    "eslint-plugin-vue": "^5.0.0",
+    "node-sass": "^4.12.0",
+    "sass-loader": "^7.1.0"
   },
   "engines": {
     "node": ">= 8.9.0",

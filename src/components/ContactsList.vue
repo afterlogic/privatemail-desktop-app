@@ -1,5 +1,5 @@
 <template>
-   <q-list bordered>
+   <q-list>
       <q-item v-for="contact in contacts" :key="contact.id" class="q-my-sm" clickable v-ripple>
         <q-item-section avatar>
           <q-avatar color="primary" text-color="white">
@@ -70,7 +70,47 @@ const offline = [{
   email: 'bpanswick4@csmonitor.com',
   avatar: 'avatar2.jpg'
 }, {
-  id: 6,
+  id: 7,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 8,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 9,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 10,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 11,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 12,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 13,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 14,
+  name: 'Winfield Stapforth',
+  email: 'wstapforth5@pcworld.com',
+  avatar: 'avatar6.jpg'
+}, {
+  id: 15,
   name: 'Winfield Stapforth',
   email: 'wstapforth5@pcworld.com',
   avatar: 'avatar6.jpg'

@@ -1,8 +1,8 @@
 <template>
   <q-toolbar>
     <q-btn flat color="primary" icon="alternate_email" @click="showNotif()" />
-    <q-btn flat color="primary" icon="code" align="right"/>
-    <q-btn flat color="primary" icon="done" />
+    <q-btn flat color="primary" icon="code" align="right" @click="swithTheme()"/>
+    <q-btn flat color="primary" icon="done" @click="swithTheme1()" />
     <q-btn flat color="primary" icon="mail_outline" />
     <q-btn flat color="primary" icon="delete_outline" />
     <q-space/>
@@ -14,6 +14,8 @@
 <style></style>
 
 <script>
+import { colors } from 'quasar'
+
 const alerts = [
   { color: 'negative', message: 'Woah! Danger! You are getting good at this!', icon: 'report_problem' },
   { message: 'You need to know about this!', icon: 'warning' },
@@ -31,6 +33,12 @@ export default {
     }
   },
   methods: {
+    swithTheme () {
+      colors.setBrand('primary', '#000')
+    },
+    swithTheme1 () {
+      colors.setBrand('primary', '#f00')
+    },
     showNotif () {
       const position = 'top-right'
       const { color, textColor, multiLine, icon, message, avatar } = alerts[ Math.floor(Math.random(alerts.length) * 10) % alerts.length ]

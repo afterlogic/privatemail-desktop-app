@@ -1,16 +1,17 @@
 <template>
-  <q-layout view="hHh LpR lfr">
-    <q-header bordered class="bg-primary text-white">
+  <q-layout view="hHh LpR lfr" class="bg-black text-white">
+    <q-header bordered>
       <!-- <q-toolbar>
         <q-btn dense flat round icon="menu" @click="left = !left" />
         <q-btn dense flat round icon="menu" @click="showRight = !showRight" />
       </q-toolbar> -->
 
-      <q-tabs align="left">
+      <q-tabs align="left" class="q-pa-md">
         <q-route-tab to="/" label="Mail" />
         <q-route-tab to="/contacts" label="Contacts" />
         <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" />
+        <q-space />
         <q-route-tab to="/settings" label="Settings" />
       </q-tabs>
     </q-header>

@@ -1,7 +1,6 @@
 <template>
   <q-page-container style="height: 100vh">
     <q-page class="flex flex-stretch" style="height: 100%">
-
       <q-splitter v-model="splitterModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
           <q-tabs
@@ -29,8 +28,9 @@
             animated
             transition-prev="jump-up"
             transition-next="jump-up"
+            class="panel-rounded bg-white text-black"
           >
-            <q-tab-panel name="common">
+            <q-tab-panel name="common" color="brand">
               <common-tab />
             </q-tab-panel>
             

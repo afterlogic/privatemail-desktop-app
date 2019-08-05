@@ -62,7 +62,15 @@ module.exports = function (ctx) {
         'QTabPanel',
         'QToggle',
         'QSelect',
-        'QBtnToggle'
+        'QBtnToggle',
+        'QEditor',
+        'QBtnDropdown',
+        'QChip',
+        'QBreadcrumbs',
+        'QBreadcrumbsEl',
+        'QCard',
+        'QCardSection',
+        'QDate'
       ],
 
       directives: [
@@ -168,7 +176,7 @@ module.exports = function (ctx) {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
 
         // OS X / Mac App Store
-        // appBundleId: '',
+        appBundleId: 'com.afterlogic.privatemail',
         // appCategoryType: '',
         // osxSign: '',
         // protocol: 'myapp://path',

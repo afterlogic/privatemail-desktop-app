@@ -6,6 +6,7 @@
   "cordovaId": "org.cordova.quasar.app",
   "author": "Afterlogic Dev Team <support@afterlogic.com>",
   "private": true,
+  "main": "src-electron/main-process/electron-main.js",
   "scripts": {
     "lint": "eslint --ext .js,.vue src",
     "test": "echo \"No test specified\" && exit 0",
@@ -13,7 +14,27 @@
     "dev:app": "quasar dev -m electron",
     "build:web": "quasar build",
     "build:app": "quasar build -m electron",
-    "build:pwa": "quasar build -m pwa"
+    "build:pwa": "quasar build -m pwa",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.afterlogic.privatemail",
+    "productName": "Private Mail",
+    "mac": {
+      "category": "public.app-category.social-networking"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
@@ -27,6 +48,7 @@
     "babel-eslint": "^10.0.1",
     "devtron": "^1.4.0",
     "electron": "^5.0.8",
+    "electron-builder": "^21.2.0",
     "electron-debug": "^3.0.1",
     "electron-devtools-installer": "^2.2.4",
     "electron-packager": "^13.1.1",

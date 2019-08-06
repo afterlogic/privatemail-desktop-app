@@ -5,14 +5,16 @@
         <q-btn dense flat round icon="menu" @click="left = !left" />
         <q-btn dense flat round icon="menu" @click="showRight = !showRight" />
       </q-toolbar> -->
-
-      <q-tabs align="left" class="q-pa-md">
-        <q-route-tab to="/" label="Mail" />
+      <q-btn @click="logIn()" label="Login" />
+      <q-tabs align="left" class="q-pa-md" v-if="isAuthorized">
+        {{isLoginedIn}}
+        <q-route-tab to="/mail" label="Mail" />
         <q-route-tab to="/contacts" label="Contacts" />
         <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" />
         <q-space />
         <q-route-tab to="/settings" label="Settings" />
+        <q-route-tab to="/" label="Log out" />
       </q-tabs>
     </q-header>
     <router-view />
@@ -20,19 +22,26 @@
 </template>
 
 <script>
-import { openURL } from "quasar";
-
 export default {
   name: "MainLayout",
   data() {
     return {
-      leftDrawerOpen: this.$q.platform.is.desktop,
-      showLeft: true,
-      showRight: true
+
     };
   },
+  mounted () {
+    this.$store.dispatch('logout')
+  },
+  computed: {
+    isAuthorized: function () {
+      // return true;
+      return this.$store.state.authorized;
+    }
+  },
   methods: {
-    openURL
+    logIn () {
+      this.$store.dispatch('login')
+    }
   }
 };
 </script>

@@ -3,10 +3,16 @@
     <q-page class="flex flex-stretch" style="height: 100%">
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
-          <q-scroll-area style="height: 100%; widht: 100%;">
-            <q-btn color="accent" flat size=md label="New message" style="width: 100%; border: 2px solid #BC4799" />
-            <folder-list />
-          </q-scroll-area>
+          <div class="column full-height">
+            <div class="col-auto q-pa-sm">
+              <q-btn @click="openCompose" color="accent" flat size=md label="New message" style="width: 100%; border: 2px solid #BC4799" />
+            </div>
+            <div class="col" style="overflow: hidden;">
+              <q-scroll-area class="full-height full-widht">
+                <folder-list />
+              </q-scroll-area>
+            </div>
+          </div>
         </template>
 
         <template v-slot:after>
@@ -59,6 +65,7 @@
           </q-splitter>
         </template>
       </q-splitter>
+      <MessageCompose ref="compose" />
     </q-page>
   </q-page-container>
 </template>
@@ -66,10 +73,11 @@
 <style></style>
 
 <script>
-import FolderList from "components/FolderList.vue"
-import MessageList from "components/MessageList.vue"
-import MailListToolbar from "components/MailListToolbar.vue"
-import MessageViewer from "components/MessageViewer.vue"
+import FolderList from "./FolderList.vue"
+import MessageList from "./MessageList.vue"
+import MailListToolbar from "./MailListToolbar.vue"
+import MessageViewer from "./MessageViewer.vue"
+import MessageCompose from "./MailCompose.vue"
 
 export default {
   name: "MailUI",
@@ -78,6 +86,7 @@ export default {
     MessageList,
     MailListToolbar,
     MessageViewer,
+    MessageCompose
   },
   data () {
     return {
@@ -85,6 +94,12 @@ export default {
       splitterMessageModel: 50,
       checkboxVal: false,
       searchText: ''
+    }
+  },
+  methods: {
+    openCompose () {
+      console.log('openCompose parent 2');
+      this.$refs.compose.openCompose();
     }
   }
 };

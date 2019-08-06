@@ -1,19 +1,18 @@
 <template>
-  <div class="q-gutter-md">
-    <div v-for="n in items" :key="n.id" class="q-my-md">
+  <div>
       <MessageListItem
+        v-for="n in items" :key="n.id"
         :subject="n.subject"
         :from="n.from"
       />
-    </div>
   </div>
 </template>
 
 <style></style>
 
 <script>
-import MessageListItem from "components/MessageListItem"
-import {messages} from "../data.js"
+import MessageListItem from "./MessageListItem"
+import {messages} from "../../data.js"
 
 
 export default {

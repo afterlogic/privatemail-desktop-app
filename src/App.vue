@@ -24,6 +24,10 @@ export default {
 .text-brand {
   color: #fff;
 }
+.bg-accent-dark {
+  background: rgb(150, 77, 128);
+
+}
 .bg-brand {
   background: #000;
 }

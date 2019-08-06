@@ -71,14 +71,14 @@
 <style></style>
 
 <script>
-import CommonTab from "pages/settings/Common.vue"
-import MailTab from "pages/settings/Mail.vue"
-import MailAccountsTab from "pages/settings/MailAccounts.vue"
-import ContactsTab from "pages/settings/Contacts.vue"
-import CalendarTab from "pages/settings/Calendar.vue"
-import FilesTab from "pages/settings/Files.vue"
-import MobileSyncTab from "pages/settings/MobileSync.vue"
-import OpenPGPTab from "pages/settings/OpenPgp.vue"
+import CommonTab from "./Common.vue"
+import MailTab from "./Mail.vue"
+import MailAccountsTab from "./MailAccounts.vue"
+import ContactsTab from "./Contacts.vue"
+import CalendarTab from "./Calendar.vue"
+import FilesTab from "./Files.vue"
+import MobileSyncTab from "./MobileSync.vue"
+import OpenPGPTab from "./OpenPgp.vue"
 
 export default {
   name: "SettingsUI",

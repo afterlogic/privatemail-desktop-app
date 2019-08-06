@@ -6,7 +6,7 @@
     <q-btn flat color="primary" icon="mail_outline" />
     <q-btn flat color="primary" icon="delete_outline" />
     <q-space/>
-    <q-btn flat color="primary" icon="cached" />
+    <q-btn flat color="primary" icon="sync" />
     <!-- <q-btn flat color="primary" label="Flat" /> -->
   </q-toolbar>
 </template>
@@ -29,7 +29,6 @@ export default {
   name: "MailListToolbar",
   data () {
     return {
-
     }
   },
   methods: {

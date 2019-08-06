@@ -70,11 +70,13 @@ module.exports = function (ctx) {
         'QBreadcrumbsEl',
         'QCard',
         'QCardSection',
-        'QDate'
+        'QDate',
+        'QDialog'
       ],
 
       directives: [
-        'Ripple'
+        'Ripple',
+        'ClosePopup'
       ],
 
       // Quasar plugins
@@ -170,6 +172,7 @@ module.exports = function (ctx) {
       extendWebpack (cfg) {
         // do something with Electron main process Webpack cfg
         // chainWebpack also available besides this extendWebpack
+        cfg.resolve.alias['@'] = resolve('src');
       },
 
       packager: {
@@ -189,6 +192,22 @@ module.exports = function (ctx) {
         // https://www.electron.build/configuration/configuration
 
         // appId: 'privatemail-desktop'
+        "appId": "com.afterlogic.privatemail",
+        "productName": "Private Mail",
+        "mac": {
+          "category": "public.app-category.social-networking"
+        },
+        "win": {
+          "target": [
+            "nsis"
+          ]
+        },
+        "linux": {
+          "target": [
+            "AppImage",
+            "deb"
+          ]
+        }
       }
     }
   }

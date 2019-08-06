@@ -85,7 +85,7 @@
 <style></style>
 
 <script>
-import {messages} from "../data.js"
+import {messages} from "../../data.js"
 
 export default {
   name: "MessageViewer",

@@ -4,12 +4,12 @@
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
           <div class="column full-height">
-            <div class="col-auto">
+            <div class="col-auto q-pa-sm">
               <q-btn color="accent" flat size=md label="New event" style="width: 100%; border: 2px solid #BC4799" />
             </div>
             <div class="col">
               <q-list>
-                <q-item clickable v-ripple>
+                <q-item clickable v-ripple >
                   <q-item-section avatar>
                     <q-icon name="event" />
                   </q-item-section>
@@ -33,7 +33,7 @@
         <template v-slot:after>
           <div class="column full-height bg-white text-black panel-rounded">
             <div class="col-auto">
-              <mail-list-toolbar />
+              <toolbar />
             </div>
             <div class="col bg-white text-black">
               
@@ -61,13 +61,12 @@
 </style>
 
 <script>
-import MailListToolbar from "components/MailListToolbar.vue"
-
+import Toolbar from "./Toolbar"
 
 export default {
   name: "CalendarUI",
   components: {
-    MailListToolbar,
+    Toolbar,
   },
   data () {
     return {

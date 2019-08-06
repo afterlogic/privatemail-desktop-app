@@ -1,5 +1,5 @@
 <template>
-  <div class="q-gutter-md">
+  <div>
     <q-item clickable v-ripple :class="{active: checkValue }">
       <q-item-section avatar>
         <q-checkbox v-model="checkValue" />
@@ -17,7 +17,7 @@
         1 min ago
       </q-item-section>
     </q-item>
-    <q-separator />
+    <q-separator :class="{'bg-accent-dark': checkValue }" />
   </div>
 </template>
 

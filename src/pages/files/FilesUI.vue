@@ -3,13 +3,37 @@
     <q-page class="flex flex-stretch" style="height: 100%">
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
-          <folder-list />
+          <div class="column full-height">
+            <div class="col-auto q-pa-sm">
+              <q-btn @click="uploadFiles" color="accent" flat size=md label="Upload files" style="width: 100%; border: 2px solid #BC4799" />
+            </div>
+            <div class="col" style="overflow: hidden;">
+              <q-scroll-area class="full-height full-widht">
+                <q-list>
+                  <q-item clickable v-ripple>
+                    <q-item-section avatar>
+                      <q-icon name="folder" />
+                    </q-item-section>
+                    <q-item-section>Personal</q-item-section>
+                    <!-- <q-item-section side>3</q-item-section> -->
+                  </q-item>
+                  <q-item clickable v-ripple>
+                    <q-item-section avatar>
+                      <q-icon name="folder" />
+                    </q-item-section>
+                    <q-item-section>Team</q-item-section>
+                    <!-- <q-item-section side>3</q-item-section> -->
+                  </q-item>
+                </q-list>
+              </q-scroll-area>
+            </div>
+          </div>
         </template>
 
         <template v-slot:after>
           <div class="column full-height bg-white text-black panel-rounded">
             <div class="col-auto">
-              <mail-list-toolbar />
+              <toolbar />
               <q-toolbar style="width: 100%; background: #eee;">
                 <q-checkbox v-model="checkboxVal" />
                 <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
@@ -54,16 +78,12 @@
 <style></style>
 
 <script>
-import FolderList from "components/FolderList.vue"
-// import ContactsList from "components/ContactsList.vue"
-import MailListToolbar from "components/MailListToolbar.vue"
+import Toolbar from "./Toolbar"
 
 export default {
   name: "FilesUI",
   components: {
-    FolderList,
-    // ContactsList,
-    MailListToolbar,
+    Toolbar,
   },
   data () {
     return {
@@ -71,6 +91,11 @@ export default {
       splitterMessageModel: 50,
       checkboxVal: false,
       searchText: ''
+    }
+  },
+  methods: {
+    uploadFiles() {
+      console.log('uploadFiles');
     }
   }
 };

@@ -3,7 +3,16 @@
     <q-page class="flex flex-stretch" style="height: 100%">
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
-          <group-list />
+          <div class="column full-height">
+            <div class="col-auto q-pa-sm">
+              <q-btn @click="createContact" color="accent" flat size=md label="New contact" style="width: 100%; border: 2px solid #BC4799" />
+            </div>
+            <div class="col" style="overflow: hidden;">
+              <q-scroll-area class="full-height full-widht">
+                <group-list />
+              </q-scroll-area>
+            </div>
+          </div>
         </template>
 
         <template v-slot:after>
@@ -11,7 +20,7 @@
             <template v-slot:before>
               <div class="column full-height bg-white text-black panel-rounded">
                 <div class="col-auto">
-                  <mail-list-toolbar />
+                  <contact-list-toolbar />
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="checkboxVal" />
                     <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
@@ -49,16 +58,16 @@
 <style></style>
 
 <script>
-import GroupList from "components/GroupList.vue"
-import ContactsList from "components/ContactsList.vue"
-import MailListToolbar from "components/MailListToolbar.vue"
+import GroupList from "./GroupList.vue"
+import ContactsList from "./ContactsList.vue"
+import ContactListToolbar from "./ContactListToolbar.vue"
 
 export default {
   name: "ContactsUI",
   components: {
     GroupList,
     ContactsList,
-    MailListToolbar,
+    ContactListToolbar,
   },
   data () {
     return {
@@ -66,6 +75,11 @@ export default {
       splitterMessageModel: 50,
       checkboxVal: false,
       searchText: ''
+    }
+  },
+  methods: {
+    createContact() {
+      console.log('createContact');
     }
   }
 };

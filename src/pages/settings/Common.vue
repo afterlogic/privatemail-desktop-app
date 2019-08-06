@@ -20,8 +20,8 @@
         <q-item-section>
           <q-select outlined v-model="themeValue" :options="themesList" :dense=true style="width: 100%;"/>
         </q-item-section>
-        
       </q-item>
+        
       <q-item>
         <q-item-section side center style="min-width: 100px;">
           Language

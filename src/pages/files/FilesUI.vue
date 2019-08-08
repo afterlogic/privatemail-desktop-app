@@ -4,8 +4,8 @@
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
           <div class="column full-height">
-            <div class="col-auto q-pa-sm">
-              <q-btn @click="uploadFiles" color="accent" flat size=md label="Upload files" style="width: 100%; border: 2px solid #BC4799" />
+            <div class="col-auto q-px-sm">
+              <q-btn @click="uploadFiles" label="Upload files" flat no-caps size=18px color="primary" class="full-width big-button" />
             </div>
             <div class="col" style="overflow: hidden;">
               <q-scroll-area class="full-height full-widht">

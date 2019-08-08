@@ -1,26 +1,29 @@
 <template>
   <q-page-container style="height: 100vh">
     <q-page class="flex flex-stretch" style="height: 100%">
-      <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
+      <q-splitter v-model="splitterFolderModel" :limits="[10,30]" style="height: 100%; width: 100%;">
         <template v-slot:before>
           <div class="column full-height">
-            <div class="col-auto q-pa-sm">
-              <q-btn @click="openCompose" color="accent" flat size=md label="New message" style="width: 100%; border: 2px solid #BC4799" />
+            <div class="col-auto q-px-sm">
+              <q-btn @click="openCompose" label="New message" flat no-caps size=18px color="primary" class="full-width big-button" />
             </div>
             <div class="col" style="overflow: hidden;">
               <q-scroll-area class="full-height full-widht">
                 <folder-list />
               </q-scroll-area>
             </div>
+            <div class="col-auto q-pa-md items-center">
+              <q-btn label="Manage folders" class="full-width" flat no-caps/>
+            </div>
           </div>
         </template>
 
         <template v-slot:after>
-          <q-splitter v-model="splitterMessageModel">
+          <q-splitter v-model="splitterMessageModel" :limits="[2,50]">
             <template v-slot:before>
               <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
-                  <mail-list-toolbar class="text-black" />
+                  <mail-list-toolbar/>
                   <q-expansion-item 
                     expand-separator
                     icon="mail"

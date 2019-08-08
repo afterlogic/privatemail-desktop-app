@@ -5,33 +5,53 @@
 </template>
 
 <script>
-import { colors } from 'quasar'
-
-colors.setBrand('primary', '#000')
-colors.setBrand('secondary', '#33F')
-colors.setBrand('accent', '#BC4799')
-colors.setBrand('positive', '#33F')
-colors.setBrand('negative', '#33F')
-colors.setBrand('info', '#33F')
-colors.setBrand('warning', '#33F')
+import theming from './css/theming'
 
 export default {
-  name: "App"
+  name: "App",
+  watch: {
+    '$store.state.main.theme': function (v) {
+      this.setThemeColors(v);
+    },
+  },
+  mounted () {
+    this.setThemeColors(this.$store.state.main.theme);
+  },
+  methods: {
+    setThemeColors (v) {
+      if (v === 'light') {
+        theming.setLightThemeColors()
+      } else {
+        theming.setDarkhemeColors()
+      }
+    },
+  }
 };
+
+
 </script>
 
 <style lang="scss">
-.text-brand {
-  color: #fff;
+.theme-text {
+  color: var(--q-color-t-text);
 }
-.bg-accent-dark {
-  background: rgb(150, 77, 128);
+.theme-bg {
+  background-color: var(--q-color-t-background);
+}
+.big-button {
+  border: 2px solid var(--q-color-primary);
+  background: var(--q-color-primary-dark);
+}
 
+.main-tabs {
+  background: var(--q-color-t-gradient-start);
+  color: var(--q-color-t-text);
 }
-.bg-brand {
-  background: #000;
+
+.bg-accent-dark {
+  background: #6d5d7e;
 }
 .panel-rounded {
-  border-radius: 5px;
+  border-radius: 0px;
 }
 </style>

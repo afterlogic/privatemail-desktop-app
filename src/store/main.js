@@ -1,20 +1,20 @@
 export default {
   namespaced: true,
   state: {
-    authorized: '',
+    theme: 'dark',
   },
   mutations: {
-    setAuthorized (state, v) {
-      state.authorized = !!v
+    setTheme (state, v) {
+      state.theme = v
     }
   },
   actions: {
-    login ({ commit }) {
-      commit('setAuthorized', true)
-    },
-
-    logout ({ commit }) {
-      commit('setAuthorized', false)
+    toggleTheme ({ commit, state }) {
+      if (state.theme === 'light') {
+        commit('setTheme', 'dark')
+      } else {
+        commit('setTheme', 'light')
+      }
     },
   }
 }

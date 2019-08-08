@@ -1,8 +1,10 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import createPersistedState from 'vuex-persistedstate'
 
 // import example from './module-example'
-import userStore from './user'
+import user from './user.js'
+import main from './main.js'
 
 Vue.use(Vuex);
 
@@ -13,8 +15,12 @@ Vue.use(Vuex);
 
 export default function(/* { ssrContext } */) {
   const Store = new Vuex.Store({
+    plugins: [createPersistedState({
+      paths: ['user', 'main'],
+    })],
     modules: {
-      userStore
+      main,
+      user,
       // example
     },
 

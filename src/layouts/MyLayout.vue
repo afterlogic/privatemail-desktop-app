@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh LpR lfr">
-    <q-header bordered class="bg-primary text-white">
+    <q-header bordered class="bg-primary theme-text">
       <q-toolbar>
         <!-- <q-btn dense flat round icon="menu" @click="left = !left" /> -->
 

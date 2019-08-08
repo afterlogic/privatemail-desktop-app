@@ -4,8 +4,8 @@
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
           <div class="column full-height">
-            <div class="col-auto q-pa-sm">
-              <q-btn color="accent" flat size=md label="New event" style="width: 100%; border: 2px solid #BC4799" />
+            <div class="col-auto q-px-sm">
+              <q-btn label="New event" flat no-caps size=18px color="primary" class="full-width big-button" />
             </div>
             <div class="col">
               <q-list>

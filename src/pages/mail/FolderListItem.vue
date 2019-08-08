@@ -11,7 +11,7 @@
         <q-item-label lines="2">{{subject}}</q-item-label>
       </q-item-section>
       <q-item-section style="flex: auto;">
-        <q-item-label lines="1">{{friendlyDate}}</q-item-label>
+        1 min ago
       </q-item-section>
     </q-item>
     <q-separator :class="{selected: selected, active: active}" />
@@ -43,12 +43,10 @@ export default {
   name: "MessageListItem",
   props: [
     'subject',
-    'from',
-    'time',
+    'from'
   ],
   data () {
     return {
-      friendlyDate: 'now',
       active: false,
       selected: false,
     }

@@ -1,13 +1,11 @@
 <template>
-  <q-layout view="hHh LpR lfr" class="bg-black text-white">
+  <q-layout view="hHh LpR lfr" class="theme-text main-background">
     <q-header bordered>
       <!-- <q-toolbar>
         <q-btn dense flat round icon="menu" @click="left = !left" />
         <q-btn dense flat round icon="menu" @click="showRight = !showRight" />
       </q-toolbar> -->
-      <q-btn @click="logIn()" label="Login" />
-      <q-tabs align="left" class="q-pa-md" v-if="isAuthorized">
-        {{isLoginedIn}}
+      <q-tabs align="left" class="q-pa-md main-tabs" v-if="isAuthorized">
         <q-route-tab to="/mail" label="Mail" />
         <q-route-tab to="/contacts" label="Contacts" />
         <q-route-tab to="/files" label="Files" />
@@ -30,12 +28,10 @@ export default {
     };
   },
   mounted () {
-    this.$store.dispatch('logout')
   },
   computed: {
     isAuthorized: function () {
-      // return true;
-      return this.$store.state.authorized;
+      return this.$store.state.user.authorized;
     }
   },
   methods: {
@@ -44,6 +40,24 @@ export default {
     }
   }
 };
-</script>
+</script >
 
-<style></style>
+<style lang="scss">
+  $startColor: var(--q-color-t-gradient-start);
+  $endColor: var(--q-color-t-gradient-stop);
+  
+  .main-background {
+    background: var(--q-color-t-gradient-start);
+    background: -moz-linear-gradient(top, var(--q-color-t-gradient-start) 0%, var(--q-color-t-gradient-stop) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, var(--q-color-t-gradient-start)), color-stop(100%, var(--q-color-t-gradient-stop)));
+    background: -webkit-linear-gradient(top, var(--q-color-t-gradient-start) 0%, var(--q-color-t-gradient-stop) 100%);
+    background: -o-linear-gradient(top, var(--q-color-t-gradient-start) 0%, var(--q-color-t-gradient-stop) 100%);
+    background: -ms-linear-gradient(top, var(--q-color-t-gradient-start) 0%, var(--q-color-t-gradient-stop) 100%);
+    background: linear-gradient(to bottom, var(--q-color-t-gradient-start) 0%, var(--q-color-t-gradient-stop) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#410324', endColorstr='#222757', GradientType=0 );
+  }
+
+  .q-header {
+    border: 0px;
+  }
+</style>

@@ -1,13 +1,13 @@
 <template>
   <q-list>
-    <q-item clickable v-ripple>
+    <q-item clickable v-ripple :class="{active: currentGroup === 'personal'}" @click="setGroup('personal')">
       <!-- <q-item-section avatar>
         <q-icon name="person" />
       </q-item-section> -->
       <q-item-section>Personal</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple>
+    <q-item clickable v-ripple :class="{active: currentGroup === 'corporate'}" @click="setGroup('corporate')">
       <!-- <q-item-section avatar>
         <q-icon name="group" />
       </q-item-section> -->
@@ -27,7 +27,11 @@
   </q-list>
 </template>
 
-<style></style>
+<style lang="scss" scoped>
+.active {
+  background: var(--q-color-t-selection);
+}
+</style>
 
 <script>
 import {groups} from "../../contactsData.js"
@@ -36,11 +40,17 @@ export default {
   name: "GroupList",
   data () {
     return {
-      groupsList: []
+      groupsList: [],
+      currentGroup: 'personal',
     }
   },
   mounted: function () {
     this.groupsList = groups;
-  }
+  },
+  methods: {
+    setGroup (v) {
+      this.currentGroup = v;
+    }
+  },
 };
 </script>

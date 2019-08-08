@@ -7,11 +7,11 @@
       transition-hide="slide-down"
     >
       <div class="column bg-white" style="min-width: 800px; ">
-        <div class="col-auto bg-grey-9 text-white">
+        <div class="col-auto bg-grey-9 theme-text">
           <div class="row">
           </div>
         </div>
-        <q-toolbar class=" bg-grey-9 text-white">
+        <q-toolbar class=" bg-grey-9 theme-text">
           <q-btn  flat icon="send" label="Send" />
           <q-btn  flat icon="save" label="Save" />
           <q-space />

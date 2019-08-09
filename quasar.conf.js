@@ -173,7 +173,6 @@ module.exports = function (ctx) {
       extendWebpack (cfg) {
         // do something with Electron main process Webpack cfg
         // chainWebpack also available besides this extendWebpack
-        cfg.resolve.alias['@'] = resolve('src');
       },
 
       packager: {

@@ -1,19 +1,25 @@
 export default {
   namespaced: true,
   state: {
-    authorized: '',
+    authorized: false,
+    authToken: '',
   },
   mutations: {
     setAuthorized (state, v) {
       state.authorized = !!v
-    }
+    },
+    setAuthToken (state, v) {
+      state.authToken = v
+    },
   },
   actions: {
-    login ({ commit }) {
+    login ({ commit }, authToken) {
+      commit('setAuthToken', authToken)
       commit('setAuthorized', true)
     },
 
     logout ({ commit }) {
+      commit('setAuthToken', '')
       commit('setAuthorized', false)
     },
   }

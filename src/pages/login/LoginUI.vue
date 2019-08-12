@@ -7,9 +7,10 @@
         </div>
         <div class="col">
           <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black" style="min-width: 400px">
-            <q-input outlined v-model="login" label="Login" />
-            <q-input outlined v-model="password" label="Password" />
-            <q-btn @click="logIn()" color="primary" size="20px" label="Login"/>
+            <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" />
+            <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
+            <q-btn color="primary" v-if="loading" size="20px" label="Signing In ..." no-caps disable />
+            <q-btn @click="logIn()" color="primary" v-else size="20px" label="Sign In" no-caps/>
           </div>
         </div>
       </div>
@@ -29,12 +30,17 @@
 </style>
 
 <script>
+import webApi from 'src/utils/webApi.js'
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+
 export default {
-  name: "LoginUI",
+  name: 'LoginUI',
   data () {
     return {
       login: '',
-      password: ''
+      password: '',
+      loading: false,
     }
   },
   mounted () {
@@ -42,16 +48,28 @@ export default {
   },
   computed: {
     isAuthorized: function () {
-      // return true;
-      return this.$store.state.user.authorized;
+      return this.$store.state.user.authorized
     }
   },
   methods: {
     logIn() {
-      console.log('click login')
-      this.$store.dispatch('user/login')
-      this.$router.push({ path: '/mail' });
+      if (!this.loading) {
+        var parameters = {
+          Login: this.login,
+          Password: this.password,
+        }
+        this.loading = true
+        webApi.sendRequest('Core', 'Login', parameters, (result, error) => {
+          this.loading = false
+          if (result && result.AuthToken) {
+            this.$store.dispatch('user/login', result.AuthToken)
+            this.$router.push({ path: '/mail' })
+          } else {
+            notification.showError(errors.getText(error, 'Error occurred while trying to sign in'))
+          }
+        })
+      }
     }
   }
-};
+}
 </script>

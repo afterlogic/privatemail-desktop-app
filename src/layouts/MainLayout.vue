@@ -6,7 +6,7 @@
         <q-btn dense flat round icon="menu" @click="showRight = !showRight" />
       </q-toolbar> -->
       <q-tabs align="left" class="q-pa-md main-tabs" v-if="isAuthorized">
-        <q-route-tab to="/mail" label="Mail" />
+        <q-route-tab to="/mail" :label="mailHeader" />
         <q-route-tab to="/contacts" label="Contacts" />
         <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" />
@@ -31,8 +31,12 @@ export default {
   },
   computed: {
     isAuthorized: function () {
-      return this.$store.state.user.authorized;
-    }
+      return this.$store.state.user.authorized
+    },
+    mailHeader () {
+      var account = this.$store.getters['mail/getAccount']
+      return account ? account.Email : 'Mail'
+    },
   },
   methods: {
     logIn () {

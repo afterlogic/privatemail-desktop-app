@@ -1,19 +1,25 @@
 import axios from 'axios'
+import store from 'src/store'
 
 export default {
   sendRequest: function (module, method, parameters, callback) {
-    const url = 'http://aurora-platform.dev.com/?/Api/'
+    const url = 'http://aurora.dev.com/?/Api/'
 
     var bodyFormData = new FormData()
     bodyFormData.set('Module', module)
     bodyFormData.set('Method', method)
     bodyFormData.set('Parameters', JSON.stringify(parameters))
 
+    var authToken = store.getters['user/getAuthToken']
+    var headers = {'Content-Type': 'multipart/form-data'}
+    if (authToken) {
+      headers['Authorization'] = 'Bearer ' + authToken
+    }
     axios({
       method: 'post',
-      url: url,
+      url,
       data: bodyFormData,
-      config: { headers: {'Content-Type': 'multipart/form-data' }},
+      headers,
     })
       .then((response) => {
         console.log('webApi response', response)

@@ -22,7 +22,12 @@ export default {
       commit('setAuthToken', '')
       commit('setAuthorized', false)
     },
-  }
+  },
+  getters: {
+    getAuthToken (state) {
+      return state.authToken
+    }
+  },
 }
   // strict: process.env.NODE_ENV !== 'production',
 

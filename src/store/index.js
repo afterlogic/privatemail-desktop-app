@@ -1,33 +1,24 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import Vue from 'vue'
+import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 
-// import example from './module-example'
 import user from './user.js'
 import main from './main.js'
+import mail from './mail.js'
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
-/*
- * If not building with SSR mode, you can
- * directly export the Store instantiation
- */
+export default new Vuex.Store({
+  plugins: [createPersistedState({
+    paths: ['user', 'main', 'mail'],
+  })],
+  modules: {
+    main,
+    user,
+    mail,
+  },
 
-export default function(/* { ssrContext } */) {
-  const Store = new Vuex.Store({
-    plugins: [createPersistedState({
-      paths: ['user', 'main'],
-    })],
-    modules: {
-      main,
-      user,
-      // example
-    },
-
-    // enable strict mode (adds overhead!)
-    // for dev mode only
-    strict: process.env.DEV
-  });
-
-  return Store;
-}
+  // enable strict mode (adds overhead!)
+  // for dev mode only
+  strict: process.env.DEV
+})

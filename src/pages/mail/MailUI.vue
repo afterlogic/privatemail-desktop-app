@@ -104,6 +104,9 @@ export default {
       console.log('openCompose parent 2');
       this.$refs.compose.openCompose();
     }
-  }
+  },
+  mounted: function () {
+    this.$store.dispatch('mail/asyncGetSettings')
+  },
 };
 </script>

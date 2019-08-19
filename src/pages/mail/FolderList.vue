@@ -49,6 +49,13 @@ export default {
       return this.$store.getters['mail/getFolderList']
     },
   },
+  // mounted () {
+  //   this.$watch('folderList', function () {
+  //     console.log('changed')
+  //   }, {
+  //     deep: true
+  //   })
+  // },
   methods: {
     setActiveItem (folderFullName) {
       this.currentItem = folderFullName

@@ -8,6 +8,8 @@ export default {
   state: {
     account: null,
     folderList: null,
+    foldersByNames: null,
+    foldersNames: null,
     foldersCount: 0,
     foldersNamespace: '',
   },
@@ -16,7 +18,7 @@ export default {
       state.account = payload
     },
     setFolderList (state, payload) {
-      state.folderList = payload.collection
+      state.folderList = payload
       _.each(state.folderList, function (folder) {
         folder.IconName = ''
         switch (folder.Type) {
@@ -44,20 +46,60 @@ export default {
         }
         folder.UnseenCount = 0
       })
-      state.foldersCount = payload.count
-      state.foldersNamespace = payload.namespace
+    },
+    setFoldersCount (state, payload) {
+      state.foldersCount = payload
+    },
+    setFoldersNamespace (state, payload) {
+      state.foldersNamespace = payload
+    },
+    setFoldersNames (state) {
+      var foldersNames = []
+      var foldersByNames = []
+      _.each(state.folderList, function (folder) {
+        foldersByNames[folder.FullName] = folder
+        foldersNames.push(folder.FullName)
+        if (folder.SubFolders) {
+          _.each(folder.SubFolders['@Collection'], function (subfolder) {
+            foldersByNames[folder.FullName] = folder
+            foldersNames.push(subfolder.FullName)
+          })
+        }
+      })
+      state.foldersByNames = foldersByNames
+      state.foldersNames = foldersNames
     },
   },
   actions: {
-    asyncSetFolderList ({ state, commit }) {
+    asyncSetFoldersRelevantInformation ({ state, commit }) {
+      if (state.account) {
+        webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: state.account.AccountID, Folders: state.foldersNames, UseListStatusIfPossible: true}, (result, error) => {
+          if (result && result.Counts) {
+            _.each(result.Counts, function (folderCounts, folderFullName) {
+              if (state.foldersByNames[folderFullName]) {
+                state.foldersByNames[folderFullName].Count = folderCounts[0]
+                state.foldersByNames[folderFullName].UnseenCount = folderCounts[1]
+                console.log('folderFullName', folderFullName, 'UnseenCount', state.foldersByNames[folderFullName].UnseenCount)
+                state.foldersByNames[folderFullName].NextUid = folderCounts[2]
+                state.foldersByNames[folderFullName].Hash = folderCounts[3]
+              }
+            })
+            commit('setFolderList', state.folderList)
+          } else {
+            notification.showError(errors.getText(error, 'Error occurred while getting folders relevant information'))
+          }
+        })
+      }
+    },
+    asyncSetFolderList ({ state, commit, dispatch }) {
       if (state.account) {
         webApi.sendRequest('Mail', 'GetFolders', {AccountID: state.account.AccountID}, (result, error) => {
           if (result && result.Folders && result.Folders['@Collection']) {
-            commit('setFolderList', {
-              collection: result.Folders['@Collection'],
-              count: result.Folders['@Count'],
-              namespace: result.Namespace,
-            })
+            commit('setFolderList', result.Folders['@Collection'])
+            commit('setFoldersCount', result.Folders['@Count'])
+            commit('setFoldersNamespace', result.Folders.Namespace)
+            commit('setFoldersNames')
+            dispatch('asyncSetFoldersRelevantInformation')
           } else {
             notification.showError(errors.getText(error, 'Error occurred while getting folder list'))
           }

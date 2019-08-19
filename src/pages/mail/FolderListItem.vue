@@ -5,7 +5,7 @@
         <q-icon :name="folder.IconName" />
       </q-item-section>
       <q-item-section>{{folder.Name}}</q-item-section>
-      <q-item-section side v-if="folder.UnseenCount > 0">
+      <q-item-section side>
         <q-chip dense>{{folder.UnseenCount}}</q-chip>
       </q-item-section>
     </q-item>
@@ -39,8 +39,19 @@ export default {
       subfolders: [],
     }
   },
-  mounted: function () {
-  },
+  // computed: {
+  //   unseenCount () {
+  //     console.log('unseenCount', this.folder.UnseenCount)
+  //     return this.folder.UnseenCount
+  //   },
+  // },
+  // mounted: function () {
+  //   this.$watch('folder', function () {
+  //     console.log('this.folder.UnseenCount', this.folder.UnseenCount)
+  //   }, {
+  //     deep: true
+  //   })
+  // },
   methods: {
     setActiveItem: function (folderFullName) {
       if (_.isFunction(this.$parent.setActiveItem)) {

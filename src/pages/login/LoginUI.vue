@@ -45,6 +45,7 @@ export default {
   },
   mounted () {
     this.$store.dispatch('user/logout')
+    this.$store.dispatch('mail/logout')
   },
   computed: {
     isAuthorized: function () {

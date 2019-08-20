@@ -1,6 +1,6 @@
 <template>
   <q-list class="folder-list">
-    <FolderListItem v-for="folder in folderList" v-bind:key="folder.FullName" :folder="folder" :currentItem="currentItem"></FolderListItem>
+    <FolderListItem v-for="folder in folderList" :key="folder.Hash" :folder="folder" :currentItem="currentItem"></FolderListItem>
   </q-list>
 </template>
 
@@ -49,17 +49,10 @@ export default {
       return this.$store.getters['mail/getFolderList']
     },
   },
-  // mounted () {
-  //   this.$watch('folderList', function () {
-  //     console.log('changed')
-  //   }, {
-  //     deep: true
-  //   })
-  // },
   methods: {
     setActiveItem (folderFullName) {
       this.currentItem = folderFullName
     },
-  }
+  },
 }
 </script>

@@ -5,12 +5,19 @@
         <q-icon :name="folder.IconName" />
       </q-item-section>
       <q-item-section>{{folder.Name}}</q-item-section>
-      <q-item-section side>
-        <q-chip dense>{{folder.UnseenCount}}</q-chip>
+      <q-item-section side v-if="folder.UnseenCount > 0">
+        <q-chip dense>{{folder.UnseenCount}}
+          <q-tooltip>
+            Show unread messages only
+          </q-tooltip>
+        </q-chip>
+      </q-item-section>
+      <q-item-section side v-if="folder.Type === 3 && folder.Count > 0">
+        <q-chip color="transparent" dense>{{folder.Count}}</q-chip>
       </q-item-section>
     </q-item>
     <template v-if="folder.SubFolders">
-      <FolderListItem v-for="subfolder in folder.SubFolders['@Collection']" v-bind:key="subfolder.FullName" :folder="subfolder" :level="level + 1" :currentItem="currentItem"></FolderListItem>
+      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="level + 1" :currentItem="currentItem"></FolderListItem>
     </template>
   </div>
 </template>
@@ -39,19 +46,6 @@ export default {
       subfolders: [],
     }
   },
-  // computed: {
-  //   unseenCount () {
-  //     console.log('unseenCount', this.folder.UnseenCount)
-  //     return this.folder.UnseenCount
-  //   },
-  // },
-  // mounted: function () {
-  //   this.$watch('folder', function () {
-  //     console.log('this.folder.UnseenCount', this.folder.UnseenCount)
-  //   }, {
-  //     deep: true
-  //   })
-  // },
   methods: {
     setActiveItem: function (folderFullName) {
       if (_.isFunction(this.$parent.setActiveItem)) {

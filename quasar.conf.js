@@ -72,7 +72,9 @@ module.exports = function (ctx) {
         'QCardSection',
         'QDate',
         'QDialog',
-        'QRadio'
+        'QRadio',
+        'QTooltip',
+        'QSpinner',
       ],
 
       directives: [

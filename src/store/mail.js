@@ -3,9 +3,87 @@ import webApi from 'src/utils/webApi.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
+function _getIconName(type, folderFullName) {
+  var iconName = ''
+  switch (type) {
+    case 1:
+      iconName = 'mail' // inbox
+      break
+    case 2:
+      iconName = 'send' // sent
+      break
+    case 3:
+      iconName = 'insert_drive_file' // drafts
+      break
+    case 4:
+      iconName = 'error' // spam
+      break
+    case 5:
+      iconName = 'delete' // trash
+      break
+    case 7:
+      iconName = 'star' // starred
+      break
+  }
+  if (folderFullName === 'Notes') {
+    iconName = 'edit'
+  }
+  return iconName;
+}
+
+function _prepareFolderList(folderList, oldFoldersByNames) {
+  var newFoldersByNames = []
+  var newFoldersNames = []
+
+  function _recursive(folderList) {
+    var newFolderList = []
+    _.each(folderList, function (folder) {
+      var oldFolder = oldFoldersByNames[folder.FullName]
+      var newFolder = {
+        FullName: folder.FullName,
+        Name: folder.Name,
+        Type: folder.Type,
+        IconName: _getIconName(folder.Type, folder.FullName),
+        Count: oldFolder ? oldFolder.Count : 0,
+        UnseenCount: oldFolder ? oldFolder.UnseenCount : 0,
+        NextUid: oldFolder ? oldFolder.NextUid : '',
+        Hash: oldFolder ? oldFolder.Hash : folder.FullName,
+      }
+      newFolder.SubFolders = (folder.SubFolders && folder.SubFolders['@Collection']) ? _recursive(folder.SubFolders['@Collection']) : []
+      newFolderList.push(newFolder)
+      newFoldersByNames[newFolder.FullName] = newFolder
+      newFoldersNames.push(newFolder.FullName)
+    })
+
+    return newFolderList
+  }
+
+  var newFolderList = _recursive(folderList)
+
+  return {
+    folderList: newFolderList,
+    foldersByNames: newFoldersByNames,
+    foldersNames: newFoldersNames,
+  }
+}
+
+function _prepareFoldersByNames(folderList) {
+  var newFoldersByNames = []
+
+  function _recursive(folderList) {
+    _.each(folderList, function (folder) {
+      newFoldersByNames[folder.FullName] = folder
+    })
+  }
+  _recursive(folderList)
+  
+  return newFoldersByNames
+}
+
 export default {
   namespaced: true,
   state: {
+    syncing: false,
     account: null,
     folderList: null,
     foldersByNames: null,
@@ -14,38 +92,14 @@ export default {
     foldersNamespace: '',
   },
   mutations: {
+    setSyncing (state, payload) {
+      state.syncing = payload
+    },
     setAccount (state, payload) {
       state.account = payload
     },
     setFolderList (state, payload) {
       state.folderList = payload
-      _.each(state.folderList, function (folder) {
-        folder.IconName = ''
-        switch (folder.Type) {
-          case 1:
-            folder.IconName = 'mail' // inbox
-            break
-          case 2:
-            folder.IconName = 'send' // sent
-            break
-          case 3:
-            folder.IconName = 'insert_drive_file' // drafts
-            break
-          case 4:
-            folder.IconName = 'error' // spam
-            break
-          case 5:
-            folder.IconName = 'delete' // trash
-            break
-          case 7:
-            folder.IconName = 'star' // starred
-            break
-        }
-        if (folder.FullName === 'Notes') {
-          folder.IconName = 'edit'
-        }
-        folder.UnseenCount = 0
-      })
     },
     setFoldersCount (state, payload) {
       state.foldersCount = payload
@@ -53,65 +107,75 @@ export default {
     setFoldersNamespace (state, payload) {
       state.foldersNamespace = payload
     },
-    setFoldersNames (state) {
-      var foldersNames = []
-      var foldersByNames = []
-      _.each(state.folderList, function (folder) {
-        foldersByNames[folder.FullName] = folder
-        foldersNames.push(folder.FullName)
-        if (folder.SubFolders) {
-          _.each(folder.SubFolders['@Collection'], function (subfolder) {
-            foldersByNames[folder.FullName] = folder
-            foldersNames.push(subfolder.FullName)
-          })
+    setFoldersByNames (state, payload) {
+      state.foldersByNames = payload
+    },
+    setFoldersNames (state, payload) {
+      state.foldersNames = payload
+    },
+    setFoldersRelevantInformation (state, payload) {
+      _.each(payload, function (folderCounts, folderFullName) {
+        if (state.foldersByNames[folderFullName]) {
+          state.foldersByNames[folderFullName].Count = folderCounts[0]
+          state.foldersByNames[folderFullName].UnseenCount = folderCounts[1]
+          state.foldersByNames[folderFullName].NextUid = folderCounts[2]
+          state.foldersByNames[folderFullName].Hash = folderCounts[3]
         }
       })
-      state.foldersByNames = foldersByNames
-      state.foldersNames = foldersNames
     },
   },
   actions: {
-    asyncSetFoldersRelevantInformation ({ state, commit }) {
+    logout ({ commit }) {
+      commit('setAccount', null)
+      commit('setFolderList', null)
+      commit('setFoldersCount', 0)
+      commit('setFoldersNamespace', '')
+      commit('setFoldersByNames', null)
+      commit('setFoldersNames', null)
+    },
+    asyncGetFoldersRelevantInformation ({ state, commit }) {
       if (state.account) {
+        commit('setSyncing', true)
         webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: state.account.AccountID, Folders: state.foldersNames, UseListStatusIfPossible: true}, (result, error) => {
+          commit('setSyncing', false)
           if (result && result.Counts) {
-            _.each(result.Counts, function (folderCounts, folderFullName) {
-              if (state.foldersByNames[folderFullName]) {
-                state.foldersByNames[folderFullName].Count = folderCounts[0]
-                state.foldersByNames[folderFullName].UnseenCount = folderCounts[1]
-                console.log('folderFullName', folderFullName, 'UnseenCount', state.foldersByNames[folderFullName].UnseenCount)
-                state.foldersByNames[folderFullName].NextUid = folderCounts[2]
-                state.foldersByNames[folderFullName].Hash = folderCounts[3]
-              }
-            })
-            commit('setFolderList', state.folderList)
+            commit('setFoldersRelevantInformation', result.Counts)
           } else {
             notification.showError(errors.getText(error, 'Error occurred while getting folders relevant information'))
           }
         })
+      } else {
+        commit('setSyncing', false)
       }
     },
-    asyncSetFolderList ({ state, commit, dispatch }) {
+    asyncGetFolderList ({ state, commit, dispatch }) {
       if (state.account) {
+        commit('setSyncing', true)
         webApi.sendRequest('Mail', 'GetFolders', {AccountID: state.account.AccountID}, (result, error) => {
           if (result && result.Folders && result.Folders['@Collection']) {
-            commit('setFolderList', result.Folders['@Collection'])
+            var folderListData = _prepareFolderList(result.Folders['@Collection'], state.foldersByNames || [])
+            commit('setFolderList', folderListData.folderList)
             commit('setFoldersCount', result.Folders['@Count'])
             commit('setFoldersNamespace', result.Folders.Namespace)
-            commit('setFoldersNames')
-            dispatch('asyncSetFoldersRelevantInformation')
+            commit('setFoldersByNames', folderListData.foldersByNames)
+            commit('setFoldersNames', folderListData.foldersNames)
+            dispatch('asyncGetFoldersRelevantInformation')
           } else {
+            commit('setSyncing', false)
             notification.showError(errors.getText(error, 'Error occurred while getting folder list'))
           }
         })
       }
     },
-    asyncGetSettings ({ commit, dispatch }) {
+    asyncGetSettings ({ state, commit, dispatch }) {
+      if (_.isEmpty(state.foldersByNames) && !_.isEmpty(state.foldersNames)) {
+        commit('setFoldersByNames', _prepareFoldersByNames(state.folderList))
+      }
       webApi.sendRequest('Mail', 'GetSettings', {}, (result, error) => {
         if (result) {
           if (result.Accounts && result.Accounts[0]) {
             commit('setAccount', result.Accounts[0])
-            dispatch('asyncSetFolderList')
+            dispatch('asyncGetFolderList')
           }
         } else {
           notification.showError(errors.getText(error, 'Error occurred while getting mail settings'))
@@ -120,6 +184,9 @@ export default {
     },
   },
   getters: {
+    getSyncing (state) {
+      return state.syncing
+    },
     getAccount (state) {
       return state.account
     },

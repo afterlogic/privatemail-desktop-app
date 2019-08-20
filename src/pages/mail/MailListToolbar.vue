@@ -7,7 +7,8 @@
     <q-btn flat color="primary" icon="delete_outline" />
     <q-btn flat color="primary" label="Show Notification" @click="showNotif()" />
     <q-space/>
-    <q-btn flat color="primary" icon="sync" />
+    <q-btn flat color="primary" icon="sync" @click="sync" v-if="!mailSyncing" />
+    <q-spinner color="primary" size="1.5em" @click="sync" v-if="mailSyncing"></q-spinner>
     <!-- <q-btn flat color="primary" label="Flat" /> -->
   </q-toolbar>
 </template>
@@ -32,7 +33,15 @@ export default {
     return {
     }
   },
+  computed: {
+    mailSyncing () {
+      return this.$store.getters['mail/getSyncing']
+    },
+  },
   methods: {
+    sync () {
+      this.$store.dispatch('mail/asyncGetFoldersRelevantInformation')
+    },
     swithTheme () {
       colors.setBrand('primary', '#000')
     },
@@ -66,7 +75,7 @@ export default {
           ),
         timeout: Math.random() * 5000 + 3000
       })
-    }
+    },
   }
 };
 </script>

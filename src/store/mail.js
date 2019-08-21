@@ -2,82 +2,136 @@ import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import dateUtils from 'src/utils/date'
 
-function _getIconName(type, folderFullName) {
-  var iconName = ''
-  switch (type) {
+function _getIconName(sType, sFolderFullName) {
+  var sIconName = ''
+  switch (sType) {
     case 1:
-      iconName = 'mail' // inbox
+      sIconName = 'mail' // inbox
       break
     case 2:
-      iconName = 'send' // sent
+      sIconName = 'send' // sent
       break
     case 3:
-      iconName = 'insert_drive_file' // drafts
+      sIconName = 'insert_drive_file' // drafts
       break
     case 4:
-      iconName = 'error' // spam
+      sIconName = 'error' // spam
       break
     case 5:
-      iconName = 'delete' // trash
+      sIconName = 'delete' // trash
       break
     case 7:
-      iconName = 'star' // starred
+      sIconName = 'star' // starred
       break
   }
-  if (folderFullName === 'Notes') {
-    iconName = 'edit'
+  if (sFolderFullName === 'Notes') {
+    sIconName = 'edit'
   }
-  return iconName;
+  return sIconName;
 }
 
-function _prepareFolderList(folderList, oldFoldersByNames) {
-  var newFoldersByNames = []
-  var newFoldersNames = []
+function _prepareFolderList(aFolderListFromServer, oOldFoldersByNames) {
+  var aNewFoldersByNames = []
+  var aNewFoldersNames = []
 
-  function _recursive(folderList) {
-    var newFolderList = []
-    _.each(folderList, function (folder) {
-      var oldFolder = oldFoldersByNames[folder.FullName]
-      var newFolder = {
-        FullName: folder.FullName,
-        Name: folder.Name,
-        Type: folder.Type,
-        IconName: _getIconName(folder.Type, folder.FullName),
-        Count: oldFolder ? oldFolder.Count : 0,
-        UnseenCount: oldFolder ? oldFolder.UnseenCount : 0,
-        NextUid: oldFolder ? oldFolder.NextUid : '',
-        Hash: oldFolder ? oldFolder.Hash : folder.FullName,
+  function _recursive(aFolderList) {
+    var aNewFolderList = []
+    _.each(aFolderList, function (oFolderFromServer) {
+      var oOldFolder = oOldFoldersByNames[oFolderFromServer.FullName]
+      var oNewFolder = {
+        FullName: oFolderFromServer.FullName,
+        Name: oFolderFromServer.Name,
+        Type: oFolderFromServer.Type,
+        IconName: _getIconName(oFolderFromServer.Type, oFolderFromServer.FullName),
+        Count: oOldFolder ? oOldFolder.Count : 0,
+        UnseenCount: oOldFolder ? oOldFolder.UnseenCount : 0,
+        NextUid: oOldFolder ? oOldFolder.NextUid : '',
+        Hash: oOldFolder ? oOldFolder.Hash : oFolderFromServer.FullName,
       }
-      newFolder.SubFolders = (folder.SubFolders && folder.SubFolders['@Collection']) ? _recursive(folder.SubFolders['@Collection']) : []
-      newFolderList.push(newFolder)
-      newFoldersByNames[newFolder.FullName] = newFolder
-      newFoldersNames.push(newFolder.FullName)
+      oNewFolder.SubFolders = (oFolderFromServer.SubFolders && oFolderFromServer.SubFolders['@Collection']) ? _recursive(oFolderFromServer.SubFolders['@Collection']) : []
+      aNewFolderList.push(oNewFolder)
+      aNewFoldersByNames[oNewFolder.FullName] = oNewFolder
+      aNewFoldersNames.push(oNewFolder.FullName)
     })
 
-    return newFolderList
+    return aNewFolderList
   }
 
-  var newFolderList = _recursive(folderList)
+  var aResultNewFolderList = _recursive(aFolderListFromServer)
 
   return {
-    folderList: newFolderList,
-    foldersByNames: newFoldersByNames,
-    foldersNames: newFoldersNames,
+    folderList: aResultNewFolderList,
+    foldersByNames: aNewFoldersByNames,
+    foldersNames: aNewFoldersNames,
   }
 }
 
-function _prepareFoldersByNames(folderList) {
-  var newFoldersByNames = []
+function _prepareFoldersByNames(aStateFolderList) {
+  var aNewFoldersByNames = []
 
-  function _recursive(folderList) {
-    _.each(folderList, function (folder) {
-      newFoldersByNames[folder.FullName] = folder
+  function _recursive(aFolderList) {
+    _.each(aFolderList, function (oFolder) {
+      aNewFoldersByNames[oFolder.FullName] = oFolder
     })
   }
-  _recursive(folderList)
+  _recursive(aStateFolderList)
   
-  return newFoldersByNames
+  return aNewFoldersByNames
+}
+
+function _getUids(aStateMessageList, iPage) {
+  var aUids = []
+  var iPageSize = 20
+  var iOffset = (iPage - 1) * iPageSize
+  var aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
+
+  _.each(aPagedList, function (oMessageInfo) {
+    aUids.push(oMessageInfo.uid)
+    if (oMessageInfo.thread) {
+      _.each(oMessageInfo.thread, function (threadItem) {
+        aUids.push(threadItem.uid)
+      })
+    }
+  })
+
+  return aUids
+}
+
+function _getMessages(aStateMessageList, iPage, oStateMessagesCache) {
+  var iPageSize = 20
+  var iOffset = (iPage - 1) * iPageSize
+  var aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
+  var aCurrentMessages = []
+
+  _.each(aPagedList, function (oMessageInfo) {
+    var oMessage = oStateMessagesCache['INBOX' + oMessageInfo.uid]
+    if (oMessage) {
+      oMessage.Threads = []
+      var bFlaggedThread = false
+      var bThreadHasUnread = false
+      if (oMessageInfo.thread) {
+        _.each(oMessageInfo.thread, function (oThreadMessage) {
+          var oThreadMessage = oStateMessagesCache['INBOX' + oThreadMessage.uid]
+          if (oThreadMessage) {
+            if (oThreadMessage.IsFlagged) {
+              bFlaggedThread = true
+            }
+            if (!oThreadMessage.IsSeen) {
+              bThreadHasUnread = true
+            }
+            oMessage.Threads.push(oThreadMessage)
+          }
+        })
+      }
+      oMessage.PartialFlagged = bFlaggedThread
+      oMessage.ThreadHasUnread = bThreadHasUnread
+      aCurrentMessages.push(oMessage)
+    }
+  })
+
+  return aCurrentMessages
 }
 
 export default {
@@ -90,6 +144,9 @@ export default {
     foldersNames: null,
     foldersCount: 0,
     foldersNamespace: '',
+    messageList: null,
+    messagesCache: {},
+    currentMessages: []
   },
   mutations: {
     setSyncing (state, payload) {
@@ -114,34 +171,70 @@ export default {
       state.foldersNames = payload
     },
     setFoldersRelevantInformation (state, payload) {
-      _.each(payload, function (folderCounts, folderFullName) {
-        if (state.foldersByNames[folderFullName]) {
-          state.foldersByNames[folderFullName].Count = folderCounts[0]
-          state.foldersByNames[folderFullName].UnseenCount = folderCounts[1]
-          state.foldersByNames[folderFullName].NextUid = folderCounts[2]
-          state.foldersByNames[folderFullName].Hash = folderCounts[3]
+      _.each(payload, function (aFolderCounts, sFolderFullName) {
+        if (state.foldersByNames[sFolderFullName]) {
+          state.foldersByNames[sFolderFullName].Count = aFolderCounts[0]
+          state.foldersByNames[sFolderFullName].UnseenCount = aFolderCounts[1]
+          state.foldersByNames[sFolderFullName].NextUid = aFolderCounts[2]
+          state.foldersByNames[sFolderFullName].Hash = aFolderCounts[3]
         }
       })
+    },
+    setMessageList (state, payload) {
+      state.messageList = payload
+    },
+    setMessagesCache (state, payload) {
+      _.each(payload, function (oMessage) {
+        oMessage.ShortDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, false)
+        state.messagesCache[oMessage.Folder + oMessage.Uid] = oMessage
+      })
+    },
+    setCurrentMessages (state) {
+      state.currentMessages = _getMessages(state.messageList, 1, state.messagesCache)
     },
   },
   actions: {
     logout ({ commit }) {
       commit('setAccount', null)
       commit('setFolderList', null)
-      commit('setFoldersCount', 0)
-      commit('setFoldersNamespace', '')
       commit('setFoldersByNames', null)
       commit('setFoldersNames', null)
+      commit('setFoldersCount', 0)
+      commit('setFoldersNamespace', '')
     },
-    asyncGetFoldersRelevantInformation ({ state, commit }) {
+    asyncGetMessages ({ state, commit }) {
+      commit('setSyncing', true)
+      webApi.sendRequest('Mail', 'GetMessagesByUids', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: _getUids(state.messageList, 1)}, (oResult, oError) => {
+        commit('setSyncing', false)
+        if (oResult && oResult['@Collection']) {
+          commit('setMessagesCache', oResult['@Collection'])
+          commit('setCurrentMessages')
+        } else {
+          notification.showError(errors.getText(oError, 'Error occurred while getting messages info'))
+        }
+      })
+    },
+    asyncGetMessagesInfo ({ state, commit, dispatch }) {
+      webApi.sendRequest('Mail', 'GetMessagesInfo', {AccountID: state.account.AccountID, Folder: 'INBOX', UseThreading: true, SortBy: 'date', SortOrder: 1}, (oResult, oError) => {
+        if (oResult) {
+          commit('setMessageList', oResult)
+          dispatch('asyncGetMessages')
+        } else {
+          commit('setSyncing', false)
+          notification.showError(errors.getText(oError, 'Error occurred while getting messages info'))
+        }
+      })
+    },
+    asyncGetFoldersRelevantInformation ({ state, commit, dispatch }) {
       if (state.account) {
         commit('setSyncing', true)
-        webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: state.account.AccountID, Folders: state.foldersNames, UseListStatusIfPossible: true}, (result, error) => {
-          commit('setSyncing', false)
-          if (result && result.Counts) {
-            commit('setFoldersRelevantInformation', result.Counts)
+        webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: state.account.AccountID, Folders: state.foldersNames, UseListStatusIfPossible: true}, (oResult, oError) => {
+          if (oResult && oResult.Counts) {
+            commit('setFoldersRelevantInformation', oResult.Counts)
+            dispatch('asyncGetMessagesInfo')
           } else {
-            notification.showError(errors.getText(error, 'Error occurred while getting folders relevant information'))
+            commit('setSyncing', false)
+            notification.showError(errors.getText(oError, 'Error occurred while getting folders relevant information'))
           }
         })
       } else {
@@ -151,18 +244,18 @@ export default {
     asyncGetFolderList ({ state, commit, dispatch }) {
       if (state.account) {
         commit('setSyncing', true)
-        webApi.sendRequest('Mail', 'GetFolders', {AccountID: state.account.AccountID}, (result, error) => {
-          if (result && result.Folders && result.Folders['@Collection']) {
-            var folderListData = _prepareFolderList(result.Folders['@Collection'], state.foldersByNames || [])
-            commit('setFolderList', folderListData.folderList)
-            commit('setFoldersCount', result.Folders['@Count'])
-            commit('setFoldersNamespace', result.Folders.Namespace)
-            commit('setFoldersByNames', folderListData.foldersByNames)
-            commit('setFoldersNames', folderListData.foldersNames)
+        webApi.sendRequest('Mail', 'GetFolders', {AccountID: state.account.AccountID}, (oResult, oError) => {
+          if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
+            var oFolderListData = _prepareFolderList(oResult.Folders['@Collection'], state.foldersByNames || [])
+            commit('setFolderList', oFolderListData.folderList)
+            commit('setFoldersByNames', oFolderListData.foldersByNames)
+            commit('setFoldersNames', oFolderListData.foldersNames)
+            commit('setFoldersCount', oResult.Folders['@Count'])
+            commit('setFoldersNamespace', oResult.Folders.Namespace)
             dispatch('asyncGetFoldersRelevantInformation')
           } else {
             commit('setSyncing', false)
-            notification.showError(errors.getText(error, 'Error occurred while getting folder list'))
+            notification.showError(errors.getText(oError, 'Error occurred while getting folder list'))
           }
         })
       }
@@ -171,14 +264,14 @@ export default {
       if (_.isEmpty(state.foldersByNames) && !_.isEmpty(state.foldersNames)) {
         commit('setFoldersByNames', _prepareFoldersByNames(state.folderList))
       }
-      webApi.sendRequest('Mail', 'GetSettings', {}, (result, error) => {
-        if (result) {
-          if (result.Accounts && result.Accounts[0]) {
-            commit('setAccount', result.Accounts[0])
+      webApi.sendRequest('Mail', 'GetSettings', {}, (oResult, oError) => {
+        if (oResult) {
+          if (oResult.Accounts && oResult.Accounts[0]) {
+            commit('setAccount', oResult.Accounts[0])
             dispatch('asyncGetFolderList')
           }
         } else {
-          notification.showError(errors.getText(error, 'Error occurred while getting mail settings'))
+          notification.showError(errors.getText(oError, 'Error occurred while getting mail settings'))
         }
       })
     },
@@ -192,6 +285,9 @@ export default {
     },
     getFolderList (state) {
       return state.folderList
+    },
+    getСurrentMessages (state) {
+      return state.currentMessages
     },
   },
 }

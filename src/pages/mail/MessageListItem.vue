@@ -1,24 +1,51 @@
 <template>
   <div>
-    <q-item clickable v-ripple :class="{selected: selected, active: active}">
+    <q-item clickable v-ripple :class="{selected: selected, active: active, unread: !this.message.IsSeen}">
       <q-item-section side class="items-center">
         <q-checkbox v-model="selected" />
-        <q-icon name="star_border" color="t-selection"/>
+        <q-icon name="star" color="orange" v-if="message.IsFlagged" />
+        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" />
+        <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" />
       </q-item-section>
 
       <q-item-section @click="active = !active">
-        <q-item-label lines="1">{{from}}</q-item-label>
-        <q-item-label lines="2">{{subject}}</q-item-label>
+        <q-item-label lines="1">{{fromTo}}</q-item-label>
+        <q-item-label lines="2">{{message.Subject}}</q-item-label>
+      </q-item-section>
+      <q-item-section style="flex: auto;" v-if="message.HasAttachments">
+        <q-icon lines="1" flat name="attachment" style="font-size: 1.5em;" />
       </q-item-section>
       <q-item-section style="flex: auto;">
-        <q-item-label lines="1">{{friendlyDate}}</q-item-label>
+        <q-item-label lines="1">{{message.ShortDate}}</q-item-label>
+        <q-chip lines="2" dense v-if="message.Threads.length > 0" @click.native="toggleThread" :color="message.ThreadHasUnread ? 'grey': ''">
+          {{message.Threads.length}}
+          <q-tooltip v-if="!threadOpened && !message.ThreadHasUnread">
+            Unfold thread
+          </q-tooltip>
+          <q-tooltip v-if="threadOpened">
+            Fold thread
+          </q-tooltip>
+          <q-tooltip v-if="!threadOpened && message.ThreadHasUnread">
+            This thread has unread message
+          </q-tooltip>
+        </q-chip>
       </q-item-section>
     </q-item>
-    <q-separator :class="{selected: selected, active: active}" />
+    <q-separator :class="{selected: selected, active: active, unread: !this.message.IsSeen}" />
+    <div style="border-left: solid 5px #e3e3e3;" v-if="message.Threads.length > 0 && threadOpened">
+      <MessageListItem v-for="threadMessage in message.Threads" :key="threadMessage.Uid" :message="threadMessage" />
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.unread {
+  font-weight: bold;
+  background: #fafafa;
+}
+hr.unread {
+  background: #ddd;
+}
 .selected {
   background: var(--q-color-t-selection-alt);
 }
@@ -39,23 +66,36 @@ hr.active {
 </style>
 
 <script>
+import addressUtils from 'src/utils/address'
+
 export default {
-  name: "MessageListItem",
+  name: 'MessageListItem',
   props: [
-    'subject',
-    'from',
-    'time',
+    'message',
   ],
   data () {
     return {
-      friendlyDate: 'now',
       active: false,
       selected: false,
+      threadOpened: false,
     }
+  },
+  computed: {
+    fromTo () {
+      var oFromTo = (this.message.Folder === 'Drafts' || this.message.Folder === 'Sent') ? this.message.To : this.message.From
+      var aFromTo = []
+      _.each(oFromTo['@Collection'], function (address) {
+        aFromTo.push(addressUtils.getFullEmail(address.DisplayName, address.Email))
+      })
+      return aFromTo.join(', ')
+    },
   },
   mounted: function () {
   },
   methods: {
-  }
-};
+    toggleThread: function () {
+      this.threadOpened = !this.threadOpened
+    },
+  },
+}
 </script>

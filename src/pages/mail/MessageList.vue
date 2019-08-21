@@ -1,33 +1,29 @@
 <template>
   <div>
-      <MessageListItem
-        v-for="n in items" :key="n.id"
-        :subject="n.subject"
-        :from="n.from"
-      />
+    <MessageListItem v-for="message in messages" :key="message.Uid" :message="message" />
   </div>
 </template>
 
 <style></style>
 
 <script>
-import MessageListItem from "./MessageListItem"
-import {messages} from "../../data.js"
-
+import MessageListItem from './MessageListItem'
 
 export default {
-  name: "MessageList",
+  name: 'MessageList',
   components: {
-    MessageListItem
+    MessageListItem,
   },
   data () {
     return {
-      checkboxVal: false,
-      items: []
     }
   },
+  computed: {
+    messages () {
+      return this.$store.getters['mail/getСurrentMessages']
+    },
+  },
   mounted: function () {
-    this.items = messages;
-  }
-};
+  },
+}
 </script>

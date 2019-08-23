@@ -1,8 +1,8 @@
 <template>
   <div>
-    <q-item clickable v-ripple :class="{selected: selected, active: active, unread: !this.message.IsSeen}">
+    <q-item clickable v-ripple :class="{checked: checked, active: active, unread: !this.message.IsSeen}">
       <q-item-section side class="items-center">
-        <q-checkbox v-model="selected" />
+        <q-checkbox v-model="checked" />
         <q-icon name="star" color="orange" v-if="message.IsFlagged" />
         <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" />
         <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" />
@@ -31,8 +31,8 @@
         </q-chip>
       </q-item-section>
     </q-item>
-    <q-separator :class="{selected: selected, active: active, unread: !this.message.IsSeen}" />
-    <div style="border-left: solid 5px #e3e3e3;" v-if="message.Threads.length > 0 && threadOpened">
+    <q-separator :class="{checked: checked, active: active, unread: !this.message.IsSeen}" />
+    <div style="border-left: solid 5px #e3e3e3;" v-show="message.Threads.length > 0 && threadOpened">
       <MessageListItem v-for="threadMessage in message.Threads" :key="threadMessage.Uid" :message="threadMessage" />
     </div>
   </div>
@@ -46,10 +46,10 @@
 hr.unread {
   background: #ddd;
 }
-.selected {
+.checked {
   background: var(--q-color-t-selection-alt);
 }
-hr.selected {
+hr.checked {
   background: #d6d6a9;
 }
 .active {
@@ -76,9 +76,17 @@ export default {
   data () {
     return {
       active: false,
-      selected: false,
+      checked: false,
       threadOpened: false,
     }
+  },
+  watch: {
+    checked: function () {
+      this.$root.$emit('message-checked', this.message.Uid, this.checked)
+      if (this.message.Threads.length > 0 && !this.threadOpened) {
+        this.$emit('parent-message-checked', this.checked)
+      }
+    },
   },
   computed: {
     fromTo () {
@@ -91,11 +99,29 @@ export default {
     },
   },
   mounted: function () {
+    this.initSubscriptions()
   },
   methods: {
     toggleThread: function () {
       this.threadOpened = !this.threadOpened
     },
+    onCheckAllMessages (bChecked) {
+      this.checked = bChecked
+    },
+    onParentMessageChecked (bChecked) {
+      this.checked = bChecked
+    },
+    initSubscriptions () {
+      this.$root.$on('check-all-messages', this.onCheckAllMessages)
+      this.$parent.$on('parent-message-checked', this.onParentMessageChecked)
+    },
+    destroySubscriptions () {
+      this.$root.$off('check-all-messages', this.onCheckAllMessages)
+      this.$parent.$off('parent-message-checked', this.onParentMessageChecked)
+    },
+  },
+  beforeDestroy() {
+    this.destroySubscriptions()
   },
 }
 </script>

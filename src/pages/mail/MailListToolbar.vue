@@ -1,10 +1,11 @@
 <template>
   <q-toolbar>
-    <q-btn flat color="primary" icon="alternate_email" />
+    <q-btn flat color="primary" icon="drafts" @click="markAsRead" />
     <q-btn flat color="primary" icon="code" align="right" @click="swithTheme()"/>
     <q-btn flat color="primary" icon="done" @click="swithTheme1()" />
     <q-btn flat color="primary" icon="mail_outline" />
     <q-btn flat color="primary" icon="delete_outline" />
+    <q-chip v-if="checkedCount > 0" class="checkedCount" dense color="primary">{{checkedCount}}</q-chip>
     <q-btn flat color="primary" label="Show Notification" @click="showNotif()" />
     <q-space/>
     <q-btn flat color="primary" icon="sync" @click="sync" v-if="!mailSyncing" />
@@ -13,7 +14,11 @@
   </q-toolbar>
 </template>
 
-<style></style>
+<style>
+.checkedCount {
+  color: white;
+}
+</style>
 
 <script>
 import { colors } from 'quasar'
@@ -29,6 +34,9 @@ const alerts = [
 
 export default {
   name: "MailListToolbar",
+  props: {
+    checkedMessagesUids: Array
+  },
   data () {
     return {
     }
@@ -37,8 +45,17 @@ export default {
     mailSyncing () {
       return this.$store.getters['mail/getSyncing']
     },
+    checkedCount () {
+      return this.checkedMessagesUids.length
+    },
   },
   methods: {
+    markAsRead () {
+      this.$store.dispatch('mail/setMessagesRead', {
+        Uids: this.checkedMessagesUids,
+        IsSeen: true,
+      })
+    },
     sync () {
       this.$store.dispatch('mail/asyncGetFoldersRelevantInformation')
     },

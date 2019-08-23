@@ -121,6 +121,7 @@ function _getMessages(aStateMessageList, iPage, oStateMessagesCache) {
             if (!oThreadMessage.IsSeen) {
               bThreadHasUnread = true
             }
+            oThreadMessage.ThreadParentUid = oMessage.Uid
             oMessage.Threads.push(oThreadMessage)
           }
         })
@@ -192,6 +193,26 @@ export default {
     setCurrentMessages (state) {
       state.currentMessages = _getMessages(state.messageList, 1, state.messagesCache)
     },
+    setMessagesRead (state, payload) {
+      _.each(payload.Uids, function (sUid) {
+        var oMessage = state.messagesCache['INBOX' + sUid]
+        if (oMessage) {
+          oMessage.IsSeen = payload.IsSeen
+          if (oMessage.ThreadParentUid) {
+            var oParentMessage = state.messagesCache['INBOX' + oMessage.ThreadParentUid]
+            if (oParentMessage) {
+              var bHasUnseenMessages = false
+              _.each(oParentMessage.Threads, function (oThreadMessage) {
+                if (!oThreadMessage.IsSeen) {
+                  bHasUnseenMessages = true
+                }
+              })
+              oParentMessage.ThreadHasUnread = bHasUnseenMessages
+            }
+          }
+        }
+      })
+    },
   },
   actions: {
     logout ({ commit }) {
@@ -201,6 +222,10 @@ export default {
       commit('setFoldersNames', null)
       commit('setFoldersCount', 0)
       commit('setFoldersNamespace', '')
+    },
+    setMessagesRead ({ state, commit }, payload) {
+      commit('setMessagesRead', payload)
+      webApi.sendRequest('Mail', 'SetMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: payload.Uids.join(','), SetAction: payload.IsSeen})
     },
     asyncGetMessages ({ state, commit }) {
       commit('setSyncing', true)

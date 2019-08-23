@@ -23,14 +23,14 @@
             <template v-slot:before>
               <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
-                  <mail-list-toolbar/>
+                  <mail-list-toolbar :checkedMessagesUids="checkedUids" />
                   <q-expansion-item 
                     expand-separator
                     icon="mail"
                     label="Inbox"
                     style="width: 100%; background: #eee;">
                     <template v-slot:header>
-                      <q-checkbox v-model="checkboxVal" />
+                      <q-checkbox v-model="checkboxAll" />
                       <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
                         <template v-slot:prepend>
                           <q-icon name="search" ></q-icon>
@@ -83,7 +83,7 @@ import MessageViewer from "./MessageViewer.vue"
 import MessageCompose from "./MailCompose.vue"
 
 export default {
-  name: "MailUI",
+  name: 'MailUI',
   components: {
     FolderList,
     MessageList,
@@ -95,18 +95,42 @@ export default {
     return {
       splitterFolderModel: 20,
       splitterMessageModel: 50,
-      checkboxVal: false,
-      searchText: ''
+      checkboxAll: false,
+      checkedUids: [],
+      searchText: '',
+    }
+  },
+  watch: {
+    checkboxAll: function(val, oldval) {
+      this.$root.$emit('check-all-messages', val)
     }
   },
   methods: {
     openCompose () {
       console.log('openCompose parent 2');
       this.$refs.compose.openCompose();
-    }
+    },
+    onMessageChecked (sUid, bChecked) {
+      if (bChecked) {
+        this.checkedUids = _.union(this.checkedUids, [sUid])
+      } else {
+        this.checkedUids = _.without(this.checkedUids, sUid)
+      }
+    },
+    initSubscriptions () {
+      this.$root.$on('message-checked', this.onMessageChecked)
+    },
+    destroySubscriptions () {
+      this.$root.$off('message-checked', this.onMessageChecked)
+    },
   },
   mounted: function () {
+    this.initSubscriptions()
+
     this.$store.dispatch('mail/asyncGetSettings')
   },
-};
+  beforeDestroy() {
+    this.destroySubscriptions()
+  },
+}
 </script>

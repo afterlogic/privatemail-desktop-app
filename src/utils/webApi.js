@@ -32,11 +32,15 @@ export default {
             Module: response.data.Module,
           }
         }
-        callback(result, error)
+        if (_.isFunction(callback)) {
+          callback(result, error)
+        }
       })
       .catch((error) => {
         console.log('webApi error', error)
-        callback(false, null)
+        if (_.isFunction(callback)) {
+          callback(false, null)
+        }
       })
   }
 }

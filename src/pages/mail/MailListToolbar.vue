@@ -1,6 +1,27 @@
 <template>
   <q-toolbar>
-    <q-btn flat color="primary" icon="drafts" @click="markAsRead" />
+    <q-btn-dropdown
+        split
+        :disable-main-btn="checkedCount === 0"
+        class="glossy"
+        color="primary"
+      >
+        <template v-slot:label>
+          <q-btn flat color="white" icon="drafts" @click="setMessagesRead(true)" />
+        </template>
+        <q-list>
+          <q-item clickable v-close-popup @click="setAllMessagesRead">
+            <q-item-section>
+              <q-item-label>Mark All Read</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item :disable="checkedCount === 0" clickable v-close-popup @click="setMessagesRead(false)">
+            <q-item-section>
+              <q-item-label>Mark As Unread</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
     <q-btn flat color="primary" icon="code" align="right" @click="swithTheme()"/>
     <q-btn flat color="primary" icon="done" @click="swithTheme1()" />
     <q-btn flat color="primary" icon="mail_outline" />
@@ -50,11 +71,16 @@ export default {
     },
   },
   methods: {
-    markAsRead () {
-      this.$store.dispatch('mail/setMessagesRead', {
-        Uids: this.checkedMessagesUids,
-        IsSeen: true,
-      })
+    setMessagesRead (bIsSeen) {
+      if (this.checkedCount > 0) {
+        this.$store.dispatch('mail/setMessagesRead', {
+          Uids: this.checkedMessagesUids,
+          IsSeen: bIsSeen,
+        })
+      }
+    },
+    setAllMessagesRead () {
+      this.$store.dispatch('mail/setAllMessagesRead')
     },
     sync () {
       this.$store.dispatch('mail/asyncGetFoldersRelevantInformation')

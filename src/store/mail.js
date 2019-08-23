@@ -213,6 +213,14 @@ export default {
         }
       })
     },
+    setAllMessagesRead (state) {
+      _.each(state.messagesCache, function (oMessage) {
+        oMessage.IsSeen = true
+        if (oMessage.Threads) {
+          oMessage.ThreadHasUnread = false
+        }
+      })
+    },
   },
   actions: {
     logout ({ commit }) {
@@ -226,6 +234,10 @@ export default {
     setMessagesRead ({ state, commit }, payload) {
       commit('setMessagesRead', payload)
       webApi.sendRequest('Mail', 'SetMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: payload.Uids.join(','), SetAction: payload.IsSeen})
+    },
+    setAllMessagesRead ({ state, commit }) {
+      commit('setAllMessagesRead')
+      webApi.sendRequest('Mail', 'SetAllMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', SetAction: true})
     },
     asyncGetMessages ({ state, commit }) {
       commit('setSyncing', true)

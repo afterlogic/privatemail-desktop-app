@@ -4,34 +4,59 @@
         split
         :disable-main-btn="checkedCount === 0"
         class="glossy"
-        color="primary"
-      >
-        <template v-slot:label>
-          <q-btn flat color="white" icon="drafts" @click="setMessagesRead(true)" />
-        </template>
-        <q-list>
-          <q-item clickable v-close-popup @click="setAllMessagesRead">
-            <q-item-section>
-              <q-item-label>Mark All Read</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item :disable="checkedCount === 0" clickable v-close-popup @click="setMessagesRead(false)">
-            <q-item-section>
-              <q-item-label>Mark As Unread</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-btn-dropdown>
-    <q-btn flat color="primary" icon="code" align="right" @click="swithTheme()"/>
-    <q-btn flat color="primary" icon="done" @click="swithTheme1()" />
-    <q-btn flat color="primary" icon="mail_outline" />
-    <q-btn flat color="primary" icon="delete_outline" />
+        color="primary">
+      <template v-slot:label>
+        <q-btn flat color="white" icon="drafts" @click="setMessagesRead(true)" />
+        <q-tooltip>
+          Mark As Read
+        </q-tooltip>
+      </template>
+      <q-list>
+        <q-item clickable v-close-popup @click="setAllMessagesRead">
+          <q-item-section>
+            <q-item-label>Mark All Read</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item :disable="checkedCount === 0" clickable v-close-popup @click="setMessagesRead(false)">
+          <q-item-section>
+            <q-item-label>Mark As Unread</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-btn-dropdown>
+    <q-btn-dropdown color="primary" :disable="checkedCount === 0">
+      <template v-slot:label>
+        <q-btn flat color="white" icon="move_to_inbox" />
+        <q-tooltip>
+          Move To Folder
+        </q-tooltip>
+      </template>
+      <q-list>
+        <MoveToFolderItem v-for="folder in folderList" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
+      </q-list>
+    </q-btn-dropdown>
+    <q-btn flat color="primary" icon="delete_outline" :disable="checkedCount === 0" @click="moveMessagesToTrash">
+      <q-tooltip>
+        Delete
+      </q-tooltip>
+    </q-btn>
     <q-chip v-if="checkedCount > 0" class="checkedCount" dense color="primary">{{checkedCount}}</q-chip>
-    <q-btn flat color="primary" label="Show Notification" @click="showNotif()" />
+    <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam">
+      <q-tooltip>
+        Spam
+      </q-tooltip>
+    </q-btn>
     <q-space/>
-    <q-btn flat color="primary" icon="sync" @click="sync" v-if="!mailSyncing" />
-    <q-spinner color="primary" size="1.5em" @click="sync" v-if="mailSyncing"></q-spinner>
-    <!-- <q-btn flat color="primary" label="Flat" /> -->
+    <q-btn flat color="primary" icon="sync" @click="sync" v-if="!mailSyncing">
+      <q-tooltip>
+        Check Mail
+      </q-tooltip>
+    </q-btn>
+    <q-spinner color="primary" size="1.5em" @click="sync" v-if="mailSyncing">
+      <q-tooltip>
+        Check Mail
+      </q-tooltip>
+    </q-spinner>
   </q-toolbar>
 </template>
 
@@ -43,6 +68,7 @@
 
 <script>
 import { colors } from 'quasar'
+import MoveToFolderItem from './MoveToFolderItem.vue'
 
 const alerts = [
   { color: 'negative', message: 'Woah! Danger! You are getting good at this!', icon: 'report_problem' },
@@ -54,7 +80,10 @@ const alerts = [
 ]
 
 export default {
-  name: "MailListToolbar",
+  name: 'MailListToolbar',
+  components: {
+    MoveToFolderItem,
+  },
   props: {
     checkedMessagesUids: Array
   },
@@ -69,6 +98,9 @@ export default {
     checkedCount () {
       return this.checkedMessagesUids.length
     },
+    folderList () {
+      return this.$store.getters['mail/getFolderList']
+    },
   },
   methods: {
     setMessagesRead (bIsSeen) {
@@ -81,6 +113,20 @@ export default {
     },
     setAllMessagesRead () {
       this.$store.dispatch('mail/setAllMessagesRead')
+    },
+    moveMessagesToTrash () {
+      this.moveMessagesToFolder('Trash')
+    },
+    moveMessagesToSpam () {
+      this.moveMessagesToFolder('Spam')
+    },
+    moveMessagesToFolder (sFolder) {
+      if (this.checkedCount > 0) {
+        this.$store.dispatch('mail/moveMessagesToFolder', {
+          'ToFolder': sFolder,
+          'Uids': this.checkedMessagesUids,
+        })
+      }
     },
     sync () {
       this.$store.dispatch('mail/asyncGetFoldersRelevantInformation')
@@ -120,5 +166,5 @@ export default {
       })
     },
   }
-};
+}
 </script>

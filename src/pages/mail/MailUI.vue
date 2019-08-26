@@ -100,15 +100,25 @@ export default {
       searchText: '',
     }
   },
+  computed: {
+    messages () {
+      return this.$store.getters['mail/getСurrentMessages']
+    },
+  },
   watch: {
     checkboxAll: function(val, oldval) {
       this.$root.$emit('check-all-messages', val)
-    }
+    },
+    messages: function (val, oldVal) {
+      var aCurrentUids = _.map(this.messages, function (oMessage) {
+        return oMessage.Uid
+      })
+      this.checkedUids = _.intersection(this.checkedUids, aCurrentUids)
+    },
   },
   methods: {
     openCompose () {
-      console.log('openCompose parent 2');
-      this.$refs.compose.openCompose();
+      this.$refs.compose.openCompose()
     },
     onMessageChecked (sUid, bChecked) {
       if (bChecked) {

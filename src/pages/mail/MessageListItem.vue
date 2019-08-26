@@ -3,9 +3,9 @@
     <q-item clickable v-ripple :class="{checked: checked, active: active, unread: !this.message.IsSeen}">
       <q-item-section side class="items-center">
         <q-checkbox v-model="checked" />
-        <q-icon name="star" color="orange" v-if="message.IsFlagged" />
-        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" />
-        <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" />
+        <q-icon name="star" color="orange" v-if="message.IsFlagged" @click.native="toggleFlagged" />
+        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" @click.native="toggleFlagged" />
+        <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" @click.native="toggleFlagged" />
       </q-item-section>
 
       <q-item-section @click="active = !active">
@@ -102,6 +102,12 @@ export default {
     this.initSubscriptions()
   },
   methods: {
+    toggleFlagged: function () {
+      this.$store.dispatch('mail/setMessageFlagged', {
+        Uid: this.message.Uid,
+        Flagged: !this.message.IsFlagged,
+      })
+    },
     toggleThread: function () {
       this.threadOpened = !this.threadOpened
     },

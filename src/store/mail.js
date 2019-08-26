@@ -221,6 +221,37 @@ export default {
         }
       })
     },
+    moveMessagesToFolder (state, payload) {
+      var aNewCurrentMessages = []
+      _.each(state.currentMessages, function (oMessage) {
+        if (-1 === _.indexOf(payload.Uids, oMessage.Uid)) {
+          aNewCurrentMessages.push(oMessage)
+          if (oMessage.Threads) {
+            var aNewThreads = []
+            _.each(oMessage.Threads, function (oThreadMessage) {
+              if (-1 === _.indexOf(payload.Uids, oThreadMessage.Uid)) {
+                aNewThreads.push(oMessage)
+              }
+            })
+            oMessage.Threads = aNewThreads
+          }
+        }
+      })
+      state.currentMessages = aNewCurrentMessages
+    },
+    setMessageFlagged (state, payload) {
+      _.each(state.currentMessages, function (oMessage) {
+        if (payload.Uid === oMessage.Uid) {
+          oMessage.IsFlagged = payload.Flagged
+        } else if (oMessage.Threads) {
+          _.each(oMessage.Threads, function (oThreadMessage) {
+            if (payload.Uid === oThreadMessage.Uid) {
+              oThreadMessage.IsFlagged = payload.Flagged
+            }
+          })
+        }
+      })
+    },
   },
   actions: {
     logout ({ commit }) {
@@ -238,6 +269,19 @@ export default {
     setAllMessagesRead ({ state, commit }) {
       commit('setAllMessagesRead')
       webApi.sendRequest('Mail', 'SetAllMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', SetAction: true})
+    },
+    moveMessagesToFolder ({ state, commit, dispatch }, payload) {
+      commit('moveMessagesToFolder', payload)
+      webApi.sendRequest('Mail', 'MoveMessages', {AccountID: state.account.AccountID, Folder: 'INBOX', ToFolder: payload.ToFolder, Uids: payload.Uids.join(',')}, (oResult, oError) => {
+        dispatch('asyncGetFoldersRelevantInformation')
+      })
+    },
+    setMessageFlagged ({ state, commit, dispatch }, payload) {
+      console.log('payload', payload)
+      commit('setMessageFlagged', payload)
+      webApi.sendRequest('Mail', 'SetMessageFlagged', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: payload.Uid, SetAction: payload.Flagged}, (oResult, oError) => {
+        dispatch('asyncGetFoldersRelevantInformation')
+      })
     },
     asyncGetMessages ({ state, commit }) {
       commit('setSyncing', true)

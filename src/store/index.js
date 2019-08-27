@@ -4,7 +4,7 @@ import createPersistedState from 'vuex-persistedstate'
 
 import user from './user.js'
 import main from './main.js'
-import mail from './mail.js'
+import mail from './mail/index.js'
 
 Vue.use(Vuex)
 

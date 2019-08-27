@@ -92,9 +92,11 @@ export default {
     fromTo () {
       var oFromTo = (this.message.Folder === 'Drafts' || this.message.Folder === 'Sent') ? this.message.To : this.message.From
       var aFromTo = []
-      _.each(oFromTo['@Collection'], function (address) {
-        aFromTo.push(addressUtils.getFullEmail(address.DisplayName, address.Email))
-      })
+      if (oFromTo && oFromTo['@Collection']) {
+        _.each(oFromTo['@Collection'], function (address) {
+          aFromTo.push(addressUtils.getFullEmail(address.DisplayName, address.Email))
+        })
+      }
       return aFromTo.join(', ')
     },
   },

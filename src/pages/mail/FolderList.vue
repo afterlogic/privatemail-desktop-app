@@ -1,6 +1,6 @@
 <template>
   <q-list class="folder-list">
-    <FolderListItem v-for="folder in folderList" :key="folder.Hash" :folder="folder" :currentItem="currentItem"></FolderListItem>
+    <FolderListItem v-for="folder in folderList" :key="folder.Hash" :folder="folder" :currentFolder="currentFolder"></FolderListItem>
   </q-list>
 </template>
 
@@ -39,19 +39,17 @@ export default {
   components: {
     FolderListItem,
   },
-  data () {
-    return {
-      currentItem: 'INBOX',
-    }
-  },
   computed: {
     folderList () {
       return this.$store.getters['mail/getFolderList']
     },
+    currentFolder () {
+      return this.$store.getters['mail/getСurrentFolder']
+    },
   },
   methods: {
-    setActiveItem (folderFullName) {
-      this.currentItem = folderFullName
+    selectFolder (folderFullName) {
+      this.$store.dispatch('mail/setCurrentFolder', folderFullName)
     },
   },
 }

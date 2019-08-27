@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-item clickable v-ripple :style="{ paddingLeft: level * 20 + 'px' }" :class="{active: currentItem === folder.FullName}" @click="setActiveItem(folder.FullName)">
+    <q-item clickable v-ripple :style="{ paddingLeft: level * 20 + 'px' }" :class="{active: currentFolder === folder.FullName}" @click="selectFolder(folder.FullName)">
       <q-item-section avatar>
         <q-icon :name="folder.IconName" />
       </q-item-section>
@@ -17,7 +17,7 @@
       </q-item-section>
     </q-item>
     <template v-if="folder.SubFolders">
-      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="level + 1" :currentItem="currentItem"></FolderListItem>
+      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="level + 1" :currentFolder="currentFolder"></FolderListItem>
     </template>
   </div>
 </template>
@@ -35,7 +35,7 @@ export default {
   },
   props: {
     folder: Object,
-    currentItem: String,
+    currentFolder: String,
     level: {
       type: Number,
       default: 0,
@@ -47,11 +47,11 @@ export default {
     }
   },
   methods: {
-    setActiveItem: function (folderFullName) {
-      if (_.isFunction(this.$parent.setActiveItem)) {
-        this.$parent.setActiveItem(folderFullName)
-      } else if (_.isFunction(this.$parent.$parent.setActiveItem)) {
-        this.$parent.$parent.setActiveItem(folderFullName)
+    selectFolder: function (folderFullName) {
+      if (_.isFunction(this.$parent.selectFolder)) {
+        this.$parent.selectFolder(folderFullName)
+      } else if (_.isFunction(this.$parent.$parent.selectFolder)) {
+        this.$parent.$parent.selectFolder(folderFullName)
       }
     },
   },

@@ -1,14 +1,14 @@
 <template>
-  <div>
-    <q-item clickable v-ripple :class="{checked: checked, active: active, unread: !this.message.IsSeen}">
+  <div v-if="!message.Deleted">
+    <q-item clickable v-ripple :class="{checked: checked, selected: selected, unread: !message.IsSeen}" @click="selectMessage">
       <q-item-section side class="items-center">
         <q-checkbox v-model="checked" />
-        <q-icon name="star" color="orange" v-if="message.IsFlagged" @click.native="toggleFlagged" />
-        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" @click.native="toggleFlagged" />
-        <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" @click.native="toggleFlagged" />
+        <q-icon name="star" color="orange" v-if="message.IsFlagged" @click.native.stop="toggleFlagged" />
+        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" @click.native.stop="toggleFlagged" />
+        <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" @click.native.stop="toggleFlagged" />
       </q-item-section>
 
-      <q-item-section @click="active = !active">
+      <q-item-section>
         <q-item-label lines="1">{{fromTo}}</q-item-label>
         <q-item-label lines="2">{{message.Subject}}</q-item-label>
       </q-item-section>
@@ -17,7 +17,7 @@
       </q-item-section>
       <q-item-section style="flex: auto;">
         <q-item-label lines="1">{{message.ShortDate}}</q-item-label>
-        <q-chip lines="2" dense v-if="message.Threads.length > 0" @click.native="toggleThread" :color="message.ThreadHasUnread ? 'grey': ''">
+        <q-chip lines="2" dense v-if="message.Threads.length > 0" @click.native.stop="toggleThread" :color="message.ThreadHasUnread ? 'grey': ''">
           {{message.Threads.length}}
           <q-tooltip v-if="!threadOpened && !message.ThreadHasUnread">
             Unfold thread
@@ -31,7 +31,7 @@
         </q-chip>
       </q-item-section>
     </q-item>
-    <q-separator :class="{checked: checked, active: active, unread: !this.message.IsSeen}" />
+    <q-separator :class="{checked: checked, selected: selected, unread: !message.IsSeen}" />
     <div style="border-left: solid 5px #e3e3e3;" v-show="message.Threads.length > 0 && threadOpened">
       <MessageListItem v-for="threadMessage in message.Threads" :key="threadMessage.Uid" :message="threadMessage" />
     </div>
@@ -52,7 +52,7 @@ hr.unread {
 hr.checked {
   background: #d6d6a9;
 }
-.active {
+.selected {
   background: var(--q-color-t-selection);
   color: #fff;
 
@@ -60,7 +60,7 @@ hr.checked {
     color: #fff;
   }
 }
-hr.active {
+hr.selected {
   background: #6d5d7e;
 }
 </style>
@@ -75,7 +75,7 @@ export default {
   ],
   data () {
     return {
-      active: false,
+      selected: false,
       checked: false,
       threadOpened: false,
     }
@@ -102,6 +102,10 @@ export default {
     this.initSubscriptions()
   },
   methods: {
+    selectMessage: function () {
+      this.$root.$emit('select-message', this.message.Uid)
+      this.$store.dispatch('mail/setCurrentMessage', this.message)
+    },
     toggleFlagged: function () {
       this.$store.dispatch('mail/setMessageFlagged', {
         Uid: this.message.Uid,
@@ -111,6 +115,9 @@ export default {
     toggleThread: function () {
       this.threadOpened = !this.threadOpened
     },
+    onSelectMessage (sUid) {
+      this.selected = this.message.Uid === sUid
+    },
     onCheckAllMessages (bChecked) {
       this.checked = bChecked
     },
@@ -118,10 +125,12 @@ export default {
       this.checked = bChecked
     },
     initSubscriptions () {
+      this.$root.$on('select-message', this.onSelectMessage)
       this.$root.$on('check-all-messages', this.onCheckAllMessages)
       this.$parent.$on('parent-message-checked', this.onParentMessageChecked)
     },
     destroySubscriptions () {
+      this.$root.$off('select-message', this.onSelectMessage)
       this.$root.$off('check-all-messages', this.onCheckAllMessages)
       this.$parent.$off('parent-message-checked', this.onParentMessageChecked)
     },

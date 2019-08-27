@@ -147,7 +147,8 @@ export default {
     foldersNamespace: '',
     messageList: null,
     messagesCache: {},
-    currentMessages: []
+    currentMessages: [],
+    currentMessage: null,
   },
   mutations: {
     setSyncing (state, payload) {
@@ -186,7 +187,9 @@ export default {
     },
     setMessagesCache (state, payload) {
       _.each(payload, function (oMessage) {
+        oMessage.Deleted = false
         oMessage.ShortDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, false)
+        oMessage.MiddleDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, true)
         state.messagesCache[oMessage.Folder + oMessage.Uid] = oMessage
       })
     },
@@ -222,22 +225,12 @@ export default {
       })
     },
     moveMessagesToFolder (state, payload) {
-      var aNewCurrentMessages = []
-      _.each(state.currentMessages, function (oMessage) {
-        if (-1 === _.indexOf(payload.Uids, oMessage.Uid)) {
-          aNewCurrentMessages.push(oMessage)
-          if (oMessage.Threads) {
-            var aNewThreads = []
-            _.each(oMessage.Threads, function (oThreadMessage) {
-              if (-1 === _.indexOf(payload.Uids, oThreadMessage.Uid)) {
-                aNewThreads.push(oMessage)
-              }
-            })
-            oMessage.Threads = aNewThreads
-          }
+      _.each(payload.Uids, function (sUid) {
+        var oMessage = state.messagesCache['INBOX' + sUid]
+        if (oMessage) {
+          oMessage.Deleted = true
         }
       })
-      state.currentMessages = aNewCurrentMessages
     },
     setMessageFlagged (state, payload) {
       _.each(state.currentMessages, function (oMessage) {
@@ -252,6 +245,16 @@ export default {
         }
       })
     },
+    setCurrentMessage (state, payload) {
+      state.currentMessage = payload
+    },
+    updateMessage (state, payload) {
+      var oMessage = state.messagesCache['INBOX' + payload.Uid]
+      if (oMessage) {
+        _.assign(oMessage, payload)
+        oMessage.Received = true
+      }
+    },
   },
   actions: {
     logout ({ commit }) {
@@ -262,13 +265,29 @@ export default {
       commit('setFoldersCount', 0)
       commit('setFoldersNamespace', '')
     },
-    setMessagesRead ({ state, commit }, payload) {
-      commit('setMessagesRead', payload)
-      webApi.sendRequest('Mail', 'SetMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: payload.Uids.join(','), SetAction: payload.IsSeen})
+    setCurrentMessage ({ commit, dispatch }, payload) {
+      commit('setCurrentMessage', payload)
+      if (!payload.IsSeen) {
+        dispatch('setMessagesRead', {
+          Uids: [payload.Uid],
+          IsSeen: true
+        })
+      }
+      if (!payload.Received) {
+        dispatch('asyncGetCurrentMessage')
+      }
     },
-    setAllMessagesRead ({ state, commit }) {
+    setMessagesRead ({ state, commit, dispatch }, payload) {
+      commit('setMessagesRead', payload)
+      webApi.sendRequest('Mail', 'SetMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: payload.Uids.join(','), SetAction: payload.IsSeen}, (oResult, oError) => {
+        dispatch('asyncGetFoldersRelevantInformation')
+      })
+    },
+    setAllMessagesRead ({ state, commit, dispatch }) {
       commit('setAllMessagesRead')
-      webApi.sendRequest('Mail', 'SetAllMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', SetAction: true})
+      webApi.sendRequest('Mail', 'SetAllMessagesSeen', {AccountID: state.account.AccountID, Folder: 'INBOX', SetAction: true}, (oResult, oError) => {
+        dispatch('asyncGetFoldersRelevantInformation')
+      })
     },
     moveMessagesToFolder ({ state, commit, dispatch }, payload) {
       commit('moveMessagesToFolder', payload)
@@ -277,10 +296,18 @@ export default {
       })
     },
     setMessageFlagged ({ state, commit, dispatch }, payload) {
-      console.log('payload', payload)
       commit('setMessageFlagged', payload)
       webApi.sendRequest('Mail', 'SetMessageFlagged', {AccountID: state.account.AccountID, Folder: 'INBOX', Uids: payload.Uid, SetAction: payload.Flagged}, (oResult, oError) => {
         dispatch('asyncGetFoldersRelevantInformation')
+      })
+    },
+    asyncGetCurrentMessage ({ state, commit }) {
+      webApi.sendRequest('Mail', 'GetMessage', {AccountID: state.account.AccountID, Folder: 'INBOX', Uid: state.currentMessage.Uid}, (oResult, oError) => {
+        if (oResult) {
+          commit('updateMessage', oResult)
+        } else {
+          notification.showError(errors.getText(oError, 'Error occurred while getting message'))
+        }
       })
     },
     asyncGetMessages ({ state, commit }) {
@@ -369,6 +396,9 @@ export default {
     },
     getСurrentMessages (state) {
       return state.currentMessages
+    },
+    getСurrentMessage (state) {
+      return state.currentMessage
     },
   },
 }

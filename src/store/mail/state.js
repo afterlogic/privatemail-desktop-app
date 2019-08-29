@@ -1,14 +1,20 @@
 export default {
   syncing: false,
-  account: null,
-  folderList: null,
-  foldersByNames: null,
-  foldersNames: null,
-  foldersCount: 0,
-  foldersNamespace: '',
+
+  currentAccount: null,
+
+  allFolderLists: {},
+  currentFolderList: {
+    Tree: [],
+    Flat: {},
+    Names: [],
+    Count: 0,
+    Namespace: '',
+  },
+  currentFolder: null,
+
   messageList: null,
   messagesCache: {},
-  currentFolder: 'INBOX',
   currentMessages: [],
   currentMessage: null,
 }

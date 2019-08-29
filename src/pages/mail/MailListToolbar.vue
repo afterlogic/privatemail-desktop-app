@@ -32,7 +32,7 @@
         </q-tooltip>
       </template>
       <q-list>
-        <MoveToFolderItem v-for="folder in folderList" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
+        <MoveToFolderItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
       </q-list>
     </q-btn-dropdown>
     <q-btn flat color="primary" icon="delete_outline" :disable="checkedCount === 0" @click="moveMessagesToTrash">
@@ -98,8 +98,8 @@ export default {
     checkedCount () {
       return this.checkedMessagesUids.length
     },
-    folderList () {
-      return this.$store.getters['mail/getFolderList']
+    foldersTree () {
+      return this.$store.getters['mail/getCurrentFoldersTree']
     },
   },
   methods: {
@@ -129,7 +129,7 @@ export default {
       }
     },
     sync () {
-      this.$store.dispatch('mail/asyncGetFoldersRelevantInformation')
+      this.$store.dispatch('mail/asyncGetPartFoldersRelevantInformation')
     },
     swithTheme () {
       colors.setBrand('primary', '#000')

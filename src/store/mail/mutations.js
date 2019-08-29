@@ -1,77 +1,55 @@
 import _ from 'lodash'
 import dateUtils from 'src/utils/date'
-
-function _getMessages(aStateMessageList, iPage, oStateMessagesCache, oStateCurrentFolder) {
-  var iPageSize = 20
-  var iOffset = (iPage - 1) * iPageSize
-  var aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
-  var aCurrentMessages = []
-
-  _.each(aPagedList, function (oMessageInfo) {
-    var oMessage = oStateMessagesCache[oStateCurrentFolder + oMessageInfo.uid]
-    if (oMessage) {
-      oMessage.Threads = []
-      var bFlaggedThread = false
-      var bThreadHasUnread = false
-      if (oMessageInfo.thread) {
-        _.each(oMessageInfo.thread, function (oThreadMessage) {
-          var oThreadMessage = oStateMessagesCache[oStateCurrentFolder + oThreadMessage.uid]
-          if (oThreadMessage) {
-            if (oThreadMessage.IsFlagged) {
-              bFlaggedThread = true
-            }
-            if (!oThreadMessage.IsSeen) {
-              bThreadHasUnread = true
-            }
-            oThreadMessage.ThreadParentUid = oMessage.Uid
-            oMessage.Threads.push(oThreadMessage)
-          }
-        })
-      }
-      oMessage.PartialFlagged = bFlaggedThread
-      oMessage.ThreadHasUnread = bThreadHasUnread
-      aCurrentMessages.push(oMessage)
-    }
-  })
-
-  return aCurrentMessages
-}
+import foldersUtils from './utils/folders.js'
+import messagesUtils from './utils/messages.js'
+import * as getters from './getters'
 
 export function setSyncing (state, payload) {
   state.syncing = payload
 }
 
-export function setAccount (state, payload) {
-  state.account = payload
+export function setCurrentAccount (state, payload) {
+  state.currentAccount = payload
 }
 
-export function setFolderList (state, payload) {
-  state.folderList = payload
+export function resetCurrentFolderList (state) {
+  state.currentFolderList = {
+    AccountId: 0,
+    Namespace: '',
+    Count: 0,
+    Tree: [],
+    Flat: {},
+    Names: [],
+  }
 }
 
-export function setFoldersCount (state, payload) {
-  state.foldersCount = payload
+export function setCurrentFolderList (state) {
+  var oFolderList = state.allFolderLists[state.currentAccount.AccountID]
+  if (oFolderList) {
+    state.currentFolderList = oFolderList
+  }
 }
 
-export function setFoldersNamespace (state, payload) {
-  state.foldersNamespace = payload
-}
-
-export function setFoldersByNames (state, payload) {
-  state.foldersByNames = payload
-}
-
-export function setFoldersNames (state, payload) {
-  state.foldersNames = payload
+export function parseFolderList (state, payload) {
+  var oFolderList = foldersUtils.prepareFolderList(payload.AccountId, payload.FolderListFromServer, state.currentFolderList.Flat)
+  state.allFolderLists[oFolderList.AccountId] = oFolderList
 }
 
 export function setFoldersRelevantInformation (state, payload) {
   _.each(payload, function (aFolderCounts, sFolderFullName) {
-    if (state.foldersByNames[sFolderFullName]) {
-      state.foldersByNames[sFolderFullName].Count = aFolderCounts[0]
-      state.foldersByNames[sFolderFullName].UnseenCount = aFolderCounts[1]
-      state.foldersByNames[sFolderFullName].NextUid = aFolderCounts[2]
-      state.foldersByNames[sFolderFullName].Hash = aFolderCounts[3]
+    var oFolder = state.currentFolderList.Flat[sFolderFullName]
+    if (oFolder) {
+      var iNewCount = aFolderCounts[0]
+      var iUnseenCount = aFolderCounts[1]
+      var sNextUid = aFolderCounts[2]
+      var sHash = aFolderCounts[3]
+      if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
+        oFolder.HasChanges = true
+      }
+      oFolder.Count = aFolderCounts[0]
+      oFolder.UnseenCount = aFolderCounts[1]
+      oFolder.NextUid = aFolderCounts[2]
+      oFolder.Hash = aFolderCounts[3]
     }
   })
 }
@@ -90,16 +68,16 @@ export function setMessagesCache (state, payload) {
 }
 
 export function setCurrentMessages (state) {
-  state.currentMessages = _getMessages(state.messageList, 1, state.messagesCache, state.currentFolder)
+  state.currentMessages = messagesUtils.getMessages(state.messageList, 1, state.messagesCache, getters.getСurrentFolderFullName(state))
 }
 
 export function setMessagesRead (state, payload) {
   _.each(payload.Uids, function (sUid) {
-    var oMessage = state.messagesCache[state.currentFolder + sUid]
+    var oMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + sUid]
     if (oMessage) {
       oMessage.IsSeen = payload.IsSeen
       if (oMessage.ThreadParentUid) {
-        var oParentMessage = state.messagesCache[state.currentFolder + oMessage.ThreadParentUid]
+        var oParentMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + oMessage.ThreadParentUid]
         if (oParentMessage) {
           var bHasUnseenMessages = false
           _.each(oParentMessage.Threads, function (oThreadMessage) {
@@ -125,7 +103,7 @@ export function setAllMessagesRead (state) {
 
 export function moveMessagesToFolder (state, payload) {
   _.each(payload.Uids, function (sUid) {
-    var oMessage = state.messagesCache[state.currentFolder + sUid]
+    var oMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + sUid]
     if (oMessage) {
       oMessage.Deleted = true
     }
@@ -151,7 +129,7 @@ export function setCurrentMessage (state, payload) {
 }
 
 export function updateMessage (state, payload) {
-  var oMessage = state.messagesCache[state.currentFolder + payload.Uid]
+  var oMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + payload.Uid]
   if (oMessage) {
     _.assign(oMessage, payload)
     oMessage.Received = true
@@ -159,5 +137,6 @@ export function updateMessage (state, payload) {
 }
 
 export function setCurrentFolder (state, payload) {
-  state.currentFolder = payload
+  var oFolder = state.currentFolderList.Flat[payload]
+  state.currentFolder = oFolder
 }

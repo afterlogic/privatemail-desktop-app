@@ -1,6 +1,14 @@
 <template>
   <div>
-    <q-item clickable v-ripple :style="{ paddingLeft: level * 20 + 'px' }" :class="{active: currentFolder === folder.FullName}" @click="selectFolder(folder.FullName)">
+    <q-item
+        v-if="folder.IsSubscribed || folder.HasSubscribed"
+        :disable="!folder.IsSelectable || !folder.Exists || !folder.IsSubscribed"
+        :clickable="folder.IsSelectable && folder.Exists && folder.IsSubscribed"
+        :v-ripple="folder.IsSelectable && folder.Exists && folder.IsSubscribed"
+        :style="{ paddingLeft: level * 20 + 'px' }"
+        :class="{active: currentFolderFullName === folder.FullName}"
+        @click="selectFolder(folder.FullName)"
+    >
       <q-item-section avatar>
         <q-icon :name="folder.IconName" />
       </q-item-section>
@@ -17,7 +25,7 @@
       </q-item-section>
     </q-item>
     <template v-if="folder.SubFolders">
-      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="level + 1" :currentFolder="currentFolder"></FolderListItem>
+      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="level + 1" :currentFolderFullName="currentFolderFullName"></FolderListItem>
     </template>
   </div>
 </template>
@@ -35,7 +43,7 @@ export default {
   },
   props: {
     folder: Object,
-    currentFolder: String,
+    currentFolderFullName: String,
     level: {
       type: Number,
       default: 0,

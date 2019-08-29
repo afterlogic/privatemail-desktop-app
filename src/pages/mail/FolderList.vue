@@ -1,6 +1,6 @@
 <template>
   <q-list class="folder-list">
-    <FolderListItem v-for="folder in folderList" :key="folder.Hash" :folder="folder" :currentFolder="currentFolder"></FolderListItem>
+    <FolderListItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :currentFolderFullName="currentFolderFullName"></FolderListItem>
   </q-list>
 </template>
 
@@ -40,11 +40,11 @@ export default {
     FolderListItem,
   },
   computed: {
-    folderList () {
-      return this.$store.getters['mail/getFolderList']
+    foldersTree () {
+      return this.$store.getters['mail/getCurrentFoldersTree']
     },
-    currentFolder () {
-      return this.$store.getters['mail/getСurrentFolder']
+    currentFolderFullName () {
+      return this.$store.getters['mail/getСurrentFolderFullName']
     },
   },
   methods: {

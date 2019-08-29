@@ -3,12 +3,12 @@ export function getSyncing (state) {
   return state.syncing
 }
 
-export function getAccount (state) {
-  return state.account
+export function getCurrentAccount (state) {
+  return state.currentAccount
 }
 
-export function getFolderList (state) {
-  return state.folderList
+export function getCurrentFoldersTree (state) {
+  return state.currentFolderList.Tree
 }
 
 export function getСurrentMessages (state) {
@@ -19,6 +19,10 @@ export function getСurrentMessage (state) {
   return state.currentMessage
 }
 
-export function getСurrentFolder (state) {
-  return state.currentFolder
+export function getСurrentFolderFullName (state) {
+  return state.currentFolder ? state.currentFolder.FullName : ''
+}
+
+export function getInboxFullName (state) {
+  return state.currentFolderList && state.currentFolderList.Inbox ? state.currentFolderList.Inbox.FullName : ''
 }

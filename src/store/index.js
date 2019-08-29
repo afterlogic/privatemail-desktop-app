@@ -10,7 +10,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   plugins: [createPersistedState({
-    paths: ['user', 'main', 'mail'],
+    paths: ['user', 'main', 'mail.allFolderLists'],
   })],
   modules: {
     main,

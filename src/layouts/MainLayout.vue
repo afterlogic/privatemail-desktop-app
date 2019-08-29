@@ -34,8 +34,8 @@ export default {
       return this.$store.state.user.authorized
     },
     mailHeader () {
-      var account = this.$store.getters['mail/getAccount']
-      return account ? account.Email : 'Mail'
+      var oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
+      return oCurrentAccount ? oCurrentAccount.Email : 'Mail'
     },
   },
   methods: {

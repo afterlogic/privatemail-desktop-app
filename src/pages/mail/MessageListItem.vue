@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!message.Deleted">
+  <div v-if="!deleted">
     <q-item clickable v-ripple :class="{checked: checked, selected: selected, unread: !message.IsSeen}" @click="selectMessage">
       <q-item-section side class="items-center">
         <q-checkbox v-model="checked" />
@@ -87,8 +87,16 @@ export default {
         this.$emit('parent-message-checked', this.checked)
       }
     },
+    deleted: function () {
+      if (this.checked) {
+        this.$root.$emit('message-checked', this.message.Uid, !this.deleted)
+      }
+    },
   },
   computed: {
+    deleted () {
+      return this.message.Deleted
+    },
     fromTo () {
       var oFromTo = (this.message.Folder === 'Drafts' || this.message.Folder === 'Sent') ? this.message.To : this.message.From
       var aFromTo = []

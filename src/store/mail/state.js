@@ -13,6 +13,8 @@ export default {
   },
   currentFolder: null,
 
+  allMessageLists: {},
+  
   messageList: null,
   messagesCache: {},
   currentMessages: [],

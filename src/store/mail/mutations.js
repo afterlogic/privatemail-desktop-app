@@ -55,29 +55,44 @@ export function setFoldersRelevantInformation (state, payload) {
 }
 
 export function setMessageList (state, payload) {
-  state.messageList = payload
+  if (payload && payload.MessagesInfo && payload.Parameters) {
+    state.allMessageLists[JSON.stringify(payload.Parameters)] = payload.MessagesInfo
+    state.messageList = payload.MessagesInfo
+  } else if (payload && payload.AccountId && payload.FolderFullName) {
+    var oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)
+    state.messageList = state.allMessageLists[JSON.stringify(oParameters)] || null
+  } else {
+    state.messageList = null
+  }
 }
 
-export function setMessagesCache (state, payload) {
-  _.each(payload, function (oMessage) {
+export function updateMessagesCache (state, payload) {
+  _.each(payload.Messages, function (oMessage) {
     oMessage.Deleted = false
     oMessage.ShortDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, false)
     oMessage.MiddleDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, true)
-    state.messagesCache[oMessage.Folder + oMessage.Uid] = oMessage
+    var sMessageKey = messagesUtils.getMessageCacheKey(payload.AccountId, oMessage.Folder, oMessage.Uid)
+    if (state.messagesCache[sMessageKey]) {
+      _.assign(state.messagesCache[sMessageKey], oMessage)
+    } else {
+      state.messagesCache[sMessageKey] = oMessage
+    }
   })
 }
 
 export function setCurrentMessages (state) {
-  state.currentMessages = messagesUtils.getMessages(state.messageList, 1, state.messagesCache, getters.getСurrentFolderFullName(state))
+  state.currentMessages = messagesUtils.getMessages(state.messageList, 1, state.messagesCache, getters.getСurrentFolderFullName(state), state.currentAccount.AccountID)
 }
 
 export function setMessagesRead (state, payload) {
   _.each(payload.Uids, function (sUid) {
-    var oMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + sUid]
+    var sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
+    var oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.IsSeen = payload.IsSeen
       if (oMessage.ThreadParentUid) {
-        var oParentMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + oMessage.ThreadParentUid]
+        var sThreadMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), oMessage.ThreadParentUid)
+        var oParentMessage = state.messagesCache[sThreadMessageKey]
         if (oParentMessage) {
           var bHasUnseenMessages = false
           _.each(oParentMessage.Threads, function (oThreadMessage) {
@@ -101,11 +116,12 @@ export function setAllMessagesRead (state) {
   })
 }
 
-export function moveMessagesToFolder (state, payload) {
+export function setMessagesDeleted (state, payload) {
   _.each(payload.Uids, function (sUid) {
-    var oMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + sUid]
+    var sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
+    var oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
-      oMessage.Deleted = true
+      oMessage.Deleted = payload.Deleted
     }
   })
 }
@@ -129,7 +145,8 @@ export function setCurrentMessage (state, payload) {
 }
 
 export function updateMessage (state, payload) {
-  var oMessage = state.messagesCache[getters.getСurrentFolderFullName(state) + payload.Uid]
+  var sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), payload.Uid)
+  var oMessage = state.messagesCache[sMessageKey]
   if (oMessage) {
     _.assign(oMessage, payload)
     oMessage.Received = true

@@ -25,18 +25,17 @@ export default {
     return aUids
   },
 
-  getUidsToRetrieve: function (aStateMessageList, oStateMessagesCache, iCurrentAccountId, sStateCurrentFolderFullName) {
+  getUidsToRetrieve: function (aMessageList, oStateMessagesCache, iAccountId, sFolderFullName) {
     var aUids = []
-
-    _.each(aStateMessageList, (oMessageInfo) => {
-      var sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
+    _.each(aMessageList, (oMessageInfo) => {
+      var sMessageKey = this.getMessageCacheKey(iAccountId, sFolderFullName, oMessageInfo.uid)
       var oMessage = oStateMessagesCache[sMessageKey]
       if (!oMessage) {
         aUids.push(oMessageInfo.uid)
       }
       if (oMessage && oMessageInfo.thread) {
         _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
-          var sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessageInfo.uid)
+          var sThreadMessageKey = this.getMessageCacheKey(iAccountId, sFolderFullName, oThreadMessageInfo.uid)
           var oThreadMessage = oStateMessagesCache[sThreadMessageKey]
           if (!oThreadMessage) {
             aUids.push(oThreadMessageInfo.uid)
@@ -47,11 +46,11 @@ export default {
         return false
       }
     })
-
     return aUids
   },
 
   getMessages: function (aStateMessageList, iPage, oStateMessagesCache, sStateCurrentFolderFullName, iCurrentAccountId) {
+    console.time('getMessages');
     var iPageSize = 20
     var iOffset = (iPage - 1) * iPageSize
     var aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
@@ -61,10 +60,10 @@ export default {
       var sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
       var oMessage = oStateMessagesCache[sMessageKey]
       if (oMessage) {
-        oMessage.Threads = []
         var bFlaggedThread = false
         var bThreadHasUnread = false
-        if (oMessageInfo.thread) {
+        if (_.isArray(oMessageInfo.thread) && !_.isArray(oMessage.Threads)) {
+          let aThreads = []
           _.each(oMessageInfo.thread, (oThreadMessage) => {
             var sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessage.uid)
             var oThreadMessage = oStateMessagesCache[sThreadMessageKey]
@@ -76,16 +75,20 @@ export default {
                 bThreadHasUnread = true
               }
               oThreadMessage.ThreadParentUid = oMessage.Uid
-              oMessage.Threads.push(oThreadMessage)
+              aThreads.push(oThreadMessage)
             }
           })
+          oMessage.Threads = aThreads // this operation extremely slows down performance
+        }
+        if (!_.isArray(oMessage.Threads)) {
+          oMessage.Threads = [] // this operation extremely slows down performance
         }
         oMessage.PartialFlagged = bFlaggedThread
         oMessage.ThreadHasUnread = bThreadHasUnread
         aCurrentMessages.push(oMessage)
       }
     })
-  
+    console.timeEnd('getMessages');
     return aCurrentMessages
   },
 
@@ -94,7 +97,7 @@ export default {
       AccountID: iAccountId,
       Folder: sFolderFullName,
       UseThreading: true,
-      SortBy: 'date',
+      SortBy: 'arrival',
       SortOrder: 1,
     }
   },

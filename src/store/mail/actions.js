@@ -3,6 +3,7 @@ import webApi from 'src/utils/webApi.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import messagesUtils from './utils/messages.js'
+import prefetcher from 'src/prefetcher.js'
 
 export function asyncGetSettings ({ commit, dispatch }) {
   webApi.sendRequest('Mail', 'GetSettings', {}, (oResult, oError) => {
@@ -23,6 +24,7 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
     commit('setSyncing', true)
     var foldersAccountId = state.currentAccount.AccountID
     webApi.sendRequest('Mail', 'GetFolders', {AccountID: foldersAccountId}, (oResult, oError) => {
+      commit('setSyncing', false)
       if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
         commit('parseFolderList', {
           FolderListFromServer: oResult.Folders,
@@ -30,11 +32,10 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
         })
         commit('setCurrentFolderList')
         if (!state.currentFolder) {
-          commit('setCurrentFolder', getters.getInboxFullName)
+          dispatch('setCurrentFolder', getters.getInboxFullName)
         }
         dispatch('asyncGetAllFoldersRelevantInformation')
       } else {
-        commit('setSyncing', false)
         notification.showError(errors.getText(oError, 'Error occurred while getting folder list'))
       }
     })
@@ -53,64 +54,11 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
   if (state.currentAccount) {
     commit('setSyncing', true)
     webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: state.currentAccount.AccountID, Folders: payload, UseListStatusIfPossible: true}, (oResult, oError) => {
+      commit('setSyncing', false)
       if (oResult && oResult.Counts) {
         commit('setFoldersRelevantInformation', oResult.Counts)
-        dispatch('asyncGetMessagesInfo')
       } else {
-        commit('setSyncing', false)
         notification.showError(errors.getText(oError, 'Error occurred while getting folders relevant information'))
-      }
-    })
-  } else {
-    commit('setSyncing', false)
-  }
-}
-
-export function asyncGetMessagesInfo ({ state, commit, dispatch, getters }) {
-  var sFolderFullNameToRefresh = getters.getFolderFullNameToRefresh
-  if (sFolderFullNameToRefresh === '' && state.messageList === null) {
-    sFolderFullNameToRefresh = getters.getСurrentFolderFullName
-  }
-  if (sFolderFullNameToRefresh !== '') {
-    commit('setSyncing', true)
-    var oParameters = messagesUtils.getMessagesInfoParameters(state.currentAccount.AccountID, sFolderFullNameToRefresh)
-    webApi.sendRequest('Mail', 'GetMessagesInfo', oParameters, (oResult, oError) => {
-      if (oResult) {
-        commit('setMessageList', {
-          Parameters: oParameters,
-          MessagesInfo: oResult,
-        })
-        dispatch('asyncGetMessages')
-      } else {
-        commit('setSyncing', false)
-        notification.showError(errors.getText(oError, 'Error occurred while getting messages info'))
-      }
-    })
-  } else {
-    commit('setCurrentMessages')
-    commit('setSyncing', false)
-  }
-}
-
-export function asyncGetMessages ({ state, commit, dispatch, getters }) {
-  var iAccountId = state.currentAccount.AccountID
-  var aUids = messagesUtils.getUidsToRetrieve(state.messageList, state.messagesCache, iAccountId, getters.getСurrentFolderFullName)
-  if (aUids.length === 0) {
-    commit('setCurrentMessages')
-    commit('setSyncing', false)
-  } else {
-    commit('setSyncing', true)
-    webApi.sendRequest('Mail', 'GetMessagesByUids', {AccountID: iAccountId, Folder: getters.getСurrentFolderFullName, Uids: aUids}, (oResult, oError) => {
-      commit('setSyncing', false)
-      if (oResult && oResult['@Collection']) {
-        commit('updateMessagesCache', {
-          AccountId: iAccountId,
-          Messages: oResult['@Collection'],
-        })
-        commit('setCurrentMessages')
-        dispatch('asyncGetMessagesBodies')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting messages'))
       }
     })
   }
@@ -142,16 +90,12 @@ export function asyncGetCurrentMessage ({ state, commit, getters }) {
 
 export function setCurrentFolder ({ state, commit, dispatch }, payload) {
   commit('setCurrentFolder', payload)
-  commit('setMessageList', {
+  commit('setMessagesInfo', {
     AccountId: state.currentAccount.AccountID,
     FolderFullName: payload,
   })
   commit('setCurrentMessages')
-  if (state.messageList === null) {
-    dispatch('asyncGetMessagesInfo')
-  } else if (state.currentMessages.length === 0 && state.messageList.length > 0) {
-    dispatch('asyncGetMessages')
-  }
+  prefetcher.start()
 }
 
 export function setCurrentMessage ({ commit, dispatch }, payload) {

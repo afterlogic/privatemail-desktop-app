@@ -35,22 +35,3 @@ export function getDisplayedFolders (state) {
     return oFolder.FullName
   })
 }
-
-export function getFolderFullNameToRefresh (state) {
-  var sFolderFullNameToRefresh = ''
-  var oCurrent = state.currentFolder
-  var sCurrentFullName = oCurrent ? oCurrent.FullName : ''
-  var oInbox = state.currentFolderList.Inbox
-  var oSent = state.currentFolderList.Sent
-  var oDrafts = state.currentFolderList.Drafts
-  if (oCurrent && oCurrent.HasChanges) {
-    sFolderFullNameToRefresh = oCurrent.FullName
-  } else if (oInbox && oInbox.FullName !== sCurrentFullName && oInbox.HasChanges) {
-    sFolderFullNameToRefresh = oInbox.FullName
-  } else if (oSent && oSent.FullName !== sCurrentFullName && oSent.HasChanges) {
-    sFolderFullNameToRefresh = oSent.FullName
-  } else if (oDrafts && oDrafts.FullName !== sCurrentFullName && oDrafts.HasChanges) {
-    sFolderFullNameToRefresh = oDrafts.FullName
-  }
-  return sFolderFullNameToRefresh
-}

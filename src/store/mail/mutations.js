@@ -54,9 +54,62 @@ export function setFoldersRelevantInformation (state, payload) {
   })
 }
 
-export function setMessageList (state, payload) {
+function _isTheadsEqual (mOldThread, mNewThread) {
+  let bEqual = false
+  if (_.isArray(mOldThread) && _.isArray(mNewThread)) {
+    let aOldThreadUids = _.map(mOldThread, function (oThreadItem) {
+      return oThreadItem.uid
+    })
+    let aNewThreadUids = _.map(mNewThread, function (oThreadItem) {
+      return oThreadItem.uid
+    })
+    bEqual = _.isEqual(aOldThreadUids, aNewThreadUids)
+  } else {
+    bEqual = _.isEqual(mOldThread, mNewThread)
+  }
+  return bEqual
+}
+
+function _updateMessagesInfo (state, oParameters, aMessagesInfo) {
+  let sKey = JSON.stringify(oParameters)
+  let aOldMessagesInfo = _.cloneDeep(state.allMessageLists[sKey])
+  if (!_.isArray(aOldMessagesInfo)) {
+    state.allMessageLists[sKey] = aMessagesInfo
+  } else {
+    _.each(aMessagesInfo, function (oNewInfo) {
+      let iOldInfoIndex = _.findIndex(aOldMessagesInfo, function (oOldInfo, iKey) {
+        return oNewInfo.uid === oOldInfo.uid
+      })
+      if (iOldInfoIndex !== -1) {
+        let oOldInfo = aOldMessagesInfo[iOldInfoIndex]
+        let bEqual = _isTheadsEqual(oNewInfo.thread, oOldInfo.thread)
+        if (!bEqual) {
+          oNewInfo.ThreadChanged = true
+        }
+        if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
+          let sMessageKey = messagesUtils.getMessageCacheKey(oParameters.AccountID, oParameters.Folder, oNewInfo.uid)
+          let oMessage = state.messagesCache[sMessageKey]
+          if (oMessage) {
+            oMessage.IsSeen = (oNewInfo.flags.indexOf('\\seen') >= 0)
+            oMessage.IsFlagged = (oNewInfo.flags.indexOf('\\flagged') >= 0)
+          }
+        }
+        aOldMessagesInfo.splice(iOldInfoIndex, 1);
+      }
+    })
+    _.each(aOldMessagesInfo, function (oMessageInfo) {
+      let sMessageKey = messagesUtils.getMessageCacheKey(oParameters.AccountID, oParameters.Folder, oMessageInfo.uid)
+      delete state.messagesCache[sMessageKey]
+    })
+    state.allMessageLists[sKey] = aMessagesInfo
+    let oFolder = state.currentFolderList.Flat[oParameters.Folder]
+    oFolder.HasChanges = false
+  }
+}
+
+export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
-    state.allMessageLists[JSON.stringify(payload.Parameters)] = payload.MessagesInfo
+    _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
     state.messageList = payload.MessagesInfo
   } else if (payload && payload.AccountId && payload.FolderFullName) {
     var oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)

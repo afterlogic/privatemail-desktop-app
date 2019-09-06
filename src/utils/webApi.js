@@ -1,5 +1,6 @@
 import axios from 'axios'
 import store from 'src/store'
+import prefetcher from 'src/prefetcher.js'
 
 export default {
   sendRequest: function (module, method, parameters, callback) {
@@ -22,7 +23,6 @@ export default {
       headers,
     })
       .then((response) => {
-        console.log('webApi response', response)
         var responseOk = response && response.status === 200 && response.data
         var result = responseOk && response.data.Result
         var error = null
@@ -35,6 +35,7 @@ export default {
         if (_.isFunction(callback)) {
           callback(result, error)
         }
+        prefetcher.start()
       })
       .catch((error) => {
         console.log('webApi error', error)

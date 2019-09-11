@@ -1,8 +1,12 @@
 <template>
   <div>
     <MessageListItem v-for="message in messages" :key="message.Uid" :message="message" />
-    <div v-if="messages.length === 0 && !syncing">The folder is empty</div>
-    <div v-if="messages.length === 0 && syncing">Loading message list...</div>
+    <template v-if="folderSelected">
+      <template v-if="messages.length === 0">
+        <div v-if="!syncing">The folder is empty</div>
+        <div v-if="syncing">Loading message list...</div>
+      </template>
+    </template>
   </div>
 </template>
 
@@ -16,11 +20,11 @@ export default {
   components: {
     MessageListItem,
   },
-  data () {
-    return {
-    }
-  },
   computed: {
+    folderSelected () {
+      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      return sFolderFullName !== ''
+    },
     messages () {
       return this.$store.getters['mail/getСurrentMessages']
     },

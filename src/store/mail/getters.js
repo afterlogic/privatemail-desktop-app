@@ -20,15 +20,15 @@ export function getСurrentMessage (state) {
 }
 
 export function getСurrentFolderFullName (state) {
-  return state.currentFolder ? state.currentFolder.FullName : ''
+  return state.currentFolderList.Current ? state.currentFolderList.Current.FullName : ''
 }
 
 export function getInboxFullName (state) {
-  return state.currentFolderList && state.currentFolderList.Inbox ? state.currentFolderList.Inbox.FullName : ''
+  return state.currentFolderList.Inbox ? state.currentFolderList.Inbox.FullName : ''
 }
 
 export function getDisplayedFolders (state) {
-  var aDisplayedFolders = _.filter(state.currentFolderList.Flat, function (oFolder) {
+  let aDisplayedFolders = _.filter(state.currentFolderList.Flat, function (oFolder) {
     return oFolder.Exists && oFolder.IsSelectable && oFolder.IsSubscribed
   })
   return _.map(aDisplayedFolders, function (oFolder) {

@@ -5,13 +5,21 @@ export default {
 
   allFolderLists: {},
   currentFolderList: {
+    AccountId: 0,
+    Namespace: '',
+    Count: 0,
     Tree: [],
     Flat: {},
     Names: [],
-    Count: 0,
-    Namespace: '',
+
+    Inbox: null,
+    Sent: null,
+    Drafts: null,
+    Spam: null,
+    Trash: null,
+
+    Current: null,
   },
-  currentFolder: null,
 
   allMessageLists: {},
   

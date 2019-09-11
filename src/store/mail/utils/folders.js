@@ -1,5 +1,5 @@
 function _getIconName (sType, sFolderFullName) {
-  var sIconName = ''
+  let sIconName = ''
   switch (sType) {
     case 1:
       sIconName = 'mail' // inbox
@@ -28,20 +28,20 @@ function _getIconName (sType, sFolderFullName) {
 
 export default {
   prepareFolderList: function (iAccountId, oFolderListFromServer, oOldFoldersByNames) {
-    var oNewFoldersFlat = {}
-    var aNewFoldersNames = []
-    var oInbox = null
-    var oSent = null
-    var oDrafts = null
-    var oSpam = null
-    var oTrash = null
+    let oNewFoldersFlat = {}
+    let aNewFoldersNames = []
+    let oInbox = null
+    let oSent = null
+    let oDrafts = null
+    let oSpam = null
+    let oTrash = null
 
     function _recursive(aFoldersTree) {
-      var aNewFoldersTree = []
-      var bHasSubscribed = false
+      let aNewFoldersTree = []
+      let bHasSubscribed = false
       _.each(aFoldersTree, function (oFolderFromServer) {
-        var oOldFolder = oOldFoldersByNames[oFolderFromServer.FullName]
-        var oNewFolder = {
+        let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullName]
+        let oNewFolder = {
           FullName: oFolderFromServer.FullName,
           Name: oFolderFromServer.Name,
           Type: oFolderFromServer.Type,
@@ -49,7 +49,7 @@ export default {
           IsSubscribed: oFolderFromServer.IsSubscribed,
           IsSelectable: oFolderFromServer.IsSelectable,
           Exists: oFolderFromServer.Exists,
-          HasChanges: false,
+          HasChanges: oOldFolder ? oOldFolder.HasChanges : false,
           Count: oOldFolder ? oOldFolder.Count : 0,
           UnseenCount: oOldFolder ? oOldFolder.UnseenCount : 0,
           NextUid: oOldFolder ? oOldFolder.NextUid : '',
@@ -59,7 +59,7 @@ export default {
         oNewFolder.SubFolders = []
         oNewFolder.HasSubscribed = false
         if (oFolderFromServer.SubFolders && oFolderFromServer.SubFolders['@Collection']) {
-          var oSubFoldersData = _recursive(oFolderFromServer.SubFolders['@Collection'])
+          let oSubFoldersData = _recursive(oFolderFromServer.SubFolders['@Collection'])
           oNewFolder.SubFolders = oSubFoldersData.Tree
           oNewFolder.HasSubscribed = oSubFoldersData.HasSubscribed
         }
@@ -90,11 +90,11 @@ export default {
 
       return {
         Tree: aNewFoldersTree,
-        HasSubscribed: bHasSubscribed
+        HasSubscribed: bHasSubscribed,
       }
     }
 
-    var aResultNewFoldersData = _recursive(oFolderListFromServer['@Collection'])
+    let aResultNewFoldersData = _recursive(oFolderListFromServer['@Collection'])
 
     return {
       AccountId: iAccountId,
@@ -103,11 +103,14 @@ export default {
       Tree: aResultNewFoldersData.Tree,
       Flat: oNewFoldersFlat,
       Names: aNewFoldersNames,
+
       Inbox: oInbox,
       Sent: oSent,
       Drafts: oDrafts,
       Spam: oSpam,
       Trash: oTrash,
+
+      Current: null,
     }
   }
 }

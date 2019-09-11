@@ -129,7 +129,7 @@ export default {
       }
     },
     sync () {
-      this.$store.dispatch('mail/asyncGetDisplayedFoldersRelevantInformation')
+      this.$store.dispatch('mail/asyncGetFoldersRelevantInformation', this.$store.getters['mail/getDisplayedFolders'])
     },
     swithTheme () {
       colors.setBrand('primary', '#000')

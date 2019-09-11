@@ -134,16 +134,16 @@ export default {
       return this.$store.getters['mail/getСurrentMessage']
     },
     from () {
-      var oFrom = this.message.From
-      var aFrom = []
+      let oFrom = this.message.From
+      let aFrom = []
       _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
         aFrom.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
       })
       return aFrom
     },
     to () {
-      var aAddresses = _.union(this.message.To ? this.message.To['@Collection'] : [], this.message.Cc ? this.message.Cc['@Collection'] : [], this.message.Bcc ? this.message.Bcc['@Collection'] : [])
-      var aTo = []
+      let aAddresses = _.union(this.message.To ? this.message.To['@Collection'] : [], this.message.Cc ? this.message.Cc['@Collection'] : [], this.message.Bcc ? this.message.Bcc['@Collection'] : [])
+      let aTo = []
       _.each(aAddresses, function (oAddress) {
         aTo.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
       })
@@ -153,7 +153,7 @@ export default {
   watch: {
     message: {
       handler: function () {
-        if (this.message.Attachments && this.message.Attachments['@Collection']) {
+        if (this.message && this.message.Attachments && this.message.Attachments['@Collection']) {
           _.each(this.message.Attachments['@Collection'], function (oAttach) {
             oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
           })

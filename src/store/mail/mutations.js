@@ -1,3 +1,4 @@
+import Vue from "vue"
 import _ from 'lodash'
 import dateUtils from 'src/utils/date'
 import foldersUtils from './utils/folders.js'
@@ -24,37 +25,37 @@ export function resetCurrentFolderList (state) {
 }
 
 export function setCurrentFolderList (state) {
-  var oFolderList = state.allFolderLists[state.currentAccount.AccountID]
+  let oFolderList = state.allFolderLists[state.currentAccount.AccountID]
   if (oFolderList) {
     state.currentFolderList = oFolderList
   }
 }
 
 export function parseFolderList (state, payload) {
-  var oFolderList = foldersUtils.prepareFolderList(payload.AccountId, payload.FolderListFromServer, state.currentFolderList.Flat)
+  let oFolderList = foldersUtils.prepareFolderList(payload.AccountId, payload.FolderListFromServer, state.currentFolderList.Flat)
   state.allFolderLists[oFolderList.AccountId] = oFolderList
 }
 
 export function setFoldersRelevantInformation (state, payload) {
   _.each(payload, function (aFolderCounts, sFolderFullName) {
-    var oFolder = state.currentFolderList.Flat[sFolderFullName]
+    let oFolder = state.currentFolderList.Flat[sFolderFullName]
     if (oFolder) {
-      var iNewCount = aFolderCounts[0]
-      var iUnseenCount = aFolderCounts[1]
-      var sNextUid = aFolderCounts[2]
-      var sHash = aFolderCounts[3]
+      let iNewCount = aFolderCounts[0]
+      let iUnseenCount = aFolderCounts[1]
+      let sNextUid = aFolderCounts[2]
+      let sHash = aFolderCounts[3]
       if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
         oFolder.HasChanges = true
       }
-      oFolder.Count = aFolderCounts[0]
-      oFolder.UnseenCount = aFolderCounts[1]
-      oFolder.NextUid = aFolderCounts[2]
-      oFolder.Hash = aFolderCounts[3]
+      oFolder.Count = iNewCount
+      oFolder.UnseenCount = iUnseenCount
+      oFolder.NextUid = sNextUid
+      oFolder.Hash = sHash
     }
   })
 }
 
-function _isTheadsEqual (mOldThread, mNewThread) {
+function _isTheadsEqual(mNewThread, mOldThread) {
   let bEqual = false
   if (_.isArray(mOldThread) && _.isArray(mNewThread)) {
     let aOldThreadUids = _.map(mOldThread, function (oThreadItem) {
@@ -70,41 +71,87 @@ function _isTheadsEqual (mOldThread, mNewThread) {
   return bEqual
 }
 
-function _updateMessagesInfo (state, oParameters, aMessagesInfo) {
+function _syncMessageFlags(oNewInfo, oOldInfo, iAccountId, FolderFullName, oStateMessagesCache) {
+  if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
+    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, FolderFullName, oNewInfo.uid)
+    let oMessage = oStateMessagesCache[sMessageKey]
+    if (oMessage) {
+      oMessage.IsSeen = (oNewInfo.flags.indexOf('\\seen') >= 0)
+      oMessage.IsFlagged = (oNewInfo.flags.indexOf('\\flagged') >= 0)
+    }
+    oNewInfo.flagsChanged = true
+  }
+}
+
+function _getAllMessagesInfo(aMessagesInfo) {
+  let aAllThreadsInfo = []
+  _.each(aMessagesInfo, function (oMessageInfo) {
+    if (_.isArray(oMessageInfo.thread)) {
+      aAllThreadsInfo = _.union(aAllThreadsInfo, oMessageInfo.thread)
+    }
+  })
+  return _.union(aMessagesInfo, aAllThreadsInfo)
+}
+
+function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
+  console.time('_updateMessagesInfo')
   let sKey = JSON.stringify(oParameters)
   let aOldMessagesInfo = _.cloneDeep(state.allMessageLists[sKey])
   if (!_.isArray(aOldMessagesInfo)) {
-    state.allMessageLists[sKey] = aMessagesInfo
+    state.allMessageLists[sKey] = aNewMessagesInfo
   } else {
-    _.each(aMessagesInfo, function (oNewInfo) {
-      let iOldInfoIndex = _.findIndex(aOldMessagesInfo, function (oOldInfo, iKey) {
+    let aAllOldMessagesInfo = _getAllMessagesInfo(aOldMessagesInfo)
+    let aAllNewMessagesInfo = _getAllMessagesInfo(aNewMessagesInfo)
+    _.each(aAllNewMessagesInfo, function (oNewInfo) {
+      let iOldInfoIndex = _.findIndex(aAllOldMessagesInfo, function (oOldInfo) {
         return oNewInfo.uid === oOldInfo.uid
       })
       if (iOldInfoIndex !== -1) {
-        let oOldInfo = aOldMessagesInfo[iOldInfoIndex]
-        let bEqual = _isTheadsEqual(oNewInfo.thread, oOldInfo.thread)
-        if (!bEqual) {
-          oNewInfo.ThreadChanged = true
+        let oOldInfo = aAllOldMessagesInfo[iOldInfoIndex]
+        if (!_isTheadsEqual(oNewInfo.thread, oOldInfo.thread)) {
+          oNewInfo.NeedPopulateThread = true
         }
-        if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
-          let sMessageKey = messagesUtils.getMessageCacheKey(oParameters.AccountID, oParameters.Folder, oNewInfo.uid)
-          let oMessage = state.messagesCache[sMessageKey]
-          if (oMessage) {
-            oMessage.IsSeen = (oNewInfo.flags.indexOf('\\seen') >= 0)
-            oMessage.IsFlagged = (oNewInfo.flags.indexOf('\\flagged') >= 0)
-          }
-        }
-        aOldMessagesInfo.splice(iOldInfoIndex, 1);
+
+        _syncMessageFlags(oNewInfo, oOldInfo, oParameters.AccountID, oParameters.Folder, state.messagesCache)
+      
+        aAllOldMessagesInfo.splice(iOldInfoIndex, 1);
+      } else {
+        oNewInfo.NeedPopulateThread = true
       }
     })
-    _.each(aOldMessagesInfo, function (oMessageInfo) {
-      let sMessageKey = messagesUtils.getMessageCacheKey(oParameters.AccountID, oParameters.Folder, oMessageInfo.uid)
+
+    _.each(aAllOldMessagesInfo, function (oOldInfo) {
+      let sMessageKey = messagesUtils.getMessageCacheKey(oParameters.AccountID, oParameters.Folder, oOldInfo.uid)
       delete state.messagesCache[sMessageKey]
     })
-    state.allMessageLists[sKey] = aMessagesInfo
+
+    _.each(aNewMessagesInfo, function (oNewInfo) {
+      let bHasUnseen = false
+      let bHasFlagged = false
+      _.each(oNewInfo.thread, (oThreadMessageInfo) => {
+        if (oThreadMessageInfo.flags.indexOf('\\flagged') >= 0) {
+          bHasFlagged = true
+        }
+        if (oThreadMessageInfo.flags.indexOf('\\seen') === -1) {
+          bHasUnseen = true
+        }
+        if (bHasUnseen && bHasFlagged) {
+          return false // break each
+        }
+      })
+      let sMessageKey = messagesUtils.getMessageCacheKey(oParameters.AccountID, oParameters.Folder, oNewInfo.uid)
+      let oMessage = state.messagesCache[sMessageKey]
+      if (oMessage) {
+        oMessage.PartialFlagged = bHasFlagged
+        oMessage.ThreadHasUnread = bHasUnseen
+      }
+    })
+
+    state.allMessageLists[sKey] = aNewMessagesInfo
     let oFolder = state.currentFolderList.Flat[oParameters.Folder]
     oFolder.HasChanges = false
   }
+  console.timeEnd('_updateMessagesInfo')
 }
 
 export function setMessagesInfo (state, payload) {
@@ -112,7 +159,7 @@ export function setMessagesInfo (state, payload) {
     _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
     state.messageList = payload.MessagesInfo
   } else if (payload && payload.AccountId && payload.FolderFullName) {
-    var oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)
+    let oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)
     state.messageList = state.allMessageLists[JSON.stringify(oParameters)] || null
   } else {
     state.messageList = null
@@ -120,15 +167,16 @@ export function setMessagesInfo (state, payload) {
 }
 
 export function updateMessagesCache (state, payload) {
-  _.each(payload.Messages, function (oMessage) {
-    oMessage.Deleted = false
-    oMessage.ShortDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, false)
-    oMessage.MiddleDate = dateUtils.getShortDate(oMessage.TimeStampInUTC, true)
-    var sMessageKey = messagesUtils.getMessageCacheKey(payload.AccountId, oMessage.Folder, oMessage.Uid)
+  _.each(payload.Messages, function (oMessageFromServer) {
+    oMessageFromServer.Threads = null
+    oMessageFromServer.Deleted = false
+    oMessageFromServer.ShortDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, false)
+    oMessageFromServer.MiddleDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, true)
+    let sMessageKey = messagesUtils.getMessageCacheKey(payload.AccountId, oMessageFromServer.Folder, oMessageFromServer.Uid)
     if (state.messagesCache[sMessageKey]) {
-      _.assign(state.messagesCache[sMessageKey], oMessage)
+      _.assign(state.messagesCache[sMessageKey], oMessageFromServer)
     } else {
-      state.messagesCache[sMessageKey] = oMessage
+      state.messagesCache[sMessageKey] = oMessageFromServer
     }
   })
 }
@@ -139,15 +187,15 @@ export function setCurrentMessages (state) {
 
 export function setMessagesRead (state, payload) {
   _.each(payload.Uids, function (sUid) {
-    var sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
-    var oMessage = state.messagesCache[sMessageKey]
+    let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
+    let oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.IsSeen = payload.IsSeen
       if (oMessage.ThreadParentUid) {
-        var sThreadMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), oMessage.ThreadParentUid)
-        var oParentMessage = state.messagesCache[sThreadMessageKey]
+        let sThreadMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), oMessage.ThreadParentUid)
+        let oParentMessage = state.messagesCache[sThreadMessageKey]
         if (oParentMessage) {
-          var bHasUnseenMessages = false
+          let bHasUnseenMessages = false
           _.each(oParentMessage.Threads, function (oThreadMessage) {
             if (!oThreadMessage.IsSeen) {
               bHasUnseenMessages = true
@@ -171,8 +219,8 @@ export function setAllMessagesRead (state) {
 
 export function setMessagesDeleted (state, payload) {
   _.each(payload.Uids, function (sUid) {
-    var sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
-    var oMessage = state.messagesCache[sMessageKey]
+    let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
+    let oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.Deleted = payload.Deleted
     }
@@ -198,8 +246,8 @@ export function setCurrentMessage (state, payload) {
 }
 
 export function updateMessage (state, payload) {
-  var sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), payload.Uid)
-  var oMessage = state.messagesCache[sMessageKey]
+  let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, payload.Folder, payload.Uid)
+  let oMessage = state.messagesCache[sMessageKey]
   if (oMessage) {
     _.assign(oMessage, payload)
     oMessage.Received = true
@@ -207,6 +255,5 @@ export function updateMessage (state, payload) {
 }
 
 export function setCurrentFolder (state, payload) {
-  var oFolder = state.currentFolderList.Flat[payload]
-  state.currentFolder = oFolder
+  state.currentFolderList.Current = state.currentFolderList.Flat[payload]
 }

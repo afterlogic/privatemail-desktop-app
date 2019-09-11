@@ -2,43 +2,54 @@ import axios from 'axios'
 import store from 'src/store'
 import prefetcher from 'src/prefetcher.js'
 
+let aRequestsNumbers = []
+
 export default {
   sendRequest: function (module, method, parameters, callback) {
     const url = 'http://aurora.dev.com/?/Api/'
 
-    var bodyFormData = new FormData()
-    bodyFormData.set('Module', module)
-    bodyFormData.set('Method', method)
-    bodyFormData.set('Parameters', JSON.stringify(parameters))
+    let oBodyFormData = new FormData()
+    oBodyFormData.set('Module', module)
+    oBodyFormData.set('Method', method)
+    oBodyFormData.set('Parameters', JSON.stringify(parameters))
 
-    var authToken = store.getters['user/getAuthToken']
-    var headers = {'Content-Type': 'multipart/form-data'}
-    if (authToken) {
-      headers['Authorization'] = 'Bearer ' + authToken
+    let sAuthToken = store.getters['user/getAuthToken']
+    let oHeaders = {
+      'Content-Type': 'multipart/form-data',
     }
+    if (sAuthToken) {
+      oHeaders['Authorization'] = 'Bearer ' + sAuthToken
+    }
+    let iRequestNumber = Math.random()
+    aRequestsNumbers.push(iRequestNumber)
     axios({
       method: 'post',
       url,
-      data: bodyFormData,
-      headers,
+      data: oBodyFormData,
+      oHeaders,
     })
       .then((response) => {
-        var responseOk = response && response.status === 200 && response.data
-        var result = responseOk && response.data.Result
-        var error = null
-        if (responseOk && !result && response.data.ErrorCode) {
-          error = {
+        aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
+        // console.log('webApi response', aRequestsNumbers.length, response)
+        let bResponseOk = !!response && response.status === 200 && !!response.data
+        let oResult = bResponseOk && response.data.Result
+        let oError = null
+        if (bResponseOk && !oResult && response.data.ErrorCode) {
+          oError = {
             Code: response.data.ErrorCode,
             Module: response.data.Module,
           }
         }
         if (_.isFunction(callback)) {
-          callback(result, error)
+          callback(oResult, oError)
         }
-        prefetcher.start()
+        if (aRequestsNumbers.length === 0) {
+          prefetcher.start()
+        }
       })
-      .catch((error) => {
-        console.log('webApi error', error)
+      .catch((oError) => {
+        aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
+        console.log('webApi error', aRequestsNumbers.length, oError)
         if (_.isFunction(callback)) {
           callback(false, null)
         }

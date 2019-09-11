@@ -1,13 +1,10 @@
 import store from 'src/store'
 
 import _ from 'lodash'
-import webApi from 'src/utils/webApi.js'
-import errors from 'src/utils/errors.js'
-import notification from 'src/utils/notification.js'
 import messagesUtils from 'src/store/mail/utils/messages.js'
 
 function _getFoldersToRefresh () {
-  let oCurrent = store.state.mail.currentFolder
+  let oCurrent = store.state.mail.currentFolderList.Current
   let oInbox = store.state.mail.currentFolderList.Inbox
   let oSent = store.state.mail.currentFolderList.Sent
   let oDrafts = store.state.mail.currentFolderList.Drafts
@@ -29,89 +26,86 @@ function _getFoldersToRefresh () {
   return aFoldersToRefresh
 }
 
+function _getMessagesInfo(oFolder) {
+  let bPrefetchStarted = false
 
-function _setSyncing(bCurrentFolder, bSyncing) {
-  if (bCurrentFolder) {
-    store.commit('mail/setSyncing', bSyncing)
+  if (oFolder.HasChanges) {
+    store.dispatch('mail/asyncGetMessagesInfo', oFolder.FullName)
+    bPrefetchStarted = true
   }
+
+  return bPrefetchStarted
 }
 
-function _asyncGetMessagesInfo (sFolderFullName, bCurrentFolder) {
-  _setSyncing(bCurrentFolder, true)
-  let oParameters = messagesUtils.getMessagesInfoParameters(store.state.mail.currentAccount.AccountID, sFolderFullName)
-  webApi.sendRequest('Mail', 'GetMessagesInfo', oParameters, (oResult, oError) => {
-    _setSyncing(bCurrentFolder, false)
-    if (oResult) {
-      store.commit('mail/setMessagesInfo', {
-        Parameters: oParameters,
-        MessagesInfo: oResult,
+function _getMessages(oFolder) {
+  let bPrefetchStarted = false
+  let iAccountId = store.state.mail.currentAccount.AccountID
+  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, oFolder.FullName)
+  let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
+
+  if (aMessageList === null) {
+    store.dispatch('mail/asyncGetMessagesInfo', oFolder.FullName)
+    bPrefetchStarted = true
+  } else {
+    let aUids = messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, oFolder.FullName)
+    if (aUids.length > 0) {
+      store.dispatch('mail/asyncGetMessages', {
+        iAccountId,
+        sFolderFullName: oFolder.FullName,
+        aUids,
       })
-      if (bCurrentFolder) {
-        store.commit('mail/setCurrentMessages')
-      }
-    } else {
-      notification.showError(errors.getText(oError, 'Error occurred while getting messages info'))
+      bPrefetchStarted = true
     }
-  })
+  }
+
+  return bPrefetchStarted
 }
 
-export function _asyncGetMessages (iAccountId, sFolderFullName, aUids, bCurrentFolder) {
-    _setSyncing(bCurrentFolder, true)
-    webApi.sendRequest('Mail', 'GetMessagesByUids', {AccountID: iAccountId, Folder: sFolderFullName, Uids: aUids}, (oResult, oError) => {
-      _setSyncing(bCurrentFolder, false)
-      if (oResult && oResult['@Collection']) {
-        store.commit('mail/updateMessagesCache', {
-          AccountId: iAccountId,
-          Messages: oResult['@Collection'],
-        })
-        store.commit('mail/setCurrentMessages')
-        store.dispatch('mail/asyncGetMessagesBodies')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting messages'))
-      }
+function _getMessagesBodies(oFolder) {
+  let bPrefetchStarted = false
+  let iAccountId = store.state.mail.currentAccount.AccountID
+
+  let aUids = messagesUtils.getUidsToRetrieveBodies(store.state.mail.messageList, store.state.mail.messagesCache, iAccountId, oFolder.FullName)
+  if (aUids.length > 0) {
+    store.dispatch('mail/asyncGetMessagesBodies', {
+      iAccountId,
+      sFolderFullName: oFolder.FullName,
+      aUids,
     })
+    bPrefetchStarted = true
+  }
+
+  return bPrefetchStarted
 }
+
+let bFoldersRetrieved = false
+let bFoldersFirstRefreshed = false
 
 export default {
   start: function () {
     if (store.state.mail.currentAccount) {
-      this.refreshAll()
-    }
-  },
-  refreshAll: function () {
-    let sFolderFullNameToRefresh = ''
-    let aFoldersToRefresh = _getFoldersToRefresh()
-    _.each(aFoldersToRefresh, function (oFolder) {
-      if (oFolder.HasChanges) {
-        sFolderFullNameToRefresh = oFolder.FullName
-        return false // break each
-      }
-    })
-  
-    let sСurrentFolderFullName = store.getters['mail/getСurrentFolderFullName']
-    if (sFolderFullNameToRefresh !== '') {
-      _asyncGetMessagesInfo(sFolderFullNameToRefresh, sСurrentFolderFullName === sFolderFullNameToRefresh)
-    } else {
-      let iAccountId = store.state.mail.currentAccount.AccountID
-      _.each(aFoldersToRefresh, function (oFolder) {
-        let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, oFolder.FullName)
-        let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
-        if (aMessageList === null) {
-          _asyncGetMessagesInfo(oFolder.FullName, sСurrentFolderFullName === oFolder.FullName)
-        } else {
-          let aUids = messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, oFolder.FullName)
-          if (aUids.length > 0) {
-            _asyncGetMessages (iAccountId, oFolder.FullName, aUids, sСurrentFolderFullName === oFolder.FullName)
+      if (!bFoldersRetrieved) {
+        store.dispatch('mail/asyncGetFolderList')
+        bFoldersRetrieved = true
+      } else if (!bFoldersFirstRefreshed) {
+        store.dispatch('mail/asyncGetFoldersRelevantInformation', store.state.mail.currentFolderList.Names)
+        bFoldersFirstRefreshed = true
+      } else {
+        let aFoldersToRefresh = _getFoldersToRefresh()
+        let bPrefetchStarted = false
+        _.each(aFoldersToRefresh, function (oFolder) {
+          bPrefetchStarted = _getMessagesInfo(oFolder)
+          if (!bPrefetchStarted) {
+            bPrefetchStarted = _getMessages(oFolder)
+          }
+          if (!bPrefetchStarted) {
+            bPrefetchStarted = _getMessagesBodies(oFolder)
+          }
+          if (bPrefetchStarted) {
             return false // break each
           }
-        }
-      })
+        })
+      }
     }
-
-  // if (state.messageList === null) {
-  //   // dispatch('asyncGetMessagesInfo')
-  // } else if (state.currentMessages.length === 0 && state.messageList.length > 0) {
-  //   dispatch('asyncGetMessages')
-  // }
   },
 }

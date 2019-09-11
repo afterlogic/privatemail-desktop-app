@@ -50,45 +50,42 @@ export default {
   },
 
   getMessages: function (aStateMessageList, iPage, oStateMessagesCache, sStateCurrentFolderFullName, iCurrentAccountId) {
-    console.time('getMessages');
-    var iPageSize = 20
-    var iOffset = (iPage - 1) * iPageSize
-    var aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
-    var aCurrentMessages = []
+    console.time('getMessages')
+    let iPageSize = 20
+    let iOffset = (iPage - 1) * iPageSize
+    let aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
+    let aCurrentMessages = []
   
     _.each(aPagedList, (oMessageInfo) => {
-      var sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
-      var oMessage = oStateMessagesCache[sMessageKey]
+      let sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
+      let oMessage = oStateMessagesCache[sMessageKey]
       if (oMessage) {
-        var bFlaggedThread = false
-        var bThreadHasUnread = false
-        if (_.isArray(oMessageInfo.thread) && !_.isArray(oMessage.Threads)) {
-          let aThreads = []
-          _.each(oMessageInfo.thread, (oThreadMessage) => {
-            var sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessage.uid)
-            var oThreadMessage = oStateMessagesCache[sThreadMessageKey]
+        let bFlagsChanged = -1 !== _.findIndex(oMessageInfo.thread, function (oThreadInfo) {
+          return oThreadInfo.flagsChanged
+        })
+        if (oMessageInfo.NeedPopulateThread || bFlagsChanged) {
+            let aThreads = []
+          _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
+            let sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessageInfo.uid)
+            let oThreadMessage = oStateMessagesCache[sThreadMessageKey]
             if (oThreadMessage) {
-              if (oThreadMessage.IsFlagged) {
-                bFlaggedThread = true
-              }
-              if (!oThreadMessage.IsSeen) {
-                bThreadHasUnread = true
-              }
               oThreadMessage.ThreadParentUid = oMessage.Uid
+              oThreadMessage.Threads = null
               aThreads.push(oThreadMessage)
             }
           })
-          oMessage.Threads = aThreads // this operation extremely slows down performance
+          if (aThreads.length > 0) {
+            oMessage.Threads = aThreads // this operation extremely slows down performance
+          } else if (_.isArray(oMessage.Threads)) {
+            oMessage.Threads = null // do not delete because it will not trigger changes in UI
+          }
+          oMessageInfo.NeedPopulateThread = false
         }
-        if (!_.isArray(oMessage.Threads)) {
-          oMessage.Threads = [] // this operation extremely slows down performance
-        }
-        oMessage.PartialFlagged = bFlaggedThread
-        oMessage.ThreadHasUnread = bThreadHasUnread
+        delete oMessage.ThreadParentUid
         aCurrentMessages.push(oMessage)
       }
     })
-    console.timeEnd('getMessages');
+    console.timeEnd('getMessages')
     return aCurrentMessages
   },
 

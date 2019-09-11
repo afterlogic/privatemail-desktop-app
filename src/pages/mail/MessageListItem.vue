@@ -17,7 +17,7 @@
       </q-item-section>
       <q-item-section style="flex: auto;">
         <q-item-label lines="1">{{message.ShortDate}}</q-item-label>
-        <q-chip lines="2" dense v-if="message.Threads.length > 0" @click.native.stop="toggleThread" :color="message.ThreadHasUnread ? 'grey': ''">
+        <q-chip lines="2" dense v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" :color="message.ThreadHasUnread ? 'grey': ''">
           {{message.Threads.length}}
           <q-tooltip v-if="!threadOpened && !message.ThreadHasUnread">
             Unfold thread
@@ -32,7 +32,7 @@
       </q-item-section>
     </q-item>
     <q-separator :class="{checked: checked, selected: selected, unread: !message.IsSeen}" />
-    <div style="border-left: solid 5px #e3e3e3;" v-show="message.Threads.length > 0 && threadOpened">
+    <div style="border-left: solid 5px #e3e3e3;" v-show="message.Threads && message.Threads.length > 0 && threadOpened">
       <MessageListItem v-for="threadMessage in message.Threads" :key="threadMessage.Uid" :message="threadMessage" />
     </div>
   </div>
@@ -83,7 +83,7 @@ export default {
   watch: {
     checked: function () {
       this.$root.$emit('message-checked', this.message.Uid, this.checked)
-      if (this.message.Threads.length > 0 && !this.threadOpened) {
+      if (this.message.Threads && this.message.Threads.length > 0 && !this.threadOpened) {
         this.$emit('parent-message-checked', this.checked)
       }
     },
@@ -98,8 +98,8 @@ export default {
       return this.message.Deleted
     },
     fromTo () {
-      var oFromTo = (this.message.Folder === 'Drafts' || this.message.Folder === 'Sent') ? this.message.To : this.message.From
-      var aFromTo = []
+      let oFromTo = (this.message.Folder === 'Drafts' || this.message.Folder === 'Sent') ? this.message.To : this.message.From
+      let aFromTo = []
       if (oFromTo && oFromTo['@Collection']) {
         _.each(oFromTo['@Collection'], function (address) {
           aFromTo.push(addressUtils.getFullEmail(address.DisplayName, address.Email))

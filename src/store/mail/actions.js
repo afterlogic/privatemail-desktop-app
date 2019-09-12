@@ -143,12 +143,18 @@ export function setCurrentFolder ({ state, commit, getters }, sFolderFullName) {
     AccountId: state.currentAccount.AccountID,
     FolderFullName: sFolderFullName,
   })
+  commit('setСurrentPage', 1)
   commit('setCurrentMessages')
   let oСurrentMessage = getters.getСurrentMessage
   if (oСurrentMessage && oСurrentMessage.Folder !== sFolderFullName) {
     commit('setCurrentMessage', null)
   }
   prefetcher.start()
+}
+
+export function setСurrentPage ({ commit }, payload) {
+  commit('setСurrentPage', payload)
+  commit('setCurrentMessages')
 }
 
 export function setCurrentMessage ({ commit, dispatch }, payload) {

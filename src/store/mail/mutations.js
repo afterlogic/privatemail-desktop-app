@@ -182,7 +182,11 @@ export function updateMessagesCache (state, payload) {
 }
 
 export function setCurrentMessages (state) {
-  state.currentMessages = messagesUtils.getMessages(state.messageList, 1, state.messagesCache, getters.getСurrentFolderFullName(state), state.currentAccount.AccountID)
+  state.currentMessages = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, getters.getСurrentFolderFullName(state), state.currentAccount.AccountID)
+}
+
+export function setСurrentPage (state, payload) {
+  state.currentPage = payload
 }
 
 export function setMessagesRead (state, payload) {

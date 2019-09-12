@@ -24,7 +24,10 @@ export default {
   allMessageLists: {},
   
   messageList: null,
-  messagesCache: {},
   currentMessages: [],
+  currentPage: 1,
+  messagesPerPage: 20,
+
+  messagesCache: {},
   currentMessage: null,
 }

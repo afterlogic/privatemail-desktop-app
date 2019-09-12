@@ -15,6 +15,18 @@ export function getСurrentMessages (state) {
   return state.currentMessages
 }
 
+export function getСurrentPage (state) {
+  return state.currentPage
+}
+
+export function getMessagesPerPage (state) {
+  return state.messagesPerPage
+}
+
+export function getMessagesCount (state) {
+  return _.isArray(state.messageList) ? state.messageList.length : 0
+}
+
 export function getСurrentMessage (state) {
   return state.currentMessage
 }

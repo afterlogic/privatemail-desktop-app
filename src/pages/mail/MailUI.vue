@@ -60,6 +60,9 @@
                     <message-list />
                   </q-scroll-area>
                 </div>
+                <div class="col-auto">
+                  <Pagination :currentPage="currentPage" :messagesPerPage="messagesPerPage" :messagesCount="messagesCount" :changePage="changePage"></Pagination>
+                </div>
               </div>
             </template>
             <template v-slot:after>
@@ -81,6 +84,7 @@ import MessageList from "./MessageList.vue"
 import MailListToolbar from "./MailListToolbar.vue"
 import MessageViewer from "./MessageViewer.vue"
 import MessageCompose from "./MailCompose.vue"
+import Pagination from './Pagination.vue'
 
 export default {
   name: 'MailUI',
@@ -89,7 +93,8 @@ export default {
     MessageList,
     MailListToolbar,
     MessageViewer,
-    MessageCompose
+    MessageCompose,
+    Pagination,
   },
   data () {
     return {
@@ -104,6 +109,15 @@ export default {
     messages () {
       return this.$store.getters['mail/getСurrentMessages']
     },
+    currentPage () {
+      return this.$store.getters['mail/getСurrentPage']
+    },
+    messagesPerPage () {
+      return this.$store.getters['mail/getMessagesPerPage']
+    },
+    messagesCount () {
+      return this.$store.getters['mail/getMessagesCount']
+    },
   },
   watch: {
     checkboxAll: function(val, oldval) {
@@ -117,6 +131,11 @@ export default {
     },
   },
   methods: {
+    changePage (iPage) {
+      if (iPage !== this.currentPage) {
+        this.$store.dispatch('mail/setСurrentPage', iPage)
+      }
+    },
     openCompose () {
       this.$refs.compose.openCompose()
     },

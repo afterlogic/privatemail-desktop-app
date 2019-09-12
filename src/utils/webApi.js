@@ -26,7 +26,7 @@ export default {
       method: 'post',
       url,
       data: oBodyFormData,
-      oHeaders,
+      headers: oHeaders,
     })
       .then((response) => {
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)

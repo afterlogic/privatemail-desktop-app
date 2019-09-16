@@ -71,6 +71,8 @@ export default {
             if (oThreadMessage) {
               oThreadMessage.ThreadParentUid = oMessage.Uid
               oThreadMessage.Threads = null
+              oThreadMessage.PartialFlagged = false
+              oThreadMessage.ThreadHasUnread = false
               aThreads.push(oThreadMessage)
             }
           })

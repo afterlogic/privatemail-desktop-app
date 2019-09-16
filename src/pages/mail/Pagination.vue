@@ -71,13 +71,13 @@ export default {
       return aPages
     },
     firstPage: function () {
-      if (this.pages[0] === 1) {
+      if (this.pages.length === 0 || this.pages[0] === 1) {
         return null
       }
       return 1
     },
     lastPage: function () {
-      if (this.pages[this.pages.length - 1] === this.pagesCount) {
+      if (this.pages.length === 0 || this.pages[this.pages.length - 1] === this.pagesCount) {
         return null
       }
       return this.pagesCount

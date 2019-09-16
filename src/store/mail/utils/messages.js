@@ -63,7 +63,7 @@ export default {
         let bFlagsChanged = -1 !== _.findIndex(oMessageInfo.thread, function (oThreadInfo) {
           return oThreadInfo.flagsChanged
         })
-        if (oMessageInfo.NeedPopulateThread || bFlagsChanged) {
+        if (oMessageInfo.NeedPopulateThread || bFlagsChanged || /** for the first time */_.isArray(oMessageInfo.thread) && !_.isArray(oMessage.Threads)) {
             let aThreads = []
           _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
             let sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessageInfo.uid)

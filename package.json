@@ -12,12 +12,14 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev:web": "quasar dev",
     "dev:app": "quasar dev -m electron",
+    "postinstall": "electron-builder install-app-deps",
     "build:web": "quasar build",
     "build:app": "quasar build -m electron",
     "build:pwa": "quasar build -m pwa",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
+  "scripts comments": "postinstall should be run right after npm install (because of sqlite3)",
   "build": {
     "appId": "com.afterlogic.privatemail",
     "productName": "Private Mail",
@@ -42,6 +44,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "quasar": "^1.0.0",
+    "sqlite3": "^4.1.0",
     "vue-i18n": "^8.0.0",
     "vuex-persistedstate": "^2.5.4"
   },
@@ -51,7 +54,7 @@
     "babel-eslint": "^10.0.1",
     "devtron": "^1.4.0",
     "electron": "^5.0.8",
-    "electron-builder": "^21.2.0",
+    "electron-builder": "^20.28.4",
     "electron-debug": "^3.0.1",
     "electron-devtools-installer": "^2.2.4",
     "electron-packager": "^13.1.1",

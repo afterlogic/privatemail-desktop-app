@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron'
 import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
 import errors from 'src/utils/errors.js'
@@ -23,8 +24,16 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }) {
 
 export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
   if (state.currentAccount) {
-    commit('setSyncing', true)
     let iAccountId = state.currentAccount.AccountID
+
+    ipcRenderer.send('bd-get-folders', iAccountId)
+    ipcRenderer.on('bd-get-folders', (event, oResult) => {
+      if (oResult !== null) {
+        commit('setFolderList', oResult)
+      }
+    })
+
+    commit('setSyncing', true)
     webApi.sendRequest('Mail', 'GetFolders', {AccountID: iAccountId}, (oResult, oError) => {
       commit('setSyncing', false)
       if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
@@ -46,10 +55,14 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
 export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch }, payload) {
   if (state.currentAccount) {
     commit('setSyncing', true)
-    webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: state.currentAccount.AccountID, Folders: payload, UseListStatusIfPossible: true}, (oResult, oError) => {
+    let iAccountId = state.currentAccount.AccountID
+    webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: iAccountId, Folders: payload, UseListStatusIfPossible: true}, (oResult, oError) => {
       commit('setSyncing', false)
       if (oResult && oResult.Counts) {
-        commit('setFoldersRelevantInformation', oResult.Counts)
+        commit('setFoldersRelevantInformation', {
+          AccountId: iAccountId,
+          Counts: oResult.Counts,
+        })
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while getting folders relevant information'))
       }
@@ -58,12 +71,27 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
 }
 
 export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
+  let iAccountId = state.currentAccount.AccountID
   let sFolderFullName = payload
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
+  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+
+  ipcRenderer.send('bd-get-messages-info',{
+    AccountId: iAccountId,
+    FolderFullName: sFolderFullName,
+  })
+  ipcRenderer.on('bd-get-messages-info', (event, oResult) => {
+    if (oResult !== null) {
+      commit('setMessagesInfo', {
+        Parameters: oParameters,
+        MessagesInfo: oResult,
+      })
+    }
+  })
+
   if (bCurrentFolder) {
     commit('setSyncing', true)
   }
-  let oParameters = messagesUtils.getMessagesInfoParameters(state.currentAccount.AccountID, sFolderFullName)
   webApi.sendRequest('Mail', 'GetMessagesInfo', oParameters, (oResult, oError) => {
     if (bCurrentFolder) {
       commit('setSyncing', false)

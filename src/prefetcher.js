@@ -78,15 +78,18 @@ function _getMessagesBodies(oFolder) {
   return bPrefetchStarted
 }
 
+let iCurrentAccountId = 0
 let bFoldersRetrieved = false
 let bFoldersFirstRefreshed = false
 
 export default {
   start: function () {
     if (store.state.mail.currentAccount) {
-      if (!bFoldersRetrieved) {
+      if (!bFoldersRetrieved || iCurrentAccountId !== store.state.mail.currentAccount.AccountID) {
         store.dispatch('mail/asyncGetFolderList')
+        iCurrentAccountId = store.state.mail.currentAccount.AccountID
         bFoldersRetrieved = true
+        bFoldersFirstRefreshed = false
       } else if (!bFoldersFirstRefreshed) {
         store.dispatch('mail/asyncGetFoldersRelevantInformation', store.state.mail.currentFolderList.Names)
         bFoldersFirstRefreshed = true

@@ -10,7 +10,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   plugins: [createPersistedState({
-    paths: ['user', 'main', 'mail.allFolderLists', 'mail.allMessageLists', 'mail.messagesCache'],
+    paths: ['user', 'main', 'mail.allMessageLists', 'mail.messagesCache'],
   })],
   modules: {
     main,

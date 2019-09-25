@@ -24,11 +24,8 @@ export function resetCurrentFolderList (state) {
   }
 }
 
-export function setCurrentFolderList (state) {
-  let oFolderList = state.allFolderLists[state.currentAccount.AccountID]
-  if (oFolderList) {
-    state.currentFolderList = oFolderList
-  }
+export function setCurrentFolderList (state, oFolderList) {
+  state.currentFolderList = oFolderList
 }
 
 export function parseFolderList (state, payload) {
@@ -38,39 +35,34 @@ export function parseFolderList (state, payload) {
     AccountId: oFolderList.AccountId,
     FolderList: oFolderList,
   })
-
-  state.allFolderLists[oFolderList.AccountId] = oFolderList
-}
-
-export function setFolderList (state, payload) {
-  state.allFolderLists[payload.AccountId] = payload
 }
 
 export function setFoldersRelevantInformation (state, payload) {
-  let oFolderList = state.allFolderLists[payload.AccountId]
-  if (oFolderList) {
-    _.each(payload.Counts, function (aFolderCounts, sFolderFullName) {
-      let oFolder = oFolderList.Flat[sFolderFullName]
-      if (oFolder) {
-        let iNewCount = aFolderCounts[0]
-        let iUnseenCount = aFolderCounts[1]
-        let sNextUid = aFolderCounts[2]
-        let sHash = aFolderCounts[3]
-        if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
-          oFolder.HasChanges = true
-        }
-        oFolder.Count = iNewCount
-        oFolder.UnseenCount = iUnseenCount
-        oFolder.NextUid = sNextUid
-        oFolder.Hash = sHash
-      }
-    })
+  // ipcRenderer.send('bd-set-folders-relevant-information', payload)
+  // let oFolderList = state.allFolderLists[payload.AccountId]
+  // if (oFolderList) {
+  //   _.each(payload.Counts, function (aFolderCounts, sFolderFullName) {
+  //     let oFolder = oFolderList.Flat[sFolderFullName]
+  //     if (oFolder) {
+  //       let iNewCount = aFolderCounts[0]
+  //       let iUnseenCount = aFolderCounts[1]
+  //       let sNextUid = aFolderCounts[2]
+  //       let sHash = aFolderCounts[3]
+  //       if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
+  //         oFolder.HasChanges = true
+  //       }
+  //       oFolder.Count = iNewCount
+  //       oFolder.UnseenCount = iUnseenCount
+  //       oFolder.NextUid = sNextUid
+  //       oFolder.Hash = sHash
+  //     }
+  //   })
 
-    ipcRenderer.send('bd-set-folders', {
-      AccountId: oFolderList.AccountId,
-      FolderList: oFolderList,
-    })
-  }
+  //   ipcRenderer.send('bd-set-folders', {
+  //     AccountId: oFolderList.AccountId,
+  //     FolderList: oFolderList,
+  //   })
+  // }
 }
 
 function _isTheadsEqual(mNewThread, mOldThread) {
@@ -174,13 +166,13 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 
 export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
-    _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
-    state.messageList = payload.MessagesInfo
     ipcRenderer.send('bd-set-messages-info', {
       AccountId: payload.Parameters.AccountID,
       FolderFullName: payload.Parameters.Folder,
       MessagesInfo: payload.MessagesInfo,
     })
+    _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
+    state.messageList = payload.MessagesInfo
   } else if (payload && payload.AccountId && payload.FolderFullName) {
     let oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)
     state.messageList = state.allMessageLists[JSON.stringify(oParameters)] || null
@@ -272,11 +264,11 @@ export function setCurrentMessage (state, payload) {
   state.currentMessage = payload
 }
 
-export function updateMessage (state, payload) {
-  let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, payload.Folder, payload.Uid)
+export function updateMessage (state, {iAccountId, oMessageFromServer}) {
+  let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, oMessageFromServer.Folder, oMessageFromServer.Uid)
   let oMessage = state.messagesCache[sMessageKey]
   if (oMessage) {
-    _.assign(oMessage, payload)
+    _.assign(oMessage, oMessageFromServer)
     oMessage.Received = true
   }
 }

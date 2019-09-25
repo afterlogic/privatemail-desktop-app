@@ -5,17 +5,22 @@
 </template>
 
 <script>
+import { ipcRenderer } from 'electron'
 import theming from './css/theming'
 
 export default {
-  name: "App",
+  name: 'App',
   watch: {
     '$store.state.main.theme': function (v) {
       this.setThemeColors(v);
     },
   },
   mounted () {
-    this.setThemeColors(this.$store.state.main.theme);
+    ipcRenderer.on('notification', (event, mNotification) => {
+      console.log('mNotification', mNotification)
+    })
+
+    this.setThemeColors(this.$store.state.main.theme)
   },
   methods: {
     setThemeColors (v) {
@@ -25,10 +30,8 @@ export default {
         theming.setDarkhemeColors()
       }
     },
-  }
-};
-
-
+  },
+}
 </script>
 
 <style lang="scss">

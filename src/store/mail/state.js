@@ -3,7 +3,6 @@ export default {
 
   currentAccount: null,
 
-  allFolderLists: {},
   currentFolderList: {
     AccountId: 0,
     Namespace: '',

@@ -15,7 +15,7 @@ function createWindow () {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    width: 1000,
+    width: 1550,
     height: 600,
     useContentSize: true,
     webPreferences: {
@@ -58,15 +58,15 @@ let db = new sqlite3.Database('privatemail.db', (err) => {
 ipcMain.on('bd-get-folders', (event, arg) => {
   let db = new sqlite3.Database('privatemail.db', (err) => {
     if (err) {
-      event.sender.send('bd-get-folders', null)
+      event.sender.send('notification', {event: 'bd-get-folders', err})
     } else {
       db.serialize(function() {
         let stmt = db.prepare('SELECT list FROM folders WHERE acct_id = ?');
         stmt.each(arg, function(err, row) {
-          if (typeof row === 'string' && row !== '') {
-            event.sender.send('bd-get-folders', JSON.parse(row))
+          if (row && typeof row.list === 'string' && row.list !== '') {
+            event.sender.send('bd-get-folders', JSON.parse(row.list))
           } else {
-            event.sender.send('bd-get-folders', null)
+            event.sender.send('notification', {event: 'bd-get-folders', err, row})
           }
         }, function(err, count) {
             stmt.finalize()
@@ -74,7 +74,7 @@ ipcMain.on('bd-get-folders', (event, arg) => {
 
         db.close((err) => {
           if (err) {
-            event.sender.send('bd-get-folders', null)
+            event.sender.send('notification', {event: 'bd-get-folders', err})
           }
         })
       })
@@ -105,15 +105,15 @@ ipcMain.on('bd-set-folders', (event, arg) => {
 ipcMain.on('bd-get-messages-info', (event, arg) => {
   let db = new sqlite3.Database('privatemail.db', (err) => {
     if (err) {
-      event.sender.send('bd-get-messages-info', null)
+      event.sender.send('notification', {event: 'bd-get-messages-info', err})
     } else {
       db.serialize(function() {
         let stmt = db.prepare('SELECT messages_info FROM messages_info WHERE acct_id = ? AND folder_full_name = ?');
         stmt.each(arg.AccountId, arg.FolderFullName, function(err, row) {
-          if (typeof row === 'string' && row !== '') {
-            event.sender.send('bd-get-messages-info', JSON.parse(row))
+          if (row && typeof row.messages_info === 'string' && row.messages_info !== '') {
+            event.sender.send('bd-get-messages-info', JSON.parse(row.messages_info))
           } else {
-            event.sender.send('bd-get-messages-info', null)
+            event.sender.send('notification', {event: 'bd-get-messages-info', err, row})
           }
         }, function(err, count) {
             stmt.finalize()
@@ -121,7 +121,7 @@ ipcMain.on('bd-get-messages-info', (event, arg) => {
 
         db.close((err) => {
           if (err) {
-            event.sender.send('bd-get-messages-info', null)
+            event.sender.send('notification', {event: 'bd-get-messages-info', err})
           }
         })
       })

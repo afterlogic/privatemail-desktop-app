@@ -3,13 +3,19 @@ import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/prefetcher.js'
 
 export function asyncGetSettings ({ state, commit, dispatch, getters }) {
-  ipcRenderer.on('bd-get-folders', (event, oResult) => {
-    if (oResult !== null) {
-      commit('setCurrentFolderList', oResult)
+  ipcRenderer.on('db-get-folders', (event, oDbFolderList) => {
+    if (oDbFolderList !== null) {
+      let oFlatFolders = state.currentFolderList && oDbFolderList.AccountId === state.currentFolderList.AccountId ? _.cloneDeep(state.currentFolderList.Flat) : {}
+      let oFolderList = foldersUtils.prepareFolderList(oDbFolderList.AccountId, oDbFolderList.Namespace || '', {
+        '@Collection': oDbFolderList.Tree,
+        '@Count': oDbFolderList.Count,
+      }, oFlatFolders)
+      commit('setCurrentFolderList', oFolderList)
       dispatch('setCurrentFolder', getters.getInboxFullName)
     }
   })
@@ -19,7 +25,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }) {
       if (oResult.Accounts && oResult.Accounts[0]) {
         commit('setCurrentAccount', oResult.Accounts[0])
         let iAccountId = state.currentAccount.AccountID
-        ipcRenderer.send('bd-get-folders', iAccountId)
+        ipcRenderer.send('db-get-folders', iAccountId)
       }
     } else {
       notification.showError(errors.getText(oError, 'Error occurred while getting mail settings'))
@@ -35,11 +41,10 @@ export function asyncGetFolderList ({ state, commit }) {
     webApi.sendRequest('Mail', 'GetFolders', {AccountID: iAccountId}, (oResult, oError) => {
       commit('setSyncing', false)
       if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
-        commit('parseFolderList', {
-          FolderListFromServer: oResult.Folders,
-          AccountId: iAccountId
-        })
-        ipcRenderer.send('bd-get-folders', iAccountId)
+        let oFlatFolders = state.currentFolderList && iAccountId === state.currentFolderList.AccountId ? _.cloneDeep(state.currentFolderList.Flat) : {}
+        let oFolderList = foldersUtils.prepareFolderList(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFolders)
+        ipcRenderer.send('db-set-folders', oFolderList)
+        commit('setCurrentFolderList', oFolderList)
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while getting folder list'))
       }
@@ -54,10 +59,13 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
     webApi.sendRequest('Mail', 'GetRelevantFoldersInformation', {AccountID: iAccountId, Folders: payload, UseListStatusIfPossible: true}, (oResult, oError) => {
       commit('setSyncing', false)
       if (oResult && oResult.Counts) {
-        commit('setFoldersRelevantInformation', {
-          AccountId: iAccountId,
-          Counts: oResult.Counts,
-        })
+        if (iAccountId === state.currentAccount.AccountID && state.currentFolderList) {
+          commit('setFoldersRelevantInformation', {
+            AccountId: iAccountId,
+            Counts: oResult.Counts,
+          })
+          ipcRenderer.send('db-set-folders', state.currentFolderList)
+        }
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while getting folders relevant information'))
       }
@@ -70,11 +78,11 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
   let sFolderFullName = payload
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
   let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
-  ipcRenderer.send('bd-get-messages-info', {
+  ipcRenderer.send('db-get-messages-info', {
     AccountId: iAccountId,
     FolderFullName: sFolderFullName,
   })
-  ipcRenderer.on('bd-get-messages-info', (event, oResult) => {
+  ipcRenderer.on('db-get-messages-info', (event, oResult) => {
     if (oResult !== null) {
       commit('setMessagesInfo', {
         Parameters: oParameters,

@@ -27,7 +27,7 @@ function _getIconName (sType, sFolderFullName) {
 }
 
 export default {
-  prepareFolderList: function (iAccountId, oFolderListFromServer, oOldFoldersByNames) {
+  prepareFolderList: function (iAccountId, sNamespace, oFolderListFromServer, oOldFoldersByNames) {
     let oNewFoldersFlat = {}
     let aNewFoldersNames = []
     let oInbox = null
@@ -98,7 +98,7 @@ export default {
 
     return {
       AccountId: iAccountId,
-      Namespace: oFolderListFromServer.Namespace || '',
+      Namespace: sNamespace,
       Count: oFolderListFromServer['@Count'] || 0,
       Tree: aResultNewFoldersData.Tree,
       Flat: oNewFoldersFlat,

@@ -1,4 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
+import _ from 'lodash'
+import foldersDbManager from './db-managers/folders.js'
+import foldersManager from './managers/folders.js'
 
 /**
  * Set `__statics` path to static files in production;
@@ -50,70 +53,55 @@ let db = new sqlite3.Database('privatemail.db', (err) => {
     db.serialize(function() {
       db.run('CREATE TABLE IF NOT EXISTS folders (acct_id INTEGER, list TEXT)')
       db.run('CREATE TABLE IF NOT EXISTS messages_info (acct_id INTEGER, folder_full_name TEXT, messages_info TEXT)')
-      db.close()
+      db.close((err) => {
+        if (err) {
+          event.sender.send('notification', {event: 'db-init', err})
+        }
+      })
     })
   }
 })
 
-ipcMain.on('bd-get-folders', (event, arg) => {
-  let db = new sqlite3.Database('privatemail.db', (err) => {
-    if (err) {
-      event.sender.send('notification', {event: 'bd-get-folders', err})
-    } else {
-      db.serialize(function() {
-        let stmt = db.prepare('SELECT list FROM folders WHERE acct_id = ?');
-        stmt.each(arg, function(err, row) {
-          if (row && typeof row.list === 'string' && row.list !== '') {
-            event.sender.send('bd-get-folders', JSON.parse(row.list))
-          } else {
-            event.sender.send('notification', {event: 'bd-get-folders', err, row})
-          }
-        }, function(err, count) {
-            stmt.finalize()
-        })
-
-        db.close((err) => {
-          if (err) {
-            event.sender.send('notification', {event: 'bd-get-folders', err})
-          }
-        })
-      })
-
+ipcMain.on('db-get-folders', (event, iAccountId) => {
+  foldersDbManager.getFolders(iAccountId).then(
+    (oFolderList) => {
+      event.sender.send('db-get-folders', oFolderList)
+    },
+    (oResult) => {
+      event.sender.send('notification', oResult)
     }
-  })
+  )
 })
 
-ipcMain.on('bd-set-folders', (event, arg) => {
-  let db = new sqlite3.Database('privatemail.db', (err) => {
-    if (err === null) {
-      db.serialize(function() {
-
-        let stmt = db.prepare('DELETE FROM folders WHERE acct_id = ?', arg.AccountId)
-        stmt.run()
-        stmt.finalize()
-
-        stmt = db.prepare('INSERT INTO folders (acct_id, list) VALUES (?, ?)', arg.AccountId, JSON.stringify(arg.FolderList))
-        stmt.run()
-        stmt.finalize()
-
-        db.close()
-      })
+ipcMain.on('db-set-folders', (event, oFolderList) => {
+  foldersDbManager.setFolders({
+    iAccountId: oFolderList.AccountId,
+    oFolderList: {
+      AccountId: oFolderList.AccountId,
+      Namespace: oFolderList.Namespace,
+      Count: oFolderList.Count,
+      Tree: oFolderList.Tree,
+    },
+  }).then(
+    () => {},
+    (oResult) => {
+      event.sender.send('notification', oResult)
     }
-  })
+  )
 })
 
-ipcMain.on('bd-get-messages-info', (event, arg) => {
+ipcMain.on('db-get-messages-info', (event, arg) => {
   let db = new sqlite3.Database('privatemail.db', (err) => {
     if (err) {
-      event.sender.send('notification', {event: 'bd-get-messages-info', err})
+      event.sender.send('notification', {event: 'db-get-messages-info', err})
     } else {
       db.serialize(function() {
         let stmt = db.prepare('SELECT messages_info FROM messages_info WHERE acct_id = ? AND folder_full_name = ?');
         stmt.each(arg.AccountId, arg.FolderFullName, function(err, row) {
           if (row && typeof row.messages_info === 'string' && row.messages_info !== '') {
-            event.sender.send('bd-get-messages-info', JSON.parse(row.messages_info))
+            event.sender.send('db-get-messages-info', JSON.parse(row.messages_info))
           } else {
-            event.sender.send('notification', {event: 'bd-get-messages-info', err, row})
+            event.sender.send('notification', {event: 'db-get-messages-info', err, row})
           }
         }, function(err, count) {
             stmt.finalize()
@@ -121,7 +109,7 @@ ipcMain.on('bd-get-messages-info', (event, arg) => {
 
         db.close((err) => {
           if (err) {
-            event.sender.send('notification', {event: 'bd-get-messages-info', err})
+            event.sender.send('notification', {event: 'db-get-messages-info', err})
           }
         })
       })
@@ -130,7 +118,7 @@ ipcMain.on('bd-get-messages-info', (event, arg) => {
   })
 })
 
-ipcMain.on('bd-set-messages-info', (event, arg) => {
+ipcMain.on('db-set-messages-info', (event, arg) => {
   let db = new sqlite3.Database('privatemail.db', (err) => {
     if (err === null) {
       db.serialize(function() {
@@ -143,8 +131,28 @@ ipcMain.on('bd-set-messages-info', (event, arg) => {
         stmt.run()
         stmt.finalize()
 
-        db.close()
+        db.close((err) => {
+          if (err) {
+            event.sender.send('notification', {event: 'db-set-messages-info', err})
+          }
+        })
       })
     }
   })
+  
+  foldersDbManager.getFolders(arg.AccountId).then(
+    (oFolderList) => {
+      let oFolder = oFolderList.Flat[arg.FolderFullName]
+      oFolder.HasChanges = false
+      foldersDbManager.setFolders({iAccountId: arg.AccountId, oFolderList}).then(
+        () => {},
+        (oResult) => {
+          event.sender.send('notification', oResult)
+        }
+      )
+    },
+    (oResult) => {
+      event.sender.send('notification', oResult)
+    }
+  )
 })

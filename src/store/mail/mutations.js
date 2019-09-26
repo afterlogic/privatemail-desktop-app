@@ -1,7 +1,6 @@
 import { ipcRenderer } from 'electron'
 import _ from 'lodash'
 import dateUtils from 'src/utils/date'
-import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
 import * as getters from './getters'
 
@@ -25,44 +24,31 @@ export function resetCurrentFolderList (state) {
 }
 
 export function setCurrentFolderList (state, oFolderList) {
-  state.currentFolderList = oFolderList
-}
-
-export function parseFolderList (state, payload) {
-  let oFolderList = foldersUtils.prepareFolderList(payload.AccountId, payload.FolderListFromServer, state.currentFolderList.Flat)
-
-  ipcRenderer.send('bd-set-folders', {
-    AccountId: oFolderList.AccountId,
-    FolderList: oFolderList,
-  })
+  if (oFolderList.AccountId === state.currentAccount.AccountID) {
+    state.currentFolderList = oFolderList
+  }
 }
 
 export function setFoldersRelevantInformation (state, payload) {
-  // ipcRenderer.send('bd-set-folders-relevant-information', payload)
-  // let oFolderList = state.allFolderLists[payload.AccountId]
-  // if (oFolderList) {
-  //   _.each(payload.Counts, function (aFolderCounts, sFolderFullName) {
-  //     let oFolder = oFolderList.Flat[sFolderFullName]
-  //     if (oFolder) {
-  //       let iNewCount = aFolderCounts[0]
-  //       let iUnseenCount = aFolderCounts[1]
-  //       let sNextUid = aFolderCounts[2]
-  //       let sHash = aFolderCounts[3]
-  //       if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
-  //         oFolder.HasChanges = true
-  //       }
-  //       oFolder.Count = iNewCount
-  //       oFolder.UnseenCount = iUnseenCount
-  //       oFolder.NextUid = sNextUid
-  //       oFolder.Hash = sHash
-  //     }
-  //   })
-
-  //   ipcRenderer.send('bd-set-folders', {
-  //     AccountId: oFolderList.AccountId,
-  //     FolderList: oFolderList,
-  //   })
-  // }
+  if (state.currentFolderList && payload.AccountId === state.currentFolderList.AccountId) {
+    let oFolderList = state.currentFolderList
+    _.each(payload.Counts, function (aFolderCounts, sFolderFullName) {
+      let oFolder = oFolderList.Flat[sFolderFullName]
+      if (oFolder) {
+        let iNewCount = aFolderCounts[0]
+        let iUnseenCount = aFolderCounts[1]
+        let sNextUid = aFolderCounts[2]
+        let sHash = aFolderCounts[3]
+        if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
+          oFolder.HasChanges = true
+        }
+        oFolder.Count = iNewCount
+        oFolder.UnseenCount = iUnseenCount
+        oFolder.NextUid = sNextUid
+        oFolder.Hash = sHash
+      }
+    })
+}
 }
 
 function _isTheadsEqual(mNewThread, mOldThread) {
@@ -166,7 +152,7 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 
 export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
-    ipcRenderer.send('bd-set-messages-info', {
+    ipcRenderer.send('db-set-messages-info', {
       AccountId: payload.Parameters.AccountID,
       FolderFullName: payload.Parameters.Folder,
       MessagesInfo: payload.MessagesInfo,

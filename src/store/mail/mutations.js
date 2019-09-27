@@ -165,9 +165,9 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
     ipcRenderer.send('db-set-messages-info', {
-      AccountId: payload.Parameters.AccountID,
-      FolderFullName: payload.Parameters.Folder,
-      MessagesInfo: payload.MessagesInfo,
+      iAccountId: payload.Parameters.AccountID,
+      sFolderFullName: payload.Parameters.Folder,
+      oMessagesInfo: payload.MessagesInfo,
     })
     _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
     state.messageList = payload.MessagesInfo

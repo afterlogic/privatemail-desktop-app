@@ -74,10 +74,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
   let sFolderFullName = payload
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
   let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
-  ipcRenderer.send('db-get-messages-info', {
-    AccountId: iAccountId,
-    FolderFullName: sFolderFullName,
-  })
+  ipcRenderer.send('db-get-messages-info', { iAccountId, sFolderFullName })
   ipcRenderer.on('db-get-messages-info', (event, oResult) => {
     if (oResult !== null) {
       commit('setMessagesInfo', {

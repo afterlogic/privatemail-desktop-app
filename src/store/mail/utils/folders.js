@@ -27,7 +27,7 @@ function _getIconName (sType, sFolderFullName) {
 }
 
 export default {
-  prepareFolderList: function (iAccountId, sNamespace, oFolderListFromServer, oOldFoldersByNames) {
+  prepareFolderListFromServer: function (iAccountId, sNamespace, oFolderListFromServer, oOldFoldersByNames) {
     let oNewFoldersFlat = {}
     let aNewFoldersNames = []
     let oInbox = null
@@ -110,7 +110,65 @@ export default {
       Spam: oSpam,
       Trash: oTrash,
 
-      Current: null,
+      Current: oInbox,
     }
-  }
+  },
+
+  prepareFolderListFromDb: function (oFolderList) {
+    let oFoldersFlat = {}
+    let aFoldersNames = []
+    let oInbox = null
+    let oSent = null
+    let oDrafts = null
+    let oSpam = null
+    let oTrash = null
+
+    function _recursive(aFoldersTree) {
+      _.each(aFoldersTree, function (oFolder) {
+        switch (oFolder.Type) {
+          case 1:
+            oInbox = oFolder
+            break
+          case 2:
+            oSent = oFolder
+            break
+          case 3:
+            oDrafts = oFolder
+            break
+          case 4:
+            oSpam = oFolder
+            break
+          case 5:
+            oTrash = oFolder
+            break
+        }
+
+        oFoldersFlat[oFolder.FullName] = oFolder
+        aFoldersNames.push(oFolder.FullName)
+
+        if (oFolder.SubFolders && oFolder.SubFolders) {
+          _recursive(oFolder.SubFolders)
+        }
+      })
+    }
+
+    _recursive(oFolderList.Tree)
+
+    return {
+      AccountId: oFolderList.AccountId,
+      Namespace: oFolderList.Namespace,
+      Count: oFolderList.Count,
+      Tree: oFolderList.Tree,
+      Flat: oFoldersFlat,
+      Names: aFoldersNames,
+
+      Inbox: oInbox,
+      Sent: oSent,
+      Drafts: oDrafts,
+      Spam: oSpam,
+      Trash: oTrash,
+
+      Current: oInbox,
+    }
+  },
 }

@@ -28,7 +28,6 @@ function _getFoldersToRefresh () {
 
 function _getMessagesInfo(oFolder) {
   let bPrefetchStarted = false
-console.log(oFolder.FullName, 'oFolder.HasChanges', oFolder.HasChanges)
   if (oFolder.HasChanges) {
     store.dispatch('mail/asyncGetMessagesInfo', oFolder.FullName)
     bPrefetchStarted = true
@@ -96,7 +95,6 @@ export default {
       } else {
         let aFoldersToRefresh = _getFoldersToRefresh()
         let bPrefetchStarted = false
-        console.log('aFoldersToRefresh', aFoldersToRefresh)
         _.each(aFoldersToRefresh, function (oFolder) {
           bPrefetchStarted = _getMessagesInfo(oFolder)
           if (!bPrefetchStarted) {

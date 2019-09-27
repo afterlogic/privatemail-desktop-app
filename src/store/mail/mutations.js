@@ -12,6 +12,10 @@ export function setCurrentAccount (state, payload) {
   state.currentAccount = payload
 }
 
+/**
+ * Resets current folder list. The method is used when user logs out.
+ * @param {object} state 
+ */
 export function resetCurrentFolderList (state) {
   state.currentFolderList = {
     AccountId: 0,
@@ -20,6 +24,14 @@ export function resetCurrentFolderList (state) {
     Tree: [],
     Flat: {},
     Names: [],
+
+    Inbox: null,
+    Sent: null,
+    Drafts: null,
+    Spam: null,
+    Trash: null,
+
+    Current: null,
   }
 }
 

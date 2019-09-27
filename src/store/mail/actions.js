@@ -10,11 +10,7 @@ import prefetcher from 'src/prefetcher.js'
 export function asyncGetSettings ({ state, commit, dispatch, getters }) {
   ipcRenderer.on('db-get-folders', (event, oDbFolderList) => {
     if (oDbFolderList !== null) {
-      let oFlatFolders = state.currentFolderList && oDbFolderList.AccountId === state.currentFolderList.AccountId ? _.cloneDeep(state.currentFolderList.Flat) : {}
-      let oFolderList = foldersUtils.prepareFolderList(oDbFolderList.AccountId, oDbFolderList.Namespace || '', {
-        '@Collection': oDbFolderList.Tree,
-        '@Count': oDbFolderList.Count,
-      }, oFlatFolders)
+      let oFolderList = foldersUtils.prepareFolderListFromDb(oDbFolderList)
       commit('setCurrentFolderList', oFolderList)
       dispatch('setCurrentFolder', getters.getInboxFullName)
     }
@@ -42,7 +38,7 @@ export function asyncGetFolderList ({ state, commit }) {
       commit('setSyncing', false)
       if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
         let oFlatFolders = state.currentFolderList && iAccountId === state.currentFolderList.AccountId ? _.cloneDeep(state.currentFolderList.Flat) : {}
-        let oFolderList = foldersUtils.prepareFolderList(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFolders)
+        let oFolderList = foldersUtils.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFolders)
         ipcRenderer.send('db-set-folders', oFolderList)
         commit('setCurrentFolderList', oFolderList)
       } else {

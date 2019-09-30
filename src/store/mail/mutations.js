@@ -180,6 +180,10 @@ export function setMessagesInfo (state, payload) {
 }
 
 export function updateMessagesCache (state, payload) {
+  // ipcRenderer.send('db-set-messages', {
+  //   iAccountId: payload.AccountId,
+  //   aMessages: payload.Messages,
+  // })
   _.each(payload.Messages, function (oMessageFromServer) {
     oMessageFromServer.Threads = null
     oMessageFromServer.Deleted = false

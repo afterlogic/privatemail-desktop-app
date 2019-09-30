@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import _ from 'lodash'
 import foldersDbManager from './db-managers/folders.js'
 import foldersManager from './managers/folders.js'
+import messagesDbManager from './db-managers/messages.js'
 
 /**
  * Set `__statics` path to static files in production;
@@ -48,6 +49,7 @@ app.on('activate', () => {
 })
 
 foldersDbManager.init()
+messagesDbManager.init()
 
 ipcMain.on('db-get-folders', (oEvent, iAccountId) => {
   foldersDbManager.getFolders(iAccountId).then(
@@ -106,6 +108,16 @@ ipcMain.on('db-set-messages-info', (oEvent, { iAccountId, sFolderFullName, oMess
           oEvent.sender.send('notification', oResult)
         }
       )
+    },
+    (oResult) => {
+      oEvent.sender.send('notification', oResult)
+    }
+  )
+})
+
+ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
+  messagesDbManager.setMessages({ iAccountId, aMessages }).then(
+    () => {
     },
     (oResult) => {
       oEvent.sender.send('notification', oResult)

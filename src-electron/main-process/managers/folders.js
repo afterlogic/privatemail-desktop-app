@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export default {
   getFolder: function (oFolderList, sFolderFullName) {
     function _recursive(oFoldersTree) {

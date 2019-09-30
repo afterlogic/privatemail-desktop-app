@@ -6,7 +6,7 @@ let aRequestsNumbers = []
 
 export default {
   sendRequest: function (module, method, parameters, callback) {
-    const url = 'http://aurora.dev.com/?/Api/'
+    const url = 'http://test.afterlogic.com/?/Api/'
 
     let oBodyFormData = new FormData()
     oBodyFormData.set('Module', module)

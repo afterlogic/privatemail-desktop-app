@@ -7,12 +7,22 @@
 <script>
 import { ipcRenderer } from 'electron'
 import theming from './css/theming'
+import prefetcher from 'src/prefetcher.js'
 
 export default {
   name: 'App',
+  computed: {
+    currentAccountId () {
+      let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
+      return oCurrentAccount ? oCurrentAccount.AccountID : 0
+    },
+  },
   watch: {
     '$store.state.main.theme': function (v) {
-      this.setThemeColors(v);
+      this.setThemeColors(v)
+    },
+    'currentAccountId': function (iAccountId, iPrevAccountId) {
+      prefetcher.currentAccountChanged()
     },
   },
   mounted () {

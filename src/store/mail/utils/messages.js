@@ -55,7 +55,7 @@ export default {
     let iOffset = (iPage - 1) * iPageSize
     let aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
     let aCurrentMessages = []
-  
+
     _.each(aPagedList, (oMessageInfo) => {
       let sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
       let oMessage = oStateMessagesCache[sMessageKey]

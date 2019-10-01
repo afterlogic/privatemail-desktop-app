@@ -1,6 +1,8 @@
+import { ipcRenderer } from 'electron'
 import store from 'src/store'
 
 import _ from 'lodash'
+import foldersUtils from 'src/store/mail/utils/folders.js'
 import messagesUtils from 'src/store/mail/utils/messages.js'
 
 function _getFoldersToRefresh () {
@@ -36,6 +38,51 @@ function _getMessagesInfo(oFolder) {
   return bPrefetchStarted
 }
 
+ipcRenderer.on('db-get-folders', (event, oDbFolderList) => {
+  console.log('on db-get-folders', oDbFolderList)
+  if (oDbFolderList && oDbFolderList.Tree) {
+    let oFolderList = foldersUtils.prepareFolderListFromDb(oDbFolderList)
+    store.commit('mail/setCurrentFolderList', oFolderList)
+    console.log('send db-get-messages-info')
+    ipcRenderer.send('db-get-messages-info', { iAccountId: oFolderList.AccountId, sFolderFullName: oFolderList.Current.FullName })
+  } else {
+    store.dispatch('mail/asyncGetFolderList')
+  }
+})
+
+ipcRenderer.on('db-get-messages-info', (event, { iAccountId, sFolderFullName, oMessagesInfo }) => {
+  console.log('on db-get-messages-info', iAccountId, sFolderFullName, oMessagesInfo)
+  if (oMessagesInfo) {
+    let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+    store.commit('mail/setMessagesInfo', {
+      Parameters: oParameters,
+      MessagesInfo: oMessagesInfo,
+    })
+
+    let bCurrentFolder = sFolderFullName === store.getters.getСurrentFolderFullName
+    if (bCurrentFolder) {
+      store.commit('mail/setCurrentMessages')
+    }
+  } else {
+    store.dispatch('mail/asyncGetMessagesInfo', sFolderFullName)
+  }
+})
+
+ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, aMessages }) => {
+  console.log('on db-get-messages', iAccountId, sFolderFullName, aUids, aMessages)
+  if (aMessages.length > 0) {
+    store.commit('updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
+  }
+  if (aMessages.length < aUids.length) {
+    let aUidsToRetrieve = messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, sFolderFullName)
+    store.dispatch('mail/asyncGetMessages', {
+      iAccountId,
+      sFolderFullName: oFolder.FullName,
+      aUids: aUidsToRetrieve,
+    })
+  }
+})
+
 function _getMessages(oFolder) {
   let bPrefetchStarted = false
   let iAccountId = store.state.mail.currentAccount.AccountID
@@ -48,12 +95,9 @@ function _getMessages(oFolder) {
   } else {
     let aUids = messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, oFolder.FullName)
     if (aUids.length > 0) {
-      store.dispatch('mail/asyncGetMessages', {
-        iAccountId,
-        sFolderFullName: oFolder.FullName,
-        aUids,
-      })
-      bPrefetchStarted = true
+      console.log('send db-get-messages')
+      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: oFolder.FullName, aUids })
+      bPrefetchStarted = true // TODO
     }
   }
 
@@ -82,6 +126,25 @@ let bFoldersRetrieved = false
 let bFoldersFirstRefreshed = false
 
 export default {
+  currentAccountChanged: function () {
+    iCurrentAccountId = store.state.mail.currentAccount ? store.state.mail.currentAccount.AccountID : 0
+    if (iCurrentAccountId > 0) {
+      console.log('send db-get-folders')
+      ipcRenderer.send('db-get-folders', iCurrentAccountId)
+    }
+  },
+  foldersReceived: function () {
+    if (!bFoldersRetrieved) {
+      bFoldersRetrieved = true
+    }
+  },
+  foldersRelevantInfoReceived: function () {
+    if (!bFoldersFirstRefreshed) {
+      bFoldersFirstRefreshed = true
+      console.log('send db-get-messages-info')
+      ipcRenderer.send('db-get-messages-info', { iAccountId: iCurrentAccountId, sFolderFullName: store.state.mail.currentFolderList.Current.FullName })
+    }
+  },
   start: function () {
     if (store.state.mail.currentAccount) {
       if (!bFoldersRetrieved || iCurrentAccountId !== store.state.mail.currentAccount.AccountID) {

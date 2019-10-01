@@ -57,6 +57,7 @@ ipcMain.on('db-get-folders', (oEvent, iAccountId) => {
       oEvent.sender.send('db-get-folders', oFolderList)
     },
     (oResult) => {
+      oEvent.sender.send('db-get-folders', null)
       oEvent.sender.send('notification', oResult)
     }
   )
@@ -82,9 +83,10 @@ ipcMain.on('db-set-folders', (oEvent, oFolderList) => {
 ipcMain.on('db-get-messages-info', (oEvent, { iAccountId, sFolderFullName }) => {
   foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
     (oMessagesInfo) => {
-      oEvent.sender.send('db-get-messages-info', oMessagesInfo)
+      oEvent.sender.send('db-get-messages-info', { iAccountId, sFolderFullName, oMessagesInfo })
     },
     (oResult) => {
+      oEvent.sender.send('db-get-messages-info', { iAccountId, sFolderFullName, oMessagesInfo: null })
       oEvent.sender.send('notification', oResult)
     }
   )
@@ -108,6 +110,17 @@ ipcMain.on('db-set-messages-info', (oEvent, { iAccountId, sFolderFullName, oMess
           oEvent.sender.send('notification', oResult)
         }
       )
+    },
+    (oResult) => {
+      oEvent.sender.send('notification', oResult)
+    }
+  )
+})
+
+ipcMain.on('db-get-messages', (oEvent, { iAccountId, sFolderFullName, aUids }) => {
+  messagesDbManager.getMessages({ iAccountId, sFolderFullName, aUids }).then(
+    (aMessages) => {
+      oEvent.sender.send('db-get-messages', { iAccountId, sFolderFullName, aUids, aMessages })
     },
     (oResult) => {
       oEvent.sender.send('notification', oResult)

@@ -13,7 +13,7 @@ export function setCurrentAccount (state, payload) {
 }
 
 /**
- * Resets current folder list. The method is used when user logs out.
+ * Resets current folder list. The method is used when user changes account or logs out.
  * @param {object} state 
  */
 export function resetCurrentFolderList (state) {
@@ -164,11 +164,6 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 
 export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
-    ipcRenderer.send('db-set-messages-info', {
-      iAccountId: payload.Parameters.AccountID,
-      sFolderFullName: payload.Parameters.Folder,
-      oMessagesInfo: payload.MessagesInfo,
-    })
     _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
     state.messageList = payload.MessagesInfo
   } else if (payload && payload.AccountId && payload.FolderFullName) {
@@ -180,10 +175,8 @@ export function setMessagesInfo (state, payload) {
 }
 
 export function updateMessagesCache (state, payload) {
-  // ipcRenderer.send('db-set-messages', {
-  //   iAccountId: payload.AccountId,
-  //   aMessages: payload.Messages,
-  // })
+  let aMessagesForDb = []
+
   _.each(payload.Messages, function (oMessageFromServer) {
     oMessageFromServer.Threads = null
     oMessageFromServer.Deleted = false
@@ -194,6 +187,23 @@ export function updateMessagesCache (state, payload) {
       _.assign(state.messagesCache[sMessageKey], oMessageFromServer)
     } else {
       state.messagesCache[sMessageKey] = oMessageFromServer
+    }
+    aMessagesForDb.push(state.messagesCache[sMessageKey])
+  })
+  console.log('send db-set-messages')
+  ipcRenderer.send('db-set-messages', {
+    iAccountId: payload.AccountId,
+    aMessages: aMessagesForDb,
+  })
+}
+
+export function updateMessagesCacheFromDb (state, { iAccountId, sFolderFullName, aMessages }) {
+  _.each(aMessages, function (oMessageFromDb) {
+    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, sFolderFullName, oMessageFromDb.Uid)
+    if (state.messagesCache[sMessageKey]) {
+      _.assign(state.messagesCache[sMessageKey], oMessageFromDb)
+    } else {
+      state.messagesCache[sMessageKey] = oMessageFromDb
     }
   })
 }

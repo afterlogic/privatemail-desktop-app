@@ -43,9 +43,10 @@ export default {
         if (_.isFunction(callback)) {
           callback(oResult, oError)
         }
-        if (aRequestsNumbers.length === 0) {
-          prefetcher.start()
-        }
+        // TODO
+        // if (aRequestsNumbers.length === 0) {
+        //   prefetcher.start()
+        // }
       })
       .catch((oError) => {
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)

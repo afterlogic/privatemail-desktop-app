@@ -86,9 +86,9 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
       })
       console.log('send db-set-messages-info')
       ipcRenderer.send('db-set-messages-info', {
-        iAccountId: payload.Parameters.AccountID,
-        sFolderFullName: payload.Parameters.Folder,
-        oMessagesInfo: payload.MessagesInfo,
+        iAccountId,
+        sFolderFullName,
+        oMessagesInfo: oResult,
       })
       if (bCurrentFolder) {
         commit('setCurrentMessages')

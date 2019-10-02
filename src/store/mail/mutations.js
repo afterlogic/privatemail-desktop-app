@@ -9,6 +9,8 @@ export function setSyncing (state, payload) {
 }
 
 export function setCurrentAccount (state, payload) {
+  state.allMessageLists = {}
+  state.messagesCache = {}
   state.currentAccount = payload
 }
 
@@ -190,7 +192,7 @@ export function updateMessagesCache (state, payload) {
     }
     aMessagesForDb.push(state.messagesCache[sMessageKey])
   })
-  console.log('send db-set-messages')
+  console.log('send db-set-messages', aMessagesForDb)
   ipcRenderer.send('db-set-messages', {
     iAccountId: payload.AccountId,
     aMessages: aMessagesForDb,

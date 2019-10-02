@@ -87,7 +87,7 @@ export default {
 
   setMessages: function ({iAccountId, aMessages}) {
     return new Promise((resolve, reject) => {
-
+let self = this
       function _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage }) {
         let db = new sqlite3.Database('privatemail.messages.db', (err) => {
           if (err === null) {
@@ -112,11 +112,12 @@ export default {
         })
       }
 
-      // sqlite3 cannot work with more than 1 connection, so there will be seties of message prepare
+      // sqlite3 cannot work with more than 1 connection, so there will be series of message prepare
       function async(oMessageFromServer, callback) {
         let sFolderFullName = oMessageFromServer.Folder
         let sMessageUid = oMessageFromServer.Uid
-        this.getMessage({iAccountId, sFolderFullName, sMessageUid}).then(
+        console.log('iAccountId, sFolderFullName, sMessageUid', iAccountId, sFolderFullName, sMessageUid)
+        self.getMessage({iAccountId, sFolderFullName, sMessageUid}).then(
           (oMessage) => {
             console.log('*oMessage', !!oMessage)
             _.assign(oMessage, oMessageFromServer)
@@ -126,10 +127,6 @@ export default {
           (oResult) => {
             console.log('*oResult', oResult)
             if (oResult.err === null) {
-              // oMessageFromServer.Threads = null
-              // oMessageFromServer.Deleted = false
-              // oMessageFromServer.ShortDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, false)
-              // oMessageFromServer.MiddleDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, true)
               _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
             } else {
               reject(oResult)
@@ -144,7 +141,7 @@ export default {
       }
 
       let aMessagesFromServer = _.cloneDeep(aMessages)
-      console.log(aMessagesFromServer?aMessagesFromServer.length : 0)
+      console.log('length', aMessagesFromServer ? aMessagesFromServer.length : 0)
       function series(oMessageFromServer) {
         console.log('oMessageFromServer', !!oMessageFromServer)
         if (oMessageFromServer) {
@@ -157,31 +154,6 @@ export default {
         }
       }
       series(aMessagesFromServer.shift())
-
-      // _.each(aMessages, (oMessageFromServer) => {
-      //   let sFolderFullName = oMessageFromServer.Folder
-      //   let sMessageUid = oMessageFromServer.Uid
-      //   this.getMessage({iAccountId, sFolderFullName, sMessageUid}).then(
-      //     (oMessage) => {
-      //       console.log('*oMessage', !!oMessage)
-      //       _.assign(oMessage, oMessageFromServer)
-      //       _setMessageInDb({ iAccountId, sFolderFullName, sMessageUid, oMessage })
-      //     },
-      //     (oResult) => {
-      //       console.log('*oResult', oResult)
-      //       if (oResult.err === null) {
-      //         oMessageFromServer.Threads = null
-      //         oMessageFromServer.Deleted = false
-      //         oMessageFromServer.ShortDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, false)
-      //         oMessageFromServer.MiddleDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, true)
-      //         _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
-      //       } else {
-      //         reject(oResult)
-      //       }
-      //     }
-      //   )
-      // })
-
     })
   },
 }

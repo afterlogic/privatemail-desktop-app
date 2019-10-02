@@ -9,7 +9,7 @@ npm install
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
-quasar dev:app
+npm run dev:app
 ```
 
 ### Lint the files
@@ -19,7 +19,7 @@ npm run lint
 
 ### Build the app for production
 ```bash
-quasar build:app
+npm run build:app
 ```
 
 ### Customize the configuration

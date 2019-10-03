@@ -29,7 +29,16 @@ function createWindow () {
 
   mainWindow.loadURL(process.env.APP_URL)
 
+  const sqlite3 = require('sqlite3').verbose()
+  let db = new sqlite3.Database('privatemail.db', (err) => {
+    if (err === null) {
+      foldersDbManager.init(db)
+      messagesDbManager.init(db)
+    }
+  })
+
   mainWindow.on('closed', () => {
+    db.close()
     mainWindow = null
   })
 }
@@ -47,9 +56,6 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-foldersDbManager.init()
-messagesDbManager.init()
 
 ipcMain.on('db-get-folders', (oEvent, iAccountId) => {
   foldersDbManager.getFolders(iAccountId).then(

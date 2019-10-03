@@ -64,13 +64,13 @@ export default {
           let stmt = db.prepare('SELECT messages_info FROM messages_info WHERE acct_id = ? AND folder_full_name = ?');
           stmt.each(iAccountId, sFolderFullName, function(err, row) {
             if (err) {
-              reject({ event: 'db-get-messages-info', err, row })
+              reject({ event: 'db-get-messagesinfo', err, row })
             } else if (row && typeof row.messages_info === 'string' && row.messages_info !== '') {
               oMessagesInfo = JSON.parse(row.messages_info)
             }
           }, function(err, count) {
             if (err) {
-              reject({event: 'db-get-messages-info', err, count})
+              reject({event: 'db-get-messagesinfo', err, count})
             } else {
               resolve(oMessagesInfo)
             }
@@ -78,7 +78,7 @@ export default {
           })
         })
       } else {
-        reject({ event: 'db-get-messages-info', err })
+        reject({ event: 'db-get-messagesinfo', err })
       }
     })
   },

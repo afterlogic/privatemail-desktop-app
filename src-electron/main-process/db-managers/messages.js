@@ -15,22 +15,24 @@ export default {
   getMessages: function ({iAccountId, sFolderFullName, aUids}) {
     return new Promise((resolve, reject) => {
       if (db) {
-        db.serialize(() => {
-          let stmt = db.prepare('SELECT message FROM messages WHERE acct_id = ? AND folder_full_name = ? AND message_uid IN (?)')
-          let aMessages = []
-          stmt.each(iAccountId, sFolderFullName, aUids.join(','), (err, row) => {
-            if (row && typeof row.message === 'string' && row.message !== '') {
-              aMessages.push(JSON.parse(row.message))
-            }
-          }, (err, count) => {
+        let sQuestions = aUids.map(function(){ return '?' }).join(',')
+        let aParams = _.union([iAccountId, sFolderFullName], aUids)
+        db.all('SELECT message FROM messages WHERE acct_id = ? AND folder_full_name = ? AND message_uid IN (' + sQuestions + ')',
+        aParams,
+        function(err, rows) {
             if (err) {
-              reject({event: 'db-get-messages', err, count})
+              reject({event: 'db-get-messages', err})
             } else {
+              let aMessages = []
+              _.each(rows, function (row) {
+                if (row && typeof row.message === 'string' && row.message !== '') {
+                  aMessages.push(JSON.parse(row.message))
+                }
+              })
               resolve(aMessages)
             }
-            stmt.finalize()
-          })
-        })
+          }
+        )
       } else {
         reject({event: 'db-get-messages', err})
       }

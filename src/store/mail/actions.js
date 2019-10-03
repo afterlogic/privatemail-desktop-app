@@ -19,7 +19,6 @@ export function asyncGetSettings ({ commit }) {
 }
 
 export function asyncGetFolderList ({ state, commit, dispatch }) {
-  console.log('asyncGetFolderList')
   if (state.currentAccount) {
     let iAccountId = state.currentAccount.AccountID
 
@@ -29,7 +28,6 @@ export function asyncGetFolderList ({ state, commit, dispatch }) {
       if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
         let oFlatFolders = state.currentFolderList && iAccountId === state.currentFolderList.AccountId ? _.cloneDeep(state.currentFolderList.Flat) : {}
         let oFolderList = foldersUtils.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFolders)
-        console.log('send db-set-folders')
         ipcRenderer.send('db-set-folders', oFolderList)
         commit('setCurrentFolderList', oFolderList)
         dispatch('asyncGetFoldersRelevantInformation', state.currentFolderList.Names)
@@ -42,7 +40,6 @@ export function asyncGetFolderList ({ state, commit, dispatch }) {
 }
 
 export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch }, payload) {
-  console.log('asyncGetFoldersRelevantInformation')
   if (state.currentAccount) {
     commit('setSyncing', true)
     let iAccountId = state.currentAccount.AccountID
@@ -54,7 +51,6 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
             AccountId: iAccountId,
             Counts: oResult.Counts,
           })
-          console.log('send db-set-folders')
           ipcRenderer.send('db-set-folders', state.currentFolderList)
           prefetcher.foldersRelevantInfoReceived()
         }
@@ -66,7 +62,6 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
 }
 
 export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
-  console.log('asyncGetMessagesInfo')
   let iAccountId = state.currentAccount.AccountID
   let sFolderFullName = payload
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
@@ -84,7 +79,6 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
         Parameters: oParameters,
         MessagesInfo: oResult,
       })
-      console.log('send db-set-messages-info')
       ipcRenderer.send('db-set-messages-info', {
         iAccountId,
         sFolderFullName,
@@ -100,7 +94,6 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
 }
 
 export function asyncGetMessages ({ commit, getters }, {iAccountId, sFolderFullName, aUids}) {
-  console.log('asyncGetMessages')
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
   if (bCurrentFolder) {
     commit('setSyncing', true)
@@ -134,12 +127,10 @@ export function asyncGetMessagesBodies ({ commit }, {iAccountId, sFolderFullName
     Folder: sFolderFullName,
     Uids: aUids,
   }
-  webApi.sendRequest('Mail', 'GetMessagesBodies', oParameters, (oResult, oError) => {
-    if (oResult && _.isArray(oResult)) {
+  webApi.sendRequest('Mail', 'GetMessagesBodies', oParameters, (aMessagesFromServer, oError) => {
+    if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
       console.time('GetMessagesBodies parse')
-      _.each(oResult, function (oMessageFromServer) {
-        commit('updateMessage', {iAccountId, oMessageFromServer})
-      })
+      commit('updateMessages', {iAccountId, aMessagesFromServer})
       console.timeEnd('GetMessagesBodies parse')
     }
   })

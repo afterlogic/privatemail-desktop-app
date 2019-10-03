@@ -86,13 +86,13 @@ ipcMain.on('db-set-folders', (oEvent, oFolderList) => {
   )
 })
 
-ipcMain.on('db-get-messages-info', (oEvent, { iAccountId, sFolderFullName }) => {
+ipcMain.on('db-get-messagesinfo', (oEvent, { iAccountId, sFolderFullName }) => {
   foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
     (oMessagesInfo) => {
-      oEvent.sender.send('db-get-messages-info', { iAccountId, sFolderFullName, oMessagesInfo })
+      oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo })
     },
     (oResult) => {
-      oEvent.sender.send('db-get-messages-info', { iAccountId, sFolderFullName, oMessagesInfo: null })
+      oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo: null })
       oEvent.sender.send('notification', oResult)
     }
   )

@@ -192,7 +192,6 @@ export function updateMessagesCache (state, payload) {
     }
     aMessagesForDb.push(state.messagesCache[sMessageKey])
   })
-  console.log('send db-set-messages', aMessagesForDb)
   ipcRenderer.send('db-set-messages', {
     iAccountId: payload.AccountId,
     aMessages: aMessagesForDb,
@@ -278,12 +277,33 @@ export function setCurrentMessage (state, payload) {
   state.currentMessage = payload
 }
 
+export function updateMessages (state, {iAccountId, aMessagesFromServer}) {
+  let aMessagesForDb = []
+  _.each(aMessagesFromServer, function (oMessageFromServer) {
+    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, oMessageFromServer.Folder, oMessageFromServer.Uid)
+    let oMessage = state.messagesCache[sMessageKey]
+    if (oMessage) {
+      _.assign(oMessage, oMessageFromServer)
+      oMessage.Received = true
+      aMessagesForDb.push(oMessage)
+    }
+  })
+  ipcRenderer.send('db-set-messages', {
+    iAccountId,
+    aMessages: aMessagesForDb,
+  })
+}
+
 export function updateMessage (state, {iAccountId, oMessageFromServer}) {
   let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, oMessageFromServer.Folder, oMessageFromServer.Uid)
   let oMessage = state.messagesCache[sMessageKey]
   if (oMessage) {
     _.assign(oMessage, oMessageFromServer)
     oMessage.Received = true
+    ipcRenderer.send('db-set-messages', {
+      iAccountId,
+      aMessages: [oMessage],
+    })
   }
 }
 

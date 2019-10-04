@@ -18,4 +18,12 @@ export default {
 
     return iSizeInBytes + 'B'
   },
+  i18n: function (sText) {
+    return sText
+  },
+  encodeHtml: function (sText) {
+    return (sText) ? sText.toString()
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;') : ''
+  },
 }

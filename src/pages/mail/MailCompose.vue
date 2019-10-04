@@ -12,8 +12,8 @@
           </div>
         </div>
         <q-toolbar class=" bg-grey-9 theme-text">
-          <q-btn  flat icon="send" label="Send" />
-          <q-btn  flat icon="save" label="Save" />
+          <q-btn  flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
+          <q-btn  flat icon="save" label="Save" @click="save" />
           <q-space />
           <q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
             <!-- <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip> -->
@@ -32,7 +32,7 @@
                 To
               </q-item-section>
               <q-item-section>
-                <q-input outlined v-model="toText" :dense=true style="width: 100%;" />
+                <q-input outlined v-model="toAddr" :dense=true style="width: 100%;" />
               </q-item-section>
               <q-item-section style="max-width: 100px;">
                 <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
@@ -44,7 +44,7 @@
                 CC
               </q-item-section>
               <q-item-section>
-                <q-input outlined v-model="ccText" :dense=true style="width: 100%;" />
+                <q-input outlined v-model="ccAddr" :dense=true style="width: 100%;" />
               </q-item-section>
             </q-item>
             <q-item v-show="isBccShowed">
@@ -52,7 +52,7 @@
                 BCC
               </q-item-section>
               <q-item-section>
-                <q-input outlined v-model="bccText" :dense=true style="width: 100%;" />
+                <q-input outlined v-model="bccAddr" :dense=true style="width: 100%;" />
               </q-item-section>
             </q-item>
             <q-item>
@@ -122,6 +122,7 @@
 <style></style>
 
 <script>
+import composeUtils from 'src/utils/mail/compose.js'
 
 export default {
   name: 'MailCompose',
@@ -131,17 +132,45 @@ export default {
     return {
       dialog: false,
       maximizedToggle: true,
+
+      sending: false, // indicates if sending is happening right now
+      allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
+
       editortext: '',
-      toText: '',
-      ccText: '',
-      bccText: '',
+      toAddr: '',
+      ccAddr: '',
+      bccAddr: '',
       subjectText: '',
 
       isCcShowed: false,
       isBccShowed: false,
     }
   },
+  computed: {
+    isCurrentFolderListLoaded () {
+      return this.$store.getters['mail/isCurrentFolderListLoaded']
+    },
+    currentAccountId () {
+      return this.$store.getters['mail/getCurrentAccountId']
+    },
+    /**
+     * Determines if sending a message is allowed.
+     */
+    isEnableSending () {
+      let bRecipientIsEmpty = this.toAddr.length === 0 && this.ccAddr.length === 0 && this.bccAddr.length === 0
+
+      return this.isCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
+    },
+  },
   methods: {
+    send () {
+      if (this.isEnableSending) {
+        composeUtils.sendMessage(this.currentAccountId, this.toAddr, this.ccAddr, this.bccAddr, this.subjectText, this.editortext)
+      }
+    },
+    save () {
+      composeUtils.saveMessage(this.currentAccountId, this.toAddr, this.ccAddr, this.bccAddr, this.subjectText, this.editortext)
+    },
     openCompose () {
       this.isCcShowed = false
       this.isBccShowed = false

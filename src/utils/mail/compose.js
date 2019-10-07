@@ -1,22 +1,75 @@
 import _ from 'lodash'
+import typesUtils from 'src/utils/types.js'
 import textUtils from 'src/utils/text.js'
 import addressUtils from 'src/utils/address.js'
 import webApi from 'src/utils/webApi.js'
-import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
 export default {
-  sendMessage: function (iAccountId, sToAddr, sCcAddr, sBccAddr, sSubject, sText) {
+  sendMessage: function ({oCurrentAccount, oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid}, fCallback) {
     if (this.verifyDataForSending(sToAddr, sCcAddr, sBccAddr)) {
-      let oParameters = this.getSendSaveParameters(iAccountId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, false)
-      console.log('sendMessage', oParameters)
+      let
+        oParameters = this.getSendSaveParameters({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText: false}),
+        sSentFolder = oCurrentFolderList.Sent ? oCurrentFolderList.Sent.FullName : '',
+        sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
+        sCurrEmail = oCurrentAccount.Email,
+        bSelfRecipient = (oParameters.To.indexOf(sCurrEmail) > -1 || oParameters.Cc.indexOf(sCurrEmail) > -1 ||
+          oParameters.Bcc.indexOf(sCurrEmail) > -1),
+        sLoadingMessage = textUtils.i18n('COREWEBCLIENT/INFO_SENDING')
+
+      if (oCurrentAccount.SaveRepliesToCurrFolder && !bSelfRecipient && typesUtils.isNonEmptyArray(oParameters.DraftInfo, 3)) {
+        sSentFolder = oParameters.DraftInfo[2]
+      }
+
+      oParameters.SentFolder = sSentFolder
+      if (oParameters.DraftUid !== '') {
+        oParameters.DraftFolder = sDraftFolder
+        // if (MainTab) {
+        //   MainTab.removeOneMessageFromCacheForFolder(oParameters.AccountID, oParameters.DraftFolder, oParameters.DraftUid)
+        //   MainTab.replaceHashWithoutMessageUid(oParameters.DraftUid)
+        // } else {
+        //   MailCache.removeOneMessageFromCacheForFolder(oParameters.AccountID, oParameters.DraftFolder, oParameters.DraftUid)
+        //   Routing.replaceHashWithoutMessageUid(oParameters.DraftUid)
+        // }
+      }
+      notification.showLoading(sLoadingMessage)
+      webApi.sendRequest('Mail', 'SendMessage', oParameters, (oResult, oError) => {
+        notification.hideLoading()
+        if (_.isFunction(fCallback)) {
+          fCallback(oResult, oError)
+        }
+      })
     }
   },
 
-  saveMessage: function (iAccountId, sToAddr, sCcAddr, sBccAddr, sSubject, sText) {
-    let oParameters = this.getSendSaveParameters(iAccountId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, false)
-    console.log('saveMessage', oParameters)
-  },
+  saveMessage: function ({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid}, fCallback) {
+    let
+      oParameters = this.getSendSaveParameters({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText: false}),
+      sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
+      sLoadingMessage = textUtils.i18n('%MODULENAME%/INFO_SAVING')
+
+    if (typeof oParameters.DraftFolder === 'undefined') {
+      oParameters.DraftFolder = sDraftFolder
+    }
+
+    // // Message with this uid will not be selected from message list
+    // MailCache.savingDraftUid(oParameters.DraftUid)
+    // if (MainTab) {
+    //   MainTab.startMessagesLoadingWhenDraftSaving(oParameters.AccountID, oParameters.DraftFolder)
+    //   MainTab.replaceHashWithoutMessageUid(oParameters.DraftUid)
+    // } else {
+    //   MailCache.startMessagesLoadingWhenDraftSaving(oParameters.AccountID, oParameters.DraftFolder)
+    //   Routing.replaceHashWithoutMessageUid(oParameters.DraftUid)
+    // }
+
+    notification.showLoading(sLoadingMessage)
+    webApi.sendRequest('Mail', 'SaveMessage', oParameters, (oResult, oError) => {
+      notification.hideLoading()
+      if (_.isFunction(fCallback)) {
+        fCallback(oResult, oError, oParameters)
+      }
+    })
+},
 
   verifyDataForSending: function (sToAddr, sCcAddr, sBccAddr) {
     let
@@ -37,7 +90,7 @@ export default {
     return true
   },
 
-  getSendSaveParameters: function (iAccountId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText) {
+  getSendSaveParameters: function ({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText}) {
     let
       oAttachments = {}, //SendingUtils.convertAttachmentsForSending(this.attachments()),
       oParameters = null
@@ -47,13 +100,13 @@ export default {
     // })
 
     oParameters = {
-      'AccountID': iAccountId,
+      'AccountID': oCurrentFolderList.AccountId,
       'FetcherID': '',
       'IdentityID': '',
       // 'FetcherID': this.selectedFetcherOrIdentity() && this.selectedFetcherOrIdentity().FETCHER ? this.selectedFetcherOrIdentity().id() : '',
       // 'IdentityID': this.selectedFetcherOrIdentity() && !this.selectedFetcherOrIdentity().FETCHER ? this.selectedFetcherOrIdentity().id() : '',
       // 'DraftInfo': this.draftInfo(),
-      // 'DraftUid': this.draftUid(),
+      'DraftUid': sDraftUid,
       'To': sToAddr,
       'Cc': sCcAddr,
       'Bcc': sBccAddr,

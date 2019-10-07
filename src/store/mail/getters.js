@@ -11,8 +11,8 @@ export function getCurrentAccountId (state) {
   return state.currentAccount ? state.currentAccount.AccountID : 0
 }
 
-export function isCurrentFolderListLoaded (state) {
-  return state.currentFolderList && state.currentFolderList.AccountId !== 0
+export function getCurrentFolderList (state) {
+  return state.currentFolderList
 }
 
 export function getCurrentFoldersTree (state) {

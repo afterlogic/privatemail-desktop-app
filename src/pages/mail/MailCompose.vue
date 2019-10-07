@@ -123,6 +123,10 @@
 
 <script>
 import composeUtils from 'src/utils/mail/compose.js'
+import textUtils from 'src/utils/text.js'
+import typesUtils from 'src/utils/types.js'
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
 
 export default {
   name: 'MailCompose',
@@ -142,39 +146,86 @@ export default {
       bccAddr: '',
       subjectText: '',
 
+      draftUid: '',
+
       isCcShowed: false,
       isBccShowed: false,
     }
   },
   computed: {
-    isCurrentFolderListLoaded () {
-      return this.$store.getters['mail/isCurrentFolderListLoaded']
+    currentFolderList () {
+      return this.$store.getters['mail/getCurrentFolderList']
     },
-    currentAccountId () {
-      return this.$store.getters['mail/getCurrentAccountId']
+    currentAccount () {
+      return this.$store.getters['mail/getCurrentAccount']
     },
     /**
      * Determines if sending a message is allowed.
      */
     isEnableSending () {
-      let bRecipientIsEmpty = this.toAddr.length === 0 && this.ccAddr.length === 0 && this.bccAddr.length === 0
+      let
+        bRecipientIsEmpty = this.toAddr.length === 0 && this.ccAddr.length === 0 && this.bccAddr.length === 0,
+        bCurrentFolderListLoaded = !!this.currentFolderList && this.currentFolderList.AccountId !== 0
 
-      return this.isCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
+      return bCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
     },
   },
   methods: {
     send () {
       if (this.isEnableSending) {
-        composeUtils.sendMessage(this.currentAccountId, this.toAddr, this.ccAddr, this.bccAddr, this.subjectText, this.editortext)
+        composeUtils.sendMessage({
+          oCurrentAccount: this.currentAccount,
+          oCurrentFolderList: this.currentFolderList,
+          sToAddr: this.toAddr,
+          sCcAddr: this.ccAddr,
+          sBccAddr: this.bccAddr,
+          sSubject: this.subjectText,
+          sText: this.editortext,
+          sDraftUid: this.draftUid,
+        }, (oResult, oError) => {
+          if (oResult) {
+            notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            this.closeCompose()
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+          }
+        })
       }
     },
     save () {
-      composeUtils.saveMessage(this.currentAccountId, this.toAddr, this.ccAddr, this.bccAddr, this.subjectText, this.editortext)
+      composeUtils.saveMessage({
+        oCurrentAccount: this.currentAccount,
+        oCurrentFolderList: this.currentFolderList,
+        sToAddr: this.toAddr,
+        sCcAddr: this.ccAddr,
+        sBccAddr: this.bccAddr,
+        sSubject: this.subjectText,
+        sText: this.editortext,
+        sDraftUid: this.draftUid,
+      }, (oResult, oError, oParameters) => {
+        if (oResult) {
+          notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVED'))
+          if (oParameters && oParameters.DraftUid === this.draftUid) {
+            this.draftUid = typesUtils.pString(oResult.NewUid)
+          }
+        } else {
+          notification.showError(errors.getText(oError, 'Error occurred while saving message'))
+        }
+      })
     },
     openCompose () {
+      this.editortext = ''
+      this.toAddr = ''
+      this.ccAddr = ''
+      this.bccAddr = ''
+      this.subjectText = ''
+      this.draftUid = ''
       this.isCcShowed = false
       this.isBccShowed = false
       this.dialog = true
+    },
+    closeCompose () {
+      this.dialog = false
     },
     showCc () {
       this.isCcShowed = true

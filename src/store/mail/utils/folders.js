@@ -96,6 +96,8 @@ export default {
 
     let aResultNewFoldersData = _recursive(oFolderListFromServer['@Collection'])
 
+    oInbox.HasChanges = true
+
     return {
       AccountId: iAccountId,
       Namespace: sNamespace,
@@ -153,6 +155,8 @@ export default {
     }
 
     _recursive(oFolderList.Tree)
+
+    oInbox.HasChanges = true
 
     return {
       AccountId: oFolderList.AccountId,

@@ -353,4 +353,5 @@ export function updateMessage (state, {iAccountId, oMessageFromServer}) {
 
 export function setCurrentFolder (state, payload) {
   state.currentFolderList.Current = state.currentFolderList.Flat[payload]
+  state.currentFolderList.Current.HasChanges = true
 }

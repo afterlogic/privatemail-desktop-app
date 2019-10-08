@@ -171,7 +171,9 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 
     state.allMessageLists[sKey] = aNewMessagesInfo
     let oFolder = state.currentFolderList.Flat[oParameters.Folder]
-    oFolder.HasChanges = false
+    if (oFolder) {
+      oFolder.HasChanges = false
+    }
   }
   console.timeEnd('_updateMessagesInfo')
 }
@@ -179,7 +181,9 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
     _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
-    state.messageList = payload.MessagesInfo
+    if (payload.Parameters.Folder === state.currentFolderList.Current.FullName) {
+      state.messageList = payload.MessagesInfo
+    }
   } else if (payload && payload.AccountId && payload.FolderFullName) {
     let oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)
     state.messageList = state.allMessageLists[JSON.stringify(oParameters)] || null
@@ -222,9 +226,22 @@ export function updateMessagesCacheFromDb (state, { iAccountId, sFolderFullName,
 }
 
 export function setCurrentMessages (state) {
-  state.currentMessages = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, getters.getСurrentFolderFullName(state), state.currentAccount.AccountID)
-  if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0) {
-    prefetcher.start()
+  let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
+  let iAccountId = state.currentAccount.AccountID
+  let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
+
+  state.currentMessages = aCurrentMessages
+
+  if (aNotFounUids.length > 0) {
+    state.syncing = true
+    ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
+  } else {
+    if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 ) {
+      state.syncing = true
+      prefetcher.start()
+    } else {
+      state.syncing = false
+    }
   }
 }
 

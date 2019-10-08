@@ -79,7 +79,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
         Parameters: oParameters,
         MessagesInfo: oResult,
       })
-      ipcRenderer.send('db-set-messages-info', {
+      ipcRenderer.send('db-set-messagesinfo', {
         iAccountId,
         sFolderFullName,
         oMessagesInfo: oResult,

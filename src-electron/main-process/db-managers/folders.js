@@ -96,7 +96,7 @@ export default {
           resolve()
         })
       } else {
-        reject({ event: 'db-set-messages-info', err })
+        reject({ event: 'db-set-messagesinfo', err })
       }
     })
   },

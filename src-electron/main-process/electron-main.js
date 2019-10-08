@@ -98,13 +98,15 @@ ipcMain.on('db-get-messagesinfo', (oEvent, { iAccountId, sFolderFullName }) => {
   )
 })
 
-ipcMain.on('db-set-messages-info', (oEvent, { iAccountId, sFolderFullName, oMessagesInfo }) => {
+ipcMain.on('db-set-messagesinfo', (oEvent, { iAccountId, sFolderFullName, oMessagesInfo }) => {
   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, oMessagesInfo }).then(
     () => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
           let oFolder = foldersManager.getFolder(oFolderList, sFolderFullName)
-          delete oFolder.HasChanges
+          if (oFolder) {
+            delete oFolder.HasChanges
+          }
           foldersDbManager.setFolders({iAccountId, oFolderList}).then(
             () => {},
             (oResult) => {

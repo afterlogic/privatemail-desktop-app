@@ -1,3 +1,5 @@
+import { ipcRenderer } from 'electron'
+
 export default {
   getUidsToRetrieveBodies: function (aStateMessageList, oStateMessagesCache, iCurrentAccountId, sStateCurrentFolderFullName) {
     var aUids = []
@@ -55,6 +57,7 @@ export default {
     let iOffset = (iPage - 1) * iPageSize
     let aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
     let aCurrentMessages = []
+    let aNotFounUids = []
 
     _.each(aPagedList, (oMessageInfo) => {
       let sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
@@ -74,6 +77,8 @@ export default {
               oThreadMessage.PartialFlagged = false
               oThreadMessage.ThreadHasUnread = false
               aThreads.push(oThreadMessage)
+            } else {
+              aNotFounUids.push(oThreadMessageInfo.uid)
             }
           })
           if (aThreads.length > 0) {
@@ -85,10 +90,13 @@ export default {
         }
         delete oMessage.ThreadParentUid
         aCurrentMessages.push(oMessage)
+      } else {
+        aNotFounUids.push(oMessageInfo.uid)
       }
     })
+
     console.timeEnd('getMessages')
-    return aCurrentMessages
+    return { aCurrentMessages, aNotFounUids }
   },
 
   getMessagesInfoParameters: function (iAccountId, sFolderFullName) {

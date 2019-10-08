@@ -106,6 +106,9 @@ export default {
     }
   },
   computed: {
+    currentAccount () {
+      return this.$store.getters['mail/getCurrentAccount']
+    },
     messages () {
       return this.$store.getters['mail/getСurrentMessages']
     },
@@ -156,7 +159,9 @@ export default {
   mounted: function () {
     this.initSubscriptions()
 
-    this.$store.dispatch('mail/asyncGetSettings')
+    if (!this.currentAccount) {
+      this.$store.dispatch('mail/asyncGetSettings')
+    }
   },
   beforeDestroy() {
     this.destroySubscriptions()

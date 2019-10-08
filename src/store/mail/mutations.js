@@ -3,6 +3,7 @@ import _ from 'lodash'
 import dateUtils from 'src/utils/date'
 import messagesUtils from './utils/messages.js'
 import * as getters from './getters'
+import prefetcher from '../../prefetcher.js';
 
 export function setSyncing (state, payload) {
   state.syncing = payload
@@ -222,6 +223,9 @@ export function updateMessagesCacheFromDb (state, { iAccountId, sFolderFullName,
 
 export function setCurrentMessages (state) {
   state.currentMessages = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, getters.getСurrentFolderFullName(state), state.currentAccount.AccountID)
+  if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0) {
+    prefetcher.start()
+  }
 }
 
 export function setСurrentPage (state, payload) {

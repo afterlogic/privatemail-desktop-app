@@ -150,6 +150,10 @@ let prefetcher = {
       ipcRenderer.send('db-get-messagesinfo', { iAccountId: iCurrentAccountId, sFolderFullName: store.state.mail.currentFolderList.Current.FullName })
     }
   },
+  checkMail: function () {
+    store.commit('mail/setCurrentFolderChanged')
+    store.dispatch('mail/asyncGetFoldersRelevantInformation', store.getters['mail/getDisplayedFolders'])
+  },
   start: function () {
     if (bAllowPrefetch) {
       if (!bFoldersRetrieved) {

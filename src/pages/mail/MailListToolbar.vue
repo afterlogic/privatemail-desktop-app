@@ -67,6 +67,7 @@
 </style>
 
 <script>
+import prefetcher from 'src/prefetcher.js'
 import { colors } from 'quasar'
 import MoveToFolderItem from './MoveToFolderItem.vue'
 
@@ -129,7 +130,7 @@ export default {
       }
     },
     sync () {
-      this.$store.dispatch('mail/asyncGetFoldersRelevantInformation', this.$store.getters['mail/getDisplayedFolders'])
+      prefetcher.checkMail()
     },
     swithTheme () {
       colors.setBrand('primary', '#000')

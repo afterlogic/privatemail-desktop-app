@@ -43,6 +43,13 @@ export function setCurrentFolderList (state, oFolderList) {
   }
 }
 
+export function setCurrentFolderChanged (state) {
+  let oCurrent = state.currentFolderList.Current
+  if (oCurrent) {
+    oCurrent.HasChanges = true
+  }
+}
+
 export function setFoldersRelevantInformation (state, payload) {
   if (state.currentFolderList && payload.AccountId === state.currentFolderList.AccountId) {
     let oFolderList = state.currentFolderList
@@ -88,6 +95,10 @@ function _syncMessageFlags(oNewInfo, oOldInfo, iAccountId, FolderFullName, oStat
     if (oMessage) {
       oMessage.IsSeen = (oNewInfo.flags.indexOf('\\seen') >= 0)
       oMessage.IsFlagged = (oNewInfo.flags.indexOf('\\flagged') >= 0)
+      ipcRenderer.send('db-set-messages', {
+        iAccountId,
+        aMessages: [oMessage],
+      })
     }
     oNewInfo.flagsChanged = true
   }

@@ -134,7 +134,7 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
         }
 
         _syncMessageFlags(oNewInfo, oOldInfo, oParameters.AccountID, oParameters.Folder, state.messagesCache)
-      
+
         aAllOldMessagesInfo.splice(iOldInfoIndex, 1);
       } else {
         oNewInfo.NeedPopulateThread = true
@@ -229,13 +229,15 @@ export function setСurrentPage (state, payload) {
 }
 
 export function setMessagesRead (state, payload) {
+  let aMessagesForDB = []
+  let iAccountId = state.currentAccount.AccountID
   _.each(payload.Uids, function (sUid) {
-    let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
+    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getСurrentFolderFullName(state), sUid)
     let oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.IsSeen = payload.IsSeen
       if (oMessage.ThreadParentUid) {
-        let sThreadMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), oMessage.ThreadParentUid)
+        let sThreadMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getСurrentFolderFullName(state), oMessage.ThreadParentUid)
         let oParentMessage = state.messagesCache[sThreadMessageKey]
         if (oParentMessage) {
           let bHasUnseenMessages = false
@@ -245,42 +247,69 @@ export function setMessagesRead (state, payload) {
             }
           })
           oParentMessage.ThreadHasUnread = bHasUnseenMessages
+          aMessagesForDB.push(oParentMessage)
         }
       }
+      aMessagesForDB.push(oMessage)
     }
+  })
+  ipcRenderer.send('db-set-messages', {
+    iAccountId,
+    aMessages: aMessagesForDB,
   })
 }
 
-export function setAllMessagesRead (state) {
+export function setAllMessagesRead (state, sFolderFullName) {
+  let aMessagesForDB = []
   _.each(state.messagesCache, function (oMessage) {
-    oMessage.IsSeen = true
-    if (oMessage.Threads) {
-      oMessage.ThreadHasUnread = false
+    if (oMessage.Folder === sFolderFullName && (!oMessage.IsSeen || oMessage.ThreadHasUnread)) {
+      oMessage.IsSeen = true
+      if (oMessage.ThreadHasUnread) {
+        oMessage.ThreadHasUnread = false
+      }
+      aMessagesForDB.push(oMessage)
     }
+  })
+  ipcRenderer.send('db-set-messages', {
+    iAccountId,
+    aMessages: aMessagesForDB,
   })
 }
 
 export function setMessagesDeleted (state, payload) {
+  let aMessagesForDB = []
   _.each(payload.Uids, function (sUid) {
     let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
     let oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.Deleted = payload.Deleted
+      aMessagesForDB.push(oMessage)
     }
+  })
+  ipcRenderer.send('db-set-messages', {
+    iAccountId,
+    aMessages: aMessagesForDB,
   })
 }
 
 export function setMessageFlagged (state, payload) {
+  let aMessagesForDB = []
   _.each(state.currentMessages, function (oMessage) {
     if (payload.Uid === oMessage.Uid) {
       oMessage.IsFlagged = payload.Flagged
+      aMessagesForDB.push(oMessage)
     } else if (oMessage.Threads) {
       _.each(oMessage.Threads, function (oThreadMessage) {
         if (payload.Uid === oThreadMessage.Uid) {
           oThreadMessage.IsFlagged = payload.Flagged
+          aMessagesForDB.push(oThreadMessage)
         }
       })
     }
+  })
+  ipcRenderer.send('db-set-messages', {
+    iAccountId,
+    aMessages: aMessagesForDB,
   })
 }
 

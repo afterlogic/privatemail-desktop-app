@@ -187,7 +187,7 @@ export function setMessagesRead ({ state, commit, dispatch, getters }, payload) 
 }
 
 export function setAllMessagesRead ({ state, commit, dispatch, getters }) {
-  commit('setAllMessagesRead')
+  commit('setAllMessagesRead', getters.getСurrentFolderFullName)
   webApi.sendRequest('Mail', 'SetAllMessagesSeen', {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, SetAction: true}, (oResult, oError) => {
     dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
   })

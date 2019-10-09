@@ -2,11 +2,15 @@ export default {
   namespaced: true,
   state: {
     apiHost: '',
+    lastLogin: '',
     theme: 'dark',
   },
   mutations: {
     setApiHost (state, sApiHost) {
       state.apiHost = sApiHost
+    },
+    setLastLogin (state, sLastLogin) {
+      state.lastLogin = sLastLogin
     },
     setTheme (state, v) {
       state.theme = v
@@ -24,6 +28,9 @@ export default {
   getters: {
     getApiHost (state) {
       return state.apiHost
+    },
+    getLastLogin (state) {
+      return state.lastLogin
     },
   },
 }

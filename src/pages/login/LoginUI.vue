@@ -48,6 +48,7 @@ export default {
     this.$store.dispatch('user/logout')
     this.$store.dispatch('mail/logout')
     this.host = this.$store.getters['main/getApiHost']
+    this.login = this.$store.getters['main/getLastLogin']
   },
   computed: {
   },
@@ -55,7 +56,12 @@ export default {
     logIn() {
       if (!this.loading) {
         function _catchSignInError (oError) {
-          notification.showError(errors.getText(oError, 'Error occurred while trying to sign in'))
+          if (bNeedSecondAttempt) {
+            bNeedSecondAttempt = false
+            _trySignIn('http://' + sApiHost)
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while trying to sign in'))
+          }
         }
 
         let _trySignIn = (sApiHost) => {
@@ -69,12 +75,12 @@ export default {
             sModule: 'Core',
             sMethod: 'Login',
             oParameters,
-            fCallback: (result, oError) => {
-              console.log('result, error', result, oError)
+            fCallback: (oResult, oError) => {
               this.loading = false
-              if (result && result.AuthToken) {
+              if (oResult && oResult.AuthToken) {
                 this.$store.commit('main/setApiHost', sApiHost)
-                this.$store.dispatch('user/login', result.AuthToken)
+                this.$store.commit('main/setLastLogin', this.login)
+                this.$store.dispatch('user/login', oResult.AuthToken)
                 this.$router.push({ path: '/mail' })
               } else {
                 _catchSignInError(oError)
@@ -83,8 +89,14 @@ export default {
           })
         }
 
+        let bNeedSecondAttempt = false
         let sApiHost = this.host
-        _trySignIn(sApiHost)
+        if (0 === sApiHost.indexOf('https://') || 0 === sApiHost.indexOf('http://')) {
+          _trySignIn(sApiHost)
+        } else {
+          bNeedSecondAttempt = true
+          _trySignIn('https://' + sApiHost)
+        }
       }
     }
   }

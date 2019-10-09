@@ -13,6 +13,22 @@ export default {
 
   /**
    * @param {*} mValue
+   * @return {boolean}
+   */
+  isString: function (mValue) {
+    return typeof mValue === 'string'
+  },
+
+  /**
+   * @param {*} mValue
+   * @return {boolean}
+   */
+  isNonEmptyString: function (mValue) {
+    return this.isString(mValue) && mValue !== ''
+  },
+
+  /**
+   * @param {*} mValue
    * @param {string} sDefault
    * @return {string}
    */

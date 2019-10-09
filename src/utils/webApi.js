@@ -1,17 +1,21 @@
 import axios from 'axios'
 import store from 'src/store'
 import prefetcher from 'src/prefetcher.js'
+import typesUtils from 'src/utils/types.js'
 
 let aRequestsNumbers = []
 
 export default {
-  sendRequest: function (module, method, parameters, callback) {
-    const url = 'http://test.afterlogic.com/?/Api/'
+  sendRequest: function ({sApiHost, sModule, sMethod, oParameters, fCallback}) {
+    let url = store.getters['main/getApiHost'] + '/?/Api/'
+    if (typesUtils.isNonEmptyString(sApiHost)) {
+      url = sApiHost + '/?/Api/'
+    }
 
     let oBodyFormData = new FormData()
-    oBodyFormData.set('Module', module)
-    oBodyFormData.set('Method', method)
-    oBodyFormData.set('Parameters', JSON.stringify(parameters))
+    oBodyFormData.set('Module', sModule)
+    oBodyFormData.set('Method', sMethod)
+    oBodyFormData.set('Parameters', JSON.stringify(oParameters))
 
     let sAuthToken = store.getters['user/getAuthToken']
     let oHeaders = {
@@ -36,12 +40,12 @@ export default {
         let oError = null
         if (bResponseOk && !oResult && response.data.ErrorCode) {
           oError = {
-            Code: response.data.ErrorCode,
+            ErrorCode: response.data.ErrorCode,
             Module: response.data.Module,
           }
         }
-        if (_.isFunction(callback)) {
-          callback(oResult, oError)
+        if (_.isFunction(fCallback)) {
+          fCallback(oResult, oError)
         }
         if (aRequestsNumbers.length === 0) {
           prefetcher.start()
@@ -50,8 +54,12 @@ export default {
       .catch((oError) => {
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
         console.log('webApi error', aRequestsNumbers.length, oError)
-        if (_.isFunction(callback)) {
-          callback(false, null)
+        if (_.isFunction(fCallback)) {
+          fCallback(false, {
+            ErrorCode: 0,
+            Module: sModule,
+            ErrorMessage: oError.message
+          })
         }
       })
   }

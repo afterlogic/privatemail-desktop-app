@@ -33,11 +33,16 @@ export default {
         // }
       }
       notification.showLoading(sLoadingMessage)
-      webApi.sendRequest('Mail', 'SendMessage', oParameters, (oResult, oError) => {
-        notification.hideLoading()
-        if (_.isFunction(fCallback)) {
-          fCallback(oResult, oError)
-        }
+      webApi.sendRequest({
+        sModule: 'Mail',
+        sMethod: 'SendMessage',
+        oParameters,
+        fCallback: (oResult, oError) => {
+          notification.hideLoading()
+          if (_.isFunction(fCallback)) {
+            fCallback(oResult, oError)
+          }
+        },
       })
     }
   },
@@ -63,13 +68,18 @@ export default {
     // }
 
     notification.showLoading(sLoadingMessage)
-    webApi.sendRequest('Mail', 'SaveMessage', oParameters, (oResult, oError) => {
-      notification.hideLoading()
-      if (_.isFunction(fCallback)) {
-        fCallback(oResult, oError, oParameters)
-      }
+    webApi.sendRequest({
+      sModule: 'Mail',
+      sMethod: 'SaveMessage',
+      oParameters,
+      fCallback: (oResult, oError) => {
+        notification.hideLoading()
+        if (_.isFunction(fCallback)) {
+          fCallback(oResult, oError, oParameters)
+        }
+      },
     })
-},
+  },
 
   verifyDataForSending: function (sToAddr, sCcAddr, sBccAddr) {
     let

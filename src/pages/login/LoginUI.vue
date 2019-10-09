@@ -7,6 +7,7 @@
         </div>
         <div class="col">
           <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black" style="min-width: 400px">
+            <q-input outlined v-model="host" label="Host" v-on:keyup.enter="logIn" />
             <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" />
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
             <q-btn color="primary" v-if="loading" size="20px" label="Signing In ..." no-caps disable />
@@ -25,7 +26,6 @@
 .logo {
   max-width: 300px;
   margin-top: -200px;
-  
 }
 </style>
 
@@ -38,6 +38,7 @@ export default {
   name: 'LoginUI',
   data () {
     return {
+      host: '',
       login: '',
       password: '',
       loading: false,
@@ -46,29 +47,44 @@ export default {
   mounted () {
     this.$store.dispatch('user/logout')
     this.$store.dispatch('mail/logout')
+    this.host = this.$store.getters['main/getApiHost']
   },
   computed: {
-    isAuthorized: function () {
-      return this.$store.state.user.authorized
-    }
   },
   methods: {
     logIn() {
       if (!this.loading) {
-        var parameters = {
-          Login: this.login,
-          Password: this.password,
+        function _catchSignInError (oError) {
+          notification.showError(errors.getText(oError, 'Error occurred while trying to sign in'))
         }
-        this.loading = true
-        webApi.sendRequest('Core', 'Login', parameters, (result, error) => {
-          this.loading = false
-          if (result && result.AuthToken) {
-            this.$store.dispatch('user/login', result.AuthToken)
-            this.$router.push({ path: '/mail' })
-          } else {
-            notification.showError(errors.getText(error, 'Error occurred while trying to sign in'))
+
+        let _trySignIn = (sApiHost) => {
+          let oParameters = {
+            Login: this.login,
+            Password: this.password,
           }
-        })
+          this.loading = true
+          webApi.sendRequest({
+            sApiHost,
+            sModule: 'Core',
+            sMethod: 'Login',
+            oParameters,
+            fCallback: (result, oError) => {
+              console.log('result, error', result, oError)
+              this.loading = false
+              if (result && result.AuthToken) {
+                this.$store.commit('main/setApiHost', sApiHost)
+                this.$store.dispatch('user/login', result.AuthToken)
+                this.$router.push({ path: '/mail' })
+              } else {
+                _catchSignInError(oError)
+              }
+            },
+          })
+        }
+
+        let sApiHost = this.host
+        _trySignIn(sApiHost)
       }
     }
   }

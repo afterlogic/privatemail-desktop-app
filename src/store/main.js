@@ -1,12 +1,16 @@
 export default {
   namespaced: true,
   state: {
+    apiHost: '',
     theme: 'dark',
   },
   mutations: {
+    setApiHost (state, sApiHost) {
+      state.apiHost = sApiHost
+    },
     setTheme (state, v) {
       state.theme = v
-    }
+    },
   },
   actions: {
     toggleTheme ({ commit, state }) {
@@ -16,9 +20,10 @@ export default {
         commit('setTheme', 'light')
       }
     },
-  }
+  },
+  getters: {
+    getApiHost (state) {
+      return state.apiHost
+    },
+  },
 }
-  // strict: process.env.NODE_ENV !== 'production',
-
-  // credentials.namepath means that credentials.login and credentials.password will not be saved to local storage
-  // plugins: [createPersistedState()],

@@ -26,10 +26,9 @@ export default {
   getters: {
     getAuthToken (state) {
       return state.authToken
-    }
+    },
+    isAuthorized (state) {
+      return state.authorized
+    },
   },
 }
-  // strict: process.env.NODE_ENV !== 'production',
-
-  // credentials.namepath means that credentials.login and credentials.password will not be saved to local storage
-  // plugins: [createPersistedState()],

@@ -14,6 +14,7 @@
             </div>
             <div class="col-auto q-pa-md items-center">
               <q-btn label="Manage folders" class="full-width" flat no-caps/>
+              <q-btn label="Clear all user data" @click="clearAllUserData" class="full-width" flat no-caps/>
             </div>
           </div>
         </template>
@@ -79,6 +80,7 @@
 <style></style>
 
 <script>
+import { ipcRenderer } from 'electron'
 import FolderList from "./FolderList.vue"
 import MessageList from "./MessageList.vue"
 import MailListToolbar from "./MailListToolbar.vue"
@@ -154,6 +156,11 @@ export default {
     },
     destroySubscriptions () {
       this.$root.$off('message-checked', this.onMessageChecked)
+    },
+    clearAllUserData () {
+      ipcRenderer.send('db-remove-all')
+      this.$store.dispatch('main/clearAll')
+      this.$router.push({ path: '/' })
     },
   },
   mounted: function () {

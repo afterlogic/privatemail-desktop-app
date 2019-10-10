@@ -11,7 +11,15 @@ export function setSyncing (state, payload) {
 
 export function setCurrentAccount (state, payload) {
   state.allMessageLists = {}
+
+  state.messageList = null
+  state.currentMessages = []
+  state.currentPage = 1
+  state.messagesPerPage = 20
+
   state.messagesCache = {}
+  state.currentMessage = null
+
   state.currentAccount = payload
 }
 
@@ -181,7 +189,7 @@ function _updateMessagesInfo (state, oParameters, aNewMessagesInfo) {
 export function setMessagesInfo (state, payload) {
   if (payload && payload.MessagesInfo && payload.Parameters) {
     _updateMessagesInfo(state, payload.Parameters, payload.MessagesInfo)
-    if (payload.Parameters.Folder === state.currentFolderList.Current.FullName) {
+    if (state.currentFolderList.Current && payload.Parameters.Folder === state.currentFolderList.Current.FullName) {
       state.messageList = payload.MessagesInfo
     }
   } else if (payload && payload.AccountId && payload.FolderFullName) {
@@ -226,21 +234,23 @@ export function updateMessagesCacheFromDb (state, { iAccountId, sFolderFullName,
 }
 
 export function setCurrentMessages (state) {
-  let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
-  let iAccountId = state.currentAccount.AccountID
-  let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
-
-  state.currentMessages = aCurrentMessages
-
-  if (aNotFounUids.length > 0) {
-    state.syncing = true
-    ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
-  } else {
-    if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 ) {
+  if (state.currentAccount) {
+    let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
+    let iAccountId = state.currentAccount.AccountID
+    let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
+  
+    state.currentMessages = aCurrentMessages
+  
+    if (aNotFounUids.length > 0) {
       state.syncing = true
-      prefetcher.start()
+      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
     } else {
-      state.syncing = false
+      if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 ) {
+        state.syncing = true
+        prefetcher.start()
+      } else {
+        state.syncing = false
+      }
     }
   }
 }

@@ -104,11 +104,11 @@
       <div class="col-3">
         <q-separator />
         <div class="q-px-md q-pt-md">
-          <q-editor v-model="replyText" min-height="6rem" />
+          <q-editor v-model="replyText" min-height="6rem" :toolbar="[]" />
         </div>
         <q-toolbar class="q-pa-md">
-          <q-btn color="primary" label="Send" />
-          <q-btn color="primary" label="Save" />
+          <q-btn color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply" />
+          <q-btn color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply" outline />
           Ctrl+Enter to send
           <q-space />
           <a>Open full reply form </a>
@@ -123,13 +123,16 @@
 <script>
 import addressUtils from 'src/utils/address'
 import textUtils from 'src/utils/text'
+import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
+import composeUtils from 'src/modules/mail/utils/compose.js'
 
 export default {
   name: 'MessageViewer',
   data () {
     return {
       replyText: '',
+      draftUid: '',
     }
   },
   computed: {
@@ -152,6 +155,21 @@ export default {
       })
       return aTo
     },
+    currentFolderList () {
+      return this.$store.getters['mail/getCurrentFolderList']
+    },
+    currentAccount () {
+      return this.$store.getters['mail/getCurrentAccount']
+    },
+    /**
+     * Determines if sending a message is allowed.
+     */
+    isEnableSending () {
+      return typesUtils.isNonEmptyString(this.replyText)
+    },
+    isEnableSaving () {
+      return typesUtils.isNonEmptyString(this.replyText)
+    },
   },
   watch: {
     message: {
@@ -168,6 +186,37 @@ export default {
   methods: {
     download: function (sDownloadUrl, sFileName) {
       webApi.downloadByUrl(sDownloadUrl, sFileName)
+    },
+    sendQuickReply: function () {
+      console.log('sendQuickReply', this.message)
+      if (this.isEnableSending) {
+        let
+          sToAddr = '',
+          sCcAddr = '',
+          sBccAddr = '',
+          sSubject = ''
+
+        composeUtils.sendMessage({
+          oCurrentAccount: this.currentAccount,
+          oCurrentFolderList: this.currentFolderList,
+          sToAddr,
+          sCcAddr,
+          sBccAddr,
+          sSubject,
+          sText: this.replyText,
+          sDraftUid: this.draftUid,
+        }, (oResult, oError) => {
+          if (oResult) {
+            notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            this.closeCompose()
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+          }
+        })
+      }
+    },
+    saveQuickReply: function () {
+      console.log('saveQuickReply')
     },
   },
 }

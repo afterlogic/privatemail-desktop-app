@@ -122,7 +122,7 @@
 <style></style>
 
 <script>
-import composeUtils from 'src/utils/mail/compose.js'
+import composeUtils from 'src/modules/mail/utils/compose.js'
 import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 import errors from 'src/utils/errors.js'

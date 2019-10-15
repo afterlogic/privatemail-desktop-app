@@ -126,6 +126,8 @@ import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
 import composeUtils from 'src/modules/mail/utils/compose.js'
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
 
 export default {
   name: 'MessageViewer',
@@ -188,13 +190,12 @@ export default {
       webApi.downloadByUrl(sDownloadUrl, sFileName)
     },
     sendQuickReply: function () {
-      console.log('sendQuickReply', this.message)
       if (this.isEnableSending) {
         let
-          sToAddr = '',
+          sToAddr = this.from.join(','),
           sCcAddr = '',
           sBccAddr = '',
-          sSubject = ''
+          sSubject = composeUtils.getReplySubject(this.message.Subject, true)
 
         composeUtils.sendMessage({
           oCurrentAccount: this.currentAccount,
@@ -208,7 +209,7 @@ export default {
         }, (oResult, oError) => {
           if (oResult) {
             notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
-            this.closeCompose()
+            this.replyText = ''
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
@@ -218,6 +219,10 @@ export default {
     saveQuickReply: function () {
       console.log('saveQuickReply')
     },
+  },
+  mounted: function () {
+    this.replyText = ''
+    this.draftUid = ''
   },
 }
 </script>

@@ -2,8 +2,30 @@ import _ from 'lodash'
 import typesUtils from 'src/utils/types.js'
 import textUtils from 'src/utils/text.js'
 import addressUtils from 'src/utils/address.js'
+import messageUtils from 'src/modules/mail/utils/message.js'
 import webApi from 'src/utils/webApi.js'
 import notification from 'src/utils/notification.js'
+
+// /**
+//  * @param {Object} oMessage
+//  * @param {number} iAccountId
+//  * @param {Object} oFetcherOrIdentity
+//  * @param {boolean} bPasteSignatureAnchor
+//  * @return {string}
+//  */
+// function GetReplyMessageBody(oMessage, iAccountId, oFetcherOrIdentity, bPasteSignatureAnchor)
+// {
+//   let
+//     sReplyTitle = textUtils.i18n('%MODULENAME%/TEXT_REPLY_MESSAGE', {
+//       'DATE': oMessage.oDateModel.getDate(),
+//       'TIME': oMessage.oDateModel.getTime(),
+//       'SENDER': textUtils.encodeHtml(oMessage.oFrom.getFull())
+//     }),
+//     sReplyBody = '<br /><br />' + this.getSignatureText(iAccountId, oFetcherOrIdentity, bPasteSignatureAnchor) + '<br /><br />' +
+//       '<div data-anchor="reply-title">' + sReplyTitle + '</div><blockquote>' + oMessage.getConvertedHtml() + '</blockquote>'
+
+//   return sReplyBody
+// }
 
 export default {
   sendMessage: function ({oCurrentAccount, oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid}, fCallback) {
@@ -143,4 +165,140 @@ export default {
 
     return oParameters
   },
+
+  /**
+   * Obtains a subject of the message, which is the answer (reply or forward):
+   * - adds the prefix "Re" of "Fwd" if the language is English, otherwise - their translation
+   * - joins "Re" and "Fwd" prefixes if it is allowed for application in settings
+   * @param {string} sSubject Subject of the message, the answer to which is composed
+   * @param {boolean} bReply If **true** the prefix will be "Re", otherwise - "Fwd"
+   * @return {string}
+   */
+  getReplySubject: function (sSubject, bReply) {
+    let
+      sRePrefix = 'Re',//TextUtils.i18n('%MODULENAME%/TEXT_REPLY_PREFIX'),
+      sFwdPrefix = 'Fwd',//TextUtils.i18n('%MODULENAME%/TEXT_FORWARD_PREFIX'),
+      sPrefix = bReply ? sRePrefix : sFwdPrefix,
+      sReSubject = sPrefix + ': ' + sSubject
+    
+    // if (Settings.JoinReplyPrefixes) {
+      sReSubject = messageUtils.joinReplyPrefixesInSubject(sReSubject, sRePrefix, sFwdPrefix)
+    // }
+    
+    return sReSubject
+  },
+    
+  // /**
+  //  * @param {Object} oMessage
+  //  * @param {string} sReplyType
+  //  * @param {number} iAccountId
+  //  * @param {Object} oFetcherOrIdentity
+  //  * @param {boolean} bPasteSignatureAnchor
+  //  * @param {string} sText
+  //  * @param {string} sDraftUid
+  //  * @return {Object}
+  //  */
+  // getReplyDataFromMessage: function (oMessage, sReplyType, iAccountId,
+  //                           oFetcherOrIdentity, bPasteSignatureAnchor, sText, sDraftUid) {
+  //   let
+  //     oReplyData = {
+  //       DraftInfo: [],
+  //       DraftUid: '',
+  //       To: '',
+  //       Cc: '',
+  //       Bcc: '',
+  //       Subject: '',
+  //       Attachments: [],
+  //       InReplyTo: oMessage.messageId(),
+  //       References: this.getReplyReferences(oMessage),
+  //     },
+  //     aAttachmentsLink = [],
+  //     sToAddr = oMessage.oReplyTo.getFull(),
+  //     sTo = oMessage.oTo.getFull()
+    
+  //   if (sToAddr === '' || oMessage.oFrom.getFirstEmail() === oMessage.oReplyTo.getFirstEmail() && oMessage.oReplyTo.getFirstName() === '') {
+  //     sToAddr = oMessage.oFrom.getFull()
+  //   }
+    
+  //   if (!sText || sText === '') {
+  //     sText = this.sReplyText
+  //     this.sReplyText = ''
+  //   }
+    
+  //   if (sReplyType === 'forward') {
+  //     oReplyData.Text = sText + this.getForwardMessageBody(oMessage, iAccountId, oFetcherOrIdentity)
+  //   } else if (sReplyType === 'resend') {
+  //     oReplyData.Text = oMessage.getConvertedHtml()
+  //     oReplyData.Cc = oMessage.cc()
+  //     oReplyData.Bcc = oMessage.bcc()
+  //   } else {
+  //     oReplyData.Text = sText + GetReplyMessageBody.call(this, oMessage, iAccountId, oFetcherOrIdentity, bPasteSignatureAnchor)
+  //   }
+    
+  //   if (sDraftUid) {
+  //     oReplyData.DraftUid = sDraftUid
+  //   } else {
+  //     oReplyData.DraftUid = this.sReplyDraftUid
+  //     this.sReplyDraftUid = ''
+  //   }
+
+  //   switch (sReplyType) {
+  //     case Enums.ReplyType.Reply:
+  //       oReplyData.DraftInfo = [Enums.ReplyType.Reply, oMessage.uid(), oMessage.folder()]
+  //       oReplyData.To = sToAddr
+  //       oReplyData.Subject = this.getReplySubject(oMessage.subject(), true)
+  //       aAttachmentsLink = _.filter(oMessage.attachments(), function (oAttach) {
+  //         return oAttach.linked()
+  //       })
+  //       break
+  //     case Enums.ReplyType.ReplyAll:
+  //       oReplyData.DraftInfo = [Enums.ReplyType.ReplyAll, oMessage.uid(), oMessage.folder()]
+  //       oReplyData.To = sToAddr
+  //       oReplyData.Cc = GetReplyAllCcAddr(oMessage, iAccountId, oFetcherOrIdentity)
+  //       oReplyData.Subject = this.getReplySubject(oMessage.subject(), true)
+  //       aAttachmentsLink = _.filter(oMessage.attachments(), function (oAttach) {
+  //         return oAttach.linked()
+  //       })
+  //       break
+  //     case Enums.ReplyType.Resend:
+  //       oReplyData.DraftInfo = [Enums.ReplyType.Resend, oMessage.uid(), oMessage.folder(), oMessage.cc(), oMessage.bcc()]
+  //       oReplyData.To = sTo
+  //       oReplyData.Subject = oMessage.subject()
+  //       aAttachmentsLink = oMessage.attachments()
+  //       break
+  //     case Enums.ReplyType.ForwardAsAttach:
+  //     case Enums.ReplyType.Forward:
+  //       oReplyData.DraftInfo = [Enums.ReplyType.Forward, oMessage.uid(), oMessage.folder()]
+  //       oReplyData.Subject = this.getReplySubject(oMessage.subject(), false)
+  //       aAttachmentsLink = oMessage.attachments()
+  //       break
+  //   }
+    
+  //   _.each(aAttachmentsLink, function (oAttachLink) {
+  //     if (oAttachLink.getCopy) {
+  //       let oCopy = oAttachLink.getCopy()
+  //       oReplyData.Attachments.push(oCopy)
+  //     }
+  //   })
+
+  //   return oReplyData
+  // },
+
+  // /**
+  //  * Prepares and returns references for reply message.
+  //  * @param {Object} oMessage
+  //  * @return {string}
+  //  */
+  // getReplyReferences: function (oMessage) {
+  //   let
+  //     sRef = oMessage.references(),
+  //     sInR = oMessage.messageId(),
+  //     sPos = sRef.indexOf(sInR)
+
+  //   if (sPos === -1) {
+  //     sRef += ' ' + sInR
+  //   }
+
+  //   return sRef
+  // },
 }

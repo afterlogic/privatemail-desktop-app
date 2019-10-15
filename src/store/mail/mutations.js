@@ -318,7 +318,7 @@ export function setMessagesDeleted (state, payload) {
     }
   })
   ipcRenderer.send('db-set-messages', {
-    iAccountId,
+    iAccountId: state.currentAccount.AccountID,
     aMessages: aMessagesForDB,
   })
 }
@@ -339,7 +339,7 @@ export function setMessageFlagged (state, payload) {
     }
   })
   ipcRenderer.send('db-set-messages', {
-    iAccountId,
+    iAccountId: state.currentAccount.AccountID,
     aMessages: aMessagesForDB,
   })
 }

@@ -24,7 +24,7 @@
             <template v-slot:before>
               <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
-                  <mail-list-toolbar :checkedMessagesUids="checkedUids" />
+                  <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" />
                   <q-expansion-item 
                     expand-separator
                     icon="mail"
@@ -122,6 +122,13 @@ export default {
     },
     messagesCount () {
       return this.$store.getters['mail/getMessagesCount']
+    },
+    checkedUidsForToolbar () {
+      let oCurrentMessage = this.$store.getters['mail/getСurrentMessage']
+      if (this.checkedUids.length === 0 && oCurrentMessage) {
+        return [oCurrentMessage.Uid]
+      }
+      return this.checkedUids
     },
   },
   watch: {

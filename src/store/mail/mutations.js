@@ -3,7 +3,7 @@ import _ from 'lodash'
 import dateUtils from 'src/utils/date'
 import messagesUtils from './utils/messages.js'
 import * as getters from './getters'
-import prefetcher from '../../prefetcher.js';
+import prefetcher from 'src/modules/mail/prefetcher.js';
 
 export function setSyncing (state, payload) {
   state.syncing = payload

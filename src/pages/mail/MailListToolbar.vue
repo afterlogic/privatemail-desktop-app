@@ -67,7 +67,7 @@
 </style>
 
 <script>
-import prefetcher from 'src/prefetcher.js'
+import prefetcher from 'src/modules/mail/prefetcher.js'
 import { colors } from 'quasar'
 import MoveToFolderItem from './MoveToFolderItem.vue'
 

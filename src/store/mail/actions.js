@@ -5,7 +5,7 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
-import prefetcher from 'src/prefetcher.js'
+import prefetcher from 'src/modules/mail/prefetcher.js'
 
 export function asyncGetSettings ({ commit }) {
   webApi.sendRequest({

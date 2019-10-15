@@ -1,6 +1,6 @@
 import axios from 'axios'
 import store from 'src/store'
-import prefetcher from 'src/prefetcher.js'
+import mainPrefetcher from 'src/mainPrefetcher.js'
 import typesUtils from 'src/utils/types.js'
 import { saveAs } from 'file-saver'
 
@@ -49,7 +49,7 @@ export default {
           fCallback(oResult, oError)
         }
         if (aRequestsNumbers.length === 0) {
-          prefetcher.start()
+          mainPrefetcher.start()
         }
       })
       .catch((oError) => {

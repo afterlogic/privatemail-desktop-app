@@ -79,9 +79,7 @@ export default {
             fCallback: (oResult, oError) => {
               this.loading = false
               if (oResult && oResult.AuthToken) {
-                console.log('sApiHost', sApiHost, this.$store.getters['main/getApiHost'], 'this.login', this.login, this.$store.getters['main/getLastLogin'])
                 if (sApiHost !== this.$store.getters['main/getApiHost'] || this.login !== this.$store.getters['main/getLastLogin']) {
-                  console.log('remove')
                   ipcRenderer.send('db-remove-all')
                   this.$store.commit('main/setApiHost', sApiHost)
                   this.$store.commit('main/setLastLogin', this.login)

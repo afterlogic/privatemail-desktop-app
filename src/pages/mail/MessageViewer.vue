@@ -96,7 +96,9 @@
       <div class="col-3" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']" style="background: yellow;">
         <div v-for="attach in message.Attachments['@Collection']" :key="attach.Hash" v-show="!attach.IsLinked">
           {{attach.FileName}} - {{attach.FriendlySize}} - 
-          <a v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url" :href="'http://aurora.dev.com/' + attach.Actions.download.url" target="_blank">download</a>
+          <a  v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url"
+              href="javascript:void(0)"
+              @click="download(attach.Actions.download.url, attach.FileName)">download</a>
         </div>
       </div>
       <div class="col-3">
@@ -121,6 +123,7 @@
 <script>
 import addressUtils from 'src/utils/address'
 import textUtils from 'src/utils/text'
+import webApi from 'src/utils/webApi'
 
 export default {
   name: 'MessageViewer',
@@ -160,6 +163,11 @@ export default {
         }
       },
       deep: true // needs to be called after message.Received change
+    },
+  },
+  methods: {
+    download: function (sDownloadUrl, sFileName) {
+      webApi.downloadByUrl(sDownloadUrl, sFileName)
     },
   },
 }

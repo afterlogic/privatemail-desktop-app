@@ -2,6 +2,7 @@ import axios from 'axios'
 import store from 'src/store'
 import prefetcher from 'src/prefetcher.js'
 import typesUtils from 'src/utils/types.js'
+import { saveAs } from 'file-saver'
 
 let aRequestsNumbers = []
 
@@ -62,5 +63,25 @@ export default {
           })
         }
       })
-  }
+  },
+
+  downloadByUrl: function (sDownloadUrl, sFileName) {
+    let url = store.getters['main/getApiHost'] + '/' + sDownloadUrl
+
+    let sAuthToken = store.getters['user/getAuthToken']
+    let oHeaders = {}
+    if (sAuthToken) {
+      oHeaders['Authorization'] = 'Bearer ' + sAuthToken
+    }
+
+    axios({
+      method: 'get',
+      url,
+      headers: oHeaders,
+      responseType: 'blob',
+    })
+      .then((oResponse) => {
+        saveAs(oResponse.data, sFileName)
+      })
+  },
 }

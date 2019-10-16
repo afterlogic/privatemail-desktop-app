@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import addressUtils from 'src/utils/address.js'
 import typesUtils from 'src/utils/types.js'
 
 export default {
@@ -67,4 +68,47 @@ export default {
     
     return sReSubject
   },
+
+  getFullAddress: function (oAddressesFromServer) {
+    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+
+    var aAddresses = _.map(aCollection, function (oAddress) {
+      return addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email)
+    })
+
+    return aAddresses.join(', ')
+  },
+
+  getFirstAddressEmail: function (oAddressesFromServer) {
+    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+
+    if (aCollection.length > 0) {
+      return aCollection[0].Email
+    }
+
+    return ''
+  },
+
+  getFirstAddressName: function (oAddressesFromServer) {
+    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+
+    if (aCollection.length > 0) {
+      return aCollection[0].DisplayName
+    }
+
+    return ''
+  },
+
+  /**
+   * @param {object} oMessage
+   * @param {string=} sAppPath = ''
+   * @param {boolean=} bForcedShowPictures = false
+   * return {string}
+   */
+  getConvertedHtml: function (oMessage, sAppPath, bForcedShowPictures) {
+    return oMessage.Html !== '' ? oMessage.Html : oMessage.Plain
+    // let oDomText = this.getDomText(sAppPath, bForcedShowPictures)
+    // return (oDomText.length > 0) ? oDomText.wrap('<p>').parent().html() : ''
+  },
+
 }

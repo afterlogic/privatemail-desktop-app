@@ -51,4 +51,24 @@ export default {
     iArrayLen = iArrayLen || 1
     return _.isArray(aValue) && iArrayLen <= aValue.length
   },
+
+  pArray: function (mValue, aDefault) {
+    if (_.isArray(mValue)) {
+      return mValue
+    }
+    if (_.isArray(aDefault)) {
+      return aDefault
+    }
+    return []
+  },
+
+  pBool: function (mValue, bDefault) {
+    if (typeof mValue === 'boolean') {
+      return mValue
+    }
+    if (typeof bDefault === 'boolean') {
+      return bDefault
+    }
+    return false
+  },
 }

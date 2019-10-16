@@ -101,10 +101,10 @@
               @click="download(attach.Actions.download.url, attach.FileName)">download</a>
         </div>
       </div>
-      <div class="col-3">
+      <div class="col-3" v-if="showQuickReply">
         <q-separator />
         <div class="q-px-md q-pt-md">
-          <q-editor v-model="replyText" min-height="6rem" :toolbar="[]" />
+          <q-editor v-model="replyText" height="6rem" :toolbar="[]" />
         </div>
         <q-toolbar class="q-pa-md">
           <q-btn color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply" />
@@ -126,6 +126,7 @@ import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
 import composeUtils from 'src/modules/mail/utils/compose.js'
+import mailEnums from 'src/modules/mail/enums.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
@@ -163,6 +164,15 @@ export default {
     currentAccount () {
       return this.$store.getters['mail/getCurrentAccount']
     },
+    showQuickReply () {
+      if (this.message && this.currentFolderList) {
+        let
+          sSentFolder = this.currentFolderList.Sent ? this.currentFolderList.Sent.FullName : '',
+          sDraftFolder = this.currentFolderList.Drafts ? this.currentFolderList.Drafts.FullName : ''
+        return this.message.Folder !== sSentFolder && this.message.Folder !== sDraftFolder
+      }
+      return false
+    },
     /**
      * Determines if sending a message is allowed.
      */
@@ -181,6 +191,8 @@ export default {
             oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
           })
         }
+        this.replyText = ''
+        this.draftUid = ''
       },
       deep: true // needs to be called after message.Received change
     },
@@ -191,25 +203,15 @@ export default {
     },
     sendQuickReply: function () {
       if (this.isEnableSending) {
-        let
-          sToAddr = this.from.join(','),
-          sCcAddr = '',
-          sBccAddr = '',
-          sSubject = composeUtils.getReplySubject(this.message.Subject, true)
-
-        composeUtils.sendMessage({
-          oCurrentAccount: this.currentAccount,
-          oCurrentFolderList: this.currentFolderList,
-          sToAddr,
-          sCcAddr,
-          sBccAddr,
-          sSubject,
-          sText: this.replyText,
-          sDraftUid: this.draftUid,
-        }, (oResult, oError) => {
+        let oSendReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oSendReplyParams.oCurrentAccount = this.currentAccount
+        oSendReplyParams.oCurrentFolderList = this.currentFolderList
+        composeUtils.sendMessage(oSendReplyParams, (oResult, oError) => {
           if (oResult) {
-            notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            notification.showReport('Your message has been sent.')
             this.replyText = ''
+            this.draftUid = ''
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
@@ -217,7 +219,20 @@ export default {
       }
     },
     saveQuickReply: function () {
-      console.log('saveQuickReply')
+      if (this.isEnableSaving) {
+        let oSendReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oSendReplyParams.oCurrentAccount = this.currentAccount
+        oSendReplyParams.oCurrentFolderList = this.currentFolderList
+        composeUtils.saveMessage(oSendReplyParams, (oResult, oError) => {
+          if (oResult) {
+            // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVE'))
+            notification.showReport('Your message has been saved.')
+            this.draftUid = typesUtils.pString(oResult.NewUid)
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while saving message'))
+          }
+        })
+      }
     },
   },
   mounted: function () {

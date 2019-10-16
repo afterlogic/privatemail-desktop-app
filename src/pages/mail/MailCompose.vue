@@ -184,7 +184,8 @@ export default {
           sDraftUid: this.draftUid,
         }, (oResult, oError) => {
           if (oResult) {
-            notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            notification.showReport('Your message has been sent.')
             this.closeCompose()
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
@@ -204,7 +205,8 @@ export default {
         sDraftUid: this.draftUid,
       }, (oResult, oError, oParameters) => {
         if (oResult) {
-          notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVED'))
+          // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVED'))
+          notification.showReport('Your message has been saved.')
           if (oParameters && oParameters.DraftUid === this.draftUid) {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }

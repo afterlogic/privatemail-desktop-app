@@ -28,7 +28,7 @@ function _getReplyAllCcAddr(oMessage, oCurrentAccount, oFetcherOrIdentity) {
       return oCurrentAccount.Email !== oAddress.Email && (!oFetcherOrIdentity || oFetcherOrIdentity.Email !== oAddress.Email)
     })
 
-  return messageUtils.getFullAddress(aAddrCollection)
+  return messageUtils.getFullAddress({ '@Collection': aAddrCollection })
 }
 
 export default {

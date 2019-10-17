@@ -75,6 +75,7 @@ module.exports = function (ctx) {
         'QRadio',
         'QTooltip',
         'QSpinner',
+        'QSlideTransition',
       ],
 
       directives: [

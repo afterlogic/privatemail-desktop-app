@@ -8,26 +8,26 @@
     <div v-if="message !== null">
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
-          <q-btn flat color="primary" icon="reply">
+          <q-btn flat color="primary" icon="reply" @click="reply">
             <q-tooltip>
               Reply
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="reply_all">
+          <q-btn flat color="primary" icon="reply_all" @click="replyAll">
             <q-tooltip>
               Reply To All
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="forward">
+          <q-btn flat color="primary" icon="forward" @click="forward">
             <q-tooltip>
               Forward
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="open_in_new">
+          <!-- <q-btn flat color="primary" icon="open_in_new">
             <q-tooltip>
               Open in a new window
             </q-tooltip>
-          </q-btn>
+          </q-btn> -->
           <q-btn-dropdown flat color="primary">
             <template v-slot:label>
               <q-btn flat icon="more_horiz" />
@@ -75,7 +75,6 @@
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
           <q-chip v-for="fromAddr in from" :key="'from_' + fromAddr" icon-right="add">{{fromAddr}}</q-chip>
-          →
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -101,19 +100,21 @@
               @click="download(attach.Actions.download.url, attach.FileName)">download</a>
         </div>
       </div>
-      <div class="col-3" v-if="showQuickReply">
-        <q-separator />
-        <div class="q-px-md q-pt-md">
-          <q-editor v-model="replyText" height="6rem" :toolbar="[]" />
+      <q-slide-transition>
+        <div class="col-3" v-if="showQuickReply" v-show="!isSendingOrSaving">
+          <q-separator />
+          <div class="q-px-md q-pt-md">
+            <q-editor v-model="replyText" height="6rem" :toolbar="[]" v-on:keyup.enter="onEditorEnter" />
+          </div>
+          <q-toolbar class="q-pa-md">
+            <q-btn color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply" />
+            <q-btn color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply" outline />
+            Ctrl+Enter to send
+            <q-space />
+            <a href="javascript:void(0)" @click="replyAll">Open full reply form </a>
+          </q-toolbar>
         </div>
-        <q-toolbar class="q-pa-md">
-          <q-btn color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply" />
-          <q-btn color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply" outline />
-          Ctrl+Enter to send
-          <q-space />
-          <a>Open full reply form </a>
-        </q-toolbar>
-      </div>
+      </q-slide-transition>
     </div>
   </div>
 </template>
@@ -136,6 +137,7 @@ export default {
     return {
       replyText: '',
       draftUid: '',
+      isSendingOrSaving: false,
     }
   },
   computed: {
@@ -191,8 +193,7 @@ export default {
             oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
           })
         }
-        this.replyText = ''
-        this.draftUid = ''
+        this.clearAll()
       },
       deep: true // needs to be called after message.Received change
     },
@@ -203,27 +204,29 @@ export default {
     },
     sendQuickReply: function () {
       if (this.isEnableSending) {
-        let oSendReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
-        oSendReplyParams.oCurrentAccount = this.currentAccount
-        oSendReplyParams.oCurrentFolderList = this.currentFolderList
-        composeUtils.sendMessage(oSendReplyParams, (oResult, oError) => {
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oComposeReplyParams.oCurrentAccount = this.currentAccount
+        oComposeReplyParams.oCurrentFolderList = this.currentFolderList
+        this.isSendingOrSaving = true
+        composeUtils.sendMessage(oComposeReplyParams, (oResult, oError) => {
           if (oResult) {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
             notification.showReport('Your message has been sent.')
-            this.replyText = ''
-            this.draftUid = ''
+            this.clearAll()
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
+          this.isSendingOrSaving = false
         })
       }
     },
     saveQuickReply: function () {
       if (this.isEnableSaving) {
-        let oSendReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
-        oSendReplyParams.oCurrentAccount = this.currentAccount
-        oSendReplyParams.oCurrentFolderList = this.currentFolderList
-        composeUtils.saveMessage(oSendReplyParams, (oResult, oError) => {
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oComposeReplyParams.oCurrentAccount = this.currentAccount
+        oComposeReplyParams.oCurrentFolderList = this.currentFolderList
+        this.isSendingOrSaving = true
+        composeUtils.saveMessage(oComposeReplyParams, (oResult, oError) => {
           if (oResult) {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVE'))
             notification.showReport('Your message has been saved.')
@@ -231,13 +234,54 @@ export default {
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while saving message'))
           }
+          this.isSendingOrSaving = false
         })
+      }
+    },
+    clearAll: function () {
+      this.replyText = ''
+      this.draftUid = ''
+      this.isSendingOrSaving = false
+    },
+    onEditorEnter: function (oEvent) {
+      if (oEvent.ctrlKey) {
+        this.sendQuickReply()
+      }
+    },
+    _getParentComponent: function (sComponentName) {
+      let oComponent = null
+      let oParent = this.$parent
+      while (oParent && !oComponent) {
+        if (oParent.$options.name === sComponentName) {
+          oComponent = oParent
+        }
+        oParent = oParent.$parent
+      }
+      return oComponent
+    },
+    reply: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.Reply)
+    },
+    replyAll: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.ReplyAll)
+    },
+    forward: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.Forward)
+    },
+    openFullReplyForm: function (iReplyType) {
+      let
+        oMailUI = this._getParentComponent('MailUI'),
+        oCompose = oMailUI ? oMailUI.$refs.compose : null,
+        oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
+
+      if (oCompose) {
+        oCompose.openCompose(oComposeReplyParams)
+        this.clearAll()
       }
     },
   },
   mounted: function () {
-    this.replyText = ''
-    this.draftUid = ''
+    this.clearAll()
   },
 }
 </script>

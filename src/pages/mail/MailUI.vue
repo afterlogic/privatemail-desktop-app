@@ -149,7 +149,7 @@ export default {
       }
     },
     openCompose () {
-      this.$refs.compose.openCompose()
+      this.$refs.compose.openCompose({})
     },
     onMessageChecked (sUid, bChecked) {
       if (bChecked) {

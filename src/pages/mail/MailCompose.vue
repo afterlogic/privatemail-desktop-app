@@ -146,7 +146,11 @@ export default {
       bccAddr: '',
       subjectText: '',
 
+      draftInfo: [],
       draftUid: '',
+      attachments: [],
+      inReplyTo: '',
+      references: '',
 
       isCcShowed: false,
       isBccShowed: false,
@@ -181,7 +185,11 @@ export default {
           sBccAddr: this.bccAddr,
           sSubject: this.subjectText,
           sText: this.editortext,
+          aAttachments: this.attachments,
           sDraftUid: this.draftUid,
+          aDraftInfo: this.draftInfo,
+          sInReplyTo: this.inReplyTo,
+          sReferences: this.references,
         }, (oResult, oError) => {
           if (oResult) {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
@@ -202,7 +210,11 @@ export default {
         sBccAddr: this.bccAddr,
         sSubject: this.subjectText,
         sText: this.editortext,
+        aAttachments: this.attachments,
         sDraftUid: this.draftUid,
+        aDraftInfo: this.draftInfo,
+        sInReplyTo: this.inReplyTo,
+        sReferences: this.references,
       }, (oResult, oError, oParameters) => {
         if (oResult) {
           // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVED'))
@@ -215,15 +227,22 @@ export default {
         }
       })
     },
-    openCompose () {
-      this.editortext = ''
-      this.toAddr = ''
-      this.ccAddr = ''
-      this.bccAddr = ''
-      this.subjectText = ''
-      this.draftUid = ''
-      this.isCcShowed = false
-      this.isBccShowed = false
+    openCompose ({ aDraftInfo, sDraftUid, sToAddr, sCcAddr, sBccAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+      this.toAddr = typesUtils.pString(sToAddr)
+      this.ccAddr = typesUtils.pString(sCcAddr)
+      this.bccAddr = typesUtils.pString(sBccAddr)
+      this.subjectText = typesUtils.pString(sSubject)
+      this.editortext = typesUtils.pString(sText)
+
+      this.attachments = typesUtils.pArray(aAttachments)
+
+      this.draftUid = typesUtils.pString(sDraftUid)
+      this.draftInfo = typesUtils.pArray(aDraftInfo)
+      this.inReplyTo = typesUtils.pString(sInReplyTo)
+      this.references = typesUtils.pString(sReferences)
+
+      this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddr)
+      this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddr)
       this.dialog = true
     },
     closeCompose () {

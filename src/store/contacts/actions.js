@@ -111,11 +111,35 @@ export function changeStorage({ state, commit, dispatch, getters }, storage) {
 }
 
 export function getContactByUUID({ state, commit, dispatch, getters }, UUID) {
-  let contactByUUID = {}
+  let contactByUUID = {
+    UUID,
+    editable: false,
+    contact: {}
+  }
   let contact = state.contacts.list.filter(item => {
     if (item.UUID === UUID) return item
   })[0]
-  contactByUUID.UUID = UUID
+
   contactByUUID.contact = contact
   commit('setContactByUUID', contactByUUID)
+}
+
+export function enableEditContact({ state, commit, dispatch, getters }) {
+  if (!state.contactByUUID.editable) {
+    commit('changeEditContact', true)
+    console.log(state.contactByUUID.editable)
+  }
+  
+  
+}
+
+export function disableEditContact({ state, commit, dispatch, getters }) {
+  if (state.contactByUUID.editable) {
+    commit('changeEditContact', false)
+    console.log(state.contactByUUID.editable)
+  }
+}
+export function changeContactUUID({ state, commit, dispatch, getters }) {
+    commit('changeContactUUID')
+
 }

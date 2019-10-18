@@ -32,11 +32,13 @@ export default {
         list: [],
         downloaded: false,
     },
-
     contactByUUID: {
         UUID: null,
+        editable: false,
         contact: {}
     },
+    isContactEdit: false,
+    selectedContact: null,
     contactsToDowload: {
         chunk: [],
         amount: 2,

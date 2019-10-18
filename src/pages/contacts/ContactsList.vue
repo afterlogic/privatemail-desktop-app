@@ -48,7 +48,6 @@
 <style></style>
 
 <script>
-//import {contacts, contactsOffline} from "../../contactsData.js"
 import webApi from "src/utils/webApi.js"
 
 export default {

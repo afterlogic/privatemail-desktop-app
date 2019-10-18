@@ -1,15 +1,15 @@
 <template>
-
-  <div v-if="contactByUUID.UUID">
-    <contactFields />
-    <contactEdit />
+  <div>
+    <div v-if="contactByUUID.UUID">
+      <contactFields v-if="!contactByUUID.editable"/>
+      <contactEdit v-if="contactByUUID.editable"/>
+    </div>
   </div>
 </template>
 
 <style></style>
 
 <script>
-//import {contacts, contactsOffline} from "../../contactsData.js"
 import webApi from "src/utils/webApi.js"
 import ContactFields from "./ContactFields.vue"
 import ContactEdit from "./ContactEdit.vue"
@@ -22,18 +22,27 @@ export default {
   },
   data() {
     return {
-      checkboxVal: false
+      checkboxVal: false,
+      editMode: false,
     };
   },
 
   mounted: function() {},
-  watch: {},
+  watch: {
+    // contactByUUID: function(val, oldVal) {
+    //   this.contactByUUID()
+    // },
+  },
   computed: {
     contactByUUID() {
       return this.$store.getters["contacts/getContactByUUID"];
-    }
+    }     
   },
 
-  methods: {}
+  methods: { 
+    getUUID() {
+      console.log('contactByUUID', this.contactByUUID, this.contactByUUID.editable, this.contactByUUID.UUID);
+    }     
+  }
 };
 </script>

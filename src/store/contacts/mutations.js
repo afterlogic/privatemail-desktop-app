@@ -29,3 +29,11 @@ export function setContactsUUIDs(state, contactsUUIDs) {
 export function setContactByUUID(state, contactByUUID) {
     state.contactByUUID = contactByUUID
 }
+
+export function changeEditContact(state, editable) {
+    state.contactByUUID.editable = editable
+}
+
+export function changeContactUUID(state) {
+    state.contactByUUID.UUID = 'asdasd'
+}

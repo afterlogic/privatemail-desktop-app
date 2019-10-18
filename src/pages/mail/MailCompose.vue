@@ -64,7 +64,7 @@
               </q-item-section>
             </q-item>
           </q-list>
-          <q-editor v-model="editortext" height="400px" class="col" :definitions="{
+          <!-- :definitions="{
               colors: {
                 tip: 'Font & background colors',
                 icon: 'text_format',
@@ -75,7 +75,8 @@
                 icon: 'image',
                 handler: insertImage
               },
-            }"
+            }" -->
+          <q-editor v-model="editortext" height="400px" class="col" 
             :toolbar="[
               ['undo', 'redo'],
               ['bold', 'italic', 'underline', 'strike'],

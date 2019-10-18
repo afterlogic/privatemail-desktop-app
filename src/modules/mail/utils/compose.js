@@ -32,10 +32,10 @@ function _getReplyAllCcAddr(oMessage, oCurrentAccount, oFetcherOrIdentity) {
 }
 
 export default {
-  sendMessage: function ({oCurrentAccount, oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
+  sendMessage: function ({oCurrentAccount, oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
     if (this.verifyDataForSending(sToAddr, sCcAddr, sBccAddr)) {
       let
-        oParameters = this.getSendSaveParameters({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText: false, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
+        oParameters = this.getSendSaveParameters({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
         sSentFolder = oCurrentFolderList.Sent ? oCurrentFolderList.Sent.FullName : '',
         sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
         sCurrEmail = oCurrentAccount.Email,
@@ -73,9 +73,9 @@ export default {
     }
   },
 
-  saveMessage: function ({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
+  saveMessage: function ({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
     let
-      oParameters = this.getSendSaveParameters({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText: false, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
+      oParameters = this.getSendSaveParameters({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
       sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
       sLoadingMessage = 'Saving...' // textUtils.i18n('%MODULENAME%/INFO_SAVING')
 
@@ -307,8 +307,8 @@ export default {
       oReplyData.sText = sText + this.getForwardMessageBody(oMessage, oCurrentAccount, oFetcherOrIdentity)
     } else if (sReplyType === mailEnums.ReplyType.Resend) {
       oReplyData.sText = messageUtils.getConvertedHtml(oMessage)
-      oReplyData.sCcAddr = oMessage.Cc
-      oReplyData.sBccAddr = oMessage.Bcc
+      oReplyData.sCcAddr = messageUtils.getFullAddress(oMessage.Cc)
+      oReplyData.sBccAddr = messageUtils.getFullAddress(oMessage.Bcc)
     } else {
       oReplyData.sText = sText + this.getReplyMessageBody(oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
     }

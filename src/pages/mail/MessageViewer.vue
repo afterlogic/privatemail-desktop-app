@@ -8,17 +8,22 @@
     <div v-if="message !== null">
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
-          <q-btn flat color="primary" icon="reply" @click="reply">
+          <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
             <q-tooltip>
               Reply
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="reply_all" @click="replyAll">
+          <q-btn flat color="primary" icon="reply_all" v-if="!isSentFolder && !isDraftsFolder" @click="replyAll">
             <q-tooltip>
               Reply To All
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="forward" @click="forward">
+          <q-btn flat color="primary" icon="replay" v-if="isSentFolder" @click="resend">
+            <q-tooltip>
+              Resend
+            </q-tooltip>
+          </q-btn>
+          <q-btn flat color="primary" icon="forward" v-if="!isDraftsFolder" @click="forward">
             <q-tooltip>
               Forward
             </q-tooltip>
@@ -101,7 +106,7 @@
         </div>
       </div>
       <q-slide-transition>
-        <div class="col-3" v-if="showQuickReply" v-show="!isSendingOrSaving">
+        <div class="col-3" v-if="!isSentFolder && !isDraftsFolder" v-show="!isSendingOrSaving">
           <q-separator />
           <div class="q-px-md q-pt-md">
             <q-editor v-model="replyText" height="6rem" :toolbar="[]" v-on:keyup.enter="onEditorEnter" />
@@ -166,12 +171,17 @@ export default {
     currentAccount () {
       return this.$store.getters['mail/getCurrentAccount']
     },
-    showQuickReply () {
+    isSentFolder () {
       if (this.message && this.currentFolderList) {
-        let
-          sSentFolder = this.currentFolderList.Sent ? this.currentFolderList.Sent.FullName : '',
-          sDraftFolder = this.currentFolderList.Drafts ? this.currentFolderList.Drafts.FullName : ''
-        return this.message.Folder !== sSentFolder && this.message.Folder !== sDraftFolder
+        let sSentFolder = this.currentFolderList.Sent ? this.currentFolderList.Sent.FullName : ''
+        return this.message.Folder === sSentFolder
+      }
+      return false
+    },
+    isDraftsFolder () {
+      if (this.message && this.currentFolderList) {
+        let sDraftFolder = this.currentFolderList.Drafts ? this.currentFolderList.Drafts.FullName : ''
+        return this.message.Folder === sDraftFolder
       }
       return false
     },
@@ -267,6 +277,9 @@ export default {
     },
     forward: function () {
       this.openFullReplyForm(mailEnums.ReplyType.Forward)
+    },
+    resend: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.Resend)
     },
     openFullReplyForm: function (iReplyType) {
       let

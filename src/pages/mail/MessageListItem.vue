@@ -1,6 +1,6 @@
 <template>
   <div v-if="!deleted">
-    <q-item clickable v-ripple :class="{checked: checked, selected: selected, unread: !message.IsSeen}" @click="selectMessage">
+    <q-item clickable v-ripple :class="{checked: checked, selected: selected, unread: !message.IsSeen}" @click="selectMessage" @dblclick="dblClickHandler">
       <q-item-section side class="items-center">
         <q-checkbox v-model="checked" />
         <q-icon name="star" color="orange" v-if="message.IsFlagged" @click.native.stop="toggleFlagged" />
@@ -67,6 +67,7 @@ hr.selected {
 
 <script>
 import addressUtils from 'src/utils/address'
+import messageUtils from 'src/modules/mail/utils/message.js'
 
 export default {
   name: 'MessageListItem',
@@ -115,6 +116,45 @@ export default {
     selectMessage: function () {
       this.$root.$emit('select-message', this.message.Uid)
       this.$store.dispatch('mail/setCurrentMessage', this.message)
+    },
+    _getParentComponent: function (sComponentName) {
+      let oComponent = null
+      let oParent = this.$parent
+      while (oParent && !oComponent) {
+        if (oParent.$options.name === sComponentName) {
+          oComponent = oParent
+        }
+        oParent = oParent.$parent
+      }
+      return oComponent
+    },
+    dblClickHandler: function () {
+      let
+        oCurrentFolderList = this.$store.getters['mail/getCurrentFolderList'],
+        sDraftFolder = (oCurrentFolderList && oCurrentFolderList.Drafts) ? oCurrentFolderList.Drafts.FullName : ''
+
+      if (this.message.Folder === sDraftFolder) {
+        let
+          oMailUI = this._getParentComponent('MailUI'),
+          oCompose = oMailUI ? oMailUI.$refs.compose : null,
+          oComposeReplyParams = {
+            aDraftInfo: this.message.DraftInfo,
+            sDraftUid: this.message.DraftUid,
+            sToAddr: messageUtils.getFullAddress(this.message.To),
+            sCcAddr: messageUtils.getFullAddress(this.message.Cc),
+            sBccAddr: messageUtils.getFullAddress(this.message.Bcc),
+            sSubject: this.message.Subject,
+            sText: this.message.Html ? this.message.Html : this.message.Plain,
+            bPlainText: !this.message.Html && !!this.message.Plain,
+            // aAttachments: this.message.Attachments,
+            sInReplyTo: this.message.InReplyTo,
+            sReferences: this.message.References,
+          }
+
+        if (oCompose) {
+          oCompose.openCompose(oComposeReplyParams)
+        }
+      }
     },
     toggleFlagged: function () {
       this.$store.dispatch('mail/setMessageFlagged', {

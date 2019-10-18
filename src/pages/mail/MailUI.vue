@@ -14,6 +14,7 @@
             </div>
             <div class="col-auto q-pa-md items-center">
               <q-btn label="Manage folders" class="full-width" flat no-caps/>
+              <q-btn label="Clear all user data" @click="clearAllUserData" class="full-width" flat no-caps/>
             </div>
           </div>
         </template>
@@ -23,7 +24,7 @@
             <template v-slot:before>
               <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
-                  <mail-list-toolbar :checkedMessagesUids="checkedUids" />
+                  <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" />
                   <q-expansion-item 
                     expand-separator
                     icon="mail"
@@ -79,6 +80,7 @@
 <style></style>
 
 <script>
+import { ipcRenderer } from 'electron'
 import FolderList from "./FolderList.vue"
 import MessageList from "./MessageList.vue"
 import MailListToolbar from "./MailListToolbar.vue"
@@ -121,6 +123,13 @@ export default {
     messagesCount () {
       return this.$store.getters['mail/getMessagesCount']
     },
+    checkedUidsForToolbar () {
+      let oCurrentMessage = this.$store.getters['mail/getСurrentMessage']
+      if (this.checkedUids.length === 0 && oCurrentMessage) {
+        return [oCurrentMessage.Uid]
+      }
+      return this.checkedUids
+    },
   },
   watch: {
     checkboxAll: function(val, oldval) {
@@ -140,7 +149,7 @@ export default {
       }
     },
     openCompose () {
-      this.$refs.compose.openCompose()
+      this.$refs.compose.openCompose({})
     },
     onMessageChecked (sUid, bChecked) {
       if (bChecked) {
@@ -154,6 +163,11 @@ export default {
     },
     destroySubscriptions () {
       this.$root.$off('message-checked', this.onMessageChecked)
+    },
+    clearAllUserData () {
+      ipcRenderer.send('db-remove-all')
+      this.$store.dispatch('main/clearAll')
+      this.$router.push({ path: '/' })
     },
   },
   mounted: function () {

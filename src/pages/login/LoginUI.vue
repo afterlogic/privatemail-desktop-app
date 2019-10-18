@@ -30,6 +30,7 @@
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
 import webApi from 'src/utils/webApi.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
@@ -78,8 +79,11 @@ export default {
             fCallback: (oResult, oError) => {
               this.loading = false
               if (oResult && oResult.AuthToken) {
-                this.$store.commit('main/setApiHost', sApiHost)
-                this.$store.commit('main/setLastLogin', this.login)
+                if (sApiHost !== this.$store.getters['main/getApiHost'] || this.login !== this.$store.getters['main/getLastLogin']) {
+                  ipcRenderer.send('db-remove-all')
+                  this.$store.commit('main/setApiHost', sApiHost)
+                  this.$store.commit('main/setLastLogin', this.login)
+                }
                 this.$store.dispatch('user/login', oResult.AuthToken)
                 this.$router.push({ path: '/mail' })
               } else {

@@ -41,6 +41,7 @@ export default {
       position: 'top',
       avatar: null,
       multiLine: true,
+      timeout: 0,
       actions: [],
     })
   },

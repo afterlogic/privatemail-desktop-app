@@ -31,7 +31,7 @@ export default {
   },
   computed: {
     isAuthorized: function () {
-      return this.$store.state.user.authorized
+      return this.$store.getters['user/isAuthorized']
     },
     mailHeader () {
       var oCurrentAccount = this.$store.getters['mail/getCurrentAccount']

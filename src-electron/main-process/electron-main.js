@@ -12,7 +12,10 @@ if (process.env.PROD) {
   global.__statics = require('path').join(__dirname, 'statics').replace(/\\/g, '\\\\')
 }
 
+const sqlite3 = require('sqlite3').verbose()
+
 let mainWindow
+let db = null
 
 function createWindow () {
   /**
@@ -29,8 +32,7 @@ function createWindow () {
 
   mainWindow.loadURL(process.env.APP_URL)
 
-  const sqlite3 = require('sqlite3').verbose()
-  let db = new sqlite3.Database('privatemail.db', (err) => {
+  db = new sqlite3.Database('privatemail.db', (err) => {
     if (err === null) {
       foldersDbManager.init(db)
       messagesDbManager.init(db)
@@ -38,7 +40,9 @@ function createWindow () {
   })
 
   mainWindow.on('closed', () => {
-    db.close()
+    if (db) {
+      db.close()
+    }
     mainWindow = null
   })
 }
@@ -54,6 +58,31 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (mainWindow === null) {
     createWindow()
+  }
+})
+
+ipcMain.on('db-remove-all', () => {
+  if (db) {
+    db.close(function (err1) {
+      if (err1 === null) {
+        db = null
+        foldersDbManager.init(db)
+        messagesDbManager.init(db)
+        const fs = require('fs')
+        const sPath = './privatemail.db'
+
+        fs.unlink(sPath, (err) => {
+          if (!err) {
+            db = new sqlite3.Database('privatemail.db', (err) => {
+              if (err === null) {
+                foldersDbManager.init(db)
+                messagesDbManager.init(db)
+              }
+            })
+          }
+        })
+      }
+    })
   }
 })
 

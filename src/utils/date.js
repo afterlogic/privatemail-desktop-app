@@ -1,13 +1,13 @@
 import moment from 'moment'
 
-var UserSettings = {
+let UserSettings = {
   UserSelectsDateFormat: false,
   DateFormat: 'DD Month YYYY',
   TimeFormat: '0' // 24 hours
 }
 
 function _getDateFormatForMoment(sDateFormat) {
-  var sMomentDateFormat = 'MM/DD/YYYY'
+  let sMomentDateFormat = 'MM/DD/YYYY'
 
   switch (sDateFormat) {
     case 'MM/DD/YYYY':
@@ -30,9 +30,10 @@ function _getTimeFormat () {
 
 export default {
   getShortDate: function (iTimeStampInUTC, bTime) {
-    var sResult = ''
-    var oMoment = moment(iTimeStampInUTC * 1000)
-    var oMomentNow = null
+    let
+      sResult = '',
+      oMoment = moment(iTimeStampInUTC * 1000),
+      oMomentNow = null
 
     if (oMoment) {
       oMomentNow = moment()
@@ -63,5 +64,35 @@ export default {
     }
 
     return sResult
-  }
+  },
+
+  /**
+   * @return {string}
+   */
+  getDate: function (iTimeStampInUTC) {
+    let
+      oMoment = moment(iTimeStampInUTC * 1000),
+      sFormat = 'ddd, MMM D, YYYY'
+
+    if (UserSettings.UserSelectsDateFormat) {
+      sFormat = 'ddd, ' + _getDateFormatForMoment(UserSettings.DateFormat)
+    }
+
+    return oMoment.format(sFormat)
+  },
+
+  /**
+   * @return {string}
+   */
+  getTime: function (iTimeStampInUTC) {
+    let oMoment = moment(iTimeStampInUTC * 1000)
+    return oMoment.format(_getTimeFormat())
+  },
+
+  /**
+   * @return {string}
+   */
+  getFullDate: function () {
+    return this.getDate() + ' ' + this.getTime()
+  },
 }

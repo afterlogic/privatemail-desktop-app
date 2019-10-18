@@ -1,5 +1,3 @@
-import { ipcRenderer } from 'electron'
-
 export default {
   getUidsToRetrieveBodies: function (aStateMessageList, oStateMessagesCache, iCurrentAccountId, sStateCurrentFolderFullName) {
     var aUids = []

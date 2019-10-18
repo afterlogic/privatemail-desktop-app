@@ -64,7 +64,7 @@
               </q-item-section>
             </q-item>
           </q-list>
-          <q-editor v-model="editortext" height="400px" class="col" :definitions="{
+          <!-- :definitions="{
               colors: {
                 tip: 'Font & background colors',
                 icon: 'text_format',
@@ -75,7 +75,8 @@
                 icon: 'image',
                 handler: insertImage
               },
-            }"
+            }" -->
+          <q-editor v-model="editortext" height="400px" class="col" 
             :toolbar="[
               ['undo', 'redo'],
               ['bold', 'italic', 'underline', 'strike'],
@@ -122,7 +123,7 @@
 <style></style>
 
 <script>
-import composeUtils from 'src/utils/mail/compose.js'
+import composeUtils from 'src/modules/mail/utils/compose.js'
 import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 import errors from 'src/utils/errors.js'
@@ -146,7 +147,11 @@ export default {
       bccAddr: '',
       subjectText: '',
 
+      draftInfo: [],
       draftUid: '',
+      attachments: [],
+      inReplyTo: '',
+      references: '',
 
       isCcShowed: false,
       isBccShowed: false,
@@ -181,10 +186,15 @@ export default {
           sBccAddr: this.bccAddr,
           sSubject: this.subjectText,
           sText: this.editortext,
+          aAttachments: this.attachments,
           sDraftUid: this.draftUid,
+          aDraftInfo: this.draftInfo,
+          sInReplyTo: this.inReplyTo,
+          sReferences: this.references,
         }, (oResult, oError) => {
           if (oResult) {
-            notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            notification.showReport('Your message has been sent.')
             this.closeCompose()
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
@@ -201,10 +211,15 @@ export default {
         sBccAddr: this.bccAddr,
         sSubject: this.subjectText,
         sText: this.editortext,
+        aAttachments: this.attachments,
         sDraftUid: this.draftUid,
+        aDraftInfo: this.draftInfo,
+        sInReplyTo: this.inReplyTo,
+        sReferences: this.references,
       }, (oResult, oError, oParameters) => {
         if (oResult) {
-          notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVED'))
+          // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVED'))
+          notification.showReport('Your message has been saved.')
           if (oParameters && oParameters.DraftUid === this.draftUid) {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }
@@ -213,15 +228,22 @@ export default {
         }
       })
     },
-    openCompose () {
-      this.editortext = ''
-      this.toAddr = ''
-      this.ccAddr = ''
-      this.bccAddr = ''
-      this.subjectText = ''
-      this.draftUid = ''
-      this.isCcShowed = false
-      this.isBccShowed = false
+    openCompose ({ aDraftInfo, sDraftUid, sToAddr, sCcAddr, sBccAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+      this.toAddr = typesUtils.pString(sToAddr)
+      this.ccAddr = typesUtils.pString(sCcAddr)
+      this.bccAddr = typesUtils.pString(sBccAddr)
+      this.subjectText = typesUtils.pString(sSubject)
+      this.editortext = typesUtils.pString(sText)
+
+      this.attachments = typesUtils.pArray(aAttachments)
+
+      this.draftUid = typesUtils.pString(sDraftUid)
+      this.draftInfo = typesUtils.pArray(aDraftInfo)
+      this.inReplyTo = typesUtils.pString(sInReplyTo)
+      this.references = typesUtils.pString(sReferences)
+
+      this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddr)
+      this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddr)
       this.dialog = true
     },
     closeCompose () {

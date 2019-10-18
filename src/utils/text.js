@@ -2,9 +2,10 @@ import typesUtils from 'src/utils/types'
 
 export default {
   getFriendlySize: function (iSizeInBytes) {
-    var iBytesInKb = 1024
-    var iBytesInMb = iBytesInKb * iBytesInKb
-    var iBytesInGb = iBytesInKb * iBytesInKb * iBytesInKb
+    let
+      iBytesInKb = 1024,
+      iBytesInMb = iBytesInKb * iBytesInKb,
+      iBytesInGb = iBytesInKb * iBytesInKb * iBytesInKb
 
     iSizeInBytes = typesUtils.pInt(iSizeInBytes)
 
@@ -18,9 +19,11 @@ export default {
 
     return iSizeInBytes + 'B'
   },
+
   i18n: function (sText) {
     return sText
   },
+
   encodeHtml: function (sText) {
     return (sText) ? sText.toString()
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

@@ -7,7 +7,7 @@
 <script>
 import { ipcRenderer } from 'electron'
 import theming from './css/theming'
-import prefetcher from 'src/prefetcher.js'
+import prefetcher from 'src/modules/mail/prefetcher.js'
 
 export default {
   name: 'App',

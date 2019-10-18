@@ -8,26 +8,31 @@
     <div v-if="message !== null">
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
-          <q-btn flat color="primary" icon="reply">
+          <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
             <q-tooltip>
               Reply
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="reply_all">
+          <q-btn flat color="primary" icon="reply_all" v-if="!isSentFolder && !isDraftsFolder" @click="replyAll">
             <q-tooltip>
               Reply To All
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="forward">
+          <q-btn flat color="primary" icon="replay" v-if="isSentFolder" @click="resend">
+            <q-tooltip>
+              Resend
+            </q-tooltip>
+          </q-btn>
+          <q-btn flat color="primary" icon="forward" v-if="!isDraftsFolder" @click="forward">
             <q-tooltip>
               Forward
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="open_in_new">
+          <!-- <q-btn flat color="primary" icon="open_in_new">
             <q-tooltip>
               Open in a new window
             </q-tooltip>
-          </q-btn>
+          </q-btn> -->
           <q-btn-dropdown flat color="primary">
             <template v-slot:label>
               <q-btn flat icon="more_horiz" />
@@ -75,7 +80,6 @@
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
           <q-chip v-for="fromAddr in from" :key="'from_' + fromAddr" icon-right="add">{{fromAddr}}</q-chip>
-          →
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -96,22 +100,26 @@
       <div class="col-3" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']" style="background: yellow;">
         <div v-for="attach in message.Attachments['@Collection']" :key="attach.Hash" v-show="!attach.IsLinked">
           {{attach.FileName}} - {{attach.FriendlySize}} - 
-          <a v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url" :href="'http://aurora.dev.com/' + attach.Actions.download.url" target="_blank">download</a>
+          <a  v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url"
+              href="javascript:void(0)"
+              @click="download(attach.Actions.download.url, attach.FileName)">download</a>
         </div>
       </div>
-      <div class="col-3">
-        <q-separator />
-        <div class="q-px-md q-pt-md">
-          <q-editor v-model="replyText" min-height="6rem" />
+      <q-slide-transition>
+        <div class="col-3" v-if="!isSentFolder && !isDraftsFolder" v-show="!isSendingOrSaving">
+          <q-separator />
+          <div class="q-px-md q-pt-md">
+            <q-editor v-model="replyText" height="6rem" :toolbar="[]" v-on:keyup.enter="onEditorEnter" />
+          </div>
+          <q-toolbar class="q-pa-md">
+            <q-btn color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply" />
+            <q-btn color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply" outline />
+            Ctrl+Enter to send
+            <q-space />
+            <a href="javascript:void(0)" @click="replyAll">Open full reply form </a>
+          </q-toolbar>
         </div>
-        <q-toolbar class="q-pa-md">
-          <q-btn color="primary" label="Send" />
-          <q-btn color="primary" label="Save" />
-          Ctrl+Enter to send
-          <q-space />
-          <a>Open full reply form </a>
-        </q-toolbar>
-      </div>
+      </q-slide-transition>
     </div>
   </div>
 </template>
@@ -121,12 +129,20 @@
 <script>
 import addressUtils from 'src/utils/address'
 import textUtils from 'src/utils/text'
+import typesUtils from 'src/utils/types'
+import webApi from 'src/utils/webApi'
+import composeUtils from 'src/modules/mail/utils/compose.js'
+import mailEnums from 'src/modules/mail/enums.js'
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
 
 export default {
   name: 'MessageViewer',
   data () {
     return {
       replyText: '',
+      draftUid: '',
+      isSendingOrSaving: false,
     }
   },
   computed: {
@@ -149,6 +165,35 @@ export default {
       })
       return aTo
     },
+    currentFolderList () {
+      return this.$store.getters['mail/getCurrentFolderList']
+    },
+    currentAccount () {
+      return this.$store.getters['mail/getCurrentAccount']
+    },
+    isSentFolder () {
+      if (this.message && this.currentFolderList) {
+        let sSentFolder = this.currentFolderList.Sent ? this.currentFolderList.Sent.FullName : ''
+        return this.message.Folder === sSentFolder
+      }
+      return false
+    },
+    isDraftsFolder () {
+      if (this.message && this.currentFolderList) {
+        let sDraftFolder = this.currentFolderList.Drafts ? this.currentFolderList.Drafts.FullName : ''
+        return this.message.Folder === sDraftFolder
+      }
+      return false
+    },
+    /**
+     * Determines if sending a message is allowed.
+     */
+    isEnableSending () {
+      return typesUtils.isNonEmptyString(this.replyText)
+    },
+    isEnableSaving () {
+      return typesUtils.isNonEmptyString(this.replyText)
+    },
   },
   watch: {
     message: {
@@ -158,9 +203,98 @@ export default {
             oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
           })
         }
+        this.clearAll()
       },
       deep: true // needs to be called after message.Received change
     },
+  },
+  methods: {
+    download: function (sDownloadUrl, sFileName) {
+      webApi.downloadByUrl(sDownloadUrl, sFileName)
+    },
+    sendQuickReply: function () {
+      if (this.isEnableSending) {
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oComposeReplyParams.oCurrentAccount = this.currentAccount
+        oComposeReplyParams.oCurrentFolderList = this.currentFolderList
+        this.isSendingOrSaving = true
+        composeUtils.sendMessage(oComposeReplyParams, (oResult, oError) => {
+          if (oResult) {
+            // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
+            notification.showReport('Your message has been sent.')
+            this.clearAll()
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+          }
+          this.isSendingOrSaving = false
+        })
+      }
+    },
+    saveQuickReply: function () {
+      if (this.isEnableSaving) {
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oComposeReplyParams.oCurrentAccount = this.currentAccount
+        oComposeReplyParams.oCurrentFolderList = this.currentFolderList
+        this.isSendingOrSaving = true
+        composeUtils.saveMessage(oComposeReplyParams, (oResult, oError) => {
+          if (oResult) {
+            // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SAVE'))
+            notification.showReport('Your message has been saved.')
+            this.draftUid = typesUtils.pString(oResult.NewUid)
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while saving message'))
+          }
+          this.isSendingOrSaving = false
+        })
+      }
+    },
+    clearAll: function () {
+      this.replyText = ''
+      this.draftUid = ''
+      this.isSendingOrSaving = false
+    },
+    onEditorEnter: function (oEvent) {
+      if (oEvent.ctrlKey) {
+        this.sendQuickReply()
+      }
+    },
+    _getParentComponent: function (sComponentName) {
+      let oComponent = null
+      let oParent = this.$parent
+      while (oParent && !oComponent) {
+        if (oParent.$options.name === sComponentName) {
+          oComponent = oParent
+        }
+        oParent = oParent.$parent
+      }
+      return oComponent
+    },
+    reply: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.Reply)
+    },
+    replyAll: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.ReplyAll)
+    },
+    forward: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.Forward)
+    },
+    resend: function () {
+      this.openFullReplyForm(mailEnums.ReplyType.Resend)
+    },
+    openFullReplyForm: function (iReplyType) {
+      let
+        oMailUI = this._getParentComponent('MailUI'),
+        oCompose = oMailUI ? oMailUI.$refs.compose : null,
+        oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
+
+      if (oCompose) {
+        oCompose.openCompose(oComposeReplyParams)
+        this.clearAll()
+      }
+    },
+  },
+  mounted: function () {
+    this.clearAll()
   },
 }
 </script>

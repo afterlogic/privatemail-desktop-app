@@ -17,6 +17,11 @@ export default {
     },
   },
   actions: {
+    clearAll ({ commit }) {
+      commit('setApiHost', '')
+      commit('setLastLogin', '')
+      commit('setTheme', 'dark')
+    },
     toggleTheme ({ commit, state }) {
       if (state.theme === 'light') {
         commit('setTheme', 'dark')

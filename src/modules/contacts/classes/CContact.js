@@ -1,0 +1,123 @@
+import typesUtils from "../../../utils/types"
+
+function CContact(data) {
+    this['@Object'] = "Object/Aurora\\Modules\\Contacts\\Classes\\Contact"
+    this.EntityId = null
+    this.UUID = ""
+    this.ParentUUID = ""
+    this.ModuleName = ""
+    this.IdUser = null
+    this.IdTenant = null
+    this.Storage = ""
+    this.FullName = ""
+    this.UseFriendlyName = null
+    this.PrimaryEmail = null
+    this.PrimaryPhone = null
+    this.PrimaryAddress = null
+    this.ViewEmail = ""
+    this.Title = ""
+    this.FirstName = ""
+    this.LastName = ""
+    this.NickName = ""
+    this.Skype = ""
+    this.Facebook = ""
+    this.PersonalEmail = ""
+    this.PersonalAddress = ""
+    this.PersonalCity = ""
+    this.PersonalState = ""
+    this.PersonalZip = ""
+    this.PersonalCountry = ""
+    this.PersonalWeb = ""
+    this.PersonalFax = ""
+    this.PersonalPhone = ""
+    this.PersonalMobile = ""
+    this.BusinessEmail = ""
+    this.BusinessCompany = ""
+    this.BusinessAddress = ""
+    this.BusinessCity = ""
+    this.BusinessState = ""
+    this.BusinessZip = ""
+    this.BusinessCountry = ""
+    this.BusinessJobTitle = ""
+    this.BusinessDepartment = ""
+    this.BusinessOffice = ""
+    this.BusinessPhone = ""
+    this.BusinessFax = ""
+    this.BusinessWeb = ""
+    this.OtherEmail = ""
+    this.Notes = ""
+    this.BirthDay = null
+    this.BirthMonth = null
+    this.BirthYear = null
+    this.ETag = ""
+    this.Auto = false
+    this.Frequency = null
+    this.DateModified = ""
+    this['DavContacts::UID'] = ""
+    this['DavContacts::VCardUID'] = ""
+    this.GroupUUIDs = []
+
+    this.parse(data)
+}
+
+CContact.prototype.parse = function (data) {
+    // console.log('asdasd', data)
+    this.BusinessFax = typesUtils.pString(data.BusinessFax)
+    this['@Object'] = typesUtils.pString(data['@Object'])
+    this.EntityId = typesUtils.pInt(data.EntityId)
+    this.UUID = typesUtils.pString(data.UUID)
+    this.ParentUUID = typesUtils.pString(data.ParentUUID)
+    this.ModuleName = typesUtils.pString(data.ModuleName)
+    this.IdUser = typesUtils.pInt(data.IdUser)
+    this.IdTenant = typesUtils.pInt(data.IdTenant)
+    this.Storage = typesUtils.pString(data.Storage)
+    this.FullName = typesUtils.pString(data.FullName)
+    this.UseFriendlyName = typeof data.UseFriendlyName === "boolean" ? data.UseFriendlyName : false
+    this.PrimaryEmail = typesUtils.pInt(data.PrimaryEmail)
+    this.PrimaryPhone = typesUtils.pInt(data.PrimaryPhone)
+    this.PrimaryAddress = typesUtils.pInt(data.PrimaryAddress)
+    this.ViewEmail = typesUtils.pString(data.ViewEmail)
+    this.Title = typesUtils.pString(data.Title)
+    this.FirstName = typesUtils.pString(data.FirstName)
+    this.LastName = typesUtils.pString(data.LastName)
+    this.NickName = typesUtils.pString(data.NickName)
+    this.Skype = typesUtils.pString(data.Skype)
+    this.Facebook = typesUtils.pString(data.Facebook)
+    this.PersonalEmail = typesUtils.pString(data.PersonalEmail)
+    this.PersonalAddress = typesUtils.pString(data.PersonalAddress)
+    this.PersonalCity = typesUtils.pString(data.PersonalCity)
+    this.PersonalState = typesUtils.pString(data.PersonalState)
+    this.PersonalZip = typesUtils.pString(data.PersonalZip)
+    this.PersonalCountry = typesUtils.pString(data.PersonalCountry)
+    this.PersonalWeb = typesUtils.pString(data.PersonalWeb)
+    this.PersonalFax = typesUtils.pString(data.PersonalFax)
+    this.PersonalPhone = typesUtils.pString(data.PersonalPhone)
+    this.PersonalMobile = typesUtils.pString(data.PersonalMobile)
+    this.BusinessEmail = typesUtils.pString(data.BusinessEmail)
+    this.BusinessCompany = typesUtils.pString(data.BusinessCompany)
+    this.BusinessAddress = typesUtils.pString(data.BusinessAddress)
+    this.BusinessCity = typesUtils.pString(data.BusinessCity)
+    this.BusinessState = typesUtils.pString(data.BusinessState)
+    this.BusinessZip = typesUtils.pString(data.BusinessZip)
+    this.BusinessCountry = typesUtils.pString(data.BusinessCountry)
+    this.BusinessJobTitle = typesUtils.pString(data.BusinessJobTitle)
+    this.BusinessDepartment = typesUtils.pString(data.BusinessDepartment)
+    this.BusinessOffice = typesUtils.pString(data.BusinessOffice)
+    this.BusinessPhone = typesUtils.pString(data.BusinessPhone)
+    this.BusinessFax = typesUtils.pString(data.BusinessFax)
+    this.BusinessWeb = typesUtils.pString(data.BusinessWeb)
+    this.OtherEmail = typesUtils.pString(data.OtherEmail)
+    this.Notes = typesUtils.pString(data.Notes)
+    this.BirthDay = typesUtils.pInt(data.BirthDay)
+    this.BirthMonth = typesUtils.pInt(data.BirthMonth)
+    this.BirthYear = typesUtils.pInt(data.BirthYear)
+    this.ETag = typesUtils.pString(data.ETag)
+    this.Auto = typeof data.Auto === "boolean" ? data.Auto : false
+    this.Frequency = typesUtils.pInt(data.Frequency)
+    this.DateModified = typesUtils.pString(data.DateModified)
+    this['DavContacts::UID'] = typesUtils.pString(data['DavContacts::UID'])
+    this['DavContacts::VCardUID'] = typesUtils.pString(data['DavContacts::VCardUID'])
+    this.GroupUUIDs = typesUtils.isNonEmptyArray(data.GroupUUIDs) ? data.GroupUUIDs : []
+}
+
+export default CContact

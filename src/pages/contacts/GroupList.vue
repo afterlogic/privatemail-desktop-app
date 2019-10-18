@@ -1,16 +1,21 @@
 <template>
   <q-list>
-    <q-item clickable v-ripple :class="{active: currentGroup === 'personal'}" @click="setGroup('personal')">
+    <q-item
+      clickable
+      v-ripple
+      :class="{active: currentGroup === 'personal'}"
+      @click="setGroup('personal')"
+    >
       <!-- <q-item-section avatar>
         <q-icon name="person" />
-      </q-item-section> -->
+      </q-item-section>-->
       <q-item-section>Personal</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple :class="{active: currentGroup === 'corporate'}" @click="setGroup('corporate')">
+    <q-item clickable v-ripple :class="{active: currentGroup === 'team'}" @click="setGroup('team')">
       <!-- <q-item-section avatar>
         <q-icon name="group" />
-      </q-item-section> -->
+      </q-item-section>-->
       <q-item-section>Team</q-item-section>
     </q-item>
 
@@ -34,23 +39,24 @@
 </style>
 
 <script>
-import {groups} from "../../contactsData.js"
+import { groups } from "../../contactsData.js";
 
 export default {
   name: "GroupList",
-  data () {
+  data() {
     return {
       groupsList: [],
-      currentGroup: 'personal',
-    }
+      currentGroup: "personal"
+    };
   },
-  mounted: function () {
+  mounted: function() {
     this.groupsList = groups;
   },
   methods: {
-    setGroup (v) {
+    setGroup(v) {
       this.currentGroup = v;
+      this.$store.dispatch("contacts/changeStorage", v);
     }
-  },
+  }
 };
 </script>

@@ -55,15 +55,15 @@
 <style></style>
 
 <script>
-import webApi from "src/utils/webApi.js";
-import CContact from "src/modules/contacts/classes/CContact.js";
+import webApi from 'src/utils/webApi.js'
+import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
-  name: "ContactEdit",
+  name: 'ContactEdit',
   data() {
     return {
       checkboxVal: false
-    };
+    }
   },
 
   mounted: function() {
@@ -73,25 +73,25 @@ export default {
   },
   computed: {
     contact() {
-      let ContactByUUID = this.$store.getters["contacts/getContactByUUID"];
-      let contact = ContactByUUID.contact;
+      let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
+      let contact = ContactByUUID.contact
     
-      return (contact && contact instanceof CContact) ? contact : null;
+      return (contact && contact instanceof CContact) ? contact : null
     }
   },
 
   methods: {
     onSave () {
-        let ContactByUUID = this.$store.getters["contacts/getContactByUUID"];
-        let contactSource = ContactByUUID.contact;
+        let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
+        let contactSource = ContactByUUID.contact
 
         this.contact === contactSource
 
         //performe save request 
     },
     disableEditContact() {
-      this.$store.dispatch("contacts/disableEditContact")
+      this.$store.dispatch('contacts/disableEditContact')
     }
-  }
-};
+  },
+}
 </script>

@@ -39,24 +39,24 @@
 </style>
 
 <script>
-import { groups } from "../../contactsData.js";
+import { groups } from '../../contactsData.js'
 
 export default {
-  name: "GroupList",
+  name: 'GroupList',
   data() {
     return {
       groupsList: [],
-      currentGroup: "personal"
-    };
+      currentGroup: 'personal',
+    }
   },
   mounted: function() {
-    this.groupsList = groups;
+    this.groupsList = groups
   },
   methods: {
     setGroup(v) {
-      this.currentGroup = v;
-      this.$store.dispatch("contacts/changeStorage", v);
-    }
-  }
-};
+      this.currentGroup = v
+      this.$store.dispatch('contacts/changeStorage', v)
+    },
+  },
+}
 </script>

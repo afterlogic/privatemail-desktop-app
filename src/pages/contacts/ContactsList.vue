@@ -48,10 +48,11 @@
 <style></style>
 
 <script>
-import webApi from "src/utils/webApi.js"
+//import {contacts, contactsOffline} from '../../contactsData.js'
+import webApi from 'src/utils/webApi.js'
 
 export default {
-  name: "ContactsList",
+  name: 'ContactsList',
   data() {
     return {
       checkboxVal: false
@@ -74,42 +75,42 @@ export default {
   },
   computed: {
     storageList() {
-      return this.$store.getters["contacts/getStorages"]
+      return this.$store.getters['contacts/getStorages']
     },
 
     contactsInfo() {
-      return this.$store.getters["contacts/getContactsInfo"]
+      return this.$store.getters['contacts/getContactsInfo']
     },
 
     cTag() {
-      return this.$store.getters["contacts/getCTag"]
+      return this.$store.getters['contacts/getCTag']
     },
 
     contacts() {
-      return this.$store.getters["contacts/getContactsByUids"]
+      return this.$store.getters['contacts/getContactsByUids']
     },
 
     storage() {
-      return this.$store.getters["contacts/getStorage"]
+      return this.$store.getters['contacts/getStorage']
     },
 
     // UUID() {
-    //   return this.$store.getters["contacts/getContactByUUID"]
+    //   return this.$store.getters['contacts/getContactByUUID']
     // },
   },
 
   methods: {
     refreshStoragesList() {
-      this.$store.dispatch("contacts/asyncGetStorages")
+      this.$store.dispatch('contacts/asyncGetStorages')
     },
     refreshContactsInfo() {
-      this.$store.dispatch("contacts/asyncGetContactsInfo")
+      this.$store.dispatch('contacts/asyncGetContactsInfo')
     },
     refreshContactsByUids() {
-      this.$store.dispatch("contacts/asyncGetContactsByUids")
+      this.$store.dispatch('contacts/asyncGetContactsByUids')
     },
     getContactByUUID(UUID) {
-      this.$store.dispatch("contacts/getContactByUUID", UUID)
+      this.$store.dispatch('contacts/getContactByUUID', UUID)
       console.log(UUID)
     },
 
@@ -119,6 +120,6 @@ export default {
     //   }
     // }
 
-  }
+  },
 }
 </script>

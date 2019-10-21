@@ -10,12 +10,12 @@
 <style></style>
 
 <script>
-import webApi from "src/utils/webApi.js"
-import ContactFields from "./ContactFields.vue"
-import ContactEdit from "./ContactEdit.vue"
+import webApi from 'src/utils/webApi.js'
+import ContactFields from './ContactFields.vue'
+import ContactEdit from './ContactEdit.vue'
 
 export default {
-  name: "Contact",
+  name: 'Contact',
   components: {
     ContactFields,
     ContactEdit,
@@ -24,7 +24,7 @@ export default {
     return {
       checkboxVal: false,
       editMode: false,
-    };
+    }
   },
 
   mounted: function() {},
@@ -35,14 +35,14 @@ export default {
   },
   computed: {
     contactByUUID() {
-      return this.$store.getters["contacts/getContactByUUID"];
-    }     
+      return this.$store.getters['contacts/getContactByUUID']
+    }
   },
 
-  methods: { 
+  methods: {
     getUUID() {
-      console.log('contactByUUID', this.contactByUUID, this.contactByUUID.editable, this.contactByUUID.UUID);
-    }     
-  }
-};
+      console.log('contactByUUID', this.contactByUUID, this.contactByUUID.editable, this.contactByUUID.UUID)
+    }
+  },
+}
 </script>

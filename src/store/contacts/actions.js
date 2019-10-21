@@ -29,7 +29,7 @@ export function asyncGetContactsInfo({ state, commit, dispatch, getters }) {
   webApi.sendRequest({
     sModule: 'Contacts',
     sMethod: 'GetContactsInfo',
-    oParameters: { "Storage": state.currentStorage.name },
+    oParameters: { 'Storage': state.currentStorage.name },
     fCallback: (oResult, oError) => {
       if (oResult) {
         let aContactsInfo = []
@@ -45,28 +45,21 @@ export function asyncGetContactsInfo({ state, commit, dispatch, getters }) {
           aContactsInfo.push(contactInfo)
         })
 
-
-
         if (oResult.CTag && typeof oResult.CTag === 'number') {
           iCTag = oResult.CTag
         }
 
         if (state.cTag && state.cTag !== iCTag) {
-          
           for (let i = 0; i < state.contactsETags.length; i++) {
             if (state.contactsUUIDs[i] !== state.contactsInfo[i].ETag) {
               ETagsforUpdate.push()
             }
-
           }
         } else {
           commit('setContactsUUIDs', contactsUUIDs)
           commit('setContactsInfo', aContactsInfo)
           commit('setCTag', iCTag)
         }
-
-
-
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while getting contacts info'))
       }
@@ -87,7 +80,7 @@ export async function asyncGetContactsByUids({ state, commit, dispatch, getters 
   await webApi.sendRequest({
     sModule: 'Contacts',
     sMethod: 'GetContactsByUids',
-    oParameters: { "Storage": state.currentStorage.name, "Uids": state.contactsInfo.contactsUUIDs },
+    oParameters: { 'Storage': state.currentStorage.name, 'Uids': state.contactsInfo.contactsUUIDs },
     fCallback: (oResult, oError) => {
       if (oResult) {
         let aContacts = []
@@ -114,7 +107,7 @@ export function getContactByUUID({ state, commit, dispatch, getters }, UUID) {
   let contactByUUID = {
     UUID,
     editable: false,
-    contact: {}
+    contact: {},
   }
   let contact = state.contacts.list.filter(item => {
     if (item.UUID === UUID) return item
@@ -129,8 +122,6 @@ export function enableEditContact({ state, commit, dispatch, getters }) {
     commit('changeEditContact', true)
     console.log(state.contactByUUID.editable)
   }
-  
-  
 }
 
 export function disableEditContact({ state, commit, dispatch, getters }) {
@@ -139,7 +130,7 @@ export function disableEditContact({ state, commit, dispatch, getters }) {
     console.log(state.contactByUUID.editable)
   }
 }
+
 export function changeContactUUID({ state, commit, dispatch, getters }) {
     commit('changeContactUUID')
-
 }

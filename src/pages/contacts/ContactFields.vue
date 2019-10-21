@@ -55,35 +55,35 @@
 <style></style>
 
 <script>
-import webApi from "src/utils/webApi.js";
-import CContact from "src/modules/contacts/classes/CContact.js";
+import webApi from 'src/utils/webApi.js'
+import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
-  name: "ContactFields",
+  name: 'ContactFields',
   data() {
     return {
-      checkboxVal: false
-    };
+      checkboxVal: false,
+    }
   },
 
   mounted: function() {},
   watch: {},
   computed: {
     // contactByUUID() {
-    //   return this.$store.getters["contacts/getContactByUUID"]
+    //   return this.$store.getters['contacts/getContactByUUID']
     // },
     contact() {
-      let ContactByUUID = this.$store.getters["contacts/getContactByUUID"];
-      let contact = ContactByUUID.contact;
-    
-      return (contact && contact instanceof CContact) ? contact : null;
-    }
+      let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
+      let contact = ContactByUUID.contact
+
+      return (contact && contact instanceof CContact) ? contact : null
+    },
   },
 
   methods: {
     enableEditContact() {
-      this.$store.dispatch("contacts/enableEditContact")
+      this.$store.dispatch('contacts/enableEditContact')
     },
-  }
-};
+  },
+}
 </script>

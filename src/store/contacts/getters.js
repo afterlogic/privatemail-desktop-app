@@ -1,23 +1,23 @@
 export function getStorages(state) {
-    return state.storages.list
+  return state.storages.list
 }
 
 export function getContactsInfo(state) {
-    return state.contactsInfo.list
+  return state.contactsInfo.list
 }
 
 export function getCTag(state) {
-    return state.contactsInfo.CTag
+  return state.contactsInfo.CTag
 }
 
 export function getContactsByUids(state) {
-    return state.contacts
+  return state.contacts
 }
 
 export function getStorage(state) {
-    return state.currentStorage.name
+  return state.currentStorage.name
 }
 
 export function getContactByUUID(state) {
-    return state.contactByUUID
+  return state.contactByUUID
 }

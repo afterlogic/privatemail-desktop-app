@@ -60,13 +60,13 @@
 <style></style>
 
 <script>
-import GroupList from "./GroupList.vue"
-import ContactsList from "./ContactsList.vue"
-import ContactListToolbar from "./ContactListToolbar.vue"
-import Contact from "./Contact.vue"
+import GroupList from './GroupList.vue'
+import ContactsList from './ContactsList.vue'
+import ContactListToolbar from './ContactListToolbar.vue'
+import Contact from './Contact.vue'
 
 export default {
-  name: "ContactsUI",
+  name: 'ContactsUI',
   components: {
     GroupList,
     ContactsList,
@@ -78,13 +78,13 @@ export default {
       splitterFolderModel: 20,
       splitterMessageModel: 50,
       checkboxVal: false,
-      searchText: ''
+      searchText: '',
     }
   },
   methods: {
     createContact() {
-      console.log('createContact');
+      console.log('createContact')
     }
-  }
-};
+  },
+}
 </script>

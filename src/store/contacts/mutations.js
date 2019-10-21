@@ -34,6 +34,7 @@ export function changeEditContact(state, editable) {
     state.contactByUUID.editable = editable
 }
 
-export function changeContactUUID(state) {
-    state.contactByUUID.UUID = 'asdasd'
+export function saveChangesCurrentContact(state, savedContact, index) {
+    state.contacts.list[index] = savedContact
+    // console.log(state.contacts.list[index])
 }

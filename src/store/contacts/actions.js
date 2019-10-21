@@ -68,7 +68,7 @@ export function asyncGetContactsInfo({ state, commit, dispatch, getters }) {
   })
 }
 
-export async function asyncGetContactsByUids({ state, commit, dispatch, getters }) {
+export function asyncGetContactsByUids({ state, commit, dispatch, getters }) {
   // if (state.contactsUUIDs.length) {
   //   for (let i = 0; i < state.contactsUUIDs.length; i++) {
   //     if (state.ETagsforUpdate !== state.contactsInfo.UUID) {
@@ -77,7 +77,7 @@ export async function asyncGetContactsByUids({ state, commit, dispatch, getters 
   //   }
   // }
 
-  await webApi.sendRequest({
+  webApi.sendRequest({
     sModule: 'Contacts',
     sMethod: 'GetContactsByUids',
     oParameters: { 'Storage': state.currentStorage.name, 'Uids': state.contactsInfo.contactsUUIDs },
@@ -97,6 +97,7 @@ export async function asyncGetContactsByUids({ state, commit, dispatch, getters 
 
     },
   })
+  console.log(state.contacts.list)
 }
 
 export function changeStorage({ state, commit, dispatch, getters }, storage) {
@@ -110,7 +111,7 @@ export function getContactByUUID({ state, commit, dispatch, getters }, UUID) {
     contact: {},
   }
   let contact = state.contacts.list.filter(item => {
-    if (item.UUID === UUID) return item
+    return item.UUID === UUID
   })[0]
 
   contactByUUID.contact = contact
@@ -131,6 +132,11 @@ export function disableEditContact({ state, commit, dispatch, getters }) {
   }
 }
 
-export function changeContactUUID({ state, commit, dispatch, getters }) {
-    commit('changeContactUUID')
+export function saveChangesCurrentContact({ state, commit, dispatch, getters }, savedContact) {
+  let index = null
+  // console.log( state.contacts.list)
+  state.contacts.list.forEach( (item, i) => {
+    if (item.UUID === savedContact.UUID) index = i
+  })
+  commit('saveChangesCurrentContact', savedContact, index)
 }

@@ -41,14 +41,14 @@
               </div>
             </template>
             <template v-slot:after>
-              <q-scroll-area class="full-height bg-white text-black panel-rounded">
-                <div class="q-pa-md">
+              <!-- <q-scroll-area class="full-height bg-white text-black panel-rounded"> -->
+                <div class="q-pa-md full-height bg-white text-black panel-rounded">
                   <!-- <div class="text-h4 q-mb-md">After</div>
                   <div v-for="n in 10" :key="n" class="q-my-md">{{ n }}. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</div>
                   -->
                   <contact />
                 </div>
-              </q-scroll-area>
+              <!-- </q-scroll-area> -->
             </template>
           </q-splitter>
         </template>

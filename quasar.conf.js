@@ -76,6 +76,7 @@ module.exports = function (ctx) {
         'QTooltip',
         'QSpinner',
         'QSlideTransition',
+        'QPopupProxy',
       ],
 
       directives: [

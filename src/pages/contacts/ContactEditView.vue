@@ -81,7 +81,7 @@
           <div class="inputLine">
             <label>Birthday:</label>
             <div class="q-pa-md" style="max-width: 300px">
-              <q-input filled v-model="date" mask="date" :rules="['date']" @change="console">
+              <q-input outlined dense v-model="date" mask="date" :rules="['date']" @change="console">
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">

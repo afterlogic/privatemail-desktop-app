@@ -4,7 +4,6 @@ import store from 'src/store'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import cContact from '../../modules/contacts/classes/CContact'
-// import cStorages from '../../modules/contacts/classes/CStorages'
 import cContactsInfo from '../../modules/contacts/classes/CContactsInfo'
 
 ipcRenderer.on('db-get-contacts-storages', (event, aStorages) => {
@@ -67,24 +66,24 @@ export function asyncGetStorages({ state, commit, dispatch, getters }) {
 }
 
 export function asyncGetContactsInfo({ state, commit, dispatch, getters }) {
-  ipcRenderer.send('db-get-contacts-info', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-    sStorage: state.currentStorage.name,
-  })
+  if (getters.getCurrentStorage) {
+    ipcRenderer.send('db-get-contacts-info', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sStorage: getters.getCurrentStorage,
+    })
+  }
 }
 
 export function asyncGetContactsByUids({ state, commit, dispatch, getters }) {
-  ipcRenderer.send('db-get-contacts', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-    sStorage: state.currentStorage.name,
-    aUids: state.contactsInfo.contactsUUIDs,
-  })
-}
-
-export function changeStorage({ state, commit, dispatch, getters }, storage) {
-  commit('setStorage', storage)
+  if (getters.getCurrentStorage) {
+    ipcRenderer.send('db-get-contacts', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sStorage: getters.getCurrentStorage,
+      aUids: state.contactsInfo.contactsUUIDs,
+    })
+  }
 }
 
 export function getContactByUUID({ state, commit, dispatch, getters }, UUID) {
@@ -122,4 +121,8 @@ export function saveChangesCurrentContact({ state, commit, dispatch, getters }, 
     if (item.UUID === savedContact.UUID) index = i
   })
   commit('saveChangesCurrentContact', savedContact, index)
+}
+
+export function logout ({ commit }) {
+  commit('setStorages', [])
 }

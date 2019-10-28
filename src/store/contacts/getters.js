@@ -1,5 +1,7 @@
-export function getStorages(state) {
-  return state.storages.list
+import _ from 'lodash'
+
+export function getStorageList(state) {
+  return state.storages && _.isFunction(state.storages.getList) ? state.storages.getList() : []
 }
 
 export function getContactsInfo(state) {
@@ -14,8 +16,8 @@ export function getContactsByUids(state) {
   return state.contacts
 }
 
-export function getStorage(state) {
-  return state.currentStorage.name
+export function getCurrentStorage(state) {
+  return state.storages && _.isFunction(state.storages.getCurrentStorage) ? state.storages.getCurrentStorage() : ''
 }
 
 export function getContactByUUID(state) {

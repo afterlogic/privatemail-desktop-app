@@ -48,6 +48,7 @@ export default {
   mounted () {
     this.$store.dispatch('user/logout')
     this.$store.dispatch('mail/logout')
+    this.$store.dispatch('contacts/logout')
     this.host = this.$store.getters['main/getApiHost']
     this.login = this.$store.getters['main/getLastLogin']
   },

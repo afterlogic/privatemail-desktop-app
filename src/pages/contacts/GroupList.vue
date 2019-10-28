@@ -1,22 +1,15 @@
 <template>
   <q-list>
-    <q-item
+    <q-item v-for="storage in storageList" :key="storage.name"
       clickable
       v-ripple
-      :class="{active: currentGroup === 'personal'}"
-      @click="setGroup('personal')"
+      :class="{active: storage.name === currentStorage}"
+      @click="setCurrentStorage(storage.name)"
     >
       <!-- <q-item-section avatar>
         <q-icon name="person" />
       </q-item-section>-->
-      <q-item-section>Personal</q-item-section>
-    </q-item>
-
-    <q-item clickable v-ripple :class="{active: currentGroup === 'team'}" @click="setGroup('team')">
-      <!-- <q-item-section avatar>
-        <q-icon name="group" />
-      </q-item-section>-->
-      <q-item-section>Team</q-item-section>
+      <q-item-section>{{ storage.text }}</q-item-section>
     </q-item>
 
     <q-separator />
@@ -46,16 +39,23 @@ export default {
   data() {
     return {
       groupsList: [],
-      currentGroup: 'personal',
+      currentGroup: '',
     }
+  },
+  computed: {
+    storageList() {
+      return this.$store.getters['contacts/getStorageList']
+    },
+    currentStorage() {
+      return this.$store.getters['contacts/getCurrentStorage']
+    },
   },
   mounted: function() {
     this.groupsList = groups
   },
   methods: {
-    setGroup(v) {
-      this.currentGroup = v
-      this.$store.dispatch('contacts/changeStorage', v)
+    setCurrentStorage (sStorage) {
+      this.$store.commit('contacts/setCurrentStorage', sStorage)
     },
   },
 }

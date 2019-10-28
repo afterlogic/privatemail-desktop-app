@@ -1,8 +1,13 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import _ from 'lodash'
+
 import foldersDbManager from './db-managers/folders.js'
 import foldersManager from './managers/folders.js'
 import messagesDbManager from './db-managers/messages.js'
+import contactsDbManager from './db-managers/contacts.js'
+
+import typesUtils from '../../src/utils/types'
+import webApi from './webApi.js'
 
 /**
  * Set `__statics` path to static files in production;
@@ -15,7 +20,7 @@ if (process.env.PROD) {
 const sqlite3 = require('sqlite3').verbose()
 
 let mainWindow
-let db = null
+let oDbConnect = null
 
 function createWindow () {
   /**
@@ -26,22 +31,23 @@ function createWindow () {
     height: 600,
     useContentSize: true,
     webPreferences: {
-      nodeIntegration: true
-    }
+      nodeIntegration: true,
+    },
   })
 
   mainWindow.loadURL(process.env.APP_URL)
 
-  db = new sqlite3.Database('privatemail.db', (err) => {
-    if (err === null) {
-      foldersDbManager.init(db)
-      messagesDbManager.init(db)
+  oDbConnect = new sqlite3.Database('privatemail.db', (oError) => {
+    if (oError === null) {
+      foldersDbManager.init(oDbConnect)
+      messagesDbManager.init(oDbConnect)
+      contactsDbManager.init(oDbConnect)
     }
   })
 
   mainWindow.on('closed', () => {
-    if (db) {
-      db.close()
+    if (oDbConnect) {
+      oDbConnect.close()
     }
     mainWindow = null
   })
@@ -62,21 +68,23 @@ app.on('activate', () => {
 })
 
 ipcMain.on('db-remove-all', () => {
-  if (db) {
-    db.close(function (err1) {
-      if (err1 === null) {
-        db = null
-        foldersDbManager.init(db)
-        messagesDbManager.init(db)
+  if (oDbConnect) {
+    oDbConnect.close(function (oDbCloseError) {
+      if (oDbCloseError === null) {
+        oDbConnect = null
+        foldersDbManager.init(oDbConnect)
+        messagesDbManager.init(oDbConnect)
+        contactsDbManager.init(oDbConnect)
         const fs = require('fs')
         const sPath = './privatemail.db'
 
-        fs.unlink(sPath, (err) => {
-          if (!err) {
-            db = new sqlite3.Database('privatemail.db', (err) => {
-              if (err === null) {
-                foldersDbManager.init(db)
-                messagesDbManager.init(db)
+        fs.unlink(sPath, (oUnlinkError) => {
+          if (!oUnlinkError) {
+            oDbConnect = new sqlite3.Database('privatemail.db', (oDbCOnnectError) => {
+              if (oDbCOnnectError === null) {
+                foldersDbManager.init(oDbConnect)
+                messagesDbManager.init(oDbConnect)
+                contactsDbManager.init(oDbConnect)
               }
             })
           }
@@ -168,6 +176,87 @@ ipcMain.on('db-get-messages', (oEvent, { iAccountId, sFolderFullName, aUids }) =
 ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
   messagesDbManager.setMessages({ iAccountId, aMessages }).then(
     () => {
+    },
+    (oResult) => {
+      oEvent.sender.send('notification', oResult)
+    }
+  )
+})
+
+ipcMain.on('db-get-contacts-storages', (oEvent, { sApiHost, sAuthToken }) => {
+  contactsDbManager.getStorages({}).then(
+    (aStoragesFromDb) => {
+      oEvent.sender.send('db-get-contacts-storages', typesUtils.pArray(aStoragesFromDb))
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'GetStorages',
+        fCallback: (aStoragesFromApi, oError) => {
+          if (typesUtils.isNonEmptyArray(aStoragesFromApi)) {
+            if (!_.isEqual(aStoragesFromApi, aStoragesFromDb)) {
+              oEvent.sender.send('db-get-contacts-storages', aStoragesFromApi)
+              contactsDbManager.setStorages({ aStorages: aStoragesFromApi })
+            }
+          } else if (oError) {
+            oEvent.sender.send('notification', oError)
+          }
+        },
+      })
+    },
+    (oResult) => {
+      oEvent.sender.send('notification', oResult)
+    }
+  )
+})
+
+ipcMain.on('db-get-contacts-info', (oEvent, { sApiHost, sAuthToken, sStorage }) => {
+  contactsDbManager.getContactsInfo({ sStorage }).then(
+    (oContactsInfoFromDb) => {
+      oEvent.sender.send('db-get-contacts-info', typesUtils.pObject(oContactsInfoFromDb))
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'GetContactsInfo',
+        oParameters: { 'Storage': sStorage },
+        fCallback: (oContactsInfoFromApi, oError) => {
+          if (typesUtils.isNonEmptyObject(oContactsInfoFromApi)) {
+            if (oContactsInfoFromDb.CTag !== oContactsInfoFromApi.CTag) {
+              oEvent.sender.send('db-get-contacts-info', oContactsInfoFromApi)
+              contactsDbManager.setContactsInfo({ sStorage, oContactsInfoFromDb, oContactsInfoFromApi })
+            }
+          } else if (oError) {
+            oEvent.sender.send('notification', oError)
+          }
+        },
+      })
+    },
+    (oResult) => {
+      oEvent.sender.send('notification', oResult)
+    }
+  )
+})
+
+ipcMain.on('db-get-contacts', (oEvent, { sApiHost, sAuthToken, sStorage, aUids }) => {
+  contactsDbManager.getContacts({ sStorage, aUids }).then(
+    (aContactsFromDb) => {
+      oEvent.sender.send('db-get-contacts', aContactsFromDb)
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'GetContactsByUids',
+        oParameters: { 'Storage': sStorage, 'Uids': aUids },
+        fCallback: (aContactsFromApi, oError) => {
+          if (typesUtils.isNonEmptyArray(aContactsFromApi)) {
+            oEvent.sender.send('db-get-contacts', aContactsFromApi)
+            contactsDbManager.setContacts({ aContacts: aContactsFromApi })
+          } else if (oError) {
+            oEvent.sender.send('notification', oError)
+          }
+        },
+      })
     },
     (oResult) => {
       oEvent.sender.send('notification', oResult)

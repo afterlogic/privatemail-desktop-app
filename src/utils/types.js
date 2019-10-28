@@ -1,6 +1,8 @@
+import _ from 'lodash'
+
 export default {
   pInt: function (mValue, iDefault) {
-    var iValue = window.parseInt(mValue, 10)
+    var iValue = parseInt(mValue, 10)
     if (isNaN(iValue)) {
       iValue = !isNaN(iDefault) ? iDefault : 0
     }
@@ -70,5 +72,23 @@ export default {
       return bDefault
     }
     return false
+  },
+
+  isNotNullObject: function (mValue) {
+    return _.isObject(mValue) && !_.isArray(mValue) && mValue !== null
+  },
+
+  isNonEmptyObject: function (mValue) {
+    return _.isObject(mValue) && !_.isArray(mValue) && !_.isEmpty(mValue)
+  },
+
+  pObject: function (mValue, oDefault) {
+    if (this.isNotNullObject(mValue)) {
+      return mValue
+    }
+    if (_.isObject(oDefault) && !_.isArray(oDefault)) {
+      return oDefault
+    }
+    return {}
   },
 }

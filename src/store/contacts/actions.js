@@ -1,103 +1,86 @@
-import webApi from 'src/utils/webApi.js'
+import { ipcRenderer } from 'electron'
+import store from 'src/store'
+
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import cContact from '../../modules/contacts/classes/CContact'
 // import cStorages from '../../modules/contacts/classes/CStorages'
 import cContactsInfo from '../../modules/contacts/classes/CContactsInfo'
 
-export function asyncGetStorages({ state, commit, dispatch, getters }) {
-  webApi.sendRequest({
-    sModule: 'Contacts',
-    sMethod: 'GetStorages',
-    fCallback: (oResult, oError) => {
-      if (oResult) {
-        let aStorages = []
+ipcRenderer.on('db-get-contacts-storages', (event, aStorages) => {
+  store.commit('contacts/setStorages', aStorages)
+})
 
-        oResult.forEach(element => {
-          aStorages.push(element)
-        })
+ipcRenderer.on('db-get-contacts-info', (event, oResult) => {
+  if (oResult) {
+    let aContactsInfo = []
+    let ETagsforUpdate = []
+    let contactsETags = []
+    let contactsUUIDs = []
+    let iCTag = null
 
-        commit('setStorages', aStorages)
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting storages info'))
+    oResult.Info.forEach(element => {
+      let contactInfo = new cContactsInfo(element)
+      contactsUUIDs.push(contactInfo.UUID)
+      contactsETags.push(contactInfo.ETag)
+      aContactsInfo.push(contactInfo)
+    })
+
+    if (oResult.CTag && typeof oResult.CTag === 'number') {
+      iCTag = oResult.CTag
+    }
+
+    if (store.state.contacts.cTag && store.state.contacts.cTag !== iCTag) {
+      for (let i = 0; i < store.state.contacts.contactsETags.length; i++) {
+        if (store.state.contacts.contactsUUIDs[i] !== store.state.contacts.contactsInfo[i].ETag) {
+          ETagsforUpdate.push()
+        }
       }
-    },
+    } else {
+      store.commit('contacts/setContactsUUIDs', contactsUUIDs)
+      store.commit('contacts/setContactsInfo', aContactsInfo)
+      store.commit('contacts/setCTag', iCTag)
+    }
+  }
+})
+
+ipcRenderer.on('db-get-contacts', (event, aResult) => {
+  if (aResult) {
+    let aContacts = []
+
+    aResult.forEach(element => {
+      let contact = new cContact(element)
+      aContacts.push(contact)
+    })
+
+    store.commit('contacts/setContacts', aContacts)
+  } else {
+    notification.showError(errors.getText({}, 'Error occurred while getting contacts'))
+  }
+})
+
+export function asyncGetStorages({ state, commit, dispatch, getters }) {
+  ipcRenderer.send('db-get-contacts-storages', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
   })
 }
 
 export function asyncGetContactsInfo({ state, commit, dispatch, getters }) {
-  webApi.sendRequest({
-    sModule: 'Contacts',
-    sMethod: 'GetContactsInfo',
-    oParameters: { 'Storage': state.currentStorage.name },
-    fCallback: (oResult, oError) => {
-      if (oResult) {
-        let aContactsInfo = []
-        let ETagsforUpdate = []
-        let contactsETags = []
-        let contactsUUIDs = []
-        let iCTag = null
-
-        oResult.Info.forEach(element => {
-          let contactInfo = new cContactsInfo(element)
-          contactsUUIDs.push(contactInfo.UUID)
-          contactsETags.push(contactInfo.ETag)
-          aContactsInfo.push(contactInfo)
-        })
-
-        if (oResult.CTag && typeof oResult.CTag === 'number') {
-          iCTag = oResult.CTag
-        }
-
-        if (state.cTag && state.cTag !== iCTag) {
-          for (let i = 0; i < state.contactsETags.length; i++) {
-            if (state.contactsUUIDs[i] !== state.contactsInfo[i].ETag) {
-              ETagsforUpdate.push()
-            }
-          }
-        } else {
-          commit('setContactsUUIDs', contactsUUIDs)
-          commit('setContactsInfo', aContactsInfo)
-          commit('setCTag', iCTag)
-        }
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting contacts info'))
-      }
-
-    },
+  ipcRenderer.send('db-get-contacts-info', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    sStorage: state.currentStorage.name,
   })
 }
 
 export function asyncGetContactsByUids({ state, commit, dispatch, getters }) {
-  // if (state.contactsUUIDs.length) {
-  //   for (let i = 0; i < state.contactsUUIDs.length; i++) {
-  //     if (state.ETagsforUpdate !== state.contactsInfo.UUID) {
-  //       state.ETagsforUpdate.push(state.contactsUUIDs[i])
-  //     }
-  //   }
-  // }
-
-  webApi.sendRequest({
-    sModule: 'Contacts',
-    sMethod: 'GetContactsByUids',
-    oParameters: { 'Storage': state.currentStorage.name, 'Uids': state.contactsInfo.contactsUUIDs },
-    fCallback: (oResult, oError) => {
-      if (oResult) {
-        let aContacts = []
-
-        oResult.forEach(element => {
-          let contact = new cContact(element)
-          aContacts.push(contact)
-        })
-
-        commit('setContacts', aContacts)
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting contacts'))
-      }
-
-    },
+  ipcRenderer.send('db-get-contacts', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    sStorage: state.currentStorage.name,
+    aUids: state.contactsInfo.contactsUUIDs,
   })
-  console.log(state.contacts.list)
 }
 
 export function changeStorage({ state, commit, dispatch, getters }, storage) {

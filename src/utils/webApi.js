@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import axios from 'axios'
 import store from 'src/store'
 import mainPrefetcher from 'src/mainPrefetcher.js'

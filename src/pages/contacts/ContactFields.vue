@@ -59,7 +59,7 @@
             <q-item-label class="info-line" v-if="contact.BusinessFax">Business Fax: {{ contact.BusinessFax }}</q-item-label>
             <q-item-label class="info-line" v-if="contact.BusinessPhone">Business Phone: {{ contact.BusinessPhone }}</q-item-label>
 
-            <q-item-label style="margin: 30px 0px 30px 25px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;" v-if="sBirthDate || 
+            <q-item-label style="margin: 30px 0px 30px 25px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;" v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay || 
               contact.OtherEmail || contact.Notes">Other info</q-item-label>
 
             <q-item-label class="info-line" v-if="contact.BirthDay">Birthday: {{sBirthDate}}</q-item-label>
@@ -158,8 +158,8 @@ export default {
     }
   },
 
-  mounted: function() {
-    let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}` 
+  mounted: function() {     
+    let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
     this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
   },
   watch: {},

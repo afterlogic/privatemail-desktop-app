@@ -37,4 +37,5 @@ export default {
     chunk: [],
     amount: 2,
   },
+  groups: [],
 }

@@ -45,3 +45,7 @@ export function saveChangesCurrentContact(state, savedContact, index) {
     state.contacts.list[index] = savedContact
     // console.log(state.contacts.list[index])
 }
+
+export function asyncGetGroups(state, groups) {
+  state.groups = groups
+}

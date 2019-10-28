@@ -1,5 +1,16 @@
+import CStorages from '../../modules/contacts/classes/CStorages'
+
 export function setStorages(state, aStorages) {
-    state.storages.list = aStorages
+  if (!state.storages instanceof CStorages) {
+    state.storages = new CStorages()
+  }
+  state.storages.parse(aStorages)
+}
+
+export function setCurrentStorage(state, sStorage) {
+  if (state.storages instanceof CStorages) {
+    state.storages.setCurrentStorage(sStorage)
+  }
 }
 
 export function setContactsInfo(state, aContactsInfo) {
@@ -16,10 +27,6 @@ export function setCTag(state, iCTag) {
 
 export function setContacts(state, aContacts) {
     state.contacts.list = aContacts
-}
-
-export function setStorage(state, storage) {
-    state.currentStorage.name = storage
 }
 
 export function setContactsUUIDs(state, contactsUUIDs) {

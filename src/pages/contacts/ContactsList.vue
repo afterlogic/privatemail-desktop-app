@@ -55,7 +55,7 @@ export default {
   name: 'ContactsList',
   data() {
     return {
-      checkboxVal: false
+      checkboxVal: false,
     }
   },
 
@@ -75,7 +75,7 @@ export default {
   },
   computed: {
     storageList() {
-      return this.$store.getters['contacts/getStorages']
+      return this.$store.getters['contacts/getStorageList']
     },
 
     contactsInfo() {
@@ -91,7 +91,7 @@ export default {
     },
 
     storage() {
-      return this.$store.getters['contacts/getStorage']
+      return this.$store.getters['contacts/getCurrentStorage']
     },
 
     // UUID() {

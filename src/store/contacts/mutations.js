@@ -46,6 +46,14 @@ export function saveChangesCurrentContact(state, savedContact, index) {
     // console.log(state.contacts.list[index])
 }
 
-export function asyncGetGroups(state, groups) {
-  state.groups = groups
+export function setGroups(state, aGroups) {
+  state.groups = aGroups
+}
+
+export function setCurrentGroup(state, oGroup) {
+  state.currentGroup.group = oGroup
+}
+
+export function changeEditGroup(state, editable) {
+  state.currentGroup.editable = editable
 }

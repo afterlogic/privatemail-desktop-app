@@ -1,0 +1,143 @@
+<template>
+  <div>
+    <div v-if="oCurrentGroup">
+      <h2>Edit Group</h2>
+      
+      <div class="editField">
+        <div class="input-line"> <label  style="flex-grow: 1">Display name:</label><q-input  style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true ></q-input></div>
+
+        <div class="container-link">
+          <a class="link" @click="changeSmallEditView">Show additional fields</a>
+        </div>
+
+        <div class="input-line"> <label  style="flex-grow: 1">Group Name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Name" :dense=true> </q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">Email:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Email" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">Street:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
+        
+        <div class="input-line"> <label  style="flex-grow: 1">Zip:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
+        <div class="input-line"> <label  style="flex-grow: 1">Web:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
+      </div>
+      <div class="buttons">
+        <q-btn color="primary" style="margin: 10px;" label="Save" @click="onSave"/>
+        <q-btn color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditContact"/>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+.input-line {
+  align-items: center;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.editField {
+  width: 100%;
+  border-radius: 4px 4px 2px 2px;
+  border: 1px solid #d4cece;
+  /* box-shadow: 0 1px 0px 0 grey;  */
+  margin-top: 20px;
+}
+
+.container-link {
+    /* width: 32%;
+    width: 150px;
+    position: absolute;
+    right: 3%; */
+    padding: 0px 20px;
+    text-align: right;
+    /* white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    overflow: hidden; */
+}
+
+.link, .link:visited{
+    color: #BC4799;
+    cursor: pointer;
+    /* margin-left: 75%; */
+    text-decoration-line: none;
+    text-decoration-style: initial;
+    text-decoration-color: initial;
+}
+
+.link:hover {
+  text-decoration-line:underline
+}
+
+h2 {
+    font-size: 18pt;
+    font-weight: 300;
+    line-height: 3.75rem;
+    letter-spacing: -0.00833em;
+}
+
+.buttons {
+  /* border-top: 1px solid #d9d9d9; */
+  margin: 0px 20px;
+  padding: 20px 5px;
+  text-align: right;
+}
+
+.btn-cancel {
+  background: #a7afb9;
+}
+</style>
+
+<script>
+import CGroup from 'src/modules/contacts/classes/CGroup.js'
+
+export default {
+  name: 'ContactEditView',
+  data() {
+    return {
+      oCurrentGroup: null,
+      bIsOrganization: null,
+    }
+  },
+
+  mounted: function() {
+    let oCurrentGroup = this.$store.getters['contacts/getCurrentGroup']
+    this.oCurrentGroup = (oCurrentGroup && oCurrentGroup instanceof CGroup) ? oCurrentGroup : null
+
+  },
+  beforeDestroy: function () {
+    this.disableEditGroup()
+  },
+  watch: {
+  
+  },
+  computed: {
+    
+  },
+
+  methods: {
+    onSave () {
+        let oCurrentGroup = this.$store.getters['contacts/getCurrentGroup']
+        let oSavedGroup = null
+        let bEqual = _.isEqual(this.oCurrentGroup, oContactSource)
+       
+        if (!bEqual) {
+          oSavedGroup = _.cloneDeep(this.oCurrentGroup)
+        }
+
+        this.disableEditGroup()
+    },
+
+    disableEditGroup() {
+      this.$store.dispatch('contacts/disableEditGroup')
+    },
+
+    changeSmallEditView() {
+      this.bIsOrganization = !this.bIsOrganization
+    },
+  },
+}
+</script>

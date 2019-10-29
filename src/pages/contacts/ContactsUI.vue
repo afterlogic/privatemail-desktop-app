@@ -46,7 +46,9 @@
                   <!-- <div class="text-h4 q-mb-md">After</div>
                   <div v-for="n in 10" :key="n" class="q-my-md">{{ n }}. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</div>
                   -->
-                  <contact />
+                  <contact v-if="true"/>
+                 
+                  <group />
                 </div>
               <!-- </q-scroll-area> -->
             </template>
@@ -64,6 +66,7 @@ import GroupList from './GroupList.vue'
 import ContactsList from './ContactsList.vue'
 import ContactListToolbar from './ContactListToolbar.vue'
 import Contact from './Contact.vue'
+import Group from './Group.vue'
 
 export default {
   name: 'ContactsUI',
@@ -72,6 +75,7 @@ export default {
     ContactsList,
     ContactListToolbar,
     Contact,
+    Group,
   },
   data () {
     return {

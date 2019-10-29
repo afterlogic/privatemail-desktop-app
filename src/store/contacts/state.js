@@ -38,4 +38,8 @@ export default {
     amount: 2,
   },
   groups: [],
+  currentGroup: {
+    editable: false,
+    group: {},
+  },
 }

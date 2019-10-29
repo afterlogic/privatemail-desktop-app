@@ -5,6 +5,8 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import cContact from '../../modules/contacts/classes/CContact'
 import cContactsInfo from '../../modules/contacts/classes/CContactsInfo'
+import cGroup from '../../modules/contacts/classes/CGroup'
+import webApi from '../../../src-electron/main-process/webApi'
 
 ipcRenderer.on('db-get-contacts-storages', (event, aStorages) => {
   store.commit('contacts/setStorages', aStorages)
@@ -125,4 +127,48 @@ export function saveChangesCurrentContact({ state, commit, dispatch, getters }, 
 
 export function logout ({ commit }) {
   commit('setStorages', [])
+}
+
+export function asyncGetGroups({ state, commit, dispatch, getters }) {
+  webApi.sendRequest({
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    sModule: 'Contacts',
+    sMethod: 'GetGroups',
+    oParameters: {},
+    fCallback: (aResult, oError) => {
+      if (aResult) {
+        let aGroups = []
+    
+        aResult.forEach(element => {
+          let group = new cGroup(element)
+          aGroups.push(group)
+        })
+    
+        store.commit('contacts/setGroups', aGroups)
+      } else {
+        notification.showError(errors.getText({}, 'Error occurred while getting contacts'))
+      }
+    },
+  })
+}
+
+export function getCurrentGroup({ state, commit, dispatch, getters }, UUID) {
+  let group = state.currentGroup.group
+
+  commit('setCurrentGroup', group)
+}
+
+export function enableEditGroup({ state, commit, dispatch, getters }) {
+  if (!state.currentGroup.editable) {
+    commit('changeEditContact', true)
+    console.log(state.currentGroup.editable)
+  }
+}
+
+export function disableEditGroup({ state, commit, dispatch, getters }) {
+  if (state.currentGroup.editable) {
+    commit('changeEditContact', false)
+    console.log(state.currentGroup.editable)
+  }
 }

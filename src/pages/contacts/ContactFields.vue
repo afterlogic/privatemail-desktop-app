@@ -8,7 +8,7 @@
             <q-item-label class="head--labels-email" caption lines="1">{{ contact.ViewEmail }}</q-item-label>
           </div>
           <div class="head--buttons-container">        
-            <q-btn class="head--buttons-style" color="primary" label="">Save this contact</q-btn>
+            <q-btn class="head--buttons-style" color="primary" label="">Send this contact</q-btn>
             <q-btn class="head--buttons-style" color="primary" label="Email to this contact" />
           </div>
         </div>
@@ -100,6 +100,7 @@
 
 .head--buttons-style {
   width: 30%;
+  min-width: 85px;
   height: 34px;
   margin: 0px 3px;
   text-align: right;
@@ -132,6 +133,7 @@
   text-transform: none;
   padding: 0px 9px;
   width: 20%;
+  min-width: 94px;
 }
 
 .info-main {

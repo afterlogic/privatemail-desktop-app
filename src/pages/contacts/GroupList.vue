@@ -15,11 +15,11 @@
     <q-separator />
     <q-item-label header>Groups</q-item-label>
 
-    <q-item clickable v-ripple v-for="group in groupsList" :key="group.id">
+    <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="setCurrentGroup(group)">
       <q-item-section avatar>
         <q-icon name="folder" />
       </q-item-section>
-      <q-item-section>{{group.name}}</q-item-section>
+      <q-item-section>{{group.Name}}</q-item-section>
       <!-- <q-item-section side>1</q-item-section> -->
     </q-item>
   </q-list>
@@ -32,30 +32,40 @@
 </style>
 
 <script>
-import { groups } from '../../contactsData.js'
+// import { groups } from '../../contactsData.js'
 
 export default {
   name: 'GroupList',
   data() {
     return {
-      groupsList: [],
       currentGroup: '',
     }
   },
   computed: {
-    storageList() {
+    'storageList': function () {
       return this.$store.getters['contacts/getStorageList']
     },
-    currentStorage() {
+    'currentStorage': function () {
       return this.$store.getters['contacts/getCurrentStorage']
+    },
+    'groupsList': function() {
+      return  this.$store.getters['contacts/getGroups']      
     },
   },
   mounted: function() {
-    this.groupsList = groups
+    // this.groupsList = this.$store.getters['contacts/getCurrentStorage']
+    this.getGroups();
+    console.log(this.groupsList)
   },
   methods: {
     setCurrentStorage (sStorage) {
       this.$store.commit('contacts/setCurrentStorage', sStorage)
+    },
+    setCurrentGroup (oGroup) {
+      this.$store.commit('contacts/setCurrentGroup', oGroup)
+    },
+    getGroups() {
+      console.log(this.$store.dispatch('contacts/asyncGetGroups'))
     },
   },
 }

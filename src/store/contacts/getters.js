@@ -23,3 +23,11 @@ export function getCurrentStorage(state) {
 export function getContactByUUID(state) {
   return state.contactByUUID
 }
+
+export function getGroups(state) {
+  return state.groups
+}
+
+export function getCurrentGroup(state) {
+  return state.currentGroup.group
+}

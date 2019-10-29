@@ -19,7 +19,9 @@
           
           <div class="input-line "> <label  style="flex-grow: 1">Skype:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Skype" :dense=true></q-input></div>
           <div class="input-line"> <label  style="flex-grow: 1">Facebook:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Facebook" :dense=true></q-input></div>
-          <a class="link" @click="changeSmallEditView">Show additional fields</a>
+          <div class="container-link">
+            <a class="link" @click="changeSmallEditView">Show additional fields</a>
+          </div>
         </div>
         <div  v-else>
         
@@ -27,20 +29,24 @@
             <div class="input-line"> <label  style="flex-grow: 1">Display name:</label><q-input  style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true></q-input></div>
             <div class="input-line" >
                <label  style="flex-grow: 1">Email:</label>
-              <q-select outlined v-model="oPrimaryEmail" :options="aPrimaryMailOptions" dense />            
+              <q-select v-if="aPrimaryMailOptions.length" outlined v-model="oPrimaryEmail" :options="aPrimaryMailOptions" dense />
+              <div v-else><label style="flex-grow: 2"> Not specified yet</label></div>
             </div>
             <div class="input-line">
                <label  style="flex-grow: 1">Phone:</label>
-              <q-select outlined v-model="oPrimaryPhone" :options="aPrimaryPhoneOptions" dense />            
+              <q-select outlined v-if="aPrimaryPhoneOptions.length" v-model="oPrimaryPhone" :options="aPrimaryPhoneOptions" dense />     
+              <div v-else><label style="flex-grow: 2"> Not specified yet</label></div>
             </div>
             <div class="input-line">
                <label  style="flex-grow: 1">Address:</label>
-              <q-select outlined v-model="oPrimaryAddress" :options="aPrimaryAddressOptions" dense />            
+              <q-select v-if="aPrimaryAddressOptions.length" outlined v-model="oPrimaryAddress" :options="aPrimaryAddressOptions" dense />
+              <div v-else><label style="flex-grow: 2"> Not specified yet</label></div>
             </div>
             <div class="input-line"> <label  style="flex-grow: 1">Skype:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Skype" :dense=true></q-input></div>
             <div class="input-line"> <label  style="flex-grow: 1">Facebook:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Facebook" :dense=true></q-input></div>
-            <a class="link" @click="changeSmallEditView">Hide additional fields</a>
-            
+            <div class="container-link">
+              <a class="link" @click="changeSmallEditView">Hide additional fields</a>
+            </div>
             <div class="input-line"> <label  style="flex-grow: 1">First name:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.FirstName" :dense=true ></q-input></div>
             
             <div class="input-line"> <label  style="flex-grow: 1">Last name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.LastName" :dense=true></q-input></div>
@@ -85,7 +91,7 @@
                   <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" />
+                        <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" minimal/>
                       </q-popup-proxy>
                     </q-icon>
                   </template>
@@ -135,10 +141,23 @@
   margin-top: 20px;
 }
 
+.container-link {
+    /* width: 32%;
+    width: 150px;
+    position: absolute;
+    right: 3%; */
+    padding: 0px 20px;
+    text-align: right;
+    /* white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    overflow: hidden; */
+}
+
 .link, .link:visited{
     color: #BC4799;
     cursor: pointer;
-    margin-left: 75%;
+    /* margin-left: 75%; */
     text-decoration-line: none;
     text-decoration-style: initial;
     text-decoration-color: initial;
@@ -195,13 +214,13 @@ export default {
     this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
     this.oPrimaryAddress = _.find(this.aPrimaryAddressOptions, {'value': oContact.PrimaryAddress})
 
-    this.oContact.BirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : '0000'
+    this.oContact.BirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : '2000'
 
-    this.oContact.BirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : '00'
+    this.oContact.BirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : '01'
     this.oContact.BirthMonth = this.oContact.BirthMonth.length > 1 ? this.oContact.BirthMonth : '0' + this.oContact.BirthMonth
 
-    this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '00'
-    this.oContact.BirthDay = this.oContact.BirthDay > 1 ? this.oContact.BirthDay : '0' + this.oContact.BirthDay
+    this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
+    this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : '0' + this.oContact.BirthDay
     this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
     console.log(this.date)
   },

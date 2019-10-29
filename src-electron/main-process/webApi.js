@@ -44,7 +44,7 @@ export default {
       oResponse.on('data', (sData) => {
         let oData = JSON.parse(sData)
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
-        console.log('webApi response', aRequestsNumbers.length, oData)
+        // console.log('webApi response', aRequestsNumbers.length, oData)
         let oResult = oData.Result
         let oError = null
         if (!oResult && oData.ErrorCode) {

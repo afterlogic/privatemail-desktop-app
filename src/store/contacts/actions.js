@@ -3,87 +3,45 @@ import store from 'src/store'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
-import cContact from '../../modules/contacts/classes/CContact'
-import cContactsInfo from '../../modules/contacts/classes/CContactsInfo'
+
+import CContact from '../../modules/contacts/classes/CContact'
 import cGroup from '../../modules/contacts/classes/CGroup'
 import webApi from '../../../src-electron/main-process/webApi'
 
-ipcRenderer.on('db-get-contacts-storages', (event, aStorages) => {
-  store.commit('contacts/setStorages', aStorages)
-})
-
-ipcRenderer.on('db-get-contacts-info', (event, oResult) => {
-  if (oResult) {
-    let aContactsInfo = []
-    let ETagsforUpdate = []
-    let contactsETags = []
-    let contactsUUIDs = []
-    let iCTag = null
-
-    oResult.Info.forEach(element => {
-      let contactInfo = new cContactsInfo(element)
-      contactsUUIDs.push(contactInfo.UUID)
-      contactsETags.push(contactInfo.ETag)
-      aContactsInfo.push(contactInfo)
-    })
-
-    if (oResult.CTag && typeof oResult.CTag === 'number') {
-      iCTag = oResult.CTag
-    }
-
-    if (store.state.contacts.cTag && store.state.contacts.cTag !== iCTag) {
-      for (let i = 0; i < store.state.contacts.contactsETags.length; i++) {
-        if (store.state.contacts.contactsUUIDs[i] !== store.state.contacts.contactsInfo[i].ETag) {
-          ETagsforUpdate.push()
-        }
-      }
-    } else {
-      store.commit('contacts/setContactsUUIDs', contactsUUIDs)
-      store.commit('contacts/setContactsInfo', aContactsInfo)
-      store.commit('contacts/setCTag', iCTag)
-    }
+ipcRenderer.on('contacts-get-storages', (event, { aStorages, oError }) => {
+  if (_.isArray(aStorages)) {
+    store.commit('contacts/setStorages', aStorages)
+  } else {
+    notification.showError(errors.getText(oError, 'Error occurred while getting storages'))
   }
 })
 
-ipcRenderer.on('db-get-contacts', (event, aResult) => {
-  if (aResult) {
-    let aContacts = []
-
-    aResult.forEach(element => {
-      let contact = new cContact(element)
-      aContacts.push(contact)
-    })
-
-    store.commit('contacts/setContacts', aContacts)
+ipcRenderer.on('contacts-get-contacts', (event, { aContacts, oError }) => {
+  if (_.isArray(aContacts)) {
+    store.commit('contacts/setContacts', _.map(aContacts, function (oContactData) {
+      return new CContact(oContactData)
+    }))
+    store.commit('contacts/setHasChanges', false)
+    store.commit('contacts/setSyncing', false)
   } else {
-    notification.showError(errors.getText({}, 'Error occurred while getting contacts'))
+    notification.showError(errors.getText(oError, 'Error occurred while getting contacts'))
   }
 })
 
 export function asyncGetStorages({ state, commit, dispatch, getters }) {
-  ipcRenderer.send('db-get-contacts-storages', {
+  ipcRenderer.send('contacts-get-storages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
   })
 }
 
-export function asyncGetContactsInfo({ state, commit, dispatch, getters }) {
+export function asyncGetContacts({ state, commit, dispatch, getters }, { iPage, iPerPage }) {
   if (getters.getCurrentStorage) {
-    ipcRenderer.send('db-get-contacts-info', {
-      sApiHost: store.getters['main/getApiHost'],
-      sAuthToken: store.getters['user/getAuthToken'],
+    store.commit('contacts/setSyncing', true)
+    ipcRenderer.send('contacts-get-contacts', {
       sStorage: getters.getCurrentStorage,
-    })
-  }
-}
-
-export function asyncGetContactsByUids({ state, commit, dispatch, getters }) {
-  if (getters.getCurrentStorage) {
-    ipcRenderer.send('db-get-contacts', {
-      sApiHost: store.getters['main/getApiHost'],
-      sAuthToken: store.getters['user/getAuthToken'],
-      sStorage: getters.getCurrentStorage,
-      aUids: state.contactsInfo.contactsUUIDs,
+      iPerPage,
+      iPage,
     })
   }
 }

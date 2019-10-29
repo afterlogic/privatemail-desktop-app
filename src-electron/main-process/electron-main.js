@@ -6,8 +6,7 @@ import foldersManager from './managers/folders.js'
 import messagesDbManager from './db-managers/messages.js'
 import contactsDbManager from './db-managers/contacts.js'
 
-import typesUtils from '../../src/utils/types'
-import webApi from './webApi.js'
+import contactsManager from './managers/contacts.js'
 
 /**
  * Set `__statics` path to static files in production;
@@ -183,83 +182,4 @@ ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
   )
 })
 
-ipcMain.on('db-get-contacts-storages', (oEvent, { sApiHost, sAuthToken }) => {
-  contactsDbManager.getStorages({}).then(
-    (aStoragesFromDb) => {
-      oEvent.sender.send('db-get-contacts-storages', typesUtils.pArray(aStoragesFromDb))
-      webApi.sendRequest({
-        sApiHost,
-        sAuthToken,
-        sModule: 'Contacts',
-        sMethod: 'GetStorages',
-        fCallback: (aStoragesFromApi, oError) => {
-          if (typesUtils.isNonEmptyArray(aStoragesFromApi)) {
-            if (!_.isEqual(aStoragesFromApi, aStoragesFromDb)) {
-              oEvent.sender.send('db-get-contacts-storages', aStoragesFromApi)
-              contactsDbManager.setStorages({ aStorages: aStoragesFromApi })
-            }
-          } else if (oError) {
-            oEvent.sender.send('notification', oError)
-          }
-        },
-      })
-    },
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
-
-ipcMain.on('db-get-contacts-info', (oEvent, { sApiHost, sAuthToken, sStorage }) => {
-  contactsDbManager.getContactsInfo({ sStorage }).then(
-    (oContactsInfoFromDb) => {
-      oEvent.sender.send('db-get-contacts-info', typesUtils.pObject(oContactsInfoFromDb))
-      webApi.sendRequest({
-        sApiHost,
-        sAuthToken,
-        sModule: 'Contacts',
-        sMethod: 'GetContactsInfo',
-        oParameters: { 'Storage': sStorage },
-        fCallback: (oContactsInfoFromApi, oError) => {
-          if (typesUtils.isNonEmptyObject(oContactsInfoFromApi)) {
-            if (oContactsInfoFromDb.CTag !== oContactsInfoFromApi.CTag) {
-              oEvent.sender.send('db-get-contacts-info', oContactsInfoFromApi)
-              contactsDbManager.setContactsInfo({ sStorage, oContactsInfoFromDb, oContactsInfoFromApi })
-            }
-          } else if (oError) {
-            oEvent.sender.send('notification', oError)
-          }
-        },
-      })
-    },
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
-
-ipcMain.on('db-get-contacts', (oEvent, { sApiHost, sAuthToken, sStorage, aUids }) => {
-  contactsDbManager.getContacts({ sStorage, aUids }).then(
-    (aContactsFromDb) => {
-      oEvent.sender.send('db-get-contacts', aContactsFromDb)
-      webApi.sendRequest({
-        sApiHost,
-        sAuthToken,
-        sModule: 'Contacts',
-        sMethod: 'GetContactsByUids',
-        oParameters: { 'Storage': sStorage, 'Uids': aUids },
-        fCallback: (aContactsFromApi, oError) => {
-          if (typesUtils.isNonEmptyArray(aContactsFromApi)) {
-            oEvent.sender.send('db-get-contacts', aContactsFromApi)
-            contactsDbManager.setContacts({ aContacts: aContactsFromApi })
-          } else if (oError) {
-            oEvent.sender.send('notification', oError)
-          }
-        },
-      })
-    },
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
+contactsManager.initSubscriptions()

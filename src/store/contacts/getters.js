@@ -4,15 +4,15 @@ export function getStorageList(state) {
   return state.storages && _.isFunction(state.storages.getList) ? state.storages.getList() : []
 }
 
-export function getContactsInfo(state) {
-  return state.contactsInfo.list
+export function getHasChanges(state) {
+  return state.hasChanges
 }
 
-export function getCTag(state) {
-  return state.contactsInfo.CTag
+export function getSyncing(state) {
+  return state.syncing
 }
 
-export function getContactsByUids(state) {
+export function getContacts(state) {
   return state.contacts
 }
 

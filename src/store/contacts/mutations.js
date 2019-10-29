@@ -13,24 +13,20 @@ export function setCurrentStorage(state, sStorage) {
   }
 }
 
-export function setContactsInfo(state, aContactsInfo) {
-    state.contactsInfo.list = aContactsInfo
+export function setHasChanges(state, bHasChanges) {
+  state.hasChanges = bHasChanges
+}
+
+export function setSyncing(state, bSyncing) {
+  state.syncing = bSyncing
 }
 
 export function setETagsforUpdate(state, ETagsforUpdate) {
     state.ETagsforUpdate = ETagsforUpdate
 }
 
-export function setCTag(state, iCTag) {
-    state.contactsInfo.CTag = iCTag
-}
-
 export function setContacts(state, aContacts) {
-    state.contacts.list = aContacts
-}
-
-export function setContactsUUIDs(state, contactsUUIDs) {
-    state.contactsInfo.contactsUUIDs = contactsUUIDs
+  state.contacts.list = aContacts
 }
 
 export function setContactByUUID(state, contactByUUID) {

@@ -33,8 +33,16 @@
       </q-list>
     </q-btn-dropdown>
     <q-space/>
-    <q-btn flat color="primary" icon="sync" />
-    <!-- <q-btn flat color="primary" label="Flat" /> -->
+    <q-btn flat color="primary" icon="sync" @click="sync" v-if="!contactsSyncing">
+      <q-tooltip>
+        Refresh
+      </q-tooltip>
+    </q-btn>
+    <q-spinner color="primary" size="1.5em" @click="sync" v-if="contactsSyncing">
+      <q-tooltip>
+        Refresh
+      </q-tooltip>
+    </q-spinner>
   </q-toolbar>
 </template>
 
@@ -42,20 +50,60 @@
 
 <script>
 import { groups } from '../../contactsData.js'
+import { ipcRenderer } from 'electron'
+
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
 
 export default {
-  name: 'MailListToolbar',
+  name: 'ContactsListToolbar',
   components: {
   },
   data () {
     return {
-      groupsList: []
+      groupsList: [],
     }
   },
+
+  computed: {
+    contactsSyncing() {
+      return this.$store.getters['contacts/getSyncing']
+    },
+  },
+
   mounted: function () {
     this.groupsList = groups
+
+    this.initSubscriptions()
   },
+
   methods: {
+    sync: function () {
+      this.$store.commit('contacts/setSyncing', true)
+      ipcRenderer.send('contacts-refresh', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        sStorage: this.$store.getters['contacts/getCurrentStorage'],
+      })
+    },
+    onContactsRefresh (event, { bHasChanges, oError }) {
+      this.$store.commit('contacts/setSyncing', false)
+      if (_.isBoolean(bHasChanges)) {
+        this.$store.commit('contacts/setHasChanges', bHasChanges)
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while refreshing of contacts'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('contacts-refresh', this.onContactsRefresh)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
+    },
+  },
+
+  beforeDestroy() {
+    this.destroySubscriptions()
   },
 }
 </script>

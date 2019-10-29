@@ -84,7 +84,7 @@ export default {
         [],
         function(oError, aRows) {
             if (oError) {
-              reject({sEvent: 'db-get-contacts-storages', oError})
+              reject({ sMethod: 'getStorages', oError })
             } else {
               let aStorages = []
               _.each(aRows, function (oRow) {
@@ -97,7 +97,7 @@ export default {
           }
         )
       } else {
-        reject({sEvent: 'db-get-contacts-storages', sError: 'No DB connection'})
+        reject({ sMethod: 'getStorages', sError: 'No DB connection' })
       }
     })
   },
@@ -115,16 +115,16 @@ export default {
         oDb.all(
           'INSERT INTO contacts_storages (storage) VALUES ' + sQuestions,
           aStorages,
-          function(oError, aRows) {
+          function(oError) {
             if (oError) {
-              reject({sEvent: 'db-set-contacts-storages', oError})
+              reject({ sMethod: 'setStorages', oError })
             } else {
               resolve()
             }
           }
         )
       } else {
-        reject({sEvent: 'db-set-contacts-storages', sError: 'No DB connection'})
+        reject({ sMethod: 'setStorages', sError: 'No DB connection' })
       }
     })
   },
@@ -136,7 +136,7 @@ export default {
           .prepare('SELECT uuid, etag FROM contacts_info WHERE storage = ?', sStorage)
           .all(function(oError, aRows) {
             if (oError) {
-              reject({sEvent: 'db-get-contacts-info', oError})
+              reject({ sMethod: 'getContactsInfo', oError })
             } else {
               let aInfo = []
               _.each(aRows, function (oRow) {
@@ -151,7 +151,7 @@ export default {
               .prepare('SELECT ctag FROM contacts_storages WHERE storage = ?', sStorage)
               .get(function(oError, oRow) {
                 if (oError) {
-                  reject({sEvent: 'db-get-contacts-info', oError})
+                  reject({ sMethod: 'getContactsInfo', oError })
                 } else {
                   resolve({
                     'Info': aInfo,
@@ -164,7 +164,7 @@ export default {
           })
           .finalize()
       } else {
-        reject({sEvent: 'db-get-contacts-info', sError: 'No DB connection'})
+        reject({ sMethod: 'getContactsInfo', sError: 'No DB connection' })
       }
     })
   },
@@ -189,6 +189,9 @@ export default {
         oDb.serialize(function() {
           let
             aDiffNew = _.differenceWith(oContactsInfoFromApi.Info, oContactsInfoFromDb.Info, _.isEqual),
+            aUuidsNew = _.map(aDiffNew, function (oInfo) {
+              return oInfo.UUID
+            }),
             aDiffOld = _.differenceWith(oContactsInfoFromDb.Info, oContactsInfoFromApi.Info, _.isEqual),
             aUuidsOld = _.map(aDiffOld, function (oInfo) {
               return oInfo.UUID
@@ -201,54 +204,39 @@ export default {
             .run()
             .finalize(function (oError) {
               if (oError) {
-                reject({sEvent: 'db-set-contacts-info', oError})
+                reject({ sMethod: 'setContactsInfo', oError })
               } else {
-                resolve()
+                resolve(aUuidsNew)
               }
             })
         })
       } else {
-        reject({sEvent: 'db-set-contacts-info', sError: 'No DB connection'})
+        reject({ sMethod: 'setContactsInfo', sError: 'No DB connection' })
       }
     })
   },
 
-  getContacts: function ({ sStorage }) {
+  getContactsUidsByUids: function ({ sStorage }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.all('SELECT * FROM contacts WHERE storage = ?',
+        oDb.all('SELECT uuid FROM contacts WHERE storage = ?',
         [sStorage],
         function(oError, aRows) {
             if (oError) {
-              reject({sEvent: 'db-get-contacts-storages', oError})
+              reject({ sMethod: 'getContactsUidsByUids', oError })
             } else {
-              let aContacts = []
+              let aUuids = []
               _.each(aRows, function (oRow) {
-                if (typesUtils.isNonEmptyObject(oRow) && oRow.storage === sStorage) {
-                  let oContact = {}
-                  _.each(aContactsDbFields, function (oContactDbField) {
-                    if (oContactDbField.IsBool) {
-                      oContact[oContactDbField.Name] = !!oRow[oContactDbField.DbName]
-                    } else if (oContactDbField.IsArray) {
-                      let aValue = []
-                      let sValue = oRow[oContactDbField.DbName]
-                      if (typesUtils.isNonEmptyString(sValue)) {
-                        aValue = JSON.parse(sValue)
-                      }
-                      oContact[oContactDbField.Name] = aValue
-                    } else {
-                      oContact[oContactDbField.Name] = oRow[oContactDbField.DbName]
-                    }
-                  })
-                  aContacts.push(oContact)
+                if (typesUtils.isNonEmptyObject(oRow) && typesUtils.isNonEmptyString(oRow.uuid)) {
+                  aUuids.push(oRow.uuid)
                 }
               })
-              resolve(aContacts)
+              resolve(aUuids)
             }
           }
         )
       } else {
-        reject({sEvent: 'db-get-contacts-storages', sError: 'No DB connection'})
+        reject({ sMethod: 'getContactsUidsByUids', sError: 'No DB connection' })
       }
     })
   },
@@ -280,14 +268,54 @@ export default {
           })
           oStatement.finalize(function (oError) {
             if (oError) {
-              reject({sEvent: 'db-set-contacts-storages', oError})
+              reject({ sMethod: 'setContacts', oError })
             } else {
               resolve()
             }
           })
         })
       } else {
-        reject({sEvent: 'db-set-contacts-storages', sError: 'No DB connection'})
+        reject({ sMethod: 'setContacts', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  getContacts: function ({ sStorage, iPerPage, iPage }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.all('SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?',
+        [sStorage, iPerPage, iPerPage * (iPage - 1)],
+        function(oError, aRows) {
+            if (oError) {
+              reject({ sMethod: 'getContacts', oError })
+            } else {
+              let aContacts = []
+              _.each(aRows, function (oRow) {
+                if (typesUtils.isNonEmptyObject(oRow) && oRow.storage === sStorage) {
+                  let oContact = {}
+                  _.each(aContactsDbFields, function (oContactDbField) {
+                    if (oContactDbField.IsBool) {
+                      oContact[oContactDbField.Name] = !!oRow[oContactDbField.DbName]
+                    } else if (oContactDbField.IsArray) {
+                      let aValue = []
+                      let sValue = oRow[oContactDbField.DbName]
+                      if (typesUtils.isNonEmptyString(sValue)) {
+                        aValue = JSON.parse(sValue)
+                      }
+                      oContact[oContactDbField.Name] = aValue
+                    } else {
+                      oContact[oContactDbField.Name] = oRow[oContactDbField.DbName]
+                    }
+                  })
+                  aContacts.push(oContact)
+                }
+              })
+              resolve(aContacts)
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getContacts', sError: 'No DB connection' })
       }
     })
   },

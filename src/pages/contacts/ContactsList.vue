@@ -1,9 +1,5 @@
 <template>
   <q-list>
-    <!-- {{ contactsInfo }}
-     {{ cTag }}
-    {{ contacts }} -->
-
     <q-item v-for="contact in contacts.list" :key="contact.UUID" class="q-my-sm" clickable @click="getContactByUUID(contact.UUID)" v-ripple>
       <!-- <q-item-section avatar>
           <q-avatar color="primary" text-color="white">
@@ -48,78 +44,51 @@
 <style></style>
 
 <script>
-//import {contacts, contactsOffline} from '../../contactsData.js'
-import webApi from 'src/utils/webApi.js'
-
 export default {
   name: 'ContactsList',
   data() {
     return {
+      page: 1,
+      perPage: 20,
       checkboxVal: false,
     }
   },
 
   mounted: function() {
-    this.refreshStoragesList()
+    this.$store.dispatch('contacts/asyncGetStorages')
   },
+
   watch: {
-    storageList: function(val, oldVal) {
-      this.refreshContactsInfo()
+    currentStorage: function() {
+      this.startAsyncGetContacts()
     },
-    storage: function(val, oldVal) {
-      this.refreshContactsInfo()
+    hasChanges: function () {
+      if (this.hasChanges) {
+        this.startAsyncGetContacts()
+      }
     },
-    contactsInfo: function(val, oldVal) {
-      this.refreshContactsByUids()
-    }
   },
+
   computed: {
-    storageList() {
-      return this.$store.getters['contacts/getStorageList']
+    hasChanges() {
+      return this.$store.getters['contacts/getHasChanges']
     },
-
-    contactsInfo() {
-      return this.$store.getters['contacts/getContactsInfo']
-    },
-
-    cTag() {
-      return this.$store.getters['contacts/getCTag']
-    },
-
     contacts() {
-      return this.$store.getters['contacts/getContactsByUids']
+      return this.$store.getters['contacts/getContacts']
     },
-
-    storage() {
+    currentStorage() {
       return this.$store.getters['contacts/getCurrentStorage']
     },
-
-    // UUID() {
-    //   return this.$store.getters['contacts/getContactByUUID']
-    // },
   },
 
   methods: {
-    refreshStoragesList() {
-      this.$store.dispatch('contacts/asyncGetStorages')
-    },
-    refreshContactsInfo() {
-      this.$store.dispatch('contacts/asyncGetContactsInfo')
-    },
-    refreshContactsByUids() {
-      this.$store.dispatch('contacts/asyncGetContactsByUids')
+    startAsyncGetContacts () {
+      this.$store.dispatch('contacts/asyncGetContacts', { iPage: this.page, iPerPage: this.perPage })
     },
     getContactByUUID(UUID) {
       this.$store.dispatch('contacts/getContactByUUID', UUID)
       console.log(UUID)
     },
-
-    // watcher () {
-    //   if ( this.storageList.length ) {
-
-    //   }
-    // }
-
   },
 }
 </script>

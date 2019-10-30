@@ -23,6 +23,11 @@ export default {
     }
   },
 
+  components: {
+    GroupView,
+    GroupEditView,
+  },
+
   mounted: function() {     
 
   },

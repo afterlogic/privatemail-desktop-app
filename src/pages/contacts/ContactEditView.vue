@@ -222,7 +222,6 @@ export default {
     this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
     this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : '0' + this.oContact.BirthDay
     this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
-    console.log(this.date)
   },
   beforeDestroy: function () {
     this.disableEditContact()

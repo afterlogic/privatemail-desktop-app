@@ -29,5 +29,5 @@ export function getGroups(state) {
 }
 
 export function getCurrentGroup(state) {
-  return state.currentGroup.group
+  return state.currentGroup
 }

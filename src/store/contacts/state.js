@@ -23,7 +23,7 @@ export default {
   },
   groups: [],
   currentGroup: {
-    editable: false,
+    editable: null,
     group: {},
   },
 }

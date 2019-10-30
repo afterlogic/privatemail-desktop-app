@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-if="oCurrentContact">
-      <GroupView v-if="!oCurrentContact.editable"/>
-      <GroupEditView v-if="oCurrentContact.editable"/>
+    <div v-if="oCurrentGroup">
+      <GroupView v-if="!oCurrentGroup.editable"/>
+      <GroupEditView v-if="oCurrentGroup.editable"/>
     </div>
   </div>
 </template>
@@ -33,7 +33,7 @@ export default {
   },
   watch: {},
   computed: {
-    'oCurrentContact': function () {
+    'oCurrentGroup': function () {
       return this.$store.getters['contacts/getCurrentGroup']
     }
   },

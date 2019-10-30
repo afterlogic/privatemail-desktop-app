@@ -118,15 +118,16 @@ export function getCurrentGroup({ state, commit, dispatch, getters }, UUID) {
 }
 
 export function enableEditGroup({ state, commit, dispatch, getters }) {
+  console.log('123',state.currentGroup.editable)
   if (!state.currentGroup.editable) {
-    commit('changeEditContact', true)
+    commit('changeEditGroup', true)
     console.log(state.currentGroup.editable)
   }
 }
 
 export function disableEditGroup({ state, commit, dispatch, getters }) {
   if (state.currentGroup.editable) {
-    commit('changeEditContact', false)
+    commit('changeEditGroup', false)
     console.log(state.currentGroup.editable)
   }
 }

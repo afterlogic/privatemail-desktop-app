@@ -51,5 +51,6 @@ export function setCurrentGroup(state, oGroup) {
 }
 
 export function changeEditGroup(state, editable) {
+  console.log('1')
   state.currentGroup.editable = editable
 }

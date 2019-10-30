@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="contactByUUID.UUID">
-      <contactFields v-if="!contactByUUID.editable"/>
+      <contactView v-if="!contactByUUID.editable"/>
       <contactEditView v-if="contactByUUID.editable"/>
     </div>
   </div>
@@ -11,13 +11,13 @@
 
 <script>
 import webApi from 'src/utils/webApi.js'
-import ContactFields from './ContactFields.vue'
+import ContactView from './ContactView.vue'
 import ContactEditView from './ContactEditView.vue'
 
 export default {
   name: 'Contact',
   components: {
-    ContactFields,
+    ContactView,
     ContactEditView,
   },
   data() {

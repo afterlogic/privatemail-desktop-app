@@ -1,16 +1,15 @@
 <template>
+
   <div>
     <div v-if="oCurrentGroup">
       <h2>Edit Group</h2>
       
-      <div class="editField">
-        <div class="input-line"> <label  style="flex-grow: 1">Display name:</label><q-input  style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true ></q-input></div>
-
-        <div class="container-link">
-          <a class="link" @click="changeSmallEditView">Show additional fields</a>
-        </div>
+      <div class="editField">        
 
         <div class="input-line"> <label  style="flex-grow: 1">Group Name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Name" :dense=true> </q-input></div>
+        <div class="q-gutter-sm checkbox-organization">
+          <q-checkbox v-model="bIsOrganization" label="Teal" />
+        </div>
         <div class="input-line"> <label  style="flex-grow: 1">Email:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Email" :dense=true></q-input></div>
         <div class="input-line"> <label  style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
         <div class="input-line"> <label  style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
@@ -24,7 +23,7 @@
       </div>
       <div class="buttons">
         <q-btn color="primary" style="margin: 10px;" label="Save" @click="onSave"/>
-        <q-btn color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditContact"/>
+        <q-btn color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditGroup"/>
       </div>
     </div>
   </div>
@@ -46,30 +45,8 @@
   margin-top: 20px;
 }
 
-.container-link {
-    /* width: 32%;
-    width: 150px;
-    position: absolute;
-    right: 3%; */
-    padding: 0px 20px;
-    text-align: right;
-    /* white-space: nowrap;
-    text-overflow: ellipsis;
-    width: 100%;
-    overflow: hidden; */
-}
-
-.link, .link:visited{
-    color: #BC4799;
-    cursor: pointer;
-    /* margin-left: 75%; */
-    text-decoration-line: none;
-    text-decoration-style: initial;
-    text-decoration-color: initial;
-}
-
-.link:hover {
-  text-decoration-line:underline
+.checkbox-organization {
+  transform: none;
 }
 
 h2 {
@@ -99,30 +76,35 @@ export default {
   data() {
     return {
       oCurrentGroup: null,
-      bIsOrganization: null,
+      bIsOrganization: false,
     }
   },
 
   mounted: function() {
-    let oCurrentGroup = this.$store.getters['contacts/getCurrentGroup']
+    let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
+    let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
     this.oCurrentGroup = (oCurrentGroup && oCurrentGroup instanceof CGroup) ? oCurrentGroup : null
-
+    this.bIsOrganization = this.oCurrentGroup.IsOrganization
   },
   beforeDestroy: function () {
     this.disableEditGroup()
   },
   watch: {
-  
+    'bIsOrganization': function (v) {
+      if (v) {
+        this.oCurrentGroup.IsOrganization = v.value
+      }
+    },  
   },
   computed: {
-    
   },
 
   methods: {
     onSave () {
-        let oCurrentGroup = this.$store.getters['contacts/getCurrentGroup']
+        let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
+        let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
         let oSavedGroup = null
-        let bEqual = _.isEqual(this.oCurrentGroup, oContactSource)
+        let bEqual = _.isEqual(this.oCurrentGroup, oCurrentGroup)
        
         if (!bEqual) {
           oSavedGroup = _.cloneDeep(this.oCurrentGroup)

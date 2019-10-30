@@ -134,15 +134,16 @@ export default {
   watch: {},
   computed: {
     'oCurrentGroup': function() {
-      let currentGroup = this.$store.getters['contacts/getCurrentGroup']
-      console.log('group', currentGroup)
-      return (currentGroup && currentGroup instanceof CGroup) ? currentGroup : null
+      let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
+      let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
+      console.log(oCurrentGroup instanceof CGroup)
+      return (oCurrentGroup && oCurrentGroup instanceof CGroup) ? oCurrentGroup : null
     },
   },
 
   methods: {
     enableEditGroup() {
-      this.$store.dispatch('contacts/enableEditContact')
+      this.$store.dispatch('contacts/enableEditGroup')
     },
   },
 }

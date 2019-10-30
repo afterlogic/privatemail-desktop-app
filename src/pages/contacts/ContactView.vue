@@ -160,14 +160,21 @@ export default {
     }
   },
 
-  mounted: function() {     
-    let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
-    this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
+  mounted: function() { 
+    console.log('null year', this.contact)
+    if (this.contact && this.contact.BirthYear && this.contact.BirthMonth && this.contact.BirthDay)    {
+      let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
+      this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
+
+    }
+    
   },
-  watch: {},
+  watch: {
+
+  },
   computed: {
     // contactByUUID() {
-    //   return this.$store.getters['contacts/getContactByUUID']
+      //   return this.$store.getters['contacts/getContactByUUID']
     // },
     'contact': function() {
       let ContactByUUID = this.$store.getters['contacts/getContactByUUID']

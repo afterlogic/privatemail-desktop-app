@@ -24,7 +24,7 @@ export default {
                   oEvent.sender.send('contacts-get-storages', { aStorages: aStoragesFromApi })
                   contactsDbManager.setStorages({ aStorages: aStoragesFromApi })
                 }
-              } else if (oError) {
+              } else {
                 oEvent.sender.send('contacts-get-storages', { oError })
               }
             },
@@ -32,6 +32,33 @@ export default {
         },
         (oError) => {
           oEvent.sender.send('contacts-get-storages', { oError })
+        }
+      )
+    })
+
+    ipcMain.on('contacts-get-groups', (oEvent, { sApiHost, sAuthToken }) => {
+      contactsDbManager.getGroups({}).then(
+        (aGroupsFromDb) => {
+          oEvent.sender.send('contacts-get-groups', { aGroups: typesUtils.pArray(aGroupsFromDb) })
+          webApi.sendRequest({
+            sApiHost,
+            sAuthToken,
+            sModule: 'Contacts',
+            sMethod: 'GetGroups',
+            fCallback: (aGroupsFromApi, oError) => {
+              if (typesUtils.isNonEmptyArray(aGroupsFromApi)) {
+                if (!_.isEqual(aGroupsFromApi, aGroupsFromDb)) {
+                  oEvent.sender.send('contacts-get-groups', { aGroups: aGroupsFromApi })
+                  contactsDbManager.setGroups({ aGroups: aGroupsFromApi })
+                }
+              } else {
+                oEvent.sender.send('contacts-get-groups', { oError })
+              }
+            },
+          })
+        },
+        (oError) => {
+          oEvent.sender.send('contacts-get-groups', { oError })
         }
       )
     })

@@ -1,13 +1,14 @@
 export default {
-  getText: function (error, defaultText) {
-    var errorText = defaultText
-    if (error) {
-      switch (error.ErrorCode) {
+  getText: function (oError, sDefaultText) {
+    console.log('oError', oError)
+    let sErrorText = sDefaultText
+    if (oError) {
+      switch (oError.ErrorCode) {
         case 102:
-          errorText = 'The username or password you entered is incorrect.'
+          sErrorText = 'The username or password you entered is incorrect.'
           break
       }
     }
-    return errorText
+    return sErrorText
   }
 }

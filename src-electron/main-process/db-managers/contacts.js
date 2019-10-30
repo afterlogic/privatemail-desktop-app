@@ -391,8 +391,14 @@ export default {
   getContacts: function ({ sStorage, iPerPage, iPage }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.all('SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?',
-        [sStorage, iPerPage, iPerPage * (iPage - 1)],
+        let sSql = 'SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+        let aParams = [sStorage, iPerPage, iPerPage * (iPage - 1)]
+        if (sStorage === 'all') {
+          sSql = 'SELECT * FROM contacts ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+          aParams = [iPerPage, iPerPage * (iPage - 1)]
+        }
+        oDb.all(sSql,
+        aParams,
         function(oError, aRows) {
             if (oError) {
               reject({ sMethod: 'getContacts', oError })

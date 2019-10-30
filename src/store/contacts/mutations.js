@@ -1,7 +1,7 @@
 import CStorages from '../../modules/contacts/classes/CStorages'
 
 export function setStorages(state, aStorages) {
-  if (!state.storages instanceof CStorages) {
+  if (!(state.storages instanceof CStorages)) {
     state.storages = new CStorages()
   }
   state.storages.parse(aStorages)

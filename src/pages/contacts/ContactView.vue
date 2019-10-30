@@ -7,7 +7,7 @@
             <q-item-label class="head--labels-name">{{ contact.FullName }}</q-item-label>  
             <q-item-label class="head--labels-email" caption lines="1">{{ contact.ViewEmail }}</q-item-label>
           </div>
-          <div class="head--buttons-container">        
+          <div class="head--buttons-container-contact">         
             <q-btn class="head--buttons-style" color="primary" label="">Send this contact</q-btn>
             <q-btn class="head--buttons-style" color="primary" label="Email to this contact" />
           </div>
@@ -92,7 +92,7 @@
   text-decoration: none
 }
 
-.head--buttons-container {
+.head--buttons-container-contact {
   display: flex;
   justify-content: flex-end;
   width: 70%;

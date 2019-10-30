@@ -1,9 +1,7 @@
 <template>
   <div>
-    <div v-if="oCurrentGroup">
-      <GroupView v-if="!oCurrentGroup.editable"/>
-      <GroupEditView v-if="oCurrentGroup.editable"/>
-    </div>
+    <GroupView v-if="!oCurrentGroup.editable"/>
+    <GroupEditView v-if="oCurrentGroup.editable"/>
   </div>
 </template>
 

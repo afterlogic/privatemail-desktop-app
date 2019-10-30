@@ -91,7 +91,7 @@
                   <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                        <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" minimal/>
+                        <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" today-btn minimal/>
                       </q-popup-proxy>
                     </q-icon>
                   </template>

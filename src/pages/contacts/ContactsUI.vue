@@ -46,9 +46,8 @@
                   <!-- <div class="text-h4 q-mb-md">After</div>
                   <div v-for="n in 10" :key="n" class="q-my-md">{{ n }}. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</div>
                   -->
-                  <contact />
-                 
-                  <group />
+                  <contact v-if="showContact" />
+                  <group v-if="showGroup && !showContact" />
                 </div>
               <!-- </q-scroll-area> -->
             </template>
@@ -68,6 +67,9 @@ import ContactListToolbar from './ContactListToolbar.vue'
 import Contact from './Contact.vue'
 import Group from './Group.vue'
 
+import CContact from 'src/modules/contacts/classes/CContact.js'
+import CGroup from 'src/modules/contacts/classes/CGroup.js'
+
 export default {
   name: 'ContactsUI',
   components: {
@@ -84,6 +86,18 @@ export default {
       checkboxVal: false,
       searchText: '',
     }
+  },
+  computed: {
+    'showContact': function() {
+      console.log('showContact');
+      let oContactContainer = this.$store.getters['contacts/getContactByUUID']
+      return (oContactContainer.contact && oContactContainer.contact instanceof CContact) ? true : false
+    },
+    'showGroup': function() {
+      console.log('showGroup');
+      let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
+      return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
+    },
   },
   methods: {
     createContact() {

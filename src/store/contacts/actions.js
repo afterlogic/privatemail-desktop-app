@@ -50,13 +50,9 @@ export function getContactByUUID({ state, commit, dispatch, getters }, UUID) {
   let contactByUUID = {
     UUID,
     editable: false,
-    contact: {},
+    contact: _.find(state.contacts.list, { 'UUID': UUID }) || {},
   }
-  let contact = state.contacts.list.filter(item => {
-    return item.UUID === UUID
-  })[0]
 
-  contactByUUID.contact = contact
   commit('setContactByUUID', contactByUUID)
 }
 

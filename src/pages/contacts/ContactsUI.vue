@@ -89,12 +89,12 @@ export default {
   },
   computed: {
     'showContact': function() {
-      console.log('showContact');
+      //console.log('showContact');
       let oContactContainer = this.$store.getters['contacts/getContactByUUID']
       return (oContactContainer.contact && oContactContainer.contact instanceof CContact) ? true : false
     },
     'showGroup': function() {
-      console.log('showGroup');
+      //console.log('showGroup');
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },

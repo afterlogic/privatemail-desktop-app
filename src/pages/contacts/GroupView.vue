@@ -17,16 +17,16 @@
         
         <div class="content-area">          
 
-          <q-item-label class="info-line" v-if="oCurrentGroup.Name">Group Name: {{ oCurrentGroup.Name }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Email">Email: {{ oCurrentGroup.Email }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Company">Company: {{ oCurrentGroup.Company }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.State">State: {{ oCurrentGroup.State }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.City">City: {{ oCurrentGroup.City }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Street">Street: {{ oCurrentGroup.Street }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Zip">Zip: {{ oCurrentGroup.Zip }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Phone">Phone: {{ oCurrentGroup.Phone }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Fax">Fax: {{ oCurrentGroup.Fax }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Web">Web: {{ oCurrentGroup.Web }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Name"><span class="label-names">Group Name:</span> {{ oCurrentGroup.Name }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Email"><span class="label-names">Email: </span>{{ oCurrentGroup.Email }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Company"><span class="label-names">Company: </span>{{ oCurrentGroup.Company }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.State"><span class="label-names">State: </span>{{ oCurrentGroup.State }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.City"><span class="label-names">City: </span>{{ oCurrentGroup.City }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Street"><span class="label-names">Street: </span>{{ oCurrentGroup.Street }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Zip"><span class="label-names">Zip: </span>{{ oCurrentGroup.Zip }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Phone"><span class="label-names">Phone: </span>{{ oCurrentGroup.Phone }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Fax"><span class="label-names">Fax: </span>{{ oCurrentGroup.Fax }}</q-item-label>
+          <q-item-label class="info-line" v-if="oCurrentGroup.Web"><span class="label-names">Web: </span>{{ oCurrentGroup.Web }}</q-item-label>
             
         </div>
       </q-item-section>
@@ -47,6 +47,9 @@
   color: #555566;
 }
 
+.label-names {
+  margin-right: 3%;
+}
 .labels-email {
   color: #BC4799;
   font-size: 10.5pt;

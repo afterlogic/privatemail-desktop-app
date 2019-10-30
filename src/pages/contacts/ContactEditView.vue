@@ -104,8 +104,9 @@
                 <q-input  style="flex-grow: 2; max-width: 65%; min-height: 36px;" outlined :dense=true v-model="oContact.Notes"  type="textarea"/>
             </div>
             
+            <q-item-label style="margin: 30px 0px 30px 20px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;">Groups</q-item-label>
             <div class="groups">
-              <span></span>
+              
               <!-- <div class="q-gutter-sm" v-for="item in contact">
                 <q-checkbox v-model="selection" val="teal" label="Teal" color="teal" />
                 <q-checkbox v-model="selection" val="orange" label="Orange" color="orange" />

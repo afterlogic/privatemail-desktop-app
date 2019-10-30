@@ -24,7 +24,7 @@
             <q-item-label class="info-line" v-if="contact.Facebook">Facebook: {{ contact.Facebook }}</q-item-label>
             
 
-            <q-item-label style="margin: 30px 0px 30px 25px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;" v-if="contact.PersonalEmail || 
+            <q-item-label class="paragraph-heads" v-if="contact.PersonalEmail || 
               contact.PersonalAddress || contact.PersonalCity || contact.PersonalState ||contact.PersonalCountry ||
               contact.PersonalZip || contact.PersonalWeb || contact.PersonalFax || contact.PersonalPhone ||
               contact.PersonalMobile">Basic info</q-item-label>
@@ -40,7 +40,7 @@
             <q-item-label class="info-line" v-if="contact.PersonalPhone">Personal Phone: {{ contact.PersonalPhone }}</q-item-label>
             <q-item-label class="info-line" v-if="contact.PersonalMobile">Personal Mobile: {{ contact.PersonalMobile }}</q-item-label>
 
-            <q-item-label style="margin: 30px 0px 30px 25px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;" v-if="contact.BusinessEmail || 
+            <q-item-label class="paragraph-heads" v-if="contact.BusinessEmail || 
               contact.BusinessCompany || contact.BusinessDepartment || contact.BusinessJobTitle || contact.BusinessOffice || 
               contact.BusinessAddress || contact.BusinessCity || contact.BusinessState || contact.BusinessZip || contact.BusinessCountry || 
               contact.BusinessWeb || contact.BusinessFax || contact.BusinessPhone">Business info</q-item-label>
@@ -59,12 +59,19 @@
             <q-item-label class="info-line" v-if="contact.BusinessFax">Business Fax: {{ contact.BusinessFax }}</q-item-label>
             <q-item-label class="info-line" v-if="contact.BusinessPhone">Business Phone: {{ contact.BusinessPhone }}</q-item-label>
 
-            <q-item-label style="margin: 30px 0px 30px 25px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;" v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay || 
+            <q-item-label class="paragraph-heads" v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay || 
               contact.OtherEmail || contact.Notes">Other info</q-item-label>
 
             <q-item-label class="info-line" v-if="contact.BirthDay">Birthday: {{sBirthDate}}</q-item-label>
             <q-item-label class="info-line" v-if="contact.OtherEmail">Other E-mail: {{ contact.OtherEmail }}</q-item-label>
             <q-item-label class="info-line" v-if="contact.Notes">Notes: {{ contact.Notes }}</q-item-label>
+
+            <q-item-label class="paragraph-heads">Groups</q-item-label>
+
+            <div v-if="groupFilteredList">
+              <a v-for="group in groupFilteredList" :key="group.id">{{group}}<span v-if="group.id <= groupFilteredList.length">,</span></a>
+            </div>
+
           </q-scroll-area>
         </div>
       </q-item-section>
@@ -140,6 +147,13 @@
   display: flex;
 }
 
+.paragraph-heads {
+  margin: 30px 0px 30px 20px; 
+  font-size: 10.5pt; 
+  color: #3d3d3d; 
+  font-weight: 600;
+}
+
 .info-line {
   margin: 10px 0px 20px 25px;
   font-size: 9pt;
@@ -147,7 +161,6 @@
 </style>
 
 <script>
-import webApi from 'src/utils/webApi.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import moment from 'moment'
 
@@ -157,6 +170,7 @@ export default {
     return {
       checkboxVal: false,
       sBirthDate: '',
+      groupFilteredList: [],
     }
   },
 
@@ -165,17 +179,27 @@ export default {
     if (this.contact && this.contact.BirthYear && this.contact.BirthMonth && this.contact.BirthDay)    {
       let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
       this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
-
     }
+
+    let groupList =[]
+    this.contact.GroupUUIDs.forEach(element => {
+      let group = _.find(this.groupList,  { 'UUID': element } )
+      if (group) {
+
+        groupList.push(group.Name)
+      }
+    })
+    this.groupFilteredList = groupList
+
     
   },
   watch: {
 
   },
   computed: {
-    // contactByUUID() {
-      //   return this.$store.getters['contacts/getContactByUUID']
-    // },
+    'groupList': function () {
+        return this.$store.getters['contacts/getGroups']
+    },
     'contact': function() {
       let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
       let contact = ContactByUUID.contact

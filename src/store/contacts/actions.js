@@ -104,8 +104,11 @@ export function saveChangesCurrentContact({ state, commit, dispatch, getters }, 
   commit('saveChangesCurrentContact', savedContact, index)
 }
 
-export function logout ({ commit }) {
+export function logout ({ commit, dispatch }) {
   commit('setStorages', [])
+  commit('setGroups', [])
+  commit('setCurrentGroup', null)
+  dispatch('getContactByUUID', null)
 }
 
 export function enableEditGroup({ state, commit, dispatch, getters }) {

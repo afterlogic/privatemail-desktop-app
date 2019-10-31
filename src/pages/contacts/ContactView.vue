@@ -193,10 +193,7 @@ export default {
 
   mounted: function() { 
     console.log('null year', this.contact)
-    if (this.contact && this.contact.BirthYear && this.contact.BirthMonth && this.contact.BirthDay)    {
-      let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
-      this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
-    }
+    this.setBirthDate()
 
     this.setFilteredGroups()
 
@@ -205,6 +202,7 @@ export default {
   watch: {
     'contact': function() {
       this.setFilteredGroups()
+      this.setBirthDate()
     },
   },
   computed: {
@@ -241,6 +239,12 @@ export default {
         })
 
       this.groupFilteredList = groupList
+    },
+    setBirthDate() {
+      if (this.contact && this.contact.BirthYear && this.contact.BirthMonth && this.contact.BirthDay) {
+        let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
+        this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
+      }
     },
   },
 }

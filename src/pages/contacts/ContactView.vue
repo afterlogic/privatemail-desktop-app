@@ -68,8 +68,8 @@
 
             <q-item-label class="paragraph-heads">Groups</q-item-label>
 
-            <div v-if="groupFilteredList">
-              <a v-for="group in groupFilteredList" :key="group.id">{{group}}<span v-if="group.id <= groupFilteredList.length">,</span></a>
+            <div v-if="groupFilteredList" class="groups">
+              <a v-for="(group,index) in groupFilteredList" :key="group.id" class="group" @click="setCurrentGroup(group)">{{group}}<span v-if="index+1 < groupFilteredList.length">,</span></a>
             </div>
 
           </q-scroll-area>
@@ -158,6 +158,23 @@
   margin: 10px 0px 20px 25px;
   font-size: 9pt;
 }
+
+.groups {
+  margin-left: 20px;
+}
+
+.group {
+  margin-right: 10px;
+  color: #98387b;
+  
+}
+
+.group:hover {
+  text-decoration: underline;
+  text-decoration-line: #98387b;
+  
+  cursor: pointer;
+}
 </style>
 
 <script>
@@ -181,20 +198,23 @@ export default {
       this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
     }
 
-    let groupList =[]
-    this.contact.GroupUUIDs.forEach(element => {
-      let group = _.find(this.groupList,  { 'UUID': element } )
-      if (group) {
-
-        groupList.push(group.Name)
-      }
-    })
-    this.groupFilteredList = groupList
+    
 
     
   },
   watch: {
+    'contact': function() {
+      let groupList =[]
+      this.contact.GroupUUIDs.forEach(element => {
+        let group = _.find(this.groupList,  { 'UUID': element } )
+        if (group) {
 
+            groupList.push(group.Name)
+          }
+        })
+
+      this.groupFilteredList = groupList      
+    },
   },
   computed: {
     'groupList': function () {
@@ -213,6 +233,11 @@ export default {
   methods: {
     enableEditContact() {
       this.$store.dispatch('contacts/enableEditContact')
+    },
+    setCurrentGroup (sGroupName) {
+      let oGroup = _.find(this.groupList,  { 'Name': sGroupName } )
+      this.$store.dispatch('contacts/getContactByUUID', null)
+      this.$store.commit('contacts/setCurrentGroup', oGroup)
     },
   },
 }

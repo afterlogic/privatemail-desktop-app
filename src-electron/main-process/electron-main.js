@@ -1,12 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import _ from 'lodash'
 
-import foldersDbManager from './db-managers/folders.js'
-import foldersManager from './managers/folders.js'
-import messagesDbManager from './db-managers/messages.js'
-import contactsDbManager from './db-managers/contacts.js'
+import foldersManager from './mail/folders-manager.js'
+import foldersDbManager from './mail/folders-db-manager.js'
+import messagesDbManager from './mail/messages-db-manager.js'
 
-import contactsManager from './managers/contacts.js'
+import contactsManager from './contacts/manager.js'
+import contactsDbManager from './contacts/db-manager.js'
 
 /**
  * Set `__statics` path to static files in production;

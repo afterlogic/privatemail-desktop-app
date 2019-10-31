@@ -3,7 +3,7 @@ import _ from 'lodash'
 
 import typesUtils from '../../../src/utils/types.js'
 
-import contactsDbManager from '../db-managers/contacts.js'
+import contactsDbManager from '../contacts/db-manager.js'
 
 import webApi from '../webApi.js'
 

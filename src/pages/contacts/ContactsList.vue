@@ -46,6 +46,7 @@
 <script>
 export default {
   name: 'ContactsList',
+
   data() {
     return {
       page: 1,
@@ -54,35 +55,38 @@ export default {
     }
   },
 
-  mounted: function() {
-    this.$store.dispatch('contacts/asyncGetStorages')
-  },
-
   watch: {
     currentStorage: function() {
-      this.startAsyncGetContacts()
+      this.startAsyncGetContacts(true)
+    },
+    currentGroupUUID: function() {
+      this.startAsyncGetContacts(true)
     },
     hasChanges: function () {
       if (this.hasChanges) {
-        this.startAsyncGetContacts()
+        this.startAsyncGetContacts(false)
       }
     },
   },
 
   computed: {
+    currentStorage() {
+      return this.$store.getters['contacts/getCurrentStorage']
+    },
+    currentGroupUUID() {
+      return this.$store.getters['contacts/getCurrentGroupUUID']
+    },
     hasChanges() {
       return this.$store.getters['contacts/getHasChanges']
     },
     contacts() {
       return this.$store.getters['contacts/getContacts']
     },
-    currentStorage() {
-      return this.$store.getters['contacts/getCurrentStorage']
-    },
   },
 
   methods: {
-    startAsyncGetContacts () {
+    startAsyncGetContacts (bResetPage) {
+      this.page = 1
       this.$store.dispatch('contacts/asyncGetContacts', { iPage: this.page, iPerPage: this.perPage })
     },
     getContactByUUID(UUID) {

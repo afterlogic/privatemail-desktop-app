@@ -18,7 +18,6 @@ ipcRenderer.on('contacts-get-storages', (event, { aStorages, oError }) => {
 })
 
 ipcRenderer.on('contacts-get-groups', (event, { aGroups, oError }) => {
-  console.log('on contacts-get-groups', { aGroups, oError })
   if (_.isArray(aGroups)) {
     store.commit('contacts/setGroups', _.map(aGroups, function (oGroupData) {
       return new CGroup(oGroupData)
@@ -57,8 +56,15 @@ export function asyncGetGroups({ state, commit, dispatch, getters }) {
 export function asyncGetContacts({ state, commit, dispatch, getters }, { iPage, iPerPage }) {
   if (getters.getCurrentStorage) {
     store.commit('contacts/setSyncing', true)
+    let oGroup = getters.getCurrentGroup
+    let sGroupUUID = oGroup && oGroup.group ? oGroup.group.UUID : ''
+    let sStorage = getters.getCurrentStorage
+    if (sGroupUUID !== '') {
+      sStorage = 'all'
+    }
     ipcRenderer.send('contacts-get-contacts', {
-      sStorage: getters.getCurrentStorage,
+      sStorage,
+      sGroupUUID,
       iPerPage,
       iPage,
     })
@@ -100,12 +106,6 @@ export function saveChangesCurrentContact({ state, commit, dispatch, getters }, 
 
 export function logout ({ commit }) {
   commit('setStorages', [])
-}
-
-export function getCurrentGroup({ state, commit, dispatch, getters }, UUID) {
-  let group = state.currentGroup.group
-
-  commit('setCurrentGroup', group)
 }
 
 export function enableEditGroup({ state, commit, dispatch, getters }) {

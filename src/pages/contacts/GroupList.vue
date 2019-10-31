@@ -3,7 +3,7 @@
     <q-item v-for="storage in storageList" :key="storage.name"
       clickable
       v-ripple
-      :class="{active: storage.name === currentStorage}"
+      :class="{active: currentGroupUUID === '' && storage.name === currentStorage}"
       @click="setCurrentStorage(storage.name)"
     >
       <!-- <q-item-section avatar>
@@ -15,7 +15,10 @@
     <q-separator />
     <q-item-label header>Groups</q-item-label>
 
-    <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="setCurrentGroup(group)">
+    <q-item clickable v-ripple v-for="group in groupList" :key="group.UUID"
+      :class="{active: group.UUID === currentGroupUUID}"
+      @click="setCurrentGroup(group)"
+    >
       <q-item-section avatar>
         <q-icon name="folder" />
       </q-item-section>
@@ -32,15 +35,9 @@
 </style>
 
 <script>
-// import { groups } from '../../contactsData.js'
-
 export default {
   name: 'GroupList',
-  data() {
-    return {
-      currentGroup: '',
-    }
-  },
+
   computed: {
     'storageList': function () {
       return this.$store.getters['contacts/getStorageList']
@@ -48,25 +45,27 @@ export default {
     'currentStorage': function () {
       return this.$store.getters['contacts/getCurrentStorage']
     },
-    'groupsList': function() {
-      return  this.$store.getters['contacts/getGroups']      
+    'currentGroupUUID': function () {
+      return this.$store.getters['contacts/getCurrentGroupUUID']
+    },
+    'groupList': function() {
+      return this.$store.getters['contacts/getGroups']
     },
   },
+
   mounted: function() {
-    // this.groupsList = this.$store.getters['contacts/getCurrentStorage']
-    this.getGroups();
-    console.log(this.groupsList)
+    this.$store.dispatch('contacts/asyncGetStorages')
+    this.$store.dispatch('contacts/asyncGetGroups')
   },
+
   methods: {
     setCurrentStorage (sStorage) {
       this.$store.commit('contacts/setCurrentStorage', sStorage)
+      this.$store.commit('contacts/setCurrentGroup', null)
     },
     setCurrentGroup (oGroup) {
       this.$store.dispatch('contacts/getContactByUUID', null)
       this.$store.commit('contacts/setCurrentGroup', oGroup)
-    },
-    getGroups() {
-      console.log(this.$store.dispatch('contacts/asyncGetGroups'))
     },
   },
 }

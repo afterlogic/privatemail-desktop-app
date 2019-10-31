@@ -105,14 +105,8 @@
             </div>
             
             <q-item-label style="margin: 30px 0px 30px 20px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;">Groups</q-item-label>
-            <div class="groups">
-              
-              <!-- <div class="q-gutter-sm" v-for="item in contact">
-                <q-checkbox v-model="selection" val="teal" label="Teal" color="teal" />
-                <q-checkbox v-model="selection" val="orange" label="Orange" color="orange" />
-                <q-checkbox v-model="selection" val="red" label="Red" color="red" />
-                <q-checkbox v-model="selection" val="cyan" label="Cyan" color="cyan" />
-              </div> -->
+            <div class="groups">             
+              <q-checkbox v-model="groupFilteredList" v-for="group in groupList" :key="group.id" :val="group.UUID" :label="group.Name"/>
             </div>
         
         
@@ -203,6 +197,7 @@ export default {
       oPrimaryPhone: null,
       oPrimaryAddress: null,
       date: '',
+      groupFilteredList: [],
     }
   },
 
@@ -210,6 +205,7 @@ export default {
     let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
     let oContact = _.cloneDeep(ContactByUUID.contact)
     this.oContact = (oContact && oContact instanceof CContact) ? oContact : null
+    // console.log('uuids', this.oContact.GroupUUIDs)
 
     this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})
     this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
@@ -223,6 +219,9 @@ export default {
     this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
     this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : '0' + this.oContact.BirthDay
     this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
+
+    this.setFilteredGroups()
+
   },
   beforeDestroy: function () {
     this.disableEditContact()
@@ -241,6 +240,11 @@ export default {
     'oPrimaryAddress': function (v) {
       if (v) {
         this.oContact.PrimaryAddress = v.value
+      }
+    },
+    'groupFilteredList': function (v) {
+      if (v) {
+        this.oContact.GroupUUIDs = v        
       }
     },
   },
@@ -289,7 +293,10 @@ export default {
       }
 
       return aOptions
-    }
+    },
+    'groupList': function () {
+        return this.$store.getters['contacts/getGroups']
+    },
   },
 
   methods: {
@@ -313,6 +320,21 @@ export default {
     changeSmallEditView() {
       this.bSmallEditView = !this.bSmallEditView
     },
+    
+    setFilteredGroups() {
+      let groupList =[]
+        
+      this.oContact.GroupUUIDs.forEach(element => {
+        let group = _.find(this.groupList,  { 'UUID': element } )
+        if (group) {
+
+            groupList.push(group.UUID)
+          }
+        })
+
+      this.groupFilteredList = groupList
+    },
+
     console () {
       console.log(this.date)
     }

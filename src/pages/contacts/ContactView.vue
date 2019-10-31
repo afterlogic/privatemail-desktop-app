@@ -66,7 +66,7 @@
             <q-item-label class="info-line" v-if="contact.OtherEmail">Other E-mail: {{ contact.OtherEmail }}</q-item-label>
             <q-item-label class="info-line" v-if="contact.Notes">Notes: {{ contact.Notes }}</q-item-label>
 
-            <q-item-label class="paragraph-heads">Groups</q-item-label>
+            <q-item-label v-if="groupFilteredList" class="paragraph-heads">Groups</q-item-label>
 
             <div v-if="groupFilteredList" class="groups">
               <a v-for="(group,index) in groupFilteredList" :key="group.id" class="group" @click="setCurrentGroup(group)">{{group}}<span v-if="index+1 < groupFilteredList.length">,</span></a>

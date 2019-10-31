@@ -198,22 +198,13 @@ export default {
       this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
     }
 
-    
+    this.setFilteredGroups()
 
     
   },
   watch: {
     'contact': function() {
-      let groupList =[]
-      this.contact.GroupUUIDs.forEach(element => {
-        let group = _.find(this.groupList,  { 'UUID': element } )
-        if (group) {
-
-            groupList.push(group.Name)
-          }
-        })
-
-      this.groupFilteredList = groupList      
+      this.setFilteredGroups()
     },
   },
   computed: {
@@ -238,6 +229,18 @@ export default {
       let oGroup = _.find(this.groupList,  { 'Name': sGroupName } )
       this.$store.dispatch('contacts/getContactByUUID', null)
       this.$store.commit('contacts/setCurrentGroup', oGroup)
+    },
+    setFilteredGroups() {
+      let groupList =[]
+      this.contact.GroupUUIDs.forEach(element => {
+        let group = _.find(this.groupList,  { 'UUID': element } )
+        if (group) {
+
+            groupList.push(group.Name)
+          }
+        })
+
+      this.groupFilteredList = groupList
     },
   },
 }

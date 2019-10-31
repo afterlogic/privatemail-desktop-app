@@ -4,15 +4,26 @@ import store from 'src/store'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
-import CContact from '../../modules/contacts/classes/CContact'
-import cGroup from '../../modules/contacts/classes/CGroup'
 import webApi from '../../../src-electron/main-process/webApi'
+
+import CContact from '../../modules/contacts/classes/CContact'
+import CGroup from '../../modules/contacts/classes/CGroup'
 
 ipcRenderer.on('contacts-get-storages', (event, { aStorages, oError }) => {
   if (_.isArray(aStorages)) {
     store.commit('contacts/setStorages', aStorages)
   } else {
     notification.showError(errors.getText(oError, 'Error occurred while getting storages'))
+  }
+})
+
+ipcRenderer.on('contacts-get-groups', (event, { aGroups, oError }) => {
+  if (_.isArray(aGroups)) {
+    store.commit('contacts/setGroups', _.map(aGroups, function (oGroupData) {
+      return new CGroup(oGroupData)
+    }))
+  } else {
+    notification.showError(errors.getText(oError, 'Error occurred while getting groups'))
   }
 })
 
@@ -35,11 +46,25 @@ export function asyncGetStorages({ state, commit, dispatch, getters }) {
   })
 }
 
+export function asyncGetGroups({ state, commit, dispatch, getters }) {
+  ipcRenderer.send('contacts-get-groups', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+  })
+}
+
 export function asyncGetContacts({ state, commit, dispatch, getters }, { iPage, iPerPage }) {
   if (getters.getCurrentStorage) {
     store.commit('contacts/setSyncing', true)
+    let oGroup = getters.getCurrentGroup
+    let sGroupUUID = oGroup && oGroup.group ? oGroup.group.UUID : ''
+    let sStorage = getters.getCurrentStorage
+    if (sGroupUUID !== '') {
+      sStorage = 'all'
+    }
     ipcRenderer.send('contacts-get-contacts', {
-      sStorage: getters.getCurrentStorage,
+      sStorage,
+      sGroupUUID,
       iPerPage,
       iPage,
     })
@@ -79,38 +104,11 @@ export function saveChangesCurrentContact({ state, commit, dispatch, getters }, 
   commit('saveChangesCurrentContact', savedContact, index)
 }
 
-export function logout ({ commit }) {
+export function logout ({ commit, dispatch }) {
   commit('setStorages', [])
-}
-
-export function asyncGetGroups({ state, commit, dispatch, getters }) {
-  webApi.sendRequest({
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-    sModule: 'Contacts',
-    sMethod: 'GetGroups',
-    oParameters: {},
-    fCallback: (aResult, oError) => {
-      if (aResult) {
-        let aGroups = []
-    
-        aResult.forEach(element => {
-          let group = new cGroup(element)
-          aGroups.push(group)
-        })
-    
-        store.commit('contacts/setGroups', aGroups)
-      } else {
-        notification.showError(errors.getText({}, 'Error occurred while getting contacts'))
-      }
-    },
-  })
-}
-
-export function getCurrentGroup({ state, commit, dispatch, getters }, UUID) {
-  let group = state.currentGroup.group
-
-  commit('setCurrentGroup', group)
+  commit('setGroups', [])
+  commit('setCurrentGroup', null)
+  dispatch('getContactByUUID', null)
 }
 
 export function enableEditGroup({ state, commit, dispatch, getters }) {

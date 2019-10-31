@@ -3,7 +3,7 @@ import _ from 'lodash'
 
 import typesUtils from '../../../src/utils/types.js'
 
-import contactsDbManager from '../db-managers/contacts.js'
+import contactsDbManager from '../contacts/db-manager.js'
 
 import webApi from '../webApi.js'
 
@@ -24,7 +24,7 @@ export default {
                   oEvent.sender.send('contacts-get-storages', { aStorages: aStoragesFromApi })
                   contactsDbManager.setStorages({ aStorages: aStoragesFromApi })
                 }
-              } else if (oError) {
+              } else {
                 oEvent.sender.send('contacts-get-storages', { oError })
               }
             },
@@ -36,8 +36,35 @@ export default {
       )
     })
 
-    ipcMain.on('contacts-get-contacts', (oEvent, { sStorage, iPerPage, iPage }) => {
-      contactsDbManager.getContacts({ sStorage, iPerPage, iPage }).then(
+    ipcMain.on('contacts-get-groups', (oEvent, { sApiHost, sAuthToken }) => {
+      contactsDbManager.getGroups({}).then(
+        (aGroupsFromDb) => {
+          oEvent.sender.send('contacts-get-groups', { aGroups: typesUtils.pArray(aGroupsFromDb) })
+          webApi.sendRequest({
+            sApiHost,
+            sAuthToken,
+            sModule: 'Contacts',
+            sMethod: 'GetGroups',
+            fCallback: (aGroupsFromApi, oError) => {
+              if (typesUtils.isNonEmptyArray(aGroupsFromApi)) {
+                if (!_.isEqual(aGroupsFromApi, aGroupsFromDb)) {
+                  oEvent.sender.send('contacts-get-groups', { aGroups: aGroupsFromApi })
+                  contactsDbManager.setGroups({ aGroups: aGroupsFromApi })
+                }
+              } else {
+                oEvent.sender.send('contacts-get-groups', { oError })
+              }
+            },
+          })
+        },
+        (oError) => {
+          oEvent.sender.send('contacts-get-groups', { oError })
+        }
+      )
+    })
+
+    ipcMain.on('contacts-get-contacts', (oEvent, { sStorage, sGroupUUID, iPerPage, iPage }) => {
+      contactsDbManager.getContacts({ sStorage, sGroupUUID, iPerPage, iPage }).then(
         (aContactsFromDb) => {
           oEvent.sender.send('contacts-get-contacts', { aContacts: typesUtils.pArray(aContactsFromDb) })
         },

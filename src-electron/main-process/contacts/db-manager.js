@@ -60,6 +60,65 @@ let aContactsDbFields = [
   {Name: 'GroupUUIDs', DbName: 'group_uuids', Type: 'TEXT', IsArray: true},
 ]
 
+let aGroupsDbFields = [
+  {Name: 'City', DbName: 'city', Type: 'TEXT'},
+  {Name: 'Company', DbName: 'company', Type: 'TEXT'},
+  {Name: 'Country', DbName: 'country', Type: 'TEXT'},
+  {Name: 'DavContacts::UID', DbName: 'dav_Contacts_uid', Type: 'TEXT'},
+  {Name: 'Email', DbName: 'email', Type: 'TEXT'},
+  {Name: 'EntityId', DbName: 'entityId', Type: 'INTEGER'},
+  {Name: 'Fax', DbName: 'fax', Type: 'TEXT'},
+  {Name: 'IdUser', DbName: 'id_user', Type: 'INTEGER'},
+  {Name: 'IsOrganization', DbName: 'is_organization', Type: 'INTEGER', IsBool: true},
+  {Name: 'Name', DbName: 'name', Type: 'TEXT'},
+  {Name: 'ParentUUID', DbName: 'parent_uuid', Type: 'TEXT'},
+  {Name: 'Phone', DbName: 'phone', Type: 'TEXT'},
+  {Name: 'State', DbName: 'state', Type: 'TEXT'},
+  {Name: 'Street', DbName: 'street', Type: 'TEXT'},
+  {Name: 'UUID', DbName: 'uuid', Type: 'TEXT'},
+  {Name: 'Web', DbName: 'web', Type: 'TEXT'},
+  {Name: 'Zip', DbName: 'zip', Type: 'TEXT'},
+]
+
+function _prepareDataFromDb (aRows, aDbFieldsData) {
+  let aItems = []
+  _.each(aRows, function (oRow) {
+    if (typesUtils.isNonEmptyObject(oRow)) {
+      let oItem = {}
+      _.each(aDbFieldsData, function (oItemDbField) {
+        let mDbItem = oRow[oItemDbField.DbName]
+        if (oItemDbField.IsBool) {
+          oItem[oItemDbField.Name] = !!mDbItem
+        } else if (oItemDbField.IsArray) {
+          let aValue = []
+          let sValue = mDbItem
+          if (typesUtils.isNonEmptyString(sValue)) {
+            aValue = JSON.parse(sValue)
+          }
+          oItem[oItemDbField.Name] = aValue
+        } else {
+          oItem[oItemDbField.Name] = mDbItem
+        }
+      })
+      aItems.push(oItem)
+    }
+  })
+  return aItems
+}
+
+function _prepareInsertParams (oItem, aDbFieldsData) {
+  let aParams = []
+  _.each(aDbFieldsData, function (oDbField) {
+    if (oDbField.IsArray) {
+      let aValue = typesUtils.pArray(oItem[oDbField.Name])
+      aParams.push(JSON.stringify(aValue))
+    } else {
+      aParams.push(oItem[oDbField.Name])
+    }
+  })
+  return aParams
+}
+
 export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
@@ -73,6 +132,12 @@ export default {
         })
         let sContactsFields = aContactsFields.join(', ')
         oDb.run('CREATE TABLE IF NOT EXISTS contacts (' + sContactsFields + ')')
+
+        let aGroupsFields = _.map(aGroupsDbFields, function (oGroupDbFields) {
+          return oGroupDbFields.DbName + ' ' + oGroupDbFields.Type
+        })
+        let sGroupsFields = aGroupsFields.join(', ')
+        oDb.run('CREATE TABLE IF NOT EXISTS contacts_groups (' + sGroupsFields + ')')
       })
     }
   },
@@ -125,6 +190,57 @@ export default {
         )
       } else {
         reject({ sMethod: 'setStorages', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  getGroups: function ({}) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.all('SELECT * FROM contacts_groups ORDER BY name COLLATE NOCASE ASC',
+        [],
+        function(oError, aRows) {
+            if (oError) {
+              reject({ sMethod: 'getGroups', oError })
+            } else {
+              let aGroups = _prepareDataFromDb(aRows, aGroupsDbFields)
+              resolve(aGroups)
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getGroups', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setGroups: function ({ aGroups }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function() {
+          let oStatement = oDb.prepare('DELETE FROM contacts_groups')
+          oStatement.run()
+          oStatement.finalize()
+        })
+
+        let sFieldsDbNames = _.map(aGroupsDbFields, function (oGroupDbField) {
+          return oGroupDbField.DbName
+        }).join(', ')
+        let sQuestions = aGroupsDbFields.map(function(){ return '?' }).join(',')
+        let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+        _.each(aGroups, function (oGroup) {
+          let aParams = _prepareInsertParams(oGroup, aGroupsDbFields)
+          oStatement.run.apply(oStatement, aParams)
+        })
+        oStatement.finalize(function (oError) {
+          if (oError) {
+            reject({ sMethod: 'setGroups', oError })
+          } else {
+            resolve()
+          }
+        })
+      } else {
+        reject({ sMethod: 'setGroups', sError: 'No DB connection' })
       }
     })
   },
@@ -255,15 +371,7 @@ export default {
           sQuestions = aContactsDbFields.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('INSERT INTO contacts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
           _.each(aContacts, function (oContact) {
-            let aParams = []
-            _.each(aContactsDbFields, function (oContactDbField) {
-              if (oContactDbField.IsArray) {
-                let aValue = typesUtils.pArray(oContact[oContactDbField.Name])
-                aParams.push(JSON.stringify(aValue))
-              } else {
-                aParams.push(oContact[oContactDbField.Name])
-              }
-            })
+            let aParams = _prepareInsertParams(oContact, aContactsDbFields)
             oStatement.run.apply(oStatement, aParams)
           })
           oStatement.finalize(function (oError) {
@@ -280,36 +388,27 @@ export default {
     })
   },
 
-  getContacts: function ({ sStorage, iPerPage, iPage }) {
+  getContacts: function ({ sStorage, sGroupUUID, iPerPage, iPage }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.all('SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?',
-        [sStorage, iPerPage, iPerPage * (iPage - 1)],
+        let sSql = 'SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+        let aParams = [sStorage, iPerPage, iPerPage * (iPage - 1)]
+        if (sStorage === 'all') {
+          if (sGroupUUID === '') {
+            sSql = 'SELECT * FROM contacts ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+            aParams = [iPerPage, iPerPage * (iPage - 1)]
+          } else {
+            sSql = 'SELECT * FROM contacts WHERE group_uuids LIKE ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+            aParams = ['%"' + sGroupUUID + '"%', iPerPage, iPerPage * (iPage - 1)]
+          }
+        }
+        oDb.all(sSql,
+        aParams,
         function(oError, aRows) {
             if (oError) {
               reject({ sMethod: 'getContacts', oError })
             } else {
-              let aContacts = []
-              _.each(aRows, function (oRow) {
-                if (typesUtils.isNonEmptyObject(oRow) && oRow.storage === sStorage) {
-                  let oContact = {}
-                  _.each(aContactsDbFields, function (oContactDbField) {
-                    if (oContactDbField.IsBool) {
-                      oContact[oContactDbField.Name] = !!oRow[oContactDbField.DbName]
-                    } else if (oContactDbField.IsArray) {
-                      let aValue = []
-                      let sValue = oRow[oContactDbField.DbName]
-                      if (typesUtils.isNonEmptyString(sValue)) {
-                        aValue = JSON.parse(sValue)
-                      }
-                      oContact[oContactDbField.Name] = aValue
-                    } else {
-                      oContact[oContactDbField.Name] = oRow[oContactDbField.DbName]
-                    }
-                  })
-                  aContacts.push(oContact)
-                }
-              })
+              let aContacts = _prepareDataFromDb(aRows, aContactsDbFields)
               resolve(aContacts)
             }
           }

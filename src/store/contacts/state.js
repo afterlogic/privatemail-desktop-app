@@ -24,6 +24,6 @@ export default {
   groups: [],
   currentGroup: {
     editable: null,
-    group: {},
+    group: null,
   },
 }

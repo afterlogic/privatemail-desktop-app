@@ -29,6 +29,9 @@ CStorages.prototype.parse = function (mData) {
     this.storages = mData
     let sCurrentStorage = this.currentStorage
     if (this.storages.length > 0) {
+      if (this.storages.length > 1) {
+        this.storages.push('all')
+      }
       if (_.indexOf(this.storages, this.currentStorage) === -1) {
         if (_.indexOf(this.storages, 'personal') !== -1) {
           sCurrentStorage = 'personal'

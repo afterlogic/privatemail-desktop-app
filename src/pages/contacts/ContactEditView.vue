@@ -101,11 +101,11 @@
             
             <div class="input-line"> <label  style="flex-grow: 1">Other E-mail:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.OtherEmail" :dense=true></q-input></div>
             <div class="input-line"> <label  style="flex-grow: 1">Notes:</label>
-                <q-input  style="flex-grow: 2; max-width: 65%; min-height: 36px;" outlined :dense=true v-model="oContact.Notes"  type="textarea"/>
+              <q-input  style="flex-grow: 2; max-width: 65%; min-height: 36px;" outlined :dense=true v-model="oContact.Notes"  type="textarea"/>
             </div>
             
             <q-item-label style="margin: 30px 0px 30px 20px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;">Groups</q-item-label>
-            <div class="groups">             
+            <div class="groups">
               <q-checkbox v-model="groupFilteredList" v-for="group in groupList" :key="group.id" :val="group.UUID" :label="group.Name"/>
             </div>
         

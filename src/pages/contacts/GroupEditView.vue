@@ -10,16 +10,21 @@
         <div class="q-gutter-sm toggle-organization">
           <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
         </div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Email:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Email" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Street:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
+        <div v-if="bIsOrganization">
+          <div class="input-line">
+            <label>Email:</label>
+            <q-input outlined :dense=true v-model="oCurrentGroup.Email"></q-input>
+          </div>
+          <div class="input-line"> <label style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">Street:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
         
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Zip:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
-        <div v-if="bIsOrganization" class="input-line"> <label  style="flex-grow: 1">Web:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">Zip:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
+          <div class="input-line"> <label style="flex-grow: 1">Web:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
+        </div>
       </div>
       <div class="buttons">
         <q-btn color="primary" style="margin: 10px;" label="Save" @click="onSave"/>
@@ -29,12 +34,20 @@
   </div>
 </template>
 
-<style>
+<style lang="scss">
 .input-line {
   align-items: center;
   padding: 10px 20px;
   display: flex;
   justify-content: space-between;
+
+  & > label {
+    flex-grow: 1;
+  }
+  .q-input {
+    flex-grow: 2;
+    max-width: 65%;
+  }
 }
 
 .editField {

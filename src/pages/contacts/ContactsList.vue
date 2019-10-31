@@ -1,47 +1,30 @@
 <template>
   <q-list>
-    <q-item v-for="contact in contacts.list" :key="contact.UUID" class="q-my-sm" clickable @click="getContactByUUID(contact.UUID)" v-ripple>
-      <!-- <q-item-section avatar>
-          <q-avatar color="primary" text-color="white">
-            {{ contact.Letter }}
-          </q-avatar>
-      </q-item-section>-->
-
-      <q-checkbox v-model="checkboxVal" />
-
-      <q-item-section >
-        <q-item-label>{{ contact.FullName }}</q-item-label>
-        <q-item-label caption lines="1">{{ contact.ViewEmail }}</q-item-label>
-      </q-item-section>
-
-      <!-- <q-item-section side>
-          <q-icon name="chat_bubble" color="green" />
-      </q-item-section>-->
-    </q-item>
-
-    <!-- <q-separator />
-    <q-item-label header>Offline</q-item-label>-->
-
-    <!-- <q-item v-for="contact in contactsOfflineList" :key="contact.id" class="q-mb-sm" clickable v-ripple>
-        <q-item-section avatar>
-          <q-avatar>
-            <img :src="`https://cdn.quasar.dev/img/${contact.avatar}`">
-          </q-avatar>
+    {{checkboxVal}}
+    <div v-for="contact in contacts.list" :key="contact.UUID" >
+      <q-item clickable v-ripple class="checked" @click="getContactByUUID(contact.UUID)" :class="{'selected': checkboxVal.find(contact.UUID)}">
+        <q-item-section side class="items-center">
+          <q-checkbox v-model="checkboxVal" :val="contact.UUID" />
         </q-item-section>
-
         <q-item-section>
-          <q-item-label>{{ contact.name }}</q-item-label>
-          <q-item-label caption lines="1">{{ contact.email }}</q-item-label>
+          <q-item-label lines="1">{{ contact.FullName !== '' ? contact.FullName : 'No name' }}</q-item-label>
+          <q-item-label lines="2">{{ contact.ViewEmail !== '' ? contact.ViewEmail : 'No email address' }}</q-item-label>
         </q-item-section>
-
-        <q-item-section side>
-          <q-icon name="chat_bubble" color="grey" />
-        </q-item-section>
-    </q-item>-->
+      </q-item>
+      <q-separator />
+    </div>
   </q-list>
 </template>
 
-<style></style>
+<style >
+hr.checked {
+  background: #d6d6a9;
+}
+
+hr.selected {
+  background: #6d5d7e;
+}
+</style>
 
 <script>
 export default {
@@ -51,7 +34,7 @@ export default {
     return {
       page: 1,
       perPage: 20,
-      checkboxVal: false,
+      checkboxVal: [],
     }
   },
 

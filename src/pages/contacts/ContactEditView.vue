@@ -4,21 +4,54 @@
       <h2> Edit Contact</h2>
       <q-scroll-area style="height: 640px; max-width: 100%;"  class="editField" :thumb-style="{left: '100%', borderRadius: '5px', background: 'rgb(187, 192, 195)', width: '7px', opacity: 1 }" >
         <div v-if="bSmallEditView">
-          <div class="input-line"> <label  style="flex-grow: 1">Display name:</label><q-input  style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true ></q-input></div>
+          <div class="input-line">
+            <label style="flex-grow: 1">Display name:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true ></q-input>
+          </div>
 
-          <div class="input-line" v-if="oContact.PrimaryEmail === 0"> <label  style="flex-grow: 1">Email:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalEmail" :dense=true></q-input></div>
-          <div class="input-line" v-if="oContact.PrimaryEmail === 1"> <label  style="flex-grow: 1">Email:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessEmail" :dense=true></q-input></div>
-          <div class="input-line" v-if="oContact.PrimaryEmail === 2"> <label  style="flex-grow: 1">Email:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.OtherEmail" :dense=true></q-input></div>
+          <div class="input-line" v-if="oContact.PrimaryEmail === 0">
+            <label style="flex-grow: 1">Email:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalEmail" :dense=true></q-input>
+          </div>
+          <div class="input-line" v-if="oContact.PrimaryEmail === 1">
+            <label style="flex-grow: 1">Email:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessEmail" :dense=true></q-input>
+          </div>
+          <div class="input-line" v-if="oContact.PrimaryEmail === 2">
+            <label style="flex-grow: 1">Email:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.OtherEmail" :dense=true></q-input>
+          </div>
 
-          <div class="input-line" v-if="oContact.PrimaryPhone === 0"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalMobile" :dense=true></q-input></div>
-          <div class="input-line" v-if="oContact.PrimaryPhone === 1"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalPhone" :dense=true></q-input></div>
-          <div class="input-line" v-if="oContact.PrimaryPhone === 2"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessPhone" :dense=true></q-input></div>
+          <div class="input-line" v-if="oContact.PrimaryPhone === 0">
+            <label style="flex-grow: 1">Phone:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalMobile" :dense=true></q-input>
+          </div>
+          <div class="input-line" v-if="oContact.PrimaryPhone === 1">
+            <label style="flex-grow: 1">Phone:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalPhone" :dense=true></q-input>
+          </div>
+          <div class="input-line" v-if="oContact.PrimaryPhone === 2">
+            <label style="flex-grow: 1">Phone:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessPhone" :dense=true></q-input>
+          </div>
 
-          <div class="input-line" v-if="oContact.PrimaryAddress === 0"> <label  style="flex-grow: 1">Address:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalAddress" :dense=true></q-input></div>
-          <div class="input-line" v-if="oContact.PrimaryAddress === 1"> <label  style="flex-grow: 1">Address:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessAddress" :dense=true></q-input></div>
+          <div class="input-line" v-if="oContact.PrimaryAddress === 0">
+            <label style="flex-grow: 1">Address:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalAddress" :dense=true></q-input>
+          </div>
+          <div class="input-line" v-if="oContact.PrimaryAddress === 1">
+            <label style="flex-grow: 1">Address:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessAddress" :dense=true></q-input>
+          </div>
           
-          <div class="input-line "> <label  style="flex-grow: 1">Skype:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Skype" :dense=true></q-input></div>
-          <div class="input-line"> <label  style="flex-grow: 1">Facebook:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Facebook" :dense=true></q-input></div>
+          <div class="input-line ">
+            <label style="flex-grow: 1">Skype:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Skype" :dense=true></q-input>
+          </div>
+          <div class="input-line">
+            <label style="flex-grow: 1">Facebook:</label>
+            <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Facebook" :dense=true></q-input>
+          </div>
           <div class="container-link">
             <a class="link" @click="changeSmallEditView">Show additional fields</a>
           </div>
@@ -26,68 +59,155 @@
         <div  v-else>
         
         
-            <div class="input-line"> <label  style="flex-grow: 1">Display name:</label><q-input  style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Display name:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" class="" outlined v-model="oContact.FullName" :dense=true></q-input>
+            </div>
             <div class="input-line" >
-               <label  style="flex-grow: 1">Email:</label>
+               <label style="flex-grow: 1">Email:</label>
               <q-select v-if="aPrimaryMailOptions.length" outlined v-model="oPrimaryEmail" :options="aPrimaryMailOptions" dense />
               <div v-else><label style="flex-grow: 2"> Not specified yet</label></div>
             </div>
             <div class="input-line">
-               <label  style="flex-grow: 1">Phone:</label>
+               <label style="flex-grow: 1">Phone:</label>
               <q-select outlined v-if="aPrimaryPhoneOptions.length" v-model="oPrimaryPhone" :options="aPrimaryPhoneOptions" dense />     
               <div v-else><label style="flex-grow: 2"> Not specified yet</label></div>
             </div>
             <div class="input-line">
-               <label  style="flex-grow: 1">Address:</label>
+               <label style="flex-grow: 1">Address:</label>
               <q-select v-if="aPrimaryAddressOptions.length" outlined v-model="oPrimaryAddress" :options="aPrimaryAddressOptions" dense />
               <div v-else><label style="flex-grow: 2"> Not specified yet</label></div>
             </div>
-            <div class="input-line"> <label  style="flex-grow: 1">Skype:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Skype" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Facebook:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Facebook" :dense=true></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Skype:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Skype" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Facebook:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.Facebook" :dense=true></q-input>
+            </div>
             <div class="container-link">
               <a class="link" @click="changeSmallEditView">Hide additional fields</a>
             </div>
-            <div class="input-line"> <label  style="flex-grow: 1">First name:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.FirstName" :dense=true ></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">First name:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.FirstName" :dense=true ></q-input>
+            </div>
             
-            <div class="input-line"> <label  style="flex-grow: 1">Last name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.LastName" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Nickname:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.NickName" :dense=true></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Last name:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.LastName" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Nickname:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.NickName" :dense=true></q-input>
+            </div>
             
             <q-item-label style="margin: 30px 0px 30px 20px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;">Home</q-item-label>
 
-            <div class="input-line"> <label  style="flex-grow: 1">Personal E-mail:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalEmail" :dense=true> </q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Street Address:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalAddress" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalCity" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">State/Province:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalState" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Zip Code:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalZip" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Country/Region:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalCountry" :dense=true></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Personal E-mail:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalEmail" :dense=true> </q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Street Address:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalAddress" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">City:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalCity" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">State/Province:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalState" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Zip Code:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalZip" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Country/Region:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalCountry" :dense=true></q-input>
+            </div>
             
-            <div class="input-line"> <label  style="flex-grow: 1">Web Page:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalWeb" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalFax" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalPhone" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Mobile:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalMobile" :dense=true></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Web Page:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalWeb" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Fax:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalFax" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Phone:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalPhone" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Mobile:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.PersonalMobile" :dense=true></q-input>
+            </div>
 
             <q-item-label style="margin: 30px 0px 30px 20px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;">Business</q-item-label>
 
-            <div class="input-line"> <label  style="flex-grow: 1">Business E-mail:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessEmail" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessCompany" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Department:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessDepartment" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Job Title:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessJobTitle" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Office:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessOffice" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Street Address:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessAddress" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessCity" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">State/Province:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessState" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Zip Code:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessZip" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Country/Region:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessCountry" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Web Page:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessWeb" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessFax" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessPhone" :dense=true></q-input></div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Business E-mail:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessEmail" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Company:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessCompany" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Department:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessDepartment" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Job Title:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessJobTitle" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Office:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessOffice" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Street Address:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessAddress" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">City:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessCity" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">State/Province:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessState" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Zip Code:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessZip" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Country/Region:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessCountry" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Web Page:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessWeb" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Fax:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessFax" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Phone:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.BusinessPhone" :dense=true></q-input>
+            </div>
 
             <q-item-label style="margin: 30px 0px 30px 20px; font-size: 10.5pt; color: #3d3d3d; font-weight: 600;">Other</q-item-label>
 
             <div class="input-line">
-               <label  style="flex-grow: 1">Birthday:</label>
+               <label style="flex-grow: 1">Birthday:</label>
               <!-- <div class="q-pa-md" style="max-width: 55.5%; margin: 15px -16px 0px 0px;"> -->
-                <q-input  style="flex-grow: 2; max-width: 65%" outlined dense v-model="date" mask="date" :rules="['date']" @change="console">
+                <q-input style="flex-grow: 2; max-width: 65%" outlined dense v-model="date" mask="date" :rules="['date']" @change="console">
                   <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -99,8 +219,12 @@
               <!-- </div> -->
             </div>
             
-            <div class="input-line"> <label  style="flex-grow: 1">Other E-mail:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.OtherEmail" :dense=true></q-input></div>
-            <div class="input-line"> <label  style="flex-grow: 1">Notes:</label>
+            <div class="input-line">
+              <label style="flex-grow: 1">Other E-mail:</label>
+              <q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oContact.OtherEmail" :dense=true></q-input>
+            </div>
+            <div class="input-line">
+              <label style="flex-grow: 1">Notes:</label>
               <q-input  style="flex-grow: 2; max-width: 65%; min-height: 36px;" outlined :dense=true v-model="oContact.Notes"  type="textarea"/>
             </div>
             

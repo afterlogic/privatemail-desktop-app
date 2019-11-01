@@ -1,8 +1,9 @@
 <template>
   <q-list>
     {{checkboxVal}}
+    <!-- :class="{'selected': checkboxVal.find(contact.UUID)}" -->
     <div v-for="contact in contacts.list" :key="contact.UUID" >
-      <q-item clickable v-ripple class="checked" @click="getContactByUUID(contact.UUID)" :class="{'selected': checkboxVal.find(contact.UUID)}">
+      <q-item clickable v-ripple class="checked" @click="getContactByUUID(contact.UUID)" >
         <q-item-section side class="items-center">
           <q-checkbox v-model="checkboxVal" :val="contact.UUID" />
         </q-item-section>
@@ -29,25 +30,44 @@ hr.selected {
 <script>
 export default {
   name: 'ContactsList',
-
+  props: ['allChecked'],
   data() {
     return {
       page: 1,
       perPage: 20,
       checkboxVal: [],
+      //allChecked: this.allChecked,
     }
   },
 
   watch: {
-    currentStorage: function() {
+    'currentStorage': function() {
       this.startAsyncGetContacts(true)
     },
-    currentGroupUUID: function() {
+    'currentGroupUUID': function() {
       this.startAsyncGetContacts(true)
     },
-    hasChanges: function () {
+    'hasChanges': function () {
       if (this.hasChanges) {
         this.startAsyncGetContacts(false)
+      }
+    },    
+    'allChecked': function() {
+      if (this.allChecked) {
+        let aContactsUUIDsList = []
+        this.contacts.list.forEach(element => {
+          aContactsUUIDsList.push(element.UUID)
+        }); 
+        this.checkboxVal = aContactsUUIDsList
+      } else {
+        this.checkboxVal = []
+      }
+    },
+    'checkboxVal': function() {
+      if (this.checkboxVal.length === this.contacts.list.length) {
+        this.$emit('allCheckChanged', true)
+      } else if (this.checkboxVal.length === 0) {
+        this.$emit('allCheckChanged', false)
       }
     },
   },

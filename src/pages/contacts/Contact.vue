@@ -2,7 +2,7 @@
   <div>
     <div v-if="contactByUUID.UUID">
       <contactView v-if="!contactByUUID.editable"/>
-      <contactEditView v-model="groupsList" v-if="contactByUUID.editable"/>
+      <contactEditView v-if="contactByUUID.editable"/>
     </div>
   </div>
 </template>

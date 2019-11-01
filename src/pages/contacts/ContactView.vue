@@ -15,7 +15,8 @@
         
         <div class="content-area">
           <q-btn class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
-          <q-scroll-area style="height: 800px; max-width: 100%;" :thumb-style="{left: '102%', borderRadius: '5px', background: '#BBBBBB', width: '7px', opacity: 1 }" >
+          <q-scroll-area style="max-height: 800px; max-width: 100%; height: 700px; min-height: 150px;" 
+            :thumb-style="{left: '102%', borderRadius: '5px', background: '#BBBBBB', width: '7px', opacity: 1 }" >
             
 
             <q-item-label class="info-line" v-if="contact.FirstName">  First name: {{ contact.FirstName }}</q-item-label>
@@ -125,6 +126,7 @@
 }
 
 .content-area {
+  height: 100%;
   width: 100%;
   border-radius: 4px 4px 2px 2px;
   border: 1px solid #d4cece;
@@ -182,7 +184,7 @@ import CContact from 'src/modules/contacts/classes/CContact.js'
 import moment from 'moment'
 
 export default {
-  name: 'ContactFields',
+  name: 'ContactFields', 
   data() {
     return {
       checkboxVal: false,

@@ -22,7 +22,7 @@
                 <div class="col-auto">
                   <contact-list-toolbar />
                   <q-toolbar style="width: 100%; background: #eee;">
-                    <q-checkbox v-model="checkboxVal" />
+                    <q-checkbox v-model="allChecked" />
                     <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
                       <template v-slot:prepend>
                         <q-icon name="search" ></q-icon>
@@ -35,7 +35,7 @@
                 </div>
                 <div class="col">
                   <q-scroll-area class="full-height">
-                    <contacts-list />
+                    <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange"/>
                   </q-scroll-area>
                 </div>
               </div>
@@ -83,9 +83,14 @@ export default {
     return {
       splitterFolderModel: 20,
       splitterMessageModel: 50,
-      checkboxVal: false,
+      allChecked: false,
       searchText: '',
     }
+  },
+  watch: {
+    'allChecked': function (v) {
+      // console.log(this.allChecked)
+    },
   },
   computed: {
     'showContact': function() {
@@ -102,6 +107,9 @@ export default {
   methods: {
     createContact() {
       console.log('createContact')
+    },
+    onCheckChange(value) {
+      this.allChecked = value
     }
   },
 }

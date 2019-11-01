@@ -4,8 +4,8 @@
     <q-btn flat color="primary" icon="mail_outline" />
     <q-btn-dropdown flat color="primary" icon="folder_open">
       <q-list>
-        <q-item clickable v-ripple v-for="group in groupsList" :key="group.id">
-          <q-item-section>{{group.name}}</q-item-section>
+        <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="selectGroupForContactsList(group.UUID)">
+          <q-item-section>{{group.Name}}</q-item-section>
         </q-item>
         <q-item clickable v-ripple>
           <q-item-section>- New group -</q-item-section>
@@ -49,7 +49,6 @@
 <style></style>
 
 <script>
-import { groups } from '../../contactsData.js'
 import { ipcRenderer } from 'electron'
 
 import errors from 'src/utils/errors.js'
@@ -72,7 +71,7 @@ export default {
   },
 
   mounted: function () {
-    this.groupsList = groups
+    this.groupsList = this.$store.getters['contacts/getGroups']
 
     this.initSubscriptions()
   },
@@ -100,6 +99,10 @@ export default {
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
     },
+
+    selectGroupForContactsList (UUID) {
+      this.$emit('groupsUUIDforChangeGroup', UUID)
+    }
   },
 
   beforeDestroy() {

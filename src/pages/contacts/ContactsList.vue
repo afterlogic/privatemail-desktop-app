@@ -2,9 +2,9 @@
   <q-list>
     {{checkboxVal}}
     <!-- :class="{'selected': checkboxVal.find(contact.UUID)}" -->
-    <div v-for="contact in contacts.list" :key="contact.UUID" >
+    <div  v-for="contact in contacts.list" :key="contact.UUID" >
       <q-item clickable v-ripple class="checked" @click="getContactByUUID(contact.UUID)" >
-        <q-item-section side class="items-center">
+        <q-item-section side class="">
           <q-checkbox v-model="checkboxVal" :val="contact.UUID" />
         </q-item-section>
         <q-item-section>
@@ -12,12 +12,16 @@
           <q-item-label lines="2">{{ contact.ViewEmail !== '' ? contact.ViewEmail : 'No email address' }}</q-item-label>
         </q-item-section>
       </q-item>
-      <q-separator />
+      <q-separator /> 
     </div>
   </q-list>
 </template>
 
 <style >
+/* .contact {
+  /* padding: 8px 13px; */
+/* }  */
+
 hr.checked {
   background: #d6d6a9;
 }
@@ -30,13 +34,12 @@ hr.selected {
 <script>
 export default {
   name: 'ContactsList',
-  props: ['allChecked'],
+  props: ['allChecked', 'groupUUID'],
   data() {
     return {
       page: 1,
       perPage: 20,
       checkboxVal: [],
-      //allChecked: this.allChecked,
     }
   },
 
@@ -69,6 +72,22 @@ export default {
       } else if (this.checkboxVal.length === 0) {
         this.$emit('allCheckChanged', false)
       }
+    },
+    'groupUUID': function() {
+      if (this.groupUUID) {
+        let contactsToMoveInGroup = []
+        this.checkboxVal.forEach(element => {
+          let contact = _.find(this.contacts.list, element.UUID)
+          contact ? contactsToMoveInGroup.push(contact) : null
+        })
+
+        if (contactsToMoveInGroup.length) {
+          console.log(contactsToMoveInGroup)
+
+        }
+
+        
+      } 
     },
   },
 

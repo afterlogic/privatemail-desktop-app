@@ -66,19 +66,23 @@ export default {
   },
 
   computed: {
-    contactsSyncing() {
+    contactsSyncing () {
       return this.$store.getters['contacts/getSyncing']
+    },
+    currentStorage () {
+      return this.$store.getters['contacts/getCurrentStorage']
     },
   },
 
-  mounted: function () {
+  mounted () {
     this.groupsList = groups
 
     this.initSubscriptions()
+    this.sync()
   },
 
   methods: {
-    sync: function () {
+    sync () {
       this.$store.commit('contacts/setSyncing', true)
       ipcRenderer.send('contacts-refresh', {
         sApiHost: this.$store.getters['main/getApiHost'],
@@ -86,10 +90,12 @@ export default {
         sStorage: this.$store.getters['contacts/getCurrentStorage'],
       })
     },
-    onContactsRefresh (event, { bHasChanges, oError }) {
+    onContactsRefresh (event, { bHasChanges, sStorage, oError }) {
       this.$store.commit('contacts/setSyncing', false)
       if (_.isBoolean(bHasChanges)) {
-        this.$store.commit('contacts/setHasChanges', bHasChanges)
+        if (bHasChanges && sStorage === this.currentStorage) {
+          this.$store.commit('contacts/setHasChanges', true)
+        }
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while refreshing of contacts'))
       }
@@ -102,7 +108,7 @@ export default {
     },
   },
 
-  beforeDestroy() {
+  beforeDestroy () {
     this.destroySubscriptions()
   },
 }

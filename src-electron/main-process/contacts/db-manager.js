@@ -167,6 +167,34 @@ export default {
     })
   },
 
+  getStoragesCtags: function ({}) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.all('SELECT storage, ctag FROM contacts_storages',
+        [],
+        function(oError, aRows) {
+            if (oError) {
+              reject({ sMethod: 'getStoragesCtags', oError })
+            } else {
+              let aStoragesCtags = []
+              _.each(aRows, function (oRow) {
+                if (typesUtils.isNonEmptyObject(oRow) && typesUtils.isNonEmptyString(oRow.storage)) {
+                  aStoragesCtags.push({
+                    Storage: oRow.storage,
+                    CTag: oRow.ctag,
+                  })
+                }
+              })
+              resolve(aStoragesCtags)
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getStoragesCtags', sError: 'No DB connection' })
+      }
+    })
+  },
+
   setStorages: function ({ aStorages }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
@@ -192,6 +220,35 @@ export default {
         reject({ sMethod: 'setStorages', sError: 'No DB connection' })
       }
     })
+  },
+
+  isGroupsEqual: function (aGroupsFromDb, aGroupsFromApi) {
+    let aOldGroups = _.cloneDeep(aGroupsFromDb)
+    let aNewGroups = _.cloneDeep(aGroupsFromApi)
+    let bEqual = true
+    _.each(aNewGroups, function (oNewGroup) {
+      let oOldGroupIndex = _.findIndex(aOldGroups, function (oGroup) {
+        return oGroup.EntityId === oNewGroup.EntityId
+      })
+      if (oOldGroupIndex === -1) {
+        bEqual = false
+      } else {
+        let oOldGroup = aOldGroups[oOldGroupIndex]
+        _.each(aGroupsDbFields, function (oDbField) {
+          bEqual = bEqual && (oNewGroup[oDbField.Name] === oOldGroup[oDbField.Name])
+        })
+        if (bEqual) {
+          aOldGroups.splice(oOldGroupIndex, 1)
+        }
+      }
+      if (!bEqual) {
+        return false // break each
+      }
+    })
+    if (bEqual) {
+      bEqual = aOldGroups.length === 0
+    }
+    return bEqual
   },
 
   getGroups: function ({}) {

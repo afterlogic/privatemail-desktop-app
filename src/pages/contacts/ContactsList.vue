@@ -51,7 +51,7 @@ export default {
       if (this.hasChanges) {
         this.startAsyncGetContacts(false)
       }
-    },    
+    },
     'allChecked': function() {
       if (this.allChecked) {
         let aContactsUUIDsList = []

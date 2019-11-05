@@ -75,6 +75,12 @@ export default {
     'currentGroupUUID': function() {
       this.startAsyncGetContacts(true)
     },
+    'searchText': function() {
+      this.startAsyncGetContacts(true)
+    },
+    'currentPage': function() {
+      this.startAsyncGetContacts(false)
+    },
     'hasChanges': function () {
       if (this.hasChanges) {
         this.startAsyncGetContacts(false)
@@ -130,12 +136,20 @@ export default {
     contacts() {
       return this.$store.getters['contacts/getContacts']
     },
+    currentPage () {
+      return this.$store.getters['contacts/getСurrentPage']
+    },
+    searchText () {
+      return this.$store.getters['contacts/getSearchText']
+    },
   },
 
   methods: {
     startAsyncGetContacts (bResetPage) {
-      this.page = 1
-      this.$store.dispatch('contacts/asyncGetContacts', { iPage: this.page, iPerPage: this.perPage })
+      if (bResetPage) {
+        this.$store.commit('contacts/setCurrentPage', 1)
+      }
+      this.$store.dispatch('contacts/asyncGetContacts')
     },
     getContactByUUID(UUID) {
       this.$store.dispatch('contacts/getContactByUUID', UUID)

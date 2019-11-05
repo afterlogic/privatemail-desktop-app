@@ -31,10 +31,10 @@ export default {
       )
     })
 
-    ipcMain.on('contacts-get-contacts', (oEvent, { sStorage, sGroupUUID, iPerPage, iPage }) => {
-      contactsDbManager.getContacts({ sStorage, sGroupUUID, iPerPage, iPage }).then(
-        (aContactsFromDb) => {
-          oEvent.sender.send('contacts-get-contacts', { aContacts: typesUtils.pArray(aContactsFromDb) })
+    ipcMain.on('contacts-get-contacts', (oEvent, { sStorage, sGroupUUID, sSearch, iPerPage, iPage }) => {
+      contactsDbManager.getContacts({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }).then(
+        ({ aContacts, iCount }) => {
+          oEvent.sender.send('contacts-get-contacts', { aContacts, iCount })
         },
         (oError) => {
           oEvent.sender.send('contacts-get-contacts', { oError })

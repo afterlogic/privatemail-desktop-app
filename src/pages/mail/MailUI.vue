@@ -62,7 +62,7 @@
                   </q-scroll-area>
                 </div>
                 <div class="col-auto">
-                  <Pagination :currentPage="currentPage" :messagesPerPage="messagesPerPage" :messagesCount="messagesCount" :changePage="changePage"></Pagination>
+                  <Pagination :currentPage="currentPage" :itemsPerPage="messagesPerPage" :itemsCount="messagesCount" :changePage="changePage"></Pagination>
                 </div>
               </div>
             </template>
@@ -86,7 +86,7 @@ import MessageList from "./MessageList.vue"
 import MailListToolbar from "./MailListToolbar.vue"
 import MessageViewer from "./MessageViewer.vue"
 import MessageCompose from "./MailCompose.vue"
-import Pagination from './Pagination.vue'
+import Pagination from '../Pagination.vue'
 
 export default {
   name: 'MailUI',

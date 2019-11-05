@@ -6,8 +6,13 @@ export default {
   hasChanges: false,
   syncing: true,
 
+  currentPage: 1,
+  contactsPerPage: 20,
+  searchText: '',
+
   contacts: {
-    list: [],
+    list: [], // list of contacts on the current page
+    count: 0, // total count of contacts in the current storage or group
   },
 
   contactByUUID: {

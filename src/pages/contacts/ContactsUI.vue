@@ -23,7 +23,7 @@
                   <contact-list-toolbar @groupsUUIDforChangeGroup="changeGroupByToolbar"/>
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="allChecked" />
-                    <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
+                    <q-input outlined rounded v-model="searchText" v-on:keyup.enter="search" :dense=true style="width: 100%;">
                       <template v-slot:prepend>
                         <q-icon name="search" ></q-icon>
                       </template>
@@ -37,6 +37,9 @@
                   <q-scroll-area class="full-height">
                     <contacts-list v-bind:allChecked="allChecked" v-bind:groupUUID="groupUUID" @allCheckChanged="onCheckChange"/>
                   </q-scroll-area>
+                </div>
+                <div class="col-auto">
+                  <Pagination :currentPage="currentPage" :itemsPerPage="contactsPerPage" :itemsCount="contactsCount" :changePage="changePage"></Pagination>
                 </div>
               </div>
             </template>
@@ -66,6 +69,7 @@ import ContactsList from './ContactsList.vue'
 import ContactListToolbar from './ContactListToolbar.vue'
 import Contact from './Contact.vue'
 import Group from './Group.vue'
+import Pagination from '../Pagination.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
@@ -78,6 +82,7 @@ export default {
     ContactListToolbar,
     Contact,
     Group,
+    Pagination,
   },
   data () {
     return {
@@ -92,6 +97,14 @@ export default {
     'allChecked': function (v) {
       // console.log(this.allChecked)
     },
+    currentStorage: function () {
+      this.searchText = ''
+      this.search()
+    },
+    currentGroupUUID: function () {
+      this.searchText = ''
+      this.search()
+    },
   },
   computed: {
     'showContact': function() {
@@ -104,6 +117,21 @@ export default {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },
+    currentPage () {
+      return this.$store.getters['contacts/getСurrentPage']
+    },
+    contactsPerPage () {
+      return this.$store.getters['contacts/getContactsPerPage']
+    },
+    contactsCount () {
+      return this.$store.getters['contacts/getContactsCount']
+    },
+    currentStorage() {
+      return this.$store.getters['contacts/getCurrentStorage']
+    },
+    currentGroupUUID() {
+      return this.$store.getters['contacts/getCurrentGroupUUID']
+    },
   },
   methods: {
     createContact() {
@@ -114,7 +142,15 @@ export default {
     },
     changeGroupByToolbar (UUID) {
       this.groupUUID = UUID
-    }
+    },
+    changePage (iPage) {
+      if (iPage !== this.currentPage) {
+        this.$store.commit('contacts/setCurrentPage', iPage)
+      }
+    },
+    search () {
+      this.$store.commit('contacts/setSearchText', this.searchText)
+    },
   },
 }
 </script>

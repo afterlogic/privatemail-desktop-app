@@ -29,6 +29,18 @@ export function setContacts(state, aContacts) {
   state.contacts.list = aContacts
 }
 
+export function setContactsCount(state, iCount) {
+  state.contacts.count = iCount
+}
+
+export function setCurrentPage(state, iPage) {
+  state.currentPage = iPage
+}
+
+export function setContactsPerPage(state, iPerPage) {
+  state.contactsPerPage = iPerPage
+}
+
 export function setContactByUUID(state, contactByUUID) {
     state.contactByUUID = contactByUUID
 }

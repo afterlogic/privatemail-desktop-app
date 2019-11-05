@@ -448,28 +448,41 @@ export default {
   getContacts: function ({ sStorage, sGroupUUID, iPerPage, iPage }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
+        let sCountSql = 'SELECT COUNT(*) as count FROM contacts WHERE storage = ?'
+        let aCountParams = [sStorage]
         let sSql = 'SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
         let aParams = [sStorage, iPerPage, iPerPage * (iPage - 1)]
         if (sStorage === 'all') {
           if (sGroupUUID === '') {
+            sCountSql = 'SELECT COUNT(*) as count FROM contacts'
+            aCountParams = []
             sSql = 'SELECT * FROM contacts ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
             aParams = [iPerPage, iPerPage * (iPage - 1)]
           } else {
+            sCountSql = 'SELECT COUNT(*) as count FROM contacts WHERE group_uuids LIKE ?'
+            aCountParams = ['%"' + sGroupUUID + '"%']
             sSql = 'SELECT * FROM contacts WHERE group_uuids LIKE ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
             aParams = ['%"' + sGroupUUID + '"%', iPerPage, iPerPage * (iPage - 1)]
           }
         }
-        oDb.all(sSql,
-        aParams,
-        function(oError, aRows) {
-            if (oError) {
-              reject({ sMethod: 'getContacts', oError })
-            } else {
-              let aContacts = _prepareDataFromDb(aRows, aContactsDbFields)
-              resolve(aContacts)
-            }
-          }
-        )
+
+        oDb.get(sCountSql, aCountParams, (oError, oRow) => {
+          let iCount = typesUtils.pInt(oRow && oRow.count)
+          oDb.all(sSql,
+            aParams,
+            function(oError, aRows) {
+                if (oError) {
+                  reject({ sMethod: 'getContacts', oError })
+                } else {
+                  let aContacts = _prepareDataFromDb(aRows, aContactsDbFields)
+                  if (iCount === 0) {
+                    iCount = aContacts.length
+                  }
+                  resolve({ aContacts, iCount })
+                }
+              }
+            )
+        })
       } else {
         reject({ sMethod: 'getContacts', sError: 'No DB connection' })
       }

@@ -33,8 +33,8 @@ export default {
 
     ipcMain.on('contacts-get-contacts', (oEvent, { sStorage, sGroupUUID, iPerPage, iPage }) => {
       contactsDbManager.getContacts({ sStorage, sGroupUUID, iPerPage, iPage }).then(
-        (aContactsFromDb) => {
-          oEvent.sender.send('contacts-get-contacts', { aContacts: typesUtils.pArray(aContactsFromDb) })
+        ({ aContacts, iCount }) => {
+          oEvent.sender.send('contacts-get-contacts', { aContacts, iCount })
         },
         (oError) => {
           oEvent.sender.send('contacts-get-contacts', { oError })

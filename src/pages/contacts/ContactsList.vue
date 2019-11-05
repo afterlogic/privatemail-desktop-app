@@ -33,8 +33,6 @@ export default {
   props: ['allChecked'],
   data() {
     return {
-      page: 1,
-      perPage: 20,
       checkboxVal: [],
       //allChecked: this.allChecked,
     }
@@ -46,6 +44,9 @@ export default {
     },
     'currentGroupUUID': function() {
       this.startAsyncGetContacts(true)
+    },
+    'currentPage': function() {
+      this.startAsyncGetContacts(false)
     },
     'hasChanges': function () {
       if (this.hasChanges) {
@@ -85,12 +86,17 @@ export default {
     contacts() {
       return this.$store.getters['contacts/getContacts']
     },
+    currentPage () {
+      return this.$store.getters['contacts/getСurrentPage']
+    },
   },
 
   methods: {
     startAsyncGetContacts (bResetPage) {
-      this.page = 1
-      this.$store.dispatch('contacts/asyncGetContacts', { iPage: this.page, iPerPage: this.perPage })
+      if (bResetPage) {
+        this.$store.commit('contacts/setCurrentPage', 1)
+      }
+      this.$store.dispatch('contacts/asyncGetContacts')
     },
     getContactByUUID(UUID) {
       this.$store.dispatch('contacts/getContactByUUID', UUID)

@@ -39,11 +39,11 @@ export default {
       type: Number,
       default: 1,
     },
-    messagesPerPage: {
+    itemsPerPage: {
       type: Number,
       default: 20,
     },
-    messagesCount: {
+    itemsCount: {
       type: Number,
       default: 0,
     },
@@ -51,7 +51,7 @@ export default {
   },
   computed: {
     pagesCount: function () {
-      return Math.ceil(this.messagesCount / this.messagesPerPage)
+      return Math.ceil(this.itemsCount / this.itemsPerPage)
     },
     pages: function () {
       let iStartPage = this.currentPage - 2

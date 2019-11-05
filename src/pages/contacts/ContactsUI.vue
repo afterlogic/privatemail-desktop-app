@@ -38,6 +38,9 @@
                     <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange"/>
                   </q-scroll-area>
                 </div>
+                <div class="col-auto">
+                  <Pagination :currentPage="currentPage" :itemsPerPage="contactsPerPage" :itemsCount="contactsCount" :changePage="changePage"></Pagination>
+                </div>
               </div>
             </template>
             <template v-slot:after>
@@ -66,6 +69,7 @@ import ContactsList from './ContactsList.vue'
 import ContactListToolbar from './ContactListToolbar.vue'
 import Contact from './Contact.vue'
 import Group from './Group.vue'
+import Pagination from '../Pagination.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
@@ -78,6 +82,7 @@ export default {
     ContactListToolbar,
     Contact,
     Group,
+    Pagination,
   },
   data () {
     return {
@@ -103,6 +108,15 @@ export default {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },
+    currentPage () {
+      return this.$store.getters['contacts/getСurrentPage']
+    },
+    contactsPerPage () {
+      return this.$store.getters['contacts/getContactsPerPage']
+    },
+    contactsCount () {
+      return this.$store.getters['contacts/getContactsCount']
+    },
   },
   methods: {
     createContact() {
@@ -110,7 +124,12 @@ export default {
     },
     onCheckChange(value) {
       this.allChecked = value
-    }
+    },
+    changePage (iPage) {
+      if (iPage !== this.currentPage) {
+        this.$store.commit('contacts/setCurrentPage', iPage)
+      }
+    },
   },
 }
 </script>

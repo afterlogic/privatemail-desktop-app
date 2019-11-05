@@ -25,11 +25,12 @@ ipcRenderer.on('contacts-get-groups', (event, { aGroups, oError }) => {
   }
 })
 
-ipcRenderer.on('contacts-get-contacts', (event, { aContacts, oError }) => {
+ipcRenderer.on('contacts-get-contacts', (event, { aContacts, iCount, oError }) => {
   if (_.isArray(aContacts)) {
     store.commit('contacts/setContacts', _.map(aContacts, function (oContactData) {
       return new CContact(oContactData)
     }))
+    store.commit('contacts/setContactsCount', iCount)
     store.commit('contacts/setHasChanges', false)
     store.commit('contacts/setSyncing', false)
   } else {
@@ -45,7 +46,7 @@ export function asyncGetGroups({ state, commit, dispatch, getters }) {
   ipcRenderer.send('contacts-get-groups', {})
 }
 
-export function asyncGetContacts({ state, commit, dispatch, getters }, { iPage, iPerPage }) {
+export function asyncGetContacts({ state, commit, dispatch, getters }) {
   if (getters.getCurrentStorage) {
     store.commit('contacts/setSyncing', true)
     let oGroup = getters.getCurrentGroup
@@ -57,8 +58,8 @@ export function asyncGetContacts({ state, commit, dispatch, getters }, { iPage, 
     ipcRenderer.send('contacts-get-contacts', {
       sStorage,
       sGroupUUID,
-      iPerPage,
-      iPage,
+      iPerPage: getters.getContactsPerPage,
+      iPage: getters.getСurrentPage,
     })
   }
 }
@@ -100,6 +101,8 @@ export function logout ({ commit, dispatch }) {
   commit('setStorages', [])
   commit('setGroups', [])
   commit('setCurrentGroup', null)
+  commit('setContactsCount', 0)
+  commit('setContactsPerPage', 20)
   dispatch('getContactByUUID', null)
 }
 

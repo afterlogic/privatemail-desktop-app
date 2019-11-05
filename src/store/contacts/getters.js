@@ -25,6 +25,10 @@ export function getContactsPerPage(state) {
   return state.contactsPerPage
 }
 
+export function getSearchText(state) {
+  return state.searchText
+}
+
 export function getContactsCount(state) {
   return state.contacts.count
 }

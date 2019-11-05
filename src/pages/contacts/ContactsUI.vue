@@ -23,7 +23,7 @@
                   <contact-list-toolbar />
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="allChecked" />
-                    <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
+                    <q-input outlined rounded v-model="searchText" v-on:keyup.enter="search" :dense=true style="width: 100%;">
                       <template v-slot:prepend>
                         <q-icon name="search" ></q-icon>
                       </template>
@@ -96,6 +96,14 @@ export default {
     'allChecked': function (v) {
       // console.log(this.allChecked)
     },
+    currentStorage: function () {
+      this.searchText = ''
+      this.search()
+    },
+    currentGroupUUID: function () {
+      this.searchText = ''
+      this.search()
+    },
   },
   computed: {
     'showContact': function() {
@@ -117,6 +125,12 @@ export default {
     contactsCount () {
       return this.$store.getters['contacts/getContactsCount']
     },
+    currentStorage() {
+      return this.$store.getters['contacts/getCurrentStorage']
+    },
+    currentGroupUUID() {
+      return this.$store.getters['contacts/getCurrentGroupUUID']
+    },
   },
   methods: {
     createContact() {
@@ -129,6 +143,9 @@ export default {
       if (iPage !== this.currentPage) {
         this.$store.commit('contacts/setCurrentPage', iPage)
       }
+    },
+    search () {
+      this.$store.commit('contacts/setSearchText', this.searchText)
     },
   },
 }

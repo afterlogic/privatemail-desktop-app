@@ -8,6 +8,7 @@ export default {
 
   currentPage: 1,
   contactsPerPage: 20,
+  searchText: '',
 
   contacts: {
     list: [], // list of contacts on the current page

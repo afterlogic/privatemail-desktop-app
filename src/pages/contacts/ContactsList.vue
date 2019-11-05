@@ -45,6 +45,9 @@ export default {
     'currentGroupUUID': function() {
       this.startAsyncGetContacts(true)
     },
+    'searchText': function() {
+      this.startAsyncGetContacts(true)
+    },
     'currentPage': function() {
       this.startAsyncGetContacts(false)
     },
@@ -88,6 +91,9 @@ export default {
     },
     currentPage () {
       return this.$store.getters['contacts/getСurrentPage']
+    },
+    searchText () {
+      return this.$store.getters['contacts/getSearchText']
     },
   },
 

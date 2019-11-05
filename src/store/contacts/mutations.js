@@ -21,10 +21,6 @@ export function setSyncing(state, bSyncing) {
   state.syncing = bSyncing
 }
 
-export function setETagsforUpdate(state, ETagsforUpdate) {
-    state.ETagsforUpdate = ETagsforUpdate
-}
-
 export function setContacts(state, aContacts) {
   state.contacts.list = aContacts
 }
@@ -39,6 +35,10 @@ export function setCurrentPage(state, iPage) {
 
 export function setContactsPerPage(state, iPerPage) {
   state.contactsPerPage = iPerPage
+}
+
+export function setSearchText(state, sSearchText) {
+  state.searchText = sSearchText
 }
 
 export function setContactByUUID(state, contactByUUID) {

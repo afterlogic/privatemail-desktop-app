@@ -119,6 +119,38 @@ function _prepareInsertParams (oItem, aDbFieldsData) {
   return aParams
 }
 
+function _getContactsSql ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
+  let aWhere = []
+  let aParams = []
+
+  if (sGroupUUID !== '') {
+    aWhere.push('group_uuids LIKE ?')
+    aParams.push('%"' + sGroupUUID + '"%')
+  } else if (sStorage !== 'all') {
+    aWhere.push('storage = ?')
+    aParams.push(sStorage)
+  }
+
+  if (sSearch !== '') {
+    aWhere.push('(full_name LIKE ? OR view_email LIKE ?)')
+    aParams.push('%' + sSearch + '%')
+    aParams.push('%' + sSearch + '%')
+  }
+
+  let sWhere = ''
+  if (aWhere.length > 0) {
+    sWhere = 'WHERE ' + aWhere.join(' AND ')
+  }
+
+  let sCountSql = 'SELECT COUNT(*) as count FROM contacts ' + sWhere
+  let aCountParams = _.clone(aParams)
+  let sSql = 'SELECT * FROM contacts ' + sWhere + ' ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+  aParams.push(iPerPage)
+  aParams.push(iPerPage * (iPage - 1))
+
+  return { sCountSql, aCountParams, sSql, aParams }
+}
+
 export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
@@ -445,27 +477,10 @@ export default {
     })
   },
 
-  getContacts: function ({ sStorage, sGroupUUID, iPerPage, iPage }) {
+  getContacts: function ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        let sCountSql = 'SELECT COUNT(*) as count FROM contacts WHERE storage = ?'
-        let aCountParams = [sStorage]
-        let sSql = 'SELECT * FROM contacts WHERE storage = ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
-        let aParams = [sStorage, iPerPage, iPerPage * (iPage - 1)]
-        if (sStorage === 'all') {
-          if (sGroupUUID === '') {
-            sCountSql = 'SELECT COUNT(*) as count FROM contacts'
-            aCountParams = []
-            sSql = 'SELECT * FROM contacts ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
-            aParams = [iPerPage, iPerPage * (iPage - 1)]
-          } else {
-            sCountSql = 'SELECT COUNT(*) as count FROM contacts WHERE group_uuids LIKE ?'
-            aCountParams = ['%"' + sGroupUUID + '"%']
-            sSql = 'SELECT * FROM contacts WHERE group_uuids LIKE ? ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
-            aParams = ['%"' + sGroupUUID + '"%', iPerPage, iPerPage * (iPage - 1)]
-          }
-        }
-
+        let { sCountSql, aCountParams, sSql, aParams } = _getContactsSql({ sStorage, sGroupUUID, sSearch, iPerPage, iPage })
         oDb.get(sCountSql, aCountParams, (oError, oRow) => {
           let iCount = typesUtils.pInt(oRow && oRow.count)
           oDb.all(sSql,

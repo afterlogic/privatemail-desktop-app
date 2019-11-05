@@ -60,6 +60,7 @@ export function asyncGetContacts({ state, commit, dispatch, getters }) {
       sGroupUUID,
       iPerPage: getters.getContactsPerPage,
       iPage: getters.getСurrentPage,
+      sSearch: getters.getSearchText,
     })
   }
 }
@@ -103,6 +104,7 @@ export function logout ({ commit, dispatch }) {
   commit('setCurrentGroup', null)
   commit('setContactsCount', 0)
   commit('setContactsPerPage', 20)
+  commit('setSearchText', '')
   dispatch('getContactByUUID', null)
 }
 

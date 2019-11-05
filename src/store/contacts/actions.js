@@ -4,8 +4,6 @@ import store from 'src/store'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
-import webApi from '../../../src-electron/main-process/webApi'
-
 import CContact from '../../modules/contacts/classes/CContact'
 import CGroup from '../../modules/contacts/classes/CGroup'
 
@@ -40,17 +38,11 @@ ipcRenderer.on('contacts-get-contacts', (event, { aContacts, oError }) => {
 })
 
 export function asyncGetStorages({ state, commit, dispatch, getters }) {
-  ipcRenderer.send('contacts-get-storages', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-  })
+  ipcRenderer.send('contacts-get-storages', {})
 }
 
 export function asyncGetGroups({ state, commit, dispatch, getters }) {
-  ipcRenderer.send('contacts-get-groups', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-  })
+  ipcRenderer.send('contacts-get-groups', {})
 }
 
 export function asyncGetContacts({ state, commit, dispatch, getters }, { iPage, iPerPage }) {

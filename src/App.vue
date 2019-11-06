@@ -74,4 +74,35 @@ export default {
 		height: 30px;
 	}
 }
+
+.q-item {
+  .contact-notext {
+    color: #8c8989;
+  }
+
+  &.checked {
+    background: var(--q-color-t-selection-alt);
+
+    .contact-notext {
+      color: #bfbf9e
+    }
+  }
+
+  &.selected {
+    background: var(--q-color-t-selection);
+    color: #fff;
+
+    .contact-notext {
+      color: #ad98c5;
+    }
+  }
+}
+
+hr.checked {
+  background: #d6d6a9;
+}
+
+hr.selected {
+  background: #6d5d7e;
+}
 </style>

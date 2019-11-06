@@ -1,21 +1,21 @@
 <template>
   <q-list>
     <!-- :class="{'selected': aCheckedList.find(contact.UUID)}" -->
-    <div  v-for="contact in contacts.list" :key="contact.UUID">
+    <div v-for="contact in contacts.list" :key="contact.UUID">
     <!-- {{isChecked(contact.UUID)}} -->
-      <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)"
-          @focus="isSelected(contact.UUID)" :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected }">
-        <q-item-section side class="">
+      <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)" @focus="isSelected(contact.UUID)" 
+          :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected}">
+        <q-item-section side>
           <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
         </q-item-section>
         <q-item-section>
-          <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName }}</q-item-label>
-          <q-item-label v-else lines="1" class="contact-notext" :class="{'contact-notext-checked': isChecked(contact.UUID), 'contact-notext-selected': contact.UUID === selected }">No name</q-item-label>
-          <q-item-label v-if="contact.ViewEmail" lines="2">{{contact.ViewEmail}}</q-item-label>
-          <q-item-label v-else lines="2" class="contact-notext" :class="{'contact-notext-checked': isChecked(contact.UUID), 'contact-notext-selected': contact.UUID === selected }">No email address</q-item-label>
+          <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName}}</q-item-label>
+          <q-item-label v-else lines="1" class="contact-notext">No name</q-item-label>
+          <q-item-label v-if="contact.ViewEmail" lines="1">{{contact.ViewEmail}}</q-item-label>
+          <q-item-label v-else lines="1" class="contact-notext">No email address</q-item-label>
         </q-item-section>
       </q-item>
-      <q-separator /> 
+      <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected }" />
     </div>
   </q-list>
 </template>
@@ -25,39 +25,6 @@
   /* padding: 8px 13px; */
 /* }  */
 
-
-
-hr.checked {
-  background: #d6d6a9;
-}
-.checked {
-  background: var(--q-color-t-selection-alt);
-  
-  // .q-checkbox {
-  //   background: #fff;
-  // }
-}
-
-.selected {
-  background: var(--q-color-t-selection);
-  color: #fff;  
-}
-
-hr.selected {
-  background: #6d5d7e;
-}
-
-.contact-notext {
-  color: #8c8989;
-}
-
-.contact-notext-checked {
-  color: #bfbf9e
-}
-
-.contact-notext-selected {
-  color: #ad98c5
-}
 </style>
 
 <script>
@@ -122,10 +89,7 @@ export default {
 
         if (contactsToMoveInGroup.length) {
           console.log(contactsToMoveInGroup)
-
         }
-
-        
       } 
     },
   },

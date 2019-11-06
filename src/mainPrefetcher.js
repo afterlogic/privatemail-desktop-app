@@ -1,6 +1,5 @@
 import router from 'src/router'
 import mailPrefetcher from 'src/modules/mail/prefetcher.js'
-import contactsPrefetcher from 'src/modules/contacts/prefetcher.js'
 
 export default {
   start: function () {
@@ -11,7 +10,6 @@ export default {
         mailPrefetcher.start()
         break
       case '/contacts':
-        contactsPrefetcher.start()
         break
     }
   },

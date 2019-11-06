@@ -1,6 +1,5 @@
 <template>
   <q-list>
-    {{aCheckedList}}
     <!-- :class="{'selected': aCheckedList.find(contact.UUID)}" -->
     <div  v-for="contact in contacts.list" :key="contact.UUID">
     <!-- {{isChecked(contact.UUID)}} -->

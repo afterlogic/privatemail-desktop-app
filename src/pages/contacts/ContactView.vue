@@ -1,7 +1,6 @@
 <template>
-  <div>
-    <div v-if="contact">
-      <q-item-section >
+    <q-item-section class="column full-height ">
+      <div class="col-auto">
         <div class="head">
           <div class="head--labels">
             <q-item-label class="head--labels-name">{{ contact.FullName }}</q-item-label>  
@@ -12,76 +11,88 @@
             <q-btn class="head--buttons-style" color="primary" label="Email to this contact" />
           </div>
         </div>
-        
-        <div class="content-area">
-          <q-btn class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
-          <q-scroll-area style="max-height: 800px; max-width: 100%; height: 700px; min-height: 150px;" 
-            :thumb-style="{left: '102%', borderRadius: '5px', background: '#BBBBBB', width: '7px', opacity: 1 }" >
-            
+      </div>
+      
+      <div class="col">
+        <div class="column full-height">
+          <div class="col-auto">
+            <q-btn class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
+            <div style="height: 5px; border: 1px solid #ccc; border-bottom: 0; border-radius: 5px 5px 0px 0px; margin: 0px 20px;" ></div>
+          </div>
+          <div class="col">
+            <q-scroll-area class="full-height">
+              <div class="" style="border-left: 1px solid #ccc;border-right: 1px solid #ccc;border-bottom: 1px solid #ccc; border-radius: 0px 0px 5px 5px; min-height: 200px; margin: 0px 20px; padding: 1px 0px 0px">
+                <q-item-label class="info-line" v-if="contact.FirstName">  First name: {{ contact.FirstName }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.LastName">Last name: {{ contact.LastName }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.Skype">Skype: {{ contact.Skype }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.Facebook">Facebook: {{ contact.Facebook }}</q-item-label>
+                <q-item-label class="paragraph-heads" v-if="contact.PersonalEmail || 
+                  contact.PersonalAddress || contact.PersonalCity || contact.PersonalState ||contact.PersonalCountry ||
+                  contact.PersonalZip || contact.PersonalWeb || contact.PersonalFax || contact.PersonalPhone ||
+                  contact.PersonalMobile">Basic info</q-item-label>
 
-            <q-item-label class="info-line" v-if="contact.FirstName">  First name: {{ contact.FirstName }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.LastName">Last name: {{ contact.LastName }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.Skype">Skype: {{ contact.Skype }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.Facebook">Facebook: {{ contact.Facebook }}</q-item-label>
-            
+                <q-item-label class="info-line" v-if="contact.PersonalEmail">Personal E-mail: {{ contact.PersonalEmail }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalAddress">Personal Address: {{ contact.PersonalAddress }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalCity">Personal City: {{ contact.PersonalCity }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalState">Personal State: {{ contact.PersonalState }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalCountry">Personal Country: {{ contact.PersonalCountry }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalZip">Personal Zip: {{ contact.PersonalZip }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalWeb">Personal Web: {{ contact.PersonalWeb }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalFax">Personal Fax: {{ contact.PersonalFax }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalPhone">Personal Phone: {{ contact.PersonalPhone }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.PersonalMobile">Personal Mobile: {{ contact.PersonalMobile }}</q-item-label>
 
-            <q-item-label class="paragraph-heads" v-if="contact.PersonalEmail || 
-              contact.PersonalAddress || contact.PersonalCity || contact.PersonalState ||contact.PersonalCountry ||
-              contact.PersonalZip || contact.PersonalWeb || contact.PersonalFax || contact.PersonalPhone ||
-              contact.PersonalMobile">Basic info</q-item-label>
+                <q-item-label class="paragraph-heads" v-if="contact.BusinessEmail || 
+                  contact.BusinessCompany || contact.BusinessDepartment || contact.BusinessJobTitle || contact.BusinessOffice || 
+                  contact.BusinessAddress || contact.BusinessCity || contact.BusinessState || contact.BusinessZip || contact.BusinessCountry || 
+                  contact.BusinessWeb || contact.BusinessFax || contact.BusinessPhone">Business info</q-item-label>
 
-            <q-item-label class="info-line" v-if="contact.PersonalEmail">Personal E-mail: {{ contact.PersonalEmail }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalAddress">Personal Address: {{ contact.PersonalAddress }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalCity">Personal City: {{ contact.PersonalCity }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalState">Personal State: {{ contact.PersonalState }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalCountry">Personal Country: {{ contact.PersonalCountry }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalZip">Personal Zip: {{ contact.PersonalZip }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalWeb">Personal Web: {{ contact.PersonalWeb }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalFax">Personal Fax: {{ contact.PersonalFax }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalPhone">Personal Phone: {{ contact.PersonalPhone }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.PersonalMobile">Personal Mobile: {{ contact.PersonalMobile }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessEmail">Business E-mail: {{ contact.BusinessEmail }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessCompany">Company: {{ contact.BusinessCompany }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessDepartment">Department: {{ contact.BusinessDepartment }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessJobTitle">Job Title: {{ contact.BusinessJobTitle }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessOffice">Office: {{ contact.BusinessOffice }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessAddress">Street Address: {{ contact.BusinessAddress }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessCity">City: {{ contact.BusinessCity }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessState">State/Province: {{ contact.BusinessState }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessZip">Zip Code: {{ contact.BusinessZip }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessCountry">Country/Region: {{ contact.BusinessCountry }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessWeb">Web Page: {{ contact.BusinessWeb }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessFax">Business Fax: {{ contact.BusinessFax }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BusinessPhone">Business Phone: {{ contact.BusinessPhone }}</q-item-label>
 
-            <q-item-label class="paragraph-heads" v-if="contact.BusinessEmail || 
-              contact.BusinessCompany || contact.BusinessDepartment || contact.BusinessJobTitle || contact.BusinessOffice || 
-              contact.BusinessAddress || contact.BusinessCity || contact.BusinessState || contact.BusinessZip || contact.BusinessCountry || 
-              contact.BusinessWeb || contact.BusinessFax || contact.BusinessPhone">Business info</q-item-label>
+                <q-item-label class="paragraph-heads" v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay || 
+                  contact.OtherEmail || contact.Notes">Other info</q-item-label>
 
-            <q-item-label class="info-line" v-if="contact.BusinessEmail">Business E-mail: {{ contact.BusinessEmail }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessCompany">Company: {{ contact.BusinessCompany }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessDepartment">Department: {{ contact.BusinessDepartment }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessJobTitle">Job Title: {{ contact.BusinessJobTitle }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessOffice">Office: {{ contact.BusinessOffice }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessAddress">Street Address: {{ contact.BusinessAddress }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessCity">City: {{ contact.BusinessCity }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessState">State/Province: {{ contact.BusinessState }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessZip">Zip Code: {{ contact.BusinessZip }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessCountry">Country/Region: {{ contact.BusinessCountry }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessWeb">Web Page: {{ contact.BusinessWeb }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessFax">Business Fax: {{ contact.BusinessFax }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.BusinessPhone">Business Phone: {{ contact.BusinessPhone }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.BirthDay">Birthday: {{sBirthDate}}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.OtherEmail">Other E-mail: {{ contact.OtherEmail }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.Notes">Notes: {{ contact.Notes }}</q-item-label>
 
-            <q-item-label class="paragraph-heads" v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay || 
-              contact.OtherEmail || contact.Notes">Other info</q-item-label>
+                <q-item-label v-if="groupFilteredList.length" class="paragraph-heads">Groups</q-item-label>
 
-            <q-item-label class="info-line" v-if="contact.BirthDay">Birthday: {{sBirthDate}}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.OtherEmail">Other E-mail: {{ contact.OtherEmail }}</q-item-label>
-            <q-item-label class="info-line" v-if="contact.Notes">Notes: {{ contact.Notes }}</q-item-label>
-
-            <q-item-label v-if="groupFilteredList.length" class="paragraph-heads">Groups</q-item-label>
-
-            <div v-if="groupFilteredList" class="groups">
-              <a v-for="(group,index) in groupFilteredList" :key="group.id" class="group" @click="setCurrentGroup(group)">{{group}}<span v-if="index+1 < groupFilteredList.length">,</span></a>
-            </div>
-
-          </q-scroll-area>
+                <div v-if="groupFilteredList" class="groups">
+                  <a v-for="(group,index) in groupFilteredList" :key="group.id" class="group" @click="setCurrentGroup(group)">{{group}}<span v-if="index+1 < groupFilteredList.length">,</span></a>
+                </div>
+              </div>
+              
+            </q-scroll-area>
+          </div>
         </div>
-      </q-item-section>
-    </div>
-  </div>
+        
+        
+        
+      </div>
+    </q-item-section>
 </template>
 
-<style>
+<style scoped>
+.container {
+  background: #ffffff;
+  height: 100%;
+  justify-content: unset;
+}
 .head {
+  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
 }
@@ -126,7 +137,7 @@
 }
 
 .content-area {
-  height: 100%;
+  height: auto;
   width: 100%;
   border-radius: 4px 4px 2px 2px;
   border: 1px solid #d4cece;

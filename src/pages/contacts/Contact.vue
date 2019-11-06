@@ -1,13 +1,12 @@
 <template>
-  <div>
-    <div v-if="contactByUUID.UUID">
-      <contactView v-if="!contactByUUID.editable"/>
-      <contactEditView v-if="contactByUUID.editable"/>
-    </div>
+  <div class="full-height">
+    <contactView v-if="!contactByUUID.editable"/>
+    <contactEditView v-if="contactByUUID.editable"/>
   </div>
 </template>
 
-<style></style>
+<style>
+</style>
 
 <script>
 import webApi from 'src/utils/webApi.js'

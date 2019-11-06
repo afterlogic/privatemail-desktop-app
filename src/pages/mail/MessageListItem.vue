@@ -76,7 +76,6 @@ export default {
   ],
   data () {
     return {
-      selected: false,
       checked: false,
       threadOpened: false,
     }
@@ -108,13 +107,15 @@ export default {
       }
       return aFromTo.join(', ')
     },
+    selected () {
+      return !!this.message && this.message.Uid === this.$store.getters['mail/getСurrentMessageUid']
+    },
   },
   mounted: function () {
     this.initSubscriptions()
   },
   methods: {
     selectMessage: function () {
-      this.$root.$emit('select-message', this.message.Uid)
       this.$store.dispatch('mail/setCurrentMessage', this.message)
     },
     _getParentComponent: function (sComponentName) {
@@ -165,9 +166,6 @@ export default {
     toggleThread: function () {
       this.threadOpened = !this.threadOpened
     },
-    onSelectMessage (sUid) {
-      this.selected = this.message.Uid === sUid
-    },
     onCheckAllMessages (bChecked) {
       this.checked = bChecked
     },
@@ -175,12 +173,10 @@ export default {
       this.checked = bChecked
     },
     initSubscriptions () {
-      this.$root.$on('select-message', this.onSelectMessage)
       this.$root.$on('check-all-messages', this.onCheckAllMessages)
       this.$parent.$on('parent-message-checked', this.onParentMessageChecked)
     },
     destroySubscriptions () {
-      this.$root.$off('select-message', this.onSelectMessage)
       this.$root.$off('check-all-messages', this.onCheckAllMessages)
       this.$parent.$off('parent-message-checked', this.onParentMessageChecked)
     },

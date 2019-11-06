@@ -39,6 +39,10 @@ export function getСurrentMessage (state) {
   return state.currentMessage
 }
 
+export function getСurrentMessageUid (state) {
+  return state.currentMessage ? state.currentMessage.Uid : ''
+}
+
 export function getСurrentFolderFullName (state) {
   return state.currentFolderList.Current ? state.currentFolderList.Current.FullName : ''
 }

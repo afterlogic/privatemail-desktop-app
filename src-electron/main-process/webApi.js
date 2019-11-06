@@ -41,7 +41,14 @@ export default {
 
     let oRequest = protocol.request(oOptions, (oResponse) => {
       oResponse.setEncoding('utf8')
+
+      let aData = []
       oResponse.on('data', (sData) => {
+        aData.push(sData)
+      })
+
+      oResponse.on('end', () => {
+        let sData = aData.join('')
         let oData = JSON.parse(sData)
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
         // console.log('webApi response', aRequestsNumbers.length, oData)

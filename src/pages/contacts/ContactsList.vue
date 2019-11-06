@@ -10,9 +10,9 @@
         </q-item-section>
         <q-item-section>
           <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName }}</q-item-label>
-          <q-item-label v-else lines="1" class="contact-notext">No name</q-item-label>
+          <q-item-label v-else lines="1" class="contact-notext" :class="{'contact-notext-checked': isChecked(contact.UUID), 'contact-notext-selected': contact.UUID === selected }">No name</q-item-label>
           <q-item-label v-if="contact.ViewEmail" lines="2">{{contact.ViewEmail}}</q-item-label>
-          <q-item-label v-else lines="2" class="contact-notext">No email address</q-item-label>
+          <q-item-label v-else lines="2" class="contact-notext" :class="{'contact-notext-checked': isChecked(contact.UUID), 'contact-notext-selected': contact.UUID === selected }">No email address</q-item-label>
         </q-item-section>
       </q-item>
       <q-separator /> 
@@ -49,6 +49,14 @@ hr.selected {
 
 .contact-notext {
   color: #8c8989;
+}
+
+.contact-notext-checked {
+  color: #bfbf9e
+}
+
+.contact-notext-selected {
+  color: #ad98c5
 }
 </style>
 

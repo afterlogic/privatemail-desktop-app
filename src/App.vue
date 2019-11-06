@@ -67,4 +67,11 @@ export default {
 .panel-rounded {
   border-radius: 0px;
 }
+
+.search-field.q-field--dense {
+	.q-field__control,
+	.q-field__marginal {
+		height: 30px;
+	}
+}
 </style>

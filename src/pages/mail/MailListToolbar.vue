@@ -1,12 +1,7 @@
 <template>
-  <q-toolbar>
-    <q-btn-dropdown
-        split
-        :disable-main-btn="checkedCount === 0"
-        class="glossy"
-        color="primary">
+  <q-toolbar shrink>
+    <q-btn-dropdown split flat color="primary" icon="drafts" :disable-main-btn="checkedCount === 0" @click="setMessagesRead(true)">
       <template v-slot:label>
-        <q-btn flat color="white" icon="drafts" @click="setMessagesRead(true)" />
         <q-tooltip>
           Mark As Read
         </q-tooltip>
@@ -24,9 +19,8 @@
         </q-item>
       </q-list>
     </q-btn-dropdown>
-    <q-btn-dropdown color="primary" :disable="checkedCount === 0">
+    <q-btn-dropdown flat color="primary" icon="move_to_inbox" :disable="checkedCount === 0">
       <template v-slot:label>
-        <q-btn flat color="white" icon="move_to_inbox" />
         <q-tooltip>
           Move To Folder
         </q-tooltip>
@@ -35,12 +29,11 @@
         <MoveToFolderItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
       </q-list>
     </q-btn-dropdown>
-    <q-btn flat color="primary" icon="delete_outline" :disable="checkedCount === 0" @click="moveMessagesToTrash">
+    <q-btn flat color="primary" icon="delete_outline" no-wrap :label="checkedCount > 0 ? checkedCount : ''" :disable="checkedCount === 0" @click="moveMessagesToTrash">
       <q-tooltip>
         Delete
       </q-tooltip>
     </q-btn>
-    <q-chip v-if="checkedCount > 0" class="checkedCount" dense color="primary">{{checkedCount}}</q-chip>
     <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam">
       <q-tooltip>
         Spam
@@ -61,9 +54,6 @@
 </template>
 
 <style>
-.checkedCount {
-  color: white;
-}
 </style>
 
 <script>

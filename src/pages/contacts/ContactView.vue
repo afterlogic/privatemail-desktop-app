@@ -1,5 +1,5 @@
 <template>
-    <q-item-section class="column full-height ">
+    <q-item-section class="column full-height">
       <div class="col-auto">
         <div class="head">
           <div class="head--labels">
@@ -15,10 +15,12 @@
       
       <div class="col">
         <div class="column full-height">
+
           <div class="col-auto">
             <q-btn class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
             <div style="height: 5px; border: 1px solid #ccc; border-bottom: 0; border-radius: 5px 5px 0px 0px; margin: 0px 20px;" ></div>
           </div>
+
           <div class="col">
             <q-scroll-area class="full-height">
               <div class="" style="border-left: 1px solid #ccc;border-right: 1px solid #ccc;border-bottom: 1px solid #ccc; border-radius: 0px 0px 5px 5px; min-height: 200px; margin: 0px 20px; padding: 1px 0px 0px">
@@ -134,15 +136,6 @@
   color: #ffffff;
   text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.3);
   text-transform: none;
-}
-
-.content-area {
-  height: auto;
-  width: 100%;
-  border-radius: 4px 4px 2px 2px;
-  border: 1px solid #d4cece;
-  /* box-shadow: 0 1px 0px 0 grey;  */
-  margin-top: 20px;
 }
 
 .btn-edit {

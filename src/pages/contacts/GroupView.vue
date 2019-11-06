@@ -1,41 +1,47 @@
 <template>
-  <div>
-    <div v-if="oCurrentGroup">
-      <q-item-section >
-        <div class="head">
-          <div class="head--labels">
-            <q-item-label class="head--labels-name">View Group</q-item-label>  
-          </div>
-          <div class="head--buttons-container">        
-            <q-btn class="head--buttons-style head--buttons-off" flat unelevated color="grey-7" label="Save this group" />
-            <q-btn class="head--buttons-style head--buttons-off" flat unelevated color="grey-7" label="Edit group" @click="enableEditGroup"/>
-            <q-btn class="head--buttons-style" color="primary" label="Email to this group" />
-            
-          </div>
-        </div>
-
+  <q-item-section v-if="oCurrentGroup" class="column full-height container">
+    <div class="head col-auto">
+      <div class="head--labels">
+        <q-item-label class="head--labels-name">View Group</q-item-label>  
+      </div>
+      <div class="head--buttons-container">        
+        <q-btn class="head--buttons-style head--buttons-off" flat unelevated color="grey-7" label="Save this group" />
+        <q-btn class="head--buttons-style head--buttons-off" flat unelevated color="grey-7" label="Edit group" @click="enableEditGroup"/>
+        <q-btn class="head--buttons-style" color="primary" label="Email to this group" />
         
-        <div class="content-area">          
-
-          <q-item-label class="info-line" v-if="oCurrentGroup.Name"><span class="label-names">Group Name:</span> {{ oCurrentGroup.Name }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Email"><span class="label-names">Email: </span>{{ oCurrentGroup.Email }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Company"><span class="label-names">Company: </span>{{ oCurrentGroup.Company }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.State"><span class="label-names">State: </span>{{ oCurrentGroup.State }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.City"><span class="label-names">City: </span>{{ oCurrentGroup.City }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Street"><span class="label-names">Street: </span>{{ oCurrentGroup.Street }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Zip"><span class="label-names">Zip: </span>{{ oCurrentGroup.Zip }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Phone"><span class="label-names">Phone: </span>{{ oCurrentGroup.Phone }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Fax"><span class="label-names">Fax: </span>{{ oCurrentGroup.Fax }}</q-item-label>
-          <q-item-label class="info-line" v-if="oCurrentGroup.Web"><span class="label-names">Web: </span>{{ oCurrentGroup.Web }}</q-item-label>
-            
-        </div>
-      </q-item-section>
+      </div>
     </div>
-  </div>
+
+    <div class="col">
+      <div class="column full-height">
+        <div class="col">
+          <q-scroll-area class="full-height">    
+            <div class="" style="border: 1px solid #ccc; border-radius: 5px 5px 5px 5px; min-height: 200px; padding: 1px 0px 0px">      
+
+              <q-item-label class="info-line" v-if="oCurrentGroup.Name"><span class="label-names">Group Name:</span> {{ oCurrentGroup.Name }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Email"><span class="label-names">Email: </span>{{ oCurrentGroup.Email }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Company"><span class="label-names">Company: </span>{{ oCurrentGroup.Company }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.State"><span class="label-names">State: </span>{{ oCurrentGroup.State }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.City"><span class="label-names">City: </span>{{ oCurrentGroup.City }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Street"><span class="label-names">Street: </span>{{ oCurrentGroup.Street }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Zip"><span class="label-names">Zip: </span>{{ oCurrentGroup.Zip }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Phone"><span class="label-names">Phone: </span>{{ oCurrentGroup.Phone }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Fax"><span class="label-names">Fax: </span>{{ oCurrentGroup.Fax }}</q-item-label>
+              <q-item-label class="info-line" v-if="oCurrentGroup.Web"><span class="label-names">Web: </span>{{ oCurrentGroup.Web }}</q-item-label>
+            </div>
+          </q-scroll-area>
+        </div>
+      </div>
+    </div>
+  </q-item-section>
 </template>
 
-<style>
+<style scoped>
+.container{
+  padding: 0px 20px;
+}
 .head {
+  padding: 15px 0px 21px 0px;
   display: flex;
   justify-content: space-between;
 }
@@ -87,14 +93,6 @@
   border: none;
   text-shadow: none;
   text-transform: none;
-}
-
-.content-area {
-  width: 100%;
-  border-radius: 4px 4px 2px 2px;
-  border: 1px solid #d4cece;
-  /* box-shadow: 0 1px 0px 0 grey;  */
-  margin-top: 20px;
 }
 
 .btn-edit {

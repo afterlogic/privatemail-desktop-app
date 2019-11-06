@@ -1,40 +1,57 @@
 <template>
-
-  <div>
-    <div v-if="oCurrentGroup">
-      <h2>Edit Group</h2>
-      
-      <div class="editField">        
-
-        <div class="input-line"> <label  style="flex-grow: 1">Group Name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Name" :dense=true> </q-input></div>
-        <div class="q-gutter-sm toggle-organization">
-          <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
-        </div>
-        <div v-if="bIsOrganization">
-          <div class="input-line">
-            <label>Email:</label>
-            <q-input outlined :dense=true v-model="oCurrentGroup.Email"></q-input>
-          </div>
-          <div class="input-line"> <label style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
-          <div class="input-line"> <label style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
-          <div class="input-line"> <label style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
-          <div class="input-line"> <label style="flex-grow: 1">Street:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
-        
-          <div class="input-line"> <label style="flex-grow: 1">Zip:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
-          <div class="input-line"> <label style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
-          <div class="input-line"> <label style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
-          <div class="input-line"> <label style="flex-grow: 1">Web:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
-        </div>
+  <q-item-section v-if="oCurrentGroup" class="column full-height" style="padding: 0px 20px;">
+    <div class="col-auto">
+      <div class="head">
+        <q-item-label class="head--labels-name">Edit Group</q-item-label>  
       </div>
-      <div class="buttons">
-        <q-btn color="primary" style="margin: 10px;" label="Save" @click="onSave"/>
-        <q-btn color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditGroup"/>
+    </div>    
+    <div class="col">
+      <div class="column full-height">
+        <div class="col">
+          <q-scroll-area style=""  class="editField full-height">        
+
+            <div class="input-line"> <label  style="flex-grow: 1">Group Name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Name" :dense=true> </q-input></div>
+            <div class="q-gutter-sm toggle-organization">
+              <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
+            </div>
+            <div v-if="bIsOrganization">
+              <div class="input-line">
+                <label>Email:</label>
+                <q-input outlined :dense=true v-model="oCurrentGroup.Email"></q-input>
+              </div>
+              <div class="input-line"> <label style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
+              <div class="input-line"> <label style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
+              <div class="input-line"> <label style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
+              <div class="input-line"> <label style="flex-grow: 1">Street:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
+            
+              <div class="input-line"> <label style="flex-grow: 1">Zip:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
+              <div class="input-line"> <label style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
+              <div class="input-line"> <label style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
+              <div class="input-line"> <label style="flex-grow: 1">Web:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
+            </div>
+          </q-scroll-area>
+        </div>
+        <div class="buttons">
+          <q-btn color="primary" style="margin: 10px;" label="Save" @click="onSave"/>
+          <q-btn color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditGroup"/>
+        </div>
       </div>
     </div>
-  </div>
+  </q-item-section>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.column {
+  justify-content: unset;
+}
+
+.head--labels-name{
+  padding: 15px 0px 21px 0px;
+  font-size: 18pt;
+  font-weight: normal;
+  white-space: normal;
+  color: #555566;
+}
 .input-line {
   align-items: center;
   padding: 10px 20px;
@@ -55,7 +72,7 @@
   border-radius: 4px 4px 2px 2px;
   border: 1px solid #d4cece;
   /* box-shadow: 0 1px 0px 0 grey;  */
-  margin-top: 20px;
+  // margin-top: 20px;
 }
 
 .toggle-organization {

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div  class="full-height">
     <GroupView v-if="!oCurrentGroup.editable"/>
     <GroupEditView v-if="oCurrentGroup.editable"/>
   </div>

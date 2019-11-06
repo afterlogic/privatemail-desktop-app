@@ -8,8 +8,8 @@
       <q-tabs align="left" class="q-pa-md main-tabs" v-if="isAuthorized">
         <q-route-tab to="/mail" :label="mailHeader" />
         <q-route-tab to="/contacts" label="Contacts" />
-        <q-route-tab to="/files" label="Files" />
-        <q-route-tab to="/calendar" label="Calendar" />
+        <!-- <q-route-tab to="/files" label="Files" />
+        <q-route-tab to="/calendar" label="Calendar" /> -->
         <q-space />
         <q-route-tab to="/settings" label="Settings" />
         <q-route-tab to="/" label="Log out" />

@@ -23,7 +23,7 @@
                   <contact-list-toolbar @groupsUUIDforChangeGroup="changeGroupByToolbar"/>
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="allChecked" />
-                    <q-input outlined rounded v-model="searchText" v-on:keyup.enter="search" :dense=true style="width: 100%;">
+                    <q-input outlined rounded dense class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
                       <template v-slot:prepend>
                         <q-icon name="search" ></q-icon>
                       </template>

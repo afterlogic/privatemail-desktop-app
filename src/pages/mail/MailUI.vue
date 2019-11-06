@@ -32,7 +32,7 @@
                     style="width: 100%; background: #eee;">
                     <template v-slot:header>
                       <q-checkbox v-model="checkboxAll" />
-                      <q-input outlined rounded v-model="searchText" :dense=true style="width: 100%;">
+                      <q-input outlined rounded dense class="search-field" v-model="searchText" style="width: 100%;">
                         <template v-slot:prepend>
                           <q-icon name="search" ></q-icon>
                         </template>

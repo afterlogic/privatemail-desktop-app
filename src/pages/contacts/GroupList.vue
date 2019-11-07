@@ -64,7 +64,7 @@ export default {
       this.$store.commit('contacts/setCurrentGroup', null)
     },
     setCurrentGroup (oGroup) {
-      this.$store.dispatch('contacts/getContactByUUID', null)
+      this.$store.dispatch('contacts/setCurrentContactByUUID', null)
       this.$store.commit('contacts/setCurrentGroup', oGroup)
     },
   },

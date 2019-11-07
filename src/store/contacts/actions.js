@@ -73,7 +73,7 @@ export function asyncGetContacts({ state, commit, dispatch, getters }) {
   }
 }
 
-export function getContactByUUID({ state, commit, dispatch, getters }, UUID) {
+export function setCurrentContactByUUID({ state, commit, dispatch, getters }, UUID) {
   let contactByUUID = {
     UUID,
     editable: false,
@@ -114,7 +114,7 @@ export function logout ({ commit, dispatch }) {
   commit('setContacts', [])
   commit('setContactsPerPage', 20)
   commit('setSearchText', '')
-  dispatch('getContactByUUID', null)
+  dispatch('setCurrentContactByUUID', null)
 }
 
 export function enableEditGroup({ state, commit, dispatch, getters }) {

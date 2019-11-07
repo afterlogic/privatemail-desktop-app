@@ -109,7 +109,7 @@ export default {
   computed: {
     'showContact': function() {
       //console.log('showContact');
-      let oContactContainer = this.$store.getters['contacts/getContactByUUID']
+      let oContactContainer = this.$store.getters['contacts/getCurrentContact']
       return (oContactContainer.contact && oContactContainer.contact instanceof CContact) ? true : false
     },
     'showGroup': function() {

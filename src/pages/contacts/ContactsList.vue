@@ -2,7 +2,7 @@
   <div>
     <q-list>
       <div v-for="contact in contacts.list" :key="contact.UUID">
-        <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)" 
+        <q-item clickable v-ripple @click="setCurrentContactByUUID(contact.UUID)" 
             :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
@@ -129,8 +129,8 @@ export default {
       }
       this.$store.dispatch('contacts/asyncGetContacts')
     },
-    getContactByUUID(UUID) {
-      this.$store.dispatch('contacts/getContactByUUID', UUID)
+    setCurrentContactByUUID(UUID) {
+      this.$store.dispatch('contacts/setCurrentContactByUUID', UUID)
       this.selected = UUID
     },
     isChecked(UUID) {

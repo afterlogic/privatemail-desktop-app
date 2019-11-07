@@ -369,7 +369,7 @@ export default {
   },
 
   mounted: function() {
-    let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
+    let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
     let oContact = _.cloneDeep(ContactByUUID.contact)
     this.oContact = (oContact && oContact instanceof CContact) ? oContact : null
     // console.log('uuids', this.oContact.GroupUUIDs)
@@ -468,7 +468,7 @@ export default {
 
   methods: {
     onSave () {
-        let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
+        let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
         let oContactSource = ContactByUUID.contact
         let oSavedContact = null
         let bEqual = _.isEqual(this.oContact, oContactSource)

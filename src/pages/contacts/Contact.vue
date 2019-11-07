@@ -34,7 +34,7 @@ export default {
   },
   computed: {
     contactByUUID() {
-      return this.$store.getters['contacts/getContactByUUID']
+      return this.$store.getters['contacts/getCurrentContact']
     }
   },
 

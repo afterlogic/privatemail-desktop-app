@@ -216,7 +216,7 @@ export default {
         return this.$store.getters['contacts/getGroups']
     },
     'contact': function() {
-      let ContactByUUID = this.$store.getters['contacts/getContactByUUID']
+      let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
       let contact = ContactByUUID.contact
 
       return (contact && contact instanceof CContact) ? contact : null
@@ -231,7 +231,7 @@ export default {
     },
     setCurrentGroup (sGroupName) {
       let oGroup = _.find(this.groupList,  { 'Name': sGroupName } )
-      this.$store.dispatch('contacts/getContactByUUID', null)
+      this.$store.dispatch('contacts/setCurrentContactByUUID', null)
       this.$store.commit('contacts/setCurrentGroup', oGroup)
     },
     setFilteredGroups() {

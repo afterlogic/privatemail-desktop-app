@@ -41,7 +41,7 @@ export function getCurrentStorage(state) {
   return state.storages && _.isFunction(state.storages.getCurrentStorage) ? state.storages.getCurrentStorage() : ''
 }
 
-export function getContactByUUID(state) {
+export function getCurrentContact(state) {
   return state.contactByUUID
 }
 

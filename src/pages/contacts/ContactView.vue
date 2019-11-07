@@ -135,7 +135,7 @@
 }
 
 .paragraph-heads {
-  margin: 30px 0px 30px 20px; 
+  margin: 30px 0px 30px 25px; 
   font-size: 10.5pt; 
   color: #3d3d3d; 
   font-weight: 600;

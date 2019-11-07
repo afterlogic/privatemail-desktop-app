@@ -243,7 +243,7 @@
           </q-scroll-area>
         </div>
         <div class="buttons">
-          <q-btn color="primary" style="margin: 10px;" label="Save" @click="onSave"/>
+          <q-btn color="primary" label="Save" @click="onSave"/>
           <q-btn color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditContact"/>
         </div>
       </div>
@@ -337,9 +337,7 @@
 }
 
 .buttons {
-  /* border-top: 1px solid #d9d9d9; */
-  margin: 0px 20px;
-  padding: 20px 5px;
+  margin: 30px 0;
   text-align: right;
 }
 

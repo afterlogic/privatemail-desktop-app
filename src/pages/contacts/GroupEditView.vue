@@ -87,9 +87,6 @@ h2 {
 }
 
 .buttons {
-  /* border-top: 1px solid #d9d9d9; */
-  margin: 0px 20px;
-  padding: 20px 5px;
   text-align: right;
 }
 

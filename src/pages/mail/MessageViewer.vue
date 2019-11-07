@@ -90,11 +90,8 @@
       </div>
       <div class="col" style="height: 100%;">
         <q-scroll-area style="height: 100%;">
-          <div class="q-pa-md" v-if="!message.Received">
-            Loading...
-          </div>
-          <div class="q-pa-md" v-if="message.Received && message.Html" v-html="message.Html"></div>
-          <div class="q-pa-md" v-if="message.Received && !message.Html" v-html="message.Plain"></div>
+          <div class="q-pa-md" v-if="message.Html" v-html="message.Html"></div>
+          <div class="q-pa-md" v-if="!message.Html" v-html="message.Plain"></div>
         </q-scroll-area>
       </div>
       <div class="col-3" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']" style="background: yellow;">
@@ -196,16 +193,13 @@ export default {
     },
   },
   watch: {
-    message: {
-      handler: function () {
-        if (this.message && this.message.Attachments && this.message.Attachments['@Collection']) {
-          _.each(this.message.Attachments['@Collection'], function (oAttach) {
-            oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
-          })
-        }
-        this.clearAll()
-      },
-      deep: true // needs to be called after message.Received change
+    message: function () {
+      if (this.message && this.message.Attachments && this.message.Attachments['@Collection']) {
+        _.each(this.message.Attachments['@Collection'], function (oAttach) {
+          oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
+        })
+      }
+      this.clearAll()
     },
   },
   methods: {

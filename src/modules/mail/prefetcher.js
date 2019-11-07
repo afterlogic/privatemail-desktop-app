@@ -115,23 +115,6 @@ function _getMessages(oFolder) {
   return bPrefetchStarted
 }
 
-function _getMessagesBodies(oFolder) {
-  let bPrefetchStarted = false
-  let iAccountId = store.state.mail.currentAccount.AccountID
-
-  let aUids = messagesUtils.getUidsToRetrieveBodies(store.state.mail.messageList, store.state.mail.messagesCache, iAccountId, oFolder.FullName)
-  if (aUids.length > 0) {
-    store.dispatch('mail/asyncGetMessagesBodies', {
-      iAccountId,
-      sFolderFullName: oFolder.FullName,
-      aUids,
-    })
-    bPrefetchStarted = true
-  }
-
-  return bPrefetchStarted
-}
-
 let iCurrentAccountId = 0
 let bAllowPrefetch = false
 let bFoldersRetrieved = false
@@ -178,9 +161,6 @@ let prefetcher = {
           bPrefetchStarted = _getMessagesInfo(oFolder)
           if (!bPrefetchStarted) {
             bPrefetchStarted = _getMessages(oFolder)
-          }
-          if (!bPrefetchStarted) {
-            bPrefetchStarted = _getMessagesBodies(oFolder)
           }
           if (bPrefetchStarted) {
             return false // break each

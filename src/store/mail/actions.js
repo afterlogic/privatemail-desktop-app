@@ -113,7 +113,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
   })
 }
 
-export function asyncGetMessages ({ commit, getters }, {iAccountId, sFolderFullName, aUids}) {
+export function asyncGetMessages ({ state, commit, getters, dispatch }, {iAccountId, sFolderFullName, aUids}) {
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
   if (bCurrentFolder) {
     commit('setSyncing', true)
@@ -125,58 +125,24 @@ export function asyncGetMessages ({ commit, getters }, {iAccountId, sFolderFullN
   }
   webApi.sendRequest({
     sModule: 'Mail',
-    sMethod: 'GetMessagesByUids',
+    sMethod: 'GetMessagesBodies',
     oParameters,
-    fCallback: (oResult, oError) => {
+    fCallback: (aMessagesFromServer, oError) => {
       if (bCurrentFolder) {
         commit('setSyncing', false)
       }
-      if (oResult && oResult['@Collection']) {
+      if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
+        console.time('GetMessagesBodies parse')
         commit('updateMessagesCache', {
           AccountId: iAccountId,
-          Messages: oResult['@Collection'],
+          Messages: aMessagesFromServer,
         })
+        console.timeEnd('GetMessagesBodies parse')
         if (bCurrentFolder) {
           commit('setCurrentMessages')
         }
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while getting messages'))
-      }
-    },
-  })
-}
-
-export function asyncGetMessagesBodies ({ commit }, {iAccountId, sFolderFullName, aUids}) {
-  let oParameters = {
-    AccountID: iAccountId,
-    Folder: sFolderFullName,
-    Uids: aUids,
-  }
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'GetMessagesBodies',
-    oParameters,
-    fCallback: (aMessagesFromServer, oError) => {
-      if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
-        console.time('GetMessagesBodies parse')
-        commit('updateMessages', {iAccountId, aMessagesFromServer})
-        console.timeEnd('GetMessagesBodies parse')
-      }
-    },
-  })
-}
-
-export function asyncGetCurrentMessage ({ state, commit, getters }) {
-  let iAccountId = state.currentAccount.AccountID
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'GetMessage',
-    oParameters: {AccountID: iAccountId, Folder: getters.getСurrentFolderFullName, Uid: state.currentMessage.Uid},
-    fCallback: (oResult, oError) => {
-      if (oResult) {
-        commit('updateMessage', {iAccountId, oMessageFromServer: oResult})
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting message'))
       }
     },
   })
@@ -208,9 +174,6 @@ export function setCurrentMessage ({ commit, dispatch }, payload) {
       Uids: [payload.Uid],
       IsSeen: true
     })
-  }
-  if (!payload.Received) {
-    dispatch('asyncGetCurrentMessage')
   }
 }
 

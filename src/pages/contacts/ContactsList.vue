@@ -1,23 +1,29 @@
 <template>
-  <q-list>
-    <!-- :class="{'selected': aCheckedList.find(contact.UUID)}" -->
-    <div v-for="contact in contacts.list" :key="contact.UUID">
-    <!-- {{isChecked(contact.UUID)}} -->
-      <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)" @focus="isSelected(contact.UUID)" 
-          :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected}">
-        <q-item-section side>
-          <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName}}</q-item-label>
-          <q-item-label v-else lines="1" class="contact-notext">No name</q-item-label>
-          <q-item-label v-if="contact.ViewEmail" lines="1">{{contact.ViewEmail}}</q-item-label>
-          <q-item-label v-else lines="1" class="contact-notext">No email address</q-item-label>
-        </q-item-section>
-      </q-item>
-      <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected }" />
-    </div>
-  </q-list>
+  <div>
+    <q-list>
+      <!-- :class="{'selected': aCheckedList.find(contact.UUID)}" -->
+      <div v-for="contact in contacts.list" :key="contact.UUID">
+      <!-- {{isChecked(contact.UUID)}} -->
+        <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)" @focus="isSelected(contact.UUID)" 
+            :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected}">
+          <q-item-section side>
+            <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName}}</q-item-label>
+            <q-item-label v-else lines="1" class="contact-notext">No name</q-item-label>
+            <q-item-label v-if="contact.ViewEmail" lines="1">{{contact.ViewEmail}}</q-item-label>
+            <q-item-label v-else lines="1" class="contact-notext">No email address</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected }" />
+      </div>
+    </q-list>
+    <template v-if="contacts.list.length === 0">
+      <div v-if="!contactsSyncing">No contacts</div>
+      <div v-if="contactsSyncing">Loading contact list...</div>
+    </template>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -112,6 +118,9 @@ export default {
     },
     searchText () {
       return this.$store.getters['contacts/getSearchText']
+    },
+    contactsSyncing () {
+      return this.$store.getters['contacts/getSyncing'] || this.$store.getters['contacts/getLoading']
     },
   },
 

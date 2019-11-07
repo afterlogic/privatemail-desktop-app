@@ -25,16 +25,35 @@ ipcRenderer.on('contacts-get-groups', (event, { aGroups, oError }) => {
   }
 })
 
-ipcRenderer.on('contacts-get-contacts', (event, { aContacts, iCount, oError }) => {
-  if (_.isArray(aContacts)) {
-    store.commit('contacts/setContacts', _.map(aContacts, function (oContactData) {
-      return new CContact(oContactData)
-    }))
-    store.commit('contacts/setContactsCount', iCount)
-    store.commit('contacts/setHasChanges', false)
-    store.commit('contacts/setSyncing', false)
-  } else {
-    notification.showError(errors.getText(oError, 'Error occurred while getting contacts'))
+function _getContactsParams () {
+  let oGroup = store.getters['contacts/getCurrentGroup']
+  let sGroupUUID = oGroup && oGroup.group ? oGroup.group.UUID : ''
+  let sStorage = store.getters['contacts/getCurrentStorage']
+  if (sGroupUUID !== '') {
+    sStorage = 'all'
+  }
+  return {
+    sStorage,
+    sGroupUUID,
+    iPerPage: store.getters['contacts/getContactsPerPage'],
+    iPage: store.getters['contacts/getСurrentPage'],
+    sSearch: store.getters['contacts/getSearchText'],
+  }
+}
+
+ipcRenderer.on('contacts-get-contacts', (event, { aContacts, iCount, oRequestParams, oError }) => {
+  let oParams = _getContactsParams()
+  if (_.isEqual(oParams, oRequestParams)) {
+    if (_.isArray(aContacts)) {
+      store.commit('contacts/setContacts', _.map(aContacts, function (oContactData) {
+        return new CContact(oContactData)
+      }))
+      store.commit('contacts/setContactsCount', iCount)
+      store.commit('contacts/setHasChanges', false)
+      store.commit('contacts/setLoading', false)
+    } else {
+      notification.showError(errors.getText(oError, 'Error occurred while getting contacts'))
+    }
   }
 })
 
@@ -48,20 +67,9 @@ export function asyncGetGroups({ state, commit, dispatch, getters }) {
 
 export function asyncGetContacts({ state, commit, dispatch, getters }) {
   if (getters.getCurrentStorage) {
-    store.commit('contacts/setSyncing', true)
-    let oGroup = getters.getCurrentGroup
-    let sGroupUUID = oGroup && oGroup.group ? oGroup.group.UUID : ''
-    let sStorage = getters.getCurrentStorage
-    if (sGroupUUID !== '') {
-      sStorage = 'all'
-    }
-    ipcRenderer.send('contacts-get-contacts', {
-      sStorage,
-      sGroupUUID,
-      iPerPage: getters.getContactsPerPage,
-      iPage: getters.getСurrentPage,
-      sSearch: getters.getSearchText,
-    })
+    store.commit('contacts/setLoading', true)
+    let { sStorage, sGroupUUID, iPerPage, iPage, sSearch } = _getContactsParams()
+    ipcRenderer.send('contacts-get-contacts', { sStorage, sGroupUUID, iPerPage, iPage, sSearch })
   }
 }
 
@@ -103,6 +111,7 @@ export function logout ({ commit, dispatch }) {
   commit('setGroups', [])
   commit('setCurrentGroup', null)
   commit('setContactsCount', 0)
+  commit('setContacts', [])
   commit('setContactsPerPage', 20)
   commit('setSearchText', '')
   dispatch('getContactByUUID', null)

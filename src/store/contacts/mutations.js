@@ -21,6 +21,10 @@ export function setSyncing(state, bSyncing) {
   state.syncing = bSyncing
 }
 
+export function setLoading(state, bLoading) {
+  state.loading = bLoading
+}
+
 export function setContacts(state, aContacts) {
   state.contacts.list = aContacts
 }

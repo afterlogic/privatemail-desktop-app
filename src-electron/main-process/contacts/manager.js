@@ -34,7 +34,7 @@ export default {
     ipcMain.on('contacts-get-contacts', (oEvent, { sStorage, sGroupUUID, sSearch, iPerPage, iPage }) => {
       contactsDbManager.getContacts({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }).then(
         ({ aContacts, iCount }) => {
-          oEvent.sender.send('contacts-get-contacts', { aContacts, iCount })
+          oEvent.sender.send('contacts-get-contacts', { aContacts, iCount, oRequestParams: { sStorage, sGroupUUID, sSearch, iPerPage, iPage } })
         },
         (oError) => {
           oEvent.sender.send('contacts-get-contacts', { oError })
@@ -97,7 +97,7 @@ export default {
                     }
                   )
                 } else {
-                  oEvent.sender.send('contacts-refresh', { bHasChanges: false })
+                  oEvent.sender.send('contacts-refresh', { bHasChanges: false, sStorage })
                 }
               } else {
                 oEvent.sender.send('contacts-refresh', { oError })
@@ -147,12 +147,11 @@ export default {
                   })
                   if (!oStorageCtagFromDb || oStorageCtagFromDb.CTag !== oStorageCtagFromApi.CTag) {
                     aStoragesToRefresh.push(oStorageCtagFromApi.Id)
+                  } else if (oStorageCtagFromDb) {
+                    oEvent.sender.send('contacts-refresh', { bHasChanges: false, sStorage: oStorageCtagFromDb.Storage })
                   }
                 })
-                if (aStoragesToRefresh.length === 0) {
-                  // There are no storages with modified CTag.
-                  oEvent.sender.send('contacts-refresh', { bHasChanges: false })
-                } else {
+                if (aStoragesToRefresh.length !== 0) {
                   // Get contacts info for every storage with modified CTag.
                   _.each(aStoragesToRefresh, function (sStorageToRefresh) {
                     _refreshContactsInfo (oEvent, { sApiHost, sAuthToken, sStorage: sStorageToRefresh })

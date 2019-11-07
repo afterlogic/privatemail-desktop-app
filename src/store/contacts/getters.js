@@ -13,6 +13,10 @@ export function getSyncing(state) {
   return state.syncing
 }
 
+export function getLoading(state) {
+  return state.loading
+}
+
 export function getContacts(state) {
   return state.contacts
 }

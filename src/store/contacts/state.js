@@ -5,6 +5,7 @@ export default {
 
   hasChanges: false,
   syncing: true,
+  loading: true,
 
   currentPage: 1,
   contactsPerPage: 20,

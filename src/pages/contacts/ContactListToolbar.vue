@@ -66,7 +66,7 @@ export default {
 
   computed: {
     contactsSyncing () {
-      return this.$store.getters['contacts/getSyncing']
+      return this.$store.getters['contacts/getSyncing'] || this.$store.getters['contacts/getLoading']
     },
     currentStorage () {
       return this.$store.getters['contacts/getCurrentStorage']
@@ -90,10 +90,12 @@ export default {
       })
     },
     onContactsRefresh (event, { bHasChanges, sStorage, oError }) {
-      this.$store.commit('contacts/setSyncing', false)
       if (_.isBoolean(bHasChanges)) {
-        if (bHasChanges && sStorage === this.currentStorage) {
-          this.$store.commit('contacts/setHasChanges', true)
+        if (sStorage === this.currentStorage) {
+          if (bHasChanges) {
+            this.$store.commit('contacts/setHasChanges', true)
+          }
+          this.$store.commit('contacts/setSyncing', false)
         }
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while refreshing of contacts'))

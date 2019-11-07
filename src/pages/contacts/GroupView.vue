@@ -4,10 +4,10 @@
       <div class="head--labels">
         <q-item-label class="head--labels-name">View Group</q-item-label>  
       </div>
-      <div class="head--buttons-container">        
-        <q-btn class="head--buttons-style head--buttons-off" flat unelevated color="grey-7" label="Save this group" />
-        <q-btn class="head--buttons-style head--buttons-off" flat unelevated color="grey-7" label="Edit group" @click="enableEditGroup"/>
-        <q-btn class="head--buttons-style" color="primary" label="Email to this group" />
+      <div class="buttons">        
+        <q-btn class="head--buttons-off" flat unelevated color="grey-7" label="Delete group" />
+        <q-btn class="head--buttons-off" flat unelevated color="grey-7" label="Edit group" @click="enableEditGroup"/>
+        <q-btn  color="primary" label="Email to this group" />
         
       </div>
     </div>
@@ -67,24 +67,6 @@
   display: flex;
   justify-content: space-between;
   width: 70%;
-}
-
-.head--buttons-style {
-  width: 30%;
-  min-width: 85px;
-  height: 34px;
-  margin: 0px 3px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-block;
-  font: bold 10pt Helvetica, Tahoma, Arial, sans-serif;
-  padding: 2px 2px;
-  text-align: center;
-  background: #BC4799;
-  border: 1px solid #98387b;
-  color: #ffffff;
-  text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.3);
-  text-transform: none;
 }
 
 .head--buttons-off {

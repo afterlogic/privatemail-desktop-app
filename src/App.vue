@@ -105,4 +105,19 @@ hr.checked {
 hr.selected {
   background: #6d5d7e;
 }
+
+.buttons {
+  .q-btn {
+    margin-right: 10px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    html.rtl & {
+      margin-left: 10px;
+      margin-right: 0;
+    }
+  }
+}
 </style>

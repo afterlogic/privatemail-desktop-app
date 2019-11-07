@@ -4,11 +4,11 @@
         <div class="head">
           <div class="head--labels">
             <q-item-label class="head--labels-name">{{ contact.FullName }}</q-item-label>  
-            <q-item-label class="head--labels-email" caption lines="1">{{ contact.ViewEmail }}</q-item-label>
+            <q-item-label class="head--labels-email">{{ contact.ViewEmail }}</q-item-label>
           </div>
-          <div class="head--buttons-container-contact">         
-            <q-btn class="head--buttons-style" color="primary" label="">Send this contact</q-btn>
-            <q-btn class="head--buttons-style" color="primary" label="Email to this contact" />
+          <div class="buttons">
+            <q-btn no-caps color="primary" label="Send this contact" />
+            <q-btn no-caps color="primary" label="Email to this contact" />
           </div>
         </div>
       </div>
@@ -97,6 +97,8 @@
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .head--labels-name {
@@ -114,28 +116,7 @@
 }
 
 .head--buttons-container-contact {
-  display: flex;
-  justify-content: flex-end;
-  width: 70%;
-}
-
-.head--buttons-style {
-  width: 30%;
-  min-width: 85px;
-  height: 34px;
-  margin: 0px 3px;
-  text-align: right;
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-block;
-  font: bold 10pt Helvetica, Tahoma, Arial, sans-serif;
-  padding: 2px 2px;
-  text-align: center;
-  background: #BC4799;
-  border: 1px solid #98387b;
-  color: #ffffff;
-  text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.3);
-  text-transform: none;
+  white-space: nowrap;
 }
 
 .btn-edit {

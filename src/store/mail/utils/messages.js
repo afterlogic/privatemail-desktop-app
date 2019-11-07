@@ -1,30 +1,4 @@
 export default {
-  getUidsToRetrieveBodies: function (aStateMessageList, oStateMessagesCache, iCurrentAccountId, sStateCurrentFolderFullName) {
-    var aUids = []
-
-    _.each(aStateMessageList, (oMessageInfo) => {
-      var sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
-      var oMessage = oStateMessagesCache[sMessageKey]
-      if (oMessage && !oMessage.Received) {
-        aUids.push(oMessageInfo.uid)
-      }
-      if (oMessage && oMessageInfo.thread) {
-        _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
-          var sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessageInfo.uid)
-          var oThreadMessage = oStateMessagesCache[sThreadMessageKey]
-          if (oThreadMessage && !oThreadMessage.Received) {
-            aUids.push(oThreadMessageInfo.uid)
-          }
-        })
-      }
-      if (aUids.length >= 50) {
-        return false
-      }
-    })
-
-    return aUids
-  },
-
   getUidsToRetrieve: function (aMessageList, oStateMessagesCache, iAccountId, sFolderFullName) {
     var aUids = []
     _.each(aMessageList, (oMessageInfo) => {

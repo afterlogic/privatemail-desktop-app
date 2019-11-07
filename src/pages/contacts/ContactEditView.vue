@@ -68,17 +68,17 @@
                 <label class="label-size">Display name:</label>
                 <q-input class="input-size" outlined v-model="oContact.FullName" :dense=true></q-input>
               </div>
-              <div class="input-line" >
+              <div class="input-line-select" >
                 <label class="label-size">Email:</label>
-                <q-select v-if="aPrimaryMailOptions.length" v-model="oPrimaryEmail" :options="aPrimaryMailOptions" outlined dense />
+                <q-select v-if="aPrimaryMailOptions.length" v-model="oPrimaryEmail" :options="aPrimaryMailOptions" outlined dense/>
                 <div v-else><label class="label-notext-size"> Not specified yet</label></div>
               </div>
-              <div class="input-line">
+              <div class="input-line-select">
                 <label class="label-size">Phone:</label>
-                <q-select outlined v-if="aPrimaryPhoneOptions.length" v-model="oPrimaryPhone" :options="aPrimaryPhoneOptions" dense />
+                <q-select v-if="aPrimaryPhoneOptions.length" v-model="oPrimaryPhone" :options="aPrimaryPhoneOptions" dense outlined/>
                 <div v-else><label class="label-notext-size"> Not specified yet</label></div>
               </div>
-              <div class="input-line">
+              <div class="input-line-select">
                 <label class="label-size">Address:</label>
                 <q-select v-if="aPrimaryAddressOptions.length" outlined v-model="oPrimaryAddress" :options="aPrimaryAddressOptions" dense />
                 <div v-else><label class="label-notext-size"> Not specified yet</label></div>
@@ -251,7 +251,7 @@
   </q-item-section>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .head--labels-name{
   padding: 15px 0px;
   font-size: 18pt;
@@ -265,6 +265,22 @@
   padding: 10px 20px;
   display: flex;
   justify-content: space-between;
+}
+
+.input-line-select {
+  align-items: center;
+  display: flex;
+  padding: 10px 20px;
+  .label-size {
+    flex-grow: 1;
+  }
+  .q-select {
+    max-width: 65%;
+    flex-grow: 2;
+    text-overflow: ellipsis; 
+    overflow: hidden;
+  }
+  
 }
 
 .input-size {

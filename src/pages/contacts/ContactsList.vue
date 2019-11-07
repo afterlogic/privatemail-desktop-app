@@ -1,10 +1,8 @@
 <template>
   <div>
     <q-list>
-      <!-- :class="{'selected': aCheckedList.find(contact.UUID)}" -->
       <div v-for="contact in contacts.list" :key="contact.UUID">
-      <!-- {{isChecked(contact.UUID)}} -->
-        <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)" @focus="isSelected(contact.UUID)" 
+        <q-item clickable v-ripple @click="getContactByUUID(contact.UUID)" 
             :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
@@ -133,19 +131,10 @@ export default {
     },
     getContactByUUID(UUID) {
       this.$store.dispatch('contacts/getContactByUUID', UUID)
-      console.log(UUID)
-    },
-    selectItem() {
-      this.selected = !this.selected
+      this.selected = UUID
     },
     isChecked(UUID) {
-      // console.log('isChecked', _.find(this.aCheckedList, (el) => el === UUID));
       return !!_.find(this.aCheckedList, (el) => el === UUID)
-    },
-    isSelected(UUID) {
-      console.log('isChecked', _.find(this.aCheckedList, (el) => el === UUID));
-      // return !!_.find(this.aCheckedList, (el) => el === UUID)
-      this.selected = UUID
     },
   },
 }

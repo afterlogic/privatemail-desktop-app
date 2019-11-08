@@ -77,14 +77,15 @@ export default {
 
 .q-item {
   .contact-notext {
-    color: #8c8989;
+    color: #b9b9b9;
   }
 
   &.checked {
     background: var(--q-color-t-selection-alt);
 
     .contact-notext {
-      color: #bfbf9e
+      // color: #bfbf9e;
+      color: desaturate(darken(#eeeecd, 20%), 20%);
     }
   }
 
@@ -93,7 +94,8 @@ export default {
     color: #fff;
 
     .contact-notext {
-      color: #ad98c5;
+      // color: #ad98c5;
+      color: lighten(#816f95, 15%);
     }
   }
 }

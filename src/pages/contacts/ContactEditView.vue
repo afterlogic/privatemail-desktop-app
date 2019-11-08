@@ -318,6 +318,7 @@
   color: #3d3d3d; 
   font-weight: 600;
 }
+
 .editField {
   width: 100%;
   border-radius: 4px 4px 2px 2px;
@@ -424,7 +425,7 @@ export default {
     },
     'groupFilteredList': function (v) {
       if (v) {
-        this.oContact.GroupUUIDs = v        
+        this.oContact.GroupUUIDs = v
       }
     },
   },

@@ -12,8 +12,8 @@
           <q-scroll-area class="editField full-height">
             <div class="frame-without-top q-mx-md">
               <div class="input-line">
-                <label style="flex-grow: 1">Group Name:</label>
-                <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.Name"/>
+                <label class="label-size">Group Name:</label>
+                <q-input outlined dense class="input-size" v-model="oCurrentGroup.Name"/>
               </div>
               <div class="q-gutter-sm toggle-organization">
                 <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
@@ -24,36 +24,35 @@
                   <q-input outlined :dense=true v-model="oCurrentGroup.Email"></q-input>
                 </div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">Company:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%"  v-model="oCurrentGroup.Company"/>
+                  <label class="label-size">Company:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Company"/>
                 </div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">State:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.State"/></div>
+                  <label class="label-size">State:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.State"/></div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">City:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.City"/>
+                  <label class="label-size">City:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.City"/>
                 </div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">Street:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.Street"/>
-                </div>
-              
-                <div class="input-line">
-                  <label style="flex-grow: 1">Zip:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.Zip"/>
+                  <label class="label-size">Street:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Street"/>
                 </div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">Phone:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.Phone"/>
+                  <label class="label-size">Zip:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Zip"/>
                 </div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">Fax:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.Fax"/>
+                  <label class="label-size">Phone:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Phone"/>
                 </div>
                 <div class="input-line">
-                  <label style="flex-grow: 1">Web:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%" v-model="oCurrentGroup.Web"/>
+                  <label class="label-size">Fax:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Fax"/>
+                </div>
+                <div class="input-line">
+                  <label class="label-size">Web:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Web"/>
                 </div>
               </div>
             </div>
@@ -98,6 +97,15 @@
   border-radius: 0px 0px 5px 5px; 
   min-height: 200px; 
   padding: 1px 0px 0px
+}
+
+.input-size {
+  flex-grow: 2; 
+  max-width: 65%;
+}
+
+.label-size {
+  flex-grow: 1;
 }
 
 .input-line {

@@ -39,7 +39,7 @@
                   </q-scroll-area>
                 </div>
                 <div class="col-auto">
-                  <Pagination :currentPage="currentPage" :itemsPerPage="contactsPerPage" :itemsCount="contactsCount" :changePage="changePage"></Pagination>
+                  <Pagination :currentPage="currentPage" :itemsPerPage="contactsPerPage" :itemsCount="contactsCount" :changePage="changePage" />
                 </div>
               </div>
             </template>

@@ -3,7 +3,7 @@
       <div class="col-auto">
         <div class="head">
           <div class="head--labels">
-            <q-item-label class="head--labels-name">{{ contact.FullName }}</q-item-label>  
+            <q-item-label class="head--labels-name">{{ contact.FullName }}</q-item-label>
             <q-item-label class="head--labels-email">{{ contact.ViewEmail }}</q-item-label>
           </div>
           <div class="buttons">

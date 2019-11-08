@@ -5,9 +5,9 @@
         <q-item-label class="head--labels-name">View Group</q-item-label>
       </div>
       <div class="buttons">
-        <q-btn no-wrap no-caps class="head--buttons-off" flat unelevated color="grey-7" label="Delete group" />
-        <q-btn no-wrap no-caps class="head--buttons-off" flat unelevated color="grey-7" label="Edit group" @click="enableEditGroup"/>
-        <q-btn no-wrap no-caps color="primary" label="Email to this group" />        
+        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" />
+        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="enableEditGroup"/>
+        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" />        
       </div>
     </div>
 

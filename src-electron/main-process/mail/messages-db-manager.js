@@ -52,7 +52,7 @@ let aMessageMap = [
   {Name: 'Uid', DbName: 'uid', Type: 'INTEGER'},
   {Name: 'PartialFlagged', DbName: 'partial_flagged', Type: 'INTEGER', IsBool: true},
   {Name: 'ThreadHasUnread', DbName: 'thread_has_unread', Type: 'INTEGER', IsBool: true},
-],
+]
 
 function _prepareDataFromDb (aRows, aDbFieldsData) {
   let aItems = []

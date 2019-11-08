@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import dbHelper from '../utils/db-helper.js'
+
 import typesUtils from '../../../src/utils/types.js'
 
 let oDb = null
@@ -79,45 +81,6 @@ let aGroupsDbFields = [
   {Name: 'Web', DbName: 'web', Type: 'TEXT'},
   {Name: 'Zip', DbName: 'zip', Type: 'TEXT'},
 ]
-
-function _prepareDataFromDb (aRows, aDbFieldsData) {
-  let aItems = []
-  _.each(aRows, function (oRow) {
-    if (typesUtils.isNonEmptyObject(oRow)) {
-      let oItem = {}
-      _.each(aDbFieldsData, function (oItemDbField) {
-        let mDbItem = oRow[oItemDbField.DbName]
-        if (oItemDbField.IsBool) {
-          oItem[oItemDbField.Name] = !!mDbItem
-        } else if (oItemDbField.IsArray) {
-          let aValue = []
-          let sValue = mDbItem
-          if (typesUtils.isNonEmptyString(sValue)) {
-            aValue = JSON.parse(sValue)
-          }
-          oItem[oItemDbField.Name] = aValue
-        } else {
-          oItem[oItemDbField.Name] = mDbItem
-        }
-      })
-      aItems.push(oItem)
-    }
-  })
-  return aItems
-}
-
-function _prepareInsertParams (oItem, aDbFieldsData) {
-  let aParams = []
-  _.each(aDbFieldsData, function (oDbField) {
-    if (oDbField.IsArray) {
-      let aValue = typesUtils.pArray(oItem[oDbField.Name])
-      aParams.push(JSON.stringify(aValue))
-    } else {
-      aParams.push(oItem[oDbField.Name])
-    }
-  })
-  return aParams
-}
 
 function _getContactsSql ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
   let aWhere = []
@@ -292,7 +255,7 @@ export default {
             if (oError) {
               reject({ sMethod: 'getGroups', oError })
             } else {
-              let aGroups = _prepareDataFromDb(aRows, aGroupsDbFields)
+              let aGroups = dbHelper.prepareDataFromDb(aRows, aGroupsDbFields)
               resolve(aGroups)
             }
           }
@@ -318,7 +281,7 @@ export default {
         let sQuestions = aGroupsDbFields.map(function(){ return '?' }).join(',')
         let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
         _.each(aGroups, function (oGroup) {
-          let aParams = _prepareInsertParams(oGroup, aGroupsDbFields)
+          let aParams = dbHelper.prepareInsertParams(oGroup, aGroupsDbFields)
           oStatement.run.apply(oStatement, aParams)
         })
         oStatement.finalize(function (oError) {
@@ -460,7 +423,7 @@ export default {
           sQuestions = aContactsDbFields.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('INSERT INTO contacts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
           _.each(aContacts, function (oContact) {
-            let aParams = _prepareInsertParams(oContact, aContactsDbFields)
+            let aParams = dbHelper.prepareInsertParams(oContact, aContactsDbFields)
             oStatement.run.apply(oStatement, aParams)
           })
           oStatement.finalize(function (oError) {
@@ -489,7 +452,7 @@ export default {
                 if (oError) {
                   reject({ sMethod: 'getContacts', oError })
                 } else {
-                  let aContacts = _prepareDataFromDb(aRows, aContactsDbFields)
+                  let aContacts = dbHelper.prepareDataFromDb(aRows, aContactsDbFields)
                   if (iCount === 0) {
                     iCount = aContacts.length
                   }

@@ -1,5 +1,5 @@
 <template>
-  <q-toolbar>
+  <div class="row q-pa-sm items-center">
     <q-btn flat color="primary" icon="group_add" />
     <q-btn flat color="primary" icon="mail_outline" />
     <q-btn-dropdown flat color="primary" icon="folder_open">
@@ -33,17 +33,12 @@
       </q-list>
     </q-btn-dropdown>
     <q-space/>
-    <q-btn flat color="primary" icon="sync" @click="sync" v-if="!contactsSyncing">
+    <q-btn flat color="primary" icon="sync" :loading=contactsSyncing @click="sync">
       <q-tooltip>
         Refresh
       </q-tooltip>
     </q-btn>
-    <q-spinner color="primary" size="1.5em" @click="sync" v-if="contactsSyncing">
-      <q-tooltip>
-        Refresh
-      </q-tooltip>
-    </q-spinner>
-  </q-toolbar>
+  </div>
 </template>
 
 <style></style>

@@ -6,9 +6,6 @@
       :class="{active: currentGroupUUID === '' && storage.name === currentStorage}"
       @click="setCurrentStorage(storage.name)"
     >
-      <!-- <q-item-section avatar>
-        <q-icon name="person" />
-      </q-item-section>-->
       <q-item-section>{{ storage.text }}</q-item-section>
     </q-item>
 
@@ -22,8 +19,9 @@
       <q-item-section avatar>
         <q-icon name="folder" />
       </q-item-section>
-      <q-item-section>{{group.Name}}</q-item-section>
-      <!-- <q-item-section side>1</q-item-section> -->
+      <q-item-section>
+        <q-item-label lines="1">{{group.Name}}</q-item-label>
+      </q-item-section>
     </q-item>
   </q-list>
 </template>

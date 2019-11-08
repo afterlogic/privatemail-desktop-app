@@ -5,12 +5,12 @@
         <q-item-label class="head--labels-name">Edit Group</q-item-label>
       </div>
     </div>
-    <div class="frame-top"></div>
+    <div class="frame-top q-mx-md"></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
           <q-scroll-area class="editField full-height">
-            <div class="frame-without-top">
+            <div class="frame-without-top q-mx-md">
               <div class="input-line">
                 <label class="label-size">Group Name:</label>
                 <q-input outlined dense class="input-size" v-model="oCurrentGroup.Name"/>
@@ -58,7 +58,7 @@
             </div>
           </q-scroll-area>
         </div>
-        <div class="buttons">
+        <div class="buttons q-pa-md">
           <q-btn unelevated color="primary" label="Save" @click="onSave"/>
           <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="disableEditGroup"/>
         </div>
@@ -87,18 +87,15 @@
 .frame-top {
   height: 5px; 
   border: 1px solid #ccc;
-  border-bottom: 0; 
+  border-bottom: 0;
   border-radius: 5px 5px 0px 0px; 
-  margin: 0px 20px;
 }
 
 .frame-without-top {
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc; 
+  border: 1px solid #ccc;
+  border-top: 0;
   border-radius: 0px 0px 5px 5px; 
   min-height: 200px; 
-  margin: 0px 20px; 
   padding: 1px 0px 0px
 }
 
@@ -131,10 +128,10 @@
 }
 
 h2 {
-    font-size: 18pt;
-    font-weight: 300;
-    line-height: 3.75rem;
-    letter-spacing: -0.00833em;
+  font-size: 18pt;
+  font-weight: 300;
+  line-height: 3.75rem;
+  letter-spacing: -0.00833em;
 }
 
 .buttons {

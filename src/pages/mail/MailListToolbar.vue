@@ -1,5 +1,5 @@
 <template>
-  <q-toolbar shrink>
+  <div class="row q-pa-sm items-center">
     <q-btn-dropdown split flat color="primary" icon="drafts" :disable-main-btn="checkedCount === 0" @click="setMessagesRead(true)">
       <template v-slot:label>
         <q-tooltip>
@@ -40,17 +40,12 @@
       </q-tooltip>
     </q-btn>
     <q-space/>
-    <q-btn flat color="primary" icon="sync" @click="sync" v-if="!mailSyncing">
+    <q-btn flat color="primary" icon="sync" :loading=mailSyncing @click="sync">
       <q-tooltip>
         Check Mail
       </q-tooltip>
     </q-btn>
-    <q-spinner color="primary" size="1.5em" @click="sync" v-if="mailSyncing">
-      <q-tooltip>
-        Check Mail
-      </q-tooltip>
-    </q-spinner>
-  </q-toolbar>
+  </div>
 </template>
 
 <style>

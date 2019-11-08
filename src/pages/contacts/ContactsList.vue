@@ -74,6 +74,9 @@ export default {
         this.startAsyncGetContacts(false)
       }
     },
+    'contacts.list': function () {
+      this.setCurrentContactByUUID(this.selectedContact)
+    },
     'allChecked': function() {
       if (this.allChecked) {
         let aContactsUUIDsList = []

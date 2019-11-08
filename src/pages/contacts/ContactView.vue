@@ -18,12 +18,12 @@
 
           <div class="col-auto">
             <q-btn no-caps no-wrap class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
-            <div style="height: 5px; border: 1px solid #ccc; border-bottom: 0; border-radius: 5px 5px 0px 0px; margin: 0px 20px;" ></div>
           </div>
 
+          <div class="frame-top" ></div>
           <div class="col">
             <q-scroll-area class="full-height">
-              <div class="" style="border-left: 1px solid #ccc;border-right: 1px solid #ccc;border-bottom: 1px solid #ccc; border-radius: 0px 0px 5px 5px; min-height: 200px; margin: 0px 20px; padding: 1px 0px 0px">
+              <div class="frame-without-top">
                 <q-item-label class="info-line" v-if="contact.FirstName">  First name: {{ contact.FirstName }}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.LastName">Last name: {{ contact.LastName }}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.Skype">Skype: {{ contact.Skype }}</q-item-label>
@@ -118,6 +118,24 @@
 .head--buttons-container-contact {
   white-space: nowrap;
 }
+
+.frame-top {
+  height: 5px; 
+  border: 1px solid #ccc;
+  border-bottom: 0; 
+  border-radius: 5px 5px 0px 0px; 
+  margin: 0px 20px;
+}
+
+.frame-without-top {
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc; 
+  border-radius: 0px 0px 5px 5px; 
+  min-height: 200px; 
+  margin: 0px 20px; 
+  padding: 1px 0px 0px
+ }
 
 .btn-edit {
   margin: 20px 40px 0px 0px;

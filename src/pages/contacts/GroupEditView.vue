@@ -1,33 +1,35 @@
 <template>
-  <q-item-section v-if="oCurrentGroup" class="column full-height" style="padding: 0px 20px;">
+  <q-item-section v-if="oCurrentGroup" class="column full-height">
     <div class="col-auto">
       <div class="head">
-        <q-item-label class="head--labels-name">Edit Group</q-item-label>  
+        <q-item-label class="head--labels-name">Edit Group</q-item-label>
       </div>
-    </div>    
+    </div>
+    <div class="frame-top" ></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
-          <q-scroll-area style=""  class="editField full-height">        
-
-            <div class="input-line"> <label  style="flex-grow: 1">Group Name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Name" :dense=true> </q-input></div>
-            <div class="q-gutter-sm toggle-organization">
-              <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
-            </div>
-            <div v-if="bIsOrganization">
-              <div class="input-line">
-                <label>Email:</label>
-                <q-input outlined :dense=true v-model="oCurrentGroup.Email"></q-input>
+          <q-scroll-area class="editField full-height">
+            <div class="frame-without-top">
+              <div class="input-line"><label style="flex-grow: 1">Group Name:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Name" :dense=true> </q-input></div>
+              <div class="q-gutter-sm toggle-organization">
+                <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
               </div>
-              <div class="input-line"> <label style="flex-grow: 1">Company:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
-              <div class="input-line"> <label style="flex-grow: 1">State:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
-              <div class="input-line"> <label style="flex-grow: 1">City:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
-              <div class="input-line"> <label style="flex-grow: 1">Street:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
-            
-              <div class="input-line"> <label style="flex-grow: 1">Zip:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
-              <div class="input-line"> <label style="flex-grow: 1">Phone:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
-              <div class="input-line"> <label style="flex-grow: 1">Fax:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
-              <div class="input-line"> <label style="flex-grow: 1">Web:</label><q-input  style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
+              <div v-if="bIsOrganization">
+                <div class="input-line">
+                  <label>Email:</label>
+                  <q-input outlined :dense=true v-model="oCurrentGroup.Email"></q-input>
+                </div>
+                <div class="input-line"><label style="flex-grow: 1">Company:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Company" :dense=true></q-input></div>
+                <div class="input-line"><label style="flex-grow: 1">State:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.State" :dense=true></q-input></div>
+                <div class="input-line"><label style="flex-grow: 1">City:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.City" :dense=true></q-input></div>
+                <div class="input-line"><label style="flex-grow: 1">Street:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Street" :dense=true></q-input></div>
+              
+                <div class="input-line"><label style="flex-grow: 1">Zip:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Zip" :dense=true></q-input></div>
+                <div class="input-line"><label style="flex-grow: 1">Phone:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Phone" :dense=true></q-input></div>
+                <div class="input-line"><label style="flex-grow: 1">Fax:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Fax" :dense=true></q-input></div>
+                <div class="input-line"><label style="flex-grow: 1">Web:</label><q-input style="flex-grow: 2; max-width: 65%" outlined v-model="oCurrentGroup.Web" :dense=true></q-input></div>
+              </div>
             </div>
           </q-scroll-area>
         </div>
@@ -45,6 +47,10 @@
   justify-content: unset;
 }
 
+.head {
+  padding: 0 20px;
+}
+
 .head--labels-name{
   padding: 15px 0px 21px 0px;
   font-size: 18pt;
@@ -52,6 +58,25 @@
   white-space: normal;
   color: #555566;
 }
+
+.frame-top {
+  height: 5px; 
+  border: 1px solid #ccc;
+  border-bottom: 0; 
+  border-radius: 5px 5px 0px 0px; 
+  margin: 0px 20px;
+}
+
+.frame-without-top {
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc; 
+  border-radius: 0px 0px 5px 5px; 
+  min-height: 200px; 
+  margin: 0px 20px; 
+  padding: 1px 0px 0px
+}
+
 .input-line {
   align-items: center;
   padding: 10px 20px;
@@ -65,14 +90,6 @@
     flex-grow: 2;
     max-width: 65%;
   }
-}
-
-.editField {
-  width: 100%;
-  border-radius: 4px 4px 2px 2px;
-  border: 1px solid #d4cece;
-  /* box-shadow: 0 1px 0px 0 grey;  */
-  // margin-top: 20px;
 }
 
 .toggle-organization {

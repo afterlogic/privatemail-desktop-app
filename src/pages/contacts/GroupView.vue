@@ -1,5 +1,5 @@
 <template>
-  <q-item-section v-if="oCurrentGroup" class="column full-height container">
+  <q-item-section v-if="oCurrentGroup" class="column full-height">
     <div class="head col-auto">
       <div class="head--labels">
         <q-item-label class="head--labels-name">View Group</q-item-label>
@@ -7,16 +7,16 @@
       <div class="buttons">
         <q-btn no-wrap no-caps class="head--buttons-off" flat unelevated color="grey-7" label="Delete group" />
         <q-btn no-wrap no-caps class="head--buttons-off" flat unelevated color="grey-7" label="Edit group" @click="enableEditGroup"/>
-        <q-btn no-wrap no-caps color="primary" label="Email to this group" />
-        
+        <q-btn no-wrap no-caps color="primary" label="Email to this group" />        
       </div>
     </div>
 
+    <div class="frame-top" ></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
           <q-scroll-area class="full-height">    
-            <div style="border: 1px solid #ccc; border-radius: 5px 5px 5px 5px; min-height: 200px; padding: 1px 0px 0px">
+            <div class="frame-without-top">
 
               <q-item-label class="info-line" v-if="oCurrentGroup.Name"><span class="label-names">Group Name:</span> {{ oCurrentGroup.Name }}</q-item-label>
               <q-item-label class="info-line" v-if="oCurrentGroup.Email"><span class="label-names">Email: </span>{{ oCurrentGroup.Email }}</q-item-label>
@@ -37,11 +37,8 @@
 </template>
 
 <style scoped>
-.container{
-  padding: 0px 20px;
-}
 .head {
-  padding: 15px 0px 21px 0px;
+  padding: 15px 20px 21px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -53,6 +50,24 @@
   font-weight: normal;
   white-space: normal;
   color: #555566;
+}
+
+.frame-top {
+  height: 5px; 
+  border: 1px solid #ccc;
+  border-bottom: 0; 
+  border-radius: 5px 5px 0px 0px; 
+  margin: 0px 20px;
+}
+
+.frame-without-top {
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc; 
+  border-radius: 0px 0px 5px 5px; 
+  min-height: 200px; 
+  margin: 0px 20px; 
+  padding: 1px 0px 0px
 }
 
 .label-names {

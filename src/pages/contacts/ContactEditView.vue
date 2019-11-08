@@ -5,7 +5,7 @@
         <q-item-label class="head--labels-name">Edit Contact</q-item-label>
       </div>
     </div>
-    <div class="frame-top" ></div>
+    <div class="frame-top"></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
@@ -100,7 +100,6 @@
                   <label class="label-size">First name:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.FirstName"/>
                 </div>
-                
                 <div class="input-line">
                   <label class="label-size">Last name:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.LastName"/>
@@ -109,7 +108,7 @@
                   <label class="label-size">Nickname:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.NickName"/>
                 </div>
-                
+
                 <q-item-label class="caption-style">Home</q-item-label>
 
                 <div class="input-line">
@@ -303,7 +302,6 @@
     text-overflow: ellipsis; 
     overflow: hidden;
   }
-  
 }
 
 .input-size {
@@ -449,7 +447,7 @@ export default {
         if (this.oContact.OtherEmail !== '') {
           aOptions.push({ label: 'Other: ' + this.oContact.OtherEmail, value: 2 })
         }
-      }     
+      }
 
       return aOptions
     },
@@ -466,7 +464,7 @@ export default {
           aOptions.push({ label: 'Business: ' + this.oContact.BusinessPhone, value: 2 })
         }
       }
-      
+
       return aOptions
     },
     'aPrimaryAddressOptions': function () {
@@ -493,7 +491,7 @@ export default {
         let oContactSource = ContactByUUID.contact
         let oSavedContact = null
         let bEqual = _.isEqual(this.oContact, oContactSource)
-       
+
         if (!bEqual) {
           oSavedContact = _.cloneDeep(this.oContact)
         }
@@ -508,7 +506,7 @@ export default {
     changeSmallEditView() {
       this.bSmallEditView = !this.bSmallEditView
     },
-    
+
     setFilteredGroups() {
       let groupList =[]
         
@@ -523,7 +521,7 @@ export default {
       this.groupFilteredList = groupList
     },
 
-    console () {
+    console() {
       console.log(this.date)
     }
   },

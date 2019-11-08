@@ -7,17 +7,16 @@
       <div class="buttons">
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" />
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="enableEditGroup"/>
-        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" />        
+        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" />
       </div>
     </div>
 
-    <div class="frame-top" ></div>
+    <div class="frame-top"></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
-          <q-scroll-area class="full-height">    
+          <q-scroll-area class="full-height">
             <div class="frame-without-top">
-
               <q-item-label class="info-line" v-if="oCurrentGroup.Name"><span class="label-names">Group Name:</span> {{ oCurrentGroup.Name }}</q-item-label>
               <q-item-label class="info-line" v-if="oCurrentGroup.Email"><span class="label-names">Email: </span>{{ oCurrentGroup.Email }}</q-item-label>
               <q-item-label class="info-line" v-if="oCurrentGroup.Company"><span class="label-names">Company: </span>{{ oCurrentGroup.Company }}</q-item-label>

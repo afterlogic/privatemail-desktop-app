@@ -37,7 +37,7 @@ let aMessageDbMap = [
   {Name: 'Plain', DbName: 'plain', Type: 'TEXT'},
   {Name: 'PlainRaw', DbName: 'plain_raw', Type: 'TEXT'},
   {Name: 'ReadingConfirmationAddressee', DbName: 'reading_confirmation_addressee', Type: 'TEXT'},
-  {Name: 'ReceivedOrDateTimeStampInUTC', DbName: 'Received_or_date_timestamp_in_utc', Type: 'INTEGER'},
+  {Name: 'ReceivedOrDateTimeStampInUTC', DbName: 'received_or_date_timestamp_in_utc', Type: 'INTEGER'},
   {Name: 'References', DbName: 'references_list', Type: 'TEXT'}, // "references" word is reserved in sql
   {Name: 'ReplyTo', DbName: 'reply_to_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Rtl', DbName: 'rtl', Type: 'INTEGER', IsBool: true},

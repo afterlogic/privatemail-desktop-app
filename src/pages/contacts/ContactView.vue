@@ -7,8 +7,8 @@
             <q-item-label class="head--labels-email">{{ contact.ViewEmail }}</q-item-label>
           </div>
           <div class="buttons">
-            <q-btn no-caps color="primary" label="Send this contact" />
-            <q-btn no-caps color="primary" label="Email to this contact" />
+            <q-btn no-wrap no-caps color="primary" label="Send this contact" />
+            <q-btn no-wrap no-caps color="primary" label="Email to this contact" />
           </div>
         </div>
       </div>
@@ -17,7 +17,7 @@
         <div class="column full-height">
 
           <div class="col-auto">
-            <q-btn class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
+            <q-btn no-caps no-wrap class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
             <div style="height: 5px; border: 1px solid #ccc; border-bottom: 0; border-radius: 5px 5px 0px 0px; margin: 0px 20px;" ></div>
           </div>
 
@@ -124,10 +124,6 @@
   position: absolute;
   right: 0px;
   z-index: 1;
-  text-transform: none;
-  padding: 0px 9px;
-  width: 20%;
-  min-width: 94px;
 }
 
 .info-main {

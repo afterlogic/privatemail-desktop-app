@@ -1,11 +1,14 @@
 import _ from 'lodash'
 
-let db = null
+import typesUtils from '../../../src/utils/types.js'
 
-let aMessageMap = [
+let oDb = null
+
+let aMessageDbMap = [
+  {Name: 'AccountId', DbName: 'account_id', Type: 'INTEGER'},
   {Name: 'Attachments', DbName: 'attachments', Type: 'TEXT', IsArray: true},
-  {Name: 'Bcc', DbName: 'bcc', Type: 'TEXT', IsArray: true},
-  {Name: 'Cc', DbName: 'cc', Type: 'TEXT', IsArray: true},
+  {Name: 'Bcc', DbName: 'bcc_addr', Type: 'TEXT', IsObject: true},
+  {Name: 'Cc', DbName: 'cc_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Custom', DbName: 'custom', Type: 'TEXT', IsArray: true},
   {Name: 'Deleted', DbName: 'deleted', Type: 'INTEGER', IsBool: true},
   {Name: 'DownloadAsEmlUrl', DbName: 'download_as_eml_url', Type: 'TEXT'},
@@ -14,7 +17,7 @@ let aMessageMap = [
   {Name: 'Folder', DbName: 'folder', Type: 'TEXT'},
   {Name: 'FoundedCIDs', DbName: 'founded_cids', Type: 'TEXT', IsArray: true},
   {Name: 'FoundedContentLocationUrls', DbName: 'founded_content_location_urls', Type: 'TEXT', IsArray: true},
-  {Name: 'From', DbName: 'from', Type: 'TEXT', IsArray: true},
+  {Name: 'From', DbName: 'from_addr', Type: 'TEXT', IsObject: true}, // "from" word is reserved in sql
   {Name: 'HasAttachments', DbName: 'has_attachments', Type: 'INTEGER', IsBool: true},
   {Name: 'HasExternals', DbName: 'has_externals', Type: 'INTEGER', IsBool: true},
   {Name: 'HasIcalAttachment', DbName: 'has_ical_attachment', Type: 'INTEGER', IsBool: true},
@@ -35,11 +38,11 @@ let aMessageMap = [
   {Name: 'PlainRaw', DbName: 'plain_raw', Type: 'TEXT'},
   {Name: 'ReadingConfirmationAddressee', DbName: 'reading_confirmation_addressee', Type: 'TEXT'},
   {Name: 'ReceivedOrDateTimeStampInUTC', DbName: 'Received_or_date_timestamp_in_utc', Type: 'INTEGER'},
-  {Name: 'References', DbName: 'references', Type: 'TEXT'},
-  {Name: 'ReplyTo', DbName: 'reply_to', Type: 'TEXT', IsArray: true},
+  {Name: 'References', DbName: 'references_list', Type: 'TEXT'}, // "references" word is reserved in sql
+  {Name: 'ReplyTo', DbName: 'reply_to_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Rtl', DbName: 'rtl', Type: 'INTEGER', IsBool: true},
   {Name: 'Safety', DbName: 'safety', Type: 'INTEGER', IsBool: true},
-  {Name: 'Sender', DbName: 'sender', Type: 'TEXT', IsArray: true},
+  {Name: 'Sender', DbName: 'sender_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Sensitivity', DbName: 'sensitivity', Type: 'INTEGER'},
   {Name: 'ShortDate', DbName: 'short_date', Type: 'TEXT'},
   {Name: 'Size', DbName: 'size', Type: 'INTEGER'},
@@ -47,7 +50,7 @@ let aMessageMap = [
   {Name: 'TextSize', DbName: 'text_size', Type: 'INTEGER'},
   {Name: 'Threads', DbName: 'threads', Type: 'TEXT', IsArray: true},
   {Name: 'TimeStampInUTC', DbName: 'timestamp_in_utc', Type: 'INTEGER'},
-  {Name: 'To', DbName: 'to', Type: 'TEXT', IsArray: true},
+  {Name: 'To', DbName: 'to_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Truncated', DbName: 'truncated', Type: 'INTEGER', IsBool: true},
   {Name: 'Uid', DbName: 'uid', Type: 'INTEGER'},
   {Name: 'PartialFlagged', DbName: 'partial_flagged', Type: 'INTEGER', IsBool: true},
@@ -63,13 +66,13 @@ function _prepareDataFromDb (aRows, aDbFieldsData) {
         let mDbItem = oRow[oItemDbField.DbName]
         if (oItemDbField.IsBool) {
           oItem[oItemDbField.Name] = !!mDbItem
-        } else if (oItemDbField.IsArray) {
-          let aValue = []
+        } else if (oItemDbField.IsArray || oItemDbField.IsObject) {
+          let mValue = oItemDbField.IsArray ? [] : null
           let sValue = mDbItem
           if (typesUtils.isNonEmptyString(sValue)) {
-            aValue = JSON.parse(sValue)
+            mValue = JSON.parse(sValue)
           }
-          oItem[oItemDbField.Name] = aValue
+          oItem[oItemDbField.Name] = mValue
         } else {
           oItem[oItemDbField.Name] = mDbItem
         }
@@ -86,6 +89,9 @@ function _prepareInsertParams (oItem, aDbFieldsData) {
     if (oDbField.IsArray) {
       let aValue = typesUtils.pArray(oItem[oDbField.Name])
       aParams.push(JSON.stringify(aValue))
+    } else if (oDbField.IsObject) {
+      let oValue = typesUtils.pObject(oItem[oDbField.Name])
+      aParams.push(JSON.stringify(oValue))
     } else {
       aParams.push(oItem[oDbField.Name])
     }
@@ -95,126 +101,156 @@ function _prepareInsertParams (oItem, aDbFieldsData) {
 
 export default {
   init: function (oDbConnect) {
-    db = oDbConnect
-    if (db) {
-      db.serialize(function() {
-        db.run('CREATE TABLE IF NOT EXISTS messages (acct_id INTEGER, folder_full_name TEXT, message_uid TEXT, message TEXT)')
+    oDb = oDbConnect
+    if (oDb && oDb.open) {
+      oDb.serialize(function() {
+        let aMessageDbFields = _.map(aMessageDbMap, function (oMessageDbFieldData) {
+          return oMessageDbFieldData.DbName + ' ' + oMessageDbFieldData.Type
+        })
+        let sMessageDbFields = aMessageDbFields.join(', ')
+        oDb.run('CREATE TABLE IF NOT EXISTS messages (' + sMessageDbFields + ')')
       })
     }
   },
 
   getMessages: function ({iAccountId, sFolderFullName, aUids}) {
     return new Promise((resolve, reject) => {
-      if (db) {
+      if (oDb && oDb.open) {
         let sQuestions = aUids.map(function(){ return '?' }).join(',')
         let aParams = _.union([iAccountId, sFolderFullName], aUids)
-        db.all('SELECT message FROM messages WHERE acct_id = ? AND folder_full_name = ? AND message_uid IN (' + sQuestions + ')',
-        aParams,
-        function(err, rows) {
-            if (err) {
-              reject({event: 'db-get-messages', err})
+        oDb.all(
+          'SELECT * FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')',
+          aParams,
+          function (oError, aRows) {
+            if (oError) {
+              reject({ sMethod: 'getMessages', oError })
             } else {
-              let aMessages = []
-              _.each(rows, function (row) {
-                if (row && typeof row.message === 'string' && row.message !== '') {
-                  aMessages.push(JSON.parse(row.message))
-                }
-              })
+              let aMessages = _prepareDataFromDb(aRows, aMessageDbMap)
               resolve(aMessages)
             }
           }
         )
       } else {
-        reject({event: 'db-get-messages', err})
+        reject({ sMethod: 'getMessages', sError: 'No DB connection' })
       }
     })
   },
 
   getMessage: function ({iAccountId, sFolderFullName, sMessageUid}) {
     return new Promise((resolve, reject) => {
-      if (db) {
-        db.serialize(() => {
-          let oMessage = null
-          let stmt = db.prepare('SELECT message FROM messages WHERE acct_id = ? AND folder_full_name = ? AND message_uid = ?')
-          stmt.each(iAccountId, sFolderFullName, sMessageUid, (err, row) => {
-            if (row && typeof row.message === 'string' && row.message !== '') {
-              oMessage = JSON.parse(row.message)
+      if (oDb && oDb.open) {
+        oDb
+          .prepare('SELECT * FROM messages WHERE account_id = ? AND folder = ? AND uid = ?', iAccountId, sFolderFullName, sMessageUid)
+          .get(function (oError, oRow) {
+            if (oError) {
+              reject({ sMethod: 'getMessage', oError })
             } else {
-              reject({event: 'db-get-message', err, row})
+              let aMessages = _prepareDataFromDb([oRow], aMessageDbMap)
+              resolve(typesUtils.isNonEmptyArray(aMessages) ? aMessages[0] : null)
             }
-          }, (err, count) => {
-            if (err) {
-              reject({event: 'db-get-message', err, count})
+          })
+          .finalize()
+      } else {
+        reject({ sMethod: 'getMessage', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setMessages: function ({ iAccountId, aMessages }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let sFolderFullName = typesUtils.isNonEmptyArray(aMessages) ? aMessages[0].Folder : ''
+          let aUids = aMessages.map(function (oMessage) { return oMessage.Uid })
+          let sQuestions = aUids.map(function () { return '(?)' }).join(',')
+          let aParams = _.union([iAccountId, sFolderFullName], aUids)
+          oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
+            if (oError) {
+              reject({ sMethod: 'setMessages', oError })
             } else {
-              resolve(oMessage)
+              let sFieldsDbNames = _.map(aMessageDbMap, function (oMessageDbFieldData) {
+                return oMessageDbFieldData.DbName
+              }).join(', ')
+              sQuestions = aMessageDbMap.map(function () { return '?' }).join(',')
+              let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+              _.each(aMessages, function (oMessage) {
+                let aParams = _prepareInsertParams(oMessage, aMessageDbMap)
+                oStatement.run.apply(oStatement, aParams)
+              })
+              oStatement.finalize(function (oError) {
+                if (oError) {
+                  reject({ sMethod: 'setMessages', oError })
+                } else {
+                  resolve()
+                }
+              })
             }
-            stmt.finalize()
           })
         })
       } else {
-        reject({event: 'db-get-message', err})
+        reject({ sMethod: 'setMessages', sError: 'No DB connection' })
       }
     })
   },
 
-  setMessages: function ({iAccountId, aMessages}) {
-    return new Promise((resolve, reject) => {
-      if (db) {
-        let self = this
-        function _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage }) {
-          db.serialize(() => {
-            let stmt = db.prepare('DELETE FROM messages WHERE acct_id = ? AND folder_full_name = ? AND message_uid = ?', iAccountId, sFolderFullName, sMessageUid)
-            stmt.run()
-            stmt.finalize()
-            stmt = db.prepare('INSERT INTO messages (acct_id, folder_full_name, message_uid, message) VALUES (?, ?, ?, ?)', iAccountId, sFolderFullName, sMessageUid, JSON.stringify(oMessage))
-            stmt.run()
-            stmt.finalize()
-          })
-        }
+  // setMessages: function ({iAccountId, aMessages}) {
+  //   return new Promise((resolve, reject) => {
+  //     if (oDb && oDb.open) {
+  //       let self = this
+  //       function _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage }) {
+  //         oDb.serialize(() => {
+  //           let stmt = oDb.prepare('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid = ?', iAccountId, sFolderFullName, sMessageUid)
+  //           stmt.run()
+  //           stmt.finalize()
+  //           stmt = oDb.prepare('INSERT INTO messages (account_id, folder, uid, message) VALUES (?, ?, ?, ?)', iAccountId, sFolderFullName, sMessageUid, JSON.stringify(oMessage))
+  //           stmt.run()
+  //           stmt.finalize()
+  //         })
+  //       }
 
-        // sqlite3 cannot work with more than 1 connection, so there will be series of message prepare
-        function async(oMessageFromServer, callback) {
-          let sFolderFullName = oMessageFromServer.Folder
-          let sMessageUid = oMessageFromServer.Uid
-          self.getMessage({iAccountId, sFolderFullName, sMessageUid}).then(
-            (oMessage) => {
-              if (oMessage) {
-                _.assign(oMessage, oMessageFromServer)
-                _setMessageInDb({ iAccountId, sFolderFullName, sMessageUid, oMessage })
-              } else {
-                _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
-              }
-              callback(sMessageUid)
-            },
-            (oResult) => {
-              if (oResult.err === null) {
-                _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
-              } else {
-                reject(oResult)
-              }
-              callback(sMessageUid)
-            }
-          )
-        }
+  //       // sqlite3 cannot work with more than 1 connection, so there will be series of message prepare
+  //       function async(oMessageFromServer, callback) {
+  //         let sFolderFullName = oMessageFromServer.Folder
+  //         let sMessageUid = oMessageFromServer.Uid
+  //         self.getMessage({iAccountId, sFolderFullName, sMessageUid}).then(
+  //           (oMessage) => {
+  //             if (oMessage) {
+  //               _.assign(oMessage, oMessageFromServer)
+  //               _setMessageInDb({ iAccountId, sFolderFullName, sMessageUid, oMessage })
+  //             } else {
+  //               _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
+  //             }
+  //             callback(sMessageUid)
+  //           },
+  //           (oResult) => {
+  //             if (oResult.oError === null) {
+  //               _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
+  //             } else {
+  //               reject(oResult)
+  //             }
+  //             callback(sMessageUid)
+  //           }
+  //         )
+  //       }
 
-        function final() {
-          resolve()
-        }
+  //       function final() {
+  //         resolve()
+  //       }
 
-        let aMessagesFromServer = _.cloneDeep(aMessages)
-        function series(oMessageFromServer) {
-          if (oMessageFromServer) {
-            async(oMessageFromServer, function(sMessageUid) {
-              return series(aMessagesFromServer.shift())
-            })
-          } else {
-            return final()
-          }
-        }
-        series(aMessagesFromServer.shift())
-      } else {
-        reject({event: 'db-set-messages', err})
-      }
-    })
-  },
+  //       let aMessagesFromServer = _.cloneDeep(aMessages)
+  //       function series(oMessageFromServer) {
+  //         if (oMessageFromServer) {
+  //           async(oMessageFromServer, function(sMessageUid) {
+  //             return series(aMessagesFromServer.shift())
+  //           })
+  //         } else {
+  //           return final()
+  //         }
+  //       }
+  //       series(aMessagesFromServer.shift())
+  //     } else {
+  //       reject({ sMethod: 'setMessages', sError: 'No DB connection' })
+  //     }
+  //   })
+  // },
 }

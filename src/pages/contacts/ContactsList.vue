@@ -3,7 +3,7 @@
     <q-list>
       <div v-for="contact in contacts.list" :key="contact.UUID">
         <q-item clickable v-ripple @click="setCurrentContactByUUID(contact.UUID)" 
-            :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected}">
+            :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selectedContact}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
           </q-item-section>
@@ -14,7 +14,7 @@
             <q-item-label v-else lines="1" class="contact-notext">No email address</q-item-label>
           </q-item-section>
         </q-item>
-        <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selected }" />
+        <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selectedContact }" />
       </div>
     </q-list>
     <template v-if="contacts.list.length === 0">
@@ -40,7 +40,13 @@ export default {
       page: 1,
       perPage: 20,
       aCheckedList: [],
-      selected: null,
+      selectedContact: null,
+    }
+  },
+  beforeMount: function () {
+    let contact = this.$store.getters['contacts/getCurrentContact']
+    if (contact.UUID) {
+      this.selectedContact = contact.UUID
     }
   },
   mounted: function() {
@@ -49,9 +55,13 @@ export default {
   watch: {
     'currentStorage': function() {
       this.startAsyncGetContacts(true)
+      this.aCheckedList = []
+      this.setCurrentContactByUUID(null)
     },
     'currentGroupUUID': function() {
       this.startAsyncGetContacts(true)
+      this.aCheckedList = []
+      this.setCurrentContactByUUID(null)
     },
     'searchText': function() {
       this.startAsyncGetContacts(true)
@@ -76,7 +86,7 @@ export default {
       }
     },
     'aCheckedList': function() {
-      if (this.aCheckedList.length === this.contacts.list.length) {
+      if (this.aCheckedList.length === this.contacts.list.length && this.contacts.list.lenght) {
         this.$emit('allCheckChanged', true)
       } else if (this.aCheckedList.length === 0) {
         this.$emit('allCheckChanged', false)
@@ -131,7 +141,7 @@ export default {
     },
     setCurrentContactByUUID(UUID) {
       this.$store.dispatch('contacts/setCurrentContactByUUID', UUID)
-      this.selected = UUID
+      this.selectedContact = UUID
     },
     isChecked(UUID) {
       return !!_.find(this.aCheckedList, (el) => el === UUID)

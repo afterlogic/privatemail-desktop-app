@@ -174,6 +174,7 @@ export default {
               sQuestions = aMessageDbMap.map(function () { return '?' }).join(',')
               let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
               _.each(aMessages, function (oMessage) {
+                oMessage.AccountId = iAccountId
                 let aParams = _prepareInsertParams(oMessage, aMessageDbMap)
                 oStatement.run.apply(oStatement, aParams)
               })
@@ -192,65 +193,4 @@ export default {
       }
     })
   },
-
-  // setMessages: function ({iAccountId, aMessages}) {
-  //   return new Promise((resolve, reject) => {
-  //     if (oDb && oDb.open) {
-  //       let self = this
-  //       function _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage }) {
-  //         oDb.serialize(() => {
-  //           let stmt = oDb.prepare('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid = ?', iAccountId, sFolderFullName, sMessageUid)
-  //           stmt.run()
-  //           stmt.finalize()
-  //           stmt = oDb.prepare('INSERT INTO messages (account_id, folder, uid, message) VALUES (?, ?, ?, ?)', iAccountId, sFolderFullName, sMessageUid, JSON.stringify(oMessage))
-  //           stmt.run()
-  //           stmt.finalize()
-  //         })
-  //       }
-
-  //       // sqlite3 cannot work with more than 1 connection, so there will be series of message prepare
-  //       function async(oMessageFromServer, callback) {
-  //         let sFolderFullName = oMessageFromServer.Folder
-  //         let sMessageUid = oMessageFromServer.Uid
-  //         self.getMessage({iAccountId, sFolderFullName, sMessageUid}).then(
-  //           (oMessage) => {
-  //             if (oMessage) {
-  //               _.assign(oMessage, oMessageFromServer)
-  //               _setMessageInDb({ iAccountId, sFolderFullName, sMessageUid, oMessage })
-  //             } else {
-  //               _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
-  //             }
-  //             callback(sMessageUid)
-  //           },
-  //           (oResult) => {
-  //             if (oResult.oError === null) {
-  //               _setMessageInDb ({ iAccountId, sFolderFullName, sMessageUid, oMessage: oMessageFromServer })
-  //             } else {
-  //               reject(oResult)
-  //             }
-  //             callback(sMessageUid)
-  //           }
-  //         )
-  //       }
-
-  //       function final() {
-  //         resolve()
-  //       }
-
-  //       let aMessagesFromServer = _.cloneDeep(aMessages)
-  //       function series(oMessageFromServer) {
-  //         if (oMessageFromServer) {
-  //           async(oMessageFromServer, function(sMessageUid) {
-  //             return series(aMessagesFromServer.shift())
-  //           })
-  //         } else {
-  //           return final()
-  //         }
-  //       }
-  //       series(aMessagesFromServer.shift())
-  //     } else {
-  //       reject({ sMethod: 'setMessages', sError: 'No DB connection' })
-  //     }
-  //   })
-  // },
 }

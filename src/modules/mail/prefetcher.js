@@ -81,7 +81,6 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
       }
       prefetcher.start()
     }
-    console.log('aMessages.length', aMessages.length, 'aUids.length', aUids.length)
     if (aMessages.length < aUids.length) {
       let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
       let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null

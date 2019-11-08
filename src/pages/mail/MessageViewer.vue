@@ -1,11 +1,11 @@
 <template>
-  <div class="column full-height bg-white text-black">
+  <div class="full-height bg-white text-black">
     <div v-if="message === null">
       No message selected.
       <br />
       Click any message in the list to preview it here or double-click to view it full size.
     </div>
-    <div v-if="message !== null">
+    <div class="column full-height" v-if="message !== null">
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
@@ -33,9 +33,8 @@
               Open in a new window
             </q-tooltip>
           </q-btn> -->
-          <q-btn-dropdown flat color="primary">
+          <q-btn-dropdown flat color="primary" icon="more_horiz">
             <template v-slot:label>
-              <q-btn flat icon="more_horiz" />
               <q-tooltip>
                 More
               </q-tooltip>
@@ -103,14 +102,14 @@
         </div>
       </div>
       <q-slide-transition>
-        <div class="col-3" v-if="!isSentFolder && !isDraftsFolder" v-show="!isSendingOrSaving">
+        <div class="col-auto" v-if="!isSentFolder && !isDraftsFolder" v-show="!isSendingOrSaving">
           <q-separator />
           <div class="q-px-md q-pt-md">
             <q-editor v-model="replyText" height="6rem" :toolbar="[]" v-on:keyup.enter="onEditorEnter" />
           </div>
-          <q-toolbar class="q-pa-md">
-            <q-btn color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply" />
-            <q-btn color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply" outline />
+          <q-toolbar class="q-pa-md buttons">
+            <q-btn unelevated color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply"/>
+            <q-btn unelevated outline color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply"/>
             Ctrl+Enter to send
             <q-space />
             <a href="javascript:void(0)" @click="replyAll">Open full reply form </a>

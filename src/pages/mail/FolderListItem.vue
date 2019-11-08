@@ -5,14 +5,17 @@
         :disable="!folder.IsSelectable || !folder.Exists || !folder.IsSubscribed"
         :clickable="folder.IsSelectable && folder.Exists && folder.IsSubscribed"
         :v-ripple="folder.IsSelectable && folder.Exists && folder.IsSubscribed"
-        :style="{ paddingLeft: level * 20 + 'px' }"
+        :style="{ paddingLeft: 16 + level * 20 + 'px' }"
         :class="{active: currentFolderFullName === folder.FullName}"
         @click="selectFolder(folder.FullName)"
     >
       <q-item-section avatar>
         <q-icon :name="folder.IconName" />
       </q-item-section>
-      <q-item-section>{{folder.Name}}</q-item-section>
+      
+      <q-item-section>
+        <q-item-label lines="1">{{folder.Name}}</q-item-label>
+      </q-item-section>
       <q-item-section side v-if="folder.UnseenCount > 0">
         <q-chip dense>{{folder.UnseenCount}}
           <q-tooltip>

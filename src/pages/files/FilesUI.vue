@@ -8,7 +8,7 @@
               <q-btn @click="uploadFiles" label="Upload files" flat no-caps size=18px color="primary" class="full-width big-button" />
             </div>
             <div class="col" style="overflow: hidden;">
-              <q-scroll-area class="full-height full-widht">
+              <q-scroll-area class="full-height ">
                 <q-list>
                   <q-item clickable v-ripple>
                     <q-item-section avatar>

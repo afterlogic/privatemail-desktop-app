@@ -5,12 +5,12 @@
         <q-item-label class="head--labels-name">Edit Contact</q-item-label>
       </div>
     </div>
-    <div class="frame-top"></div>
+    <div class="frame-top q-mx-md"></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
           <q-scroll-area v-if="oContact" class="full-height" >
-            <div class="frame-without-top">
+            <div class="frame-without-top q-mx-md">
               <div v-if="bSmallEditView">
                 <div class="input-line">
                   <label class="label-size">Display name:</label>
@@ -212,17 +212,15 @@
 
                 <div class="input-line">
                   <label class="label-size">Birthday:</label>
-                  <!-- <div class="q-pa-md" style="max-width: 55.5%; margin: 15px -16px 0px 0px;"> -->
-                    <q-input outlined dense class="input-size" v-model="date" mask="date" :rules="['date']" @change="console">
-                      <template v-slot:append>
-                        <q-icon name="event" class="cursor-pointer">
-                          <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                            <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" today-btn minimal/>
-                          </q-popup-proxy>
-                        </q-icon>
-                      </template>
-                    </q-input>
-                  <!-- </div> -->
+                  <q-input outlined dense hide-bottom-space class="input-size" v-model="date" mask="date" :rules="['date']" @change="console">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer">
+                        <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                          <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" today-btn minimal/>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
                 </div>
                 
                 <div class="input-line">
@@ -242,7 +240,7 @@
             </div>
           </q-scroll-area>
         </div>
-        <div class="buttons">
+        <div class="buttons q-pa-md">
           <q-btn unelevated color="primary" label="Save" @click="onSave"/>
           <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditContact"/>
         </div>
@@ -269,16 +267,13 @@
   border: 1px solid #ccc;
   border-bottom: 0; 
   border-radius: 5px 5px 0px 0px; 
-  margin: 0px 20px;
 }
 
 .frame-without-top {
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc; 
+  border: 1px solid #ccc;
+  border-top: 0; 
   border-radius: 0px 0px 5px 5px; 
   min-height: 200px; 
-  margin: 0px 20px; 
   padding: 1px 0px 0px
 }
 
@@ -358,7 +353,6 @@
 }
 
 .buttons {
-  margin: 30px 0;
   text-align: right;
 }
 

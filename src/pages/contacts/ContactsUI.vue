@@ -4,11 +4,11 @@
       <q-splitter v-model="splitterFolderModel" style="height: 100%; width: 100%;">
         <template v-slot:before>
           <div class="column full-height">
-            <div class="col-auto q-px-sm">
-              <q-btn @click="createContact" label="New contact" flat no-caps size=18px color="primary" class="full-width big-button" />
+            <div class="col-auto q-px-md q-pb-md ">
+              <q-btn flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="createContact" label="New contact" />
             </div>
             <div class="col" style="overflow: hidden;">
-              <q-scroll-area class="full-height full-widht">
+              <q-scroll-area class="full-height full-width">
                 <group-list />
               </q-scroll-area>
             </div>
@@ -23,7 +23,7 @@
                   <contact-list-toolbar @groupsUUIDforChangeGroup="changeGroupByToolbar"/>
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="allChecked" />
-                    <q-input outlined rounded dense class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
+                    <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
                       <template v-slot:prepend>
                         <q-icon name="search" ></q-icon>
                       </template>

@@ -1,14 +1,14 @@
 <template>
   <q-page-container style="height: 100vh">
-    <q-page class="flex flex-stretch" style="height: 100%">
-      <q-splitter v-model="splitterFolderModel" :limits="[10,30]" style="height: 100%; width: 100%;">
+    <q-page class="flex flex-stretch full-height">
+      <q-splitter v-model="splitterFolderModel" :limits="[10,30]" class="full-height full-width">
         <template v-slot:before>
           <div class="column full-height">
-            <div class="col-auto q-px-sm">
-              <q-btn @click="openCompose" label="New message" flat no-caps size=18px color="primary" class="full-width big-button" />
+            <div class="col-auto q-px-md q-pb-md">
+              <q-btn flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openCompose" label="New message"/>
             </div>
             <div class="col" style="overflow: hidden;">
-              <q-scroll-area class="full-height full-widht">
+              <q-scroll-area class="full-height full-width">
                 <folder-list />
               </q-scroll-area>
             </div>
@@ -32,7 +32,7 @@
                     style="width: 100%; background: #eee;">
                     <template v-slot:header>
                       <q-checkbox v-model="checkboxAll" />
-                      <q-input outlined rounded dense class="search-field" v-model="searchText" style="width: 100%;">
+                      <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" style="width: 100%;">
                         <template v-slot:prepend>
                           <q-icon name="search" ></q-icon>
                         </template>
@@ -43,15 +43,15 @@
                     </template>
                     <div class="row q-gutter-md" style="padding: 0px 20px;">
                       <div class="col q-gutter-md">
-                        <q-input outlined v-model="searchText" :dense=true label="From" />
-                        <q-input outlined v-model="searchText" :dense=true label="Subject" />
-                        <q-input outlined v-model="searchText" :dense=true label="Since" />
-                        <q-input outlined v-model="searchText" :dense=true label="Has" />
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="From" />
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="Subject" />
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="Since" />
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="Has" />
                       </div>
                       <div class="col q-gutter-md">
-                        <q-input outlined v-model="searchText" :dense=true label="To"/>
-                        <q-input outlined v-model="searchText" :dense=true label="Text"/>
-                        <q-input outlined v-model="searchText" :dense=true label="Till"/>
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="To"/>
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="Text"/>
+                        <q-input outlined dense bg-color="white" v-model="searchText" label="Till"/>
                       </div>
                     </div>
                   </q-expansion-item>

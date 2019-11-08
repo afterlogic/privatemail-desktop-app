@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import dbHelper from '../utils/db-helper.js'
+
 import typesUtils from '../../../src/utils/types.js'
 
 let oDb = null
@@ -57,48 +59,6 @@ let aMessageDbMap = [
   {Name: 'ThreadHasUnread', DbName: 'thread_has_unread', Type: 'INTEGER', IsBool: true},
 ]
 
-function _prepareDataFromDb (aRows, aDbFieldsData) {
-  let aItems = []
-  _.each(aRows, function (oRow) {
-    if (typesUtils.isNonEmptyObject(oRow)) {
-      let oItem = {}
-      _.each(aDbFieldsData, function (oItemDbField) {
-        let mDbItem = oRow[oItemDbField.DbName]
-        if (oItemDbField.IsBool) {
-          oItem[oItemDbField.Name] = !!mDbItem
-        } else if (oItemDbField.IsArray || oItemDbField.IsObject) {
-          let mValue = oItemDbField.IsArray ? [] : null
-          let sValue = mDbItem
-          if (typesUtils.isNonEmptyString(sValue)) {
-            mValue = JSON.parse(sValue)
-          }
-          oItem[oItemDbField.Name] = mValue
-        } else {
-          oItem[oItemDbField.Name] = mDbItem
-        }
-      })
-      aItems.push(oItem)
-    }
-  })
-  return aItems
-}
-
-function _prepareInsertParams (oItem, aDbFieldsData) {
-  let aParams = []
-  _.each(aDbFieldsData, function (oDbField) {
-    if (oDbField.IsArray) {
-      let aValue = typesUtils.pArray(oItem[oDbField.Name])
-      aParams.push(JSON.stringify(aValue))
-    } else if (oDbField.IsObject) {
-      let oValue = typesUtils.pObject(oItem[oDbField.Name])
-      aParams.push(JSON.stringify(oValue))
-    } else {
-      aParams.push(oItem[oDbField.Name])
-    }
-  })
-  return aParams
-}
-
 export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
@@ -125,7 +85,7 @@ export default {
             if (oError) {
               reject({ sMethod: 'getMessages', oError })
             } else {
-              let aMessages = _prepareDataFromDb(aRows, aMessageDbMap)
+              let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
               resolve(aMessages)
             }
           }
@@ -145,7 +105,7 @@ export default {
             if (oError) {
               reject({ sMethod: 'getMessage', oError })
             } else {
-              let aMessages = _prepareDataFromDb([oRow], aMessageDbMap)
+              let aMessages = dbHelper.prepareDataFromDb([oRow], aMessageDbMap)
               resolve(typesUtils.isNonEmptyArray(aMessages) ? aMessages[0] : null)
             }
           })
@@ -175,7 +135,7 @@ export default {
               let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
               _.each(aMessages, function (oMessage) {
                 oMessage.AccountId = iAccountId
-                let aParams = _prepareInsertParams(oMessage, aMessageDbMap)
+                let aParams = dbHelper.prepareInsertParams(oMessage, aMessageDbMap)
                 oStatement.run.apply(oStatement, aParams)
               })
               oStatement.finalize(function (oError) {

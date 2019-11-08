@@ -28,6 +28,12 @@ export default {
     };
   },
   mounted () {
+    if (!this.isAuthorized) {
+      let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
+      if (sCurrentPath !== '') {
+        this.$router.push({ path: '/' })
+      }
+    }
   },
   computed: {
     isAuthorized: function () {

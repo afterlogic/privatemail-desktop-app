@@ -56,3 +56,7 @@ export function getCurrentGroup(state) {
 export function getCurrentGroupUUID(state) {
   return typesUtils.pString(state.currentGroup && state.currentGroup.group && state.currentGroup.group.UUID)
 }
+
+export function getCreatingState(state) {
+  return state.creatingView
+}

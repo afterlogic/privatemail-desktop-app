@@ -70,3 +70,7 @@ export function changeEditGroup(state, editable) {
   console.log('1')
   state.currentGroup.editable = editable
 }
+
+export function changeCreating(state, val) {
+  state.creatingView = val
+}

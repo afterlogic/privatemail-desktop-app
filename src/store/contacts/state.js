@@ -21,7 +21,7 @@ export default {
     editable: false,
     contact: {},
   },
-  isContactEdit: false,
+  creatingView: false,
   selectedContact: null,
   contactsToDowload: {
     chunk: [],

@@ -49,8 +49,9 @@
                   <!-- <div class="text-h4 q-mb-md">After</div>
                   <div v-for="n in 10" :key="n" class="q-my-md">{{ n }}. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</div>
                   -->
-                  <contact v-if="showContact" />
-                  <group v-if="showGroup && !showContact" />
+                  <contact v-if="showContact && !creatingState" />
+                  <group v-if="showGroup && !showContact && !creatingState" />
+                  <contact-create-view v-if="creatingState" />
                 </div>
               <!-- </q-scroll-area> -->
             </template>
@@ -70,6 +71,7 @@ import ContactListToolbar from './ContactListToolbar.vue'
 import Contact from './Contact.vue'
 import Group from './Group.vue'
 import Pagination from '../Pagination.vue'
+import ContactCreateView from './ContactCreateView.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
@@ -83,6 +85,7 @@ export default {
     Contact,
     Group,
     Pagination,
+    ContactCreateView,
   },
   data () {
     return {
@@ -117,6 +120,9 @@ export default {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },
+    'creatingState': function() {
+      return this.$store.getters['contacts/getCreatingState']
+    },
     currentPage () {
       return this.$store.getters['contacts/getСurrentPage']
     },
@@ -136,6 +142,7 @@ export default {
   methods: {
     createContact() {
       console.log('createContact')
+      this.$store.commit('contacts/changeCreating', true)
     },
     onCheckChange(value) {
       this.allChecked = value

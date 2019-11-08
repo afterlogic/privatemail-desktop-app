@@ -173,7 +173,8 @@ export default {
   mounted: function () {
     this.initSubscriptions()
 
-    if (!this.currentAccount) {
+    let bAuthorized = this.$store.getters['user/isAuthorized']
+    if (!this.currentAccount && bAuthorized) {
       this.$store.dispatch('mail/asyncGetSettings')
     }
   },

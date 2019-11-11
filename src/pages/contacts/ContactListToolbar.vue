@@ -7,7 +7,7 @@
         <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="selectGroupForContactsList(group.UUID)">
           <q-item-section>{{group.Name}}</q-item-section>
         </q-item>
-        <q-item clickable v-ripple>
+        <q-item clickable @click="createGroup" v-ripple>
           <q-item-section>- New group -</q-item-section>
         </q-item>
       </q-list>
@@ -111,7 +111,7 @@ export default {
     },
 
     createGroup() {
-      console.log('createContact')
+      console.log('create group')
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
   },

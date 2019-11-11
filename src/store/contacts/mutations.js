@@ -77,3 +77,7 @@ export function changeStateForCreatingContact(state, val) {
 export function changeStateForCreatingGroup(state, val) {
   state.stateForCreatingGroup = val
 }
+
+export function setCheckedContacts(state, val) {
+  state.сheckedContactsList = val
+}

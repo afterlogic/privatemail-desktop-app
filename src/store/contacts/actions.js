@@ -131,3 +131,7 @@ export function closeEditGroup({ state, commit, dispatch, getters }) {
     console.log(state.currentGroup.editable)
   }
 }
+
+// export function setCheckedContacts({ state, commit, dispatch, getters }, list) {
+//   commit('setCheckedContacts',list)
+// }

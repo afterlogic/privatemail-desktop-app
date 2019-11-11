@@ -39,7 +39,7 @@ export default {
     return {
       page: 1,
       perPage: 20,
-      aCheckedList: [],
+      // aCheckedList: [],
       selectedContact: null,
     }
   },
@@ -88,7 +88,7 @@ export default {
         this.aCheckedList = []
       }
     },
-    'aCheckedList': function() {
+    'aCheckedList': function() {      
       if (this.aCheckedList.length === this.contacts.list.length && this.contacts.list.lenght) {
         this.$emit('allCheckChanged', true)
       } else if (this.aCheckedList.length === 0) {
@@ -123,6 +123,14 @@ export default {
     },
     contacts() {
       return this.$store.getters['contacts/getContacts']
+    },
+    aCheckedList: {
+      get () {
+        return this.$store.getters['contacts/getCheckedContacts']
+      },
+      set (value) {
+        this.$store.commit('contacts/setCheckedContacts', value)
+      }
     },
     currentPage () {
       return this.$store.getters['contacts/getСurrentPage']

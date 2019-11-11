@@ -64,3 +64,7 @@ export function getStateForCreatingContact(state) {
 export function getStateForCreatingGroup(state) {
   return state.stateForCreatingGroup
 }
+
+export function getCheckedContacts(state) {
+  return state.сheckedContactsList
+}

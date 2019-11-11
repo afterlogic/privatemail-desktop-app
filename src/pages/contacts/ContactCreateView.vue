@@ -243,7 +243,8 @@
           </q-scroll-area>
         </div>
         <div class="buttons">
-          <q-btn unelevated color="primary" label="Save" @click="onSave"/>
+          <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
+          <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
           <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="disableCreatingContact"/>
         </div>
       </div>
@@ -369,9 +370,14 @@
 </style>
 
 <script>
-import webApi from "src/utils/webApi.js"
-import CContact from "src/modules/contacts/classes/CContact.js"
+import { ipcRenderer } from 'electron'
 import _ from 'lodash'
+
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+import webApi from 'src/utils/webApi.js'
+
+import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'ContactCreateView',
@@ -384,6 +390,7 @@ export default {
       oPrimaryAddress: null,
       date: '',
       groupFilteredList: [],
+      bSaving: false,
     }
   },
   beforeMount: function () {
@@ -404,6 +411,8 @@ export default {
    
 
     this.setFilteredGroups()
+
+    this.initSubscriptions()
   },
 
   mounted: function() {
@@ -413,6 +422,7 @@ export default {
 
   },
   beforeDestroy: function () {
+    this.destroySubscriptions()
     this.disableCreatingContact()
   },
   watch: {
@@ -490,17 +500,36 @@ export default {
 
   methods: {
     onSave () {
-        let oNewContact = this.oContact
-        oNewContact.BirthYear = isNaN(Number(oNewContact.BirthYear)) ? Number(oNewContact.BirthYear) : 0
-        oNewContact.BirthMonth = isNaN(Number(oNewContact.BirthMonth)) ? Number(oNewContact.BirthMonth) : 0
-        oNewContact.BirthDay = isNaN(Number(oNewContact.BirthDay)) ? Number(oNewContact.BirthDay) : 0
+      let oNewContact = this.oContact
+      oNewContact.BirthYear = isNaN(Number(oNewContact.BirthYear)) ? Number(oNewContact.BirthYear) : 0
+      oNewContact.BirthMonth = isNaN(Number(oNewContact.BirthMonth)) ? Number(oNewContact.BirthMonth) : 0
+      oNewContact.BirthDay = isNaN(Number(oNewContact.BirthDay)) ? Number(oNewContact.BirthDay) : 0
 
-        if (oNewContact && oNewContact instanceof CContact ) {
-        
-          console.log('contact created')
-        }
+      if (oNewContact && oNewContact instanceof CContact ) {
+        this.bSaving = true
+        oNewContact.Storage = 'personal' // creating contact is allowed only for personal storage
+        ipcRenderer.send('contacts-save-contact', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          oContactToSave: oNewContact,
+        })
+      }
+    },
 
+    onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
+      this.bSaving = false
+      if (oContactWithUpdatedETag) {
+        notification.showReport('The contact has been created.')
         this.disableCreatingContact()
+      } else {
+        notification.showError(errors.getText(oError, 'Error creating contact.'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('contacts-save-contact', this.onSaveContact)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
 
     disableCreatingContact() {

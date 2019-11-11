@@ -369,9 +369,9 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
-import webApi from "src/utils/webApi.js"
+import webApi from 'src/utils/webApi.js'
 
-import CContact from "src/modules/contacts/classes/CContact.js"
+import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'ContactEditView',
@@ -523,14 +523,13 @@ export default {
         notification.showReport('The contact has been updated.')
         this.disableEditContact()
       } else {
-        notification.showError(errors.getText(oError, 'Error occurred while updating of the contact.'))
+        notification.showError(errors.getText(oError, 'Error updating contact.'))
       }
     },
     initSubscriptions () {
       ipcRenderer.on('contacts-save-contact', this.onSaveContact)
     },
     destroySubscriptions () {
-      console.log('destroySubscriptions')
       ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
 

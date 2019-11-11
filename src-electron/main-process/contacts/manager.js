@@ -175,15 +175,17 @@ export default {
     })
 
     ipcMain.on('contacts-save-contact', (oEvent, { sApiHost, sAuthToken, oContactToSave }) => {
+      let sMethod = oContactToSave.UUID === '' ? 'CreateContact' : 'UpdateContact'
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
         sModule: 'Contacts',
-        sMethod: 'UpdateContact',
+        sMethod,
         oParameters: { Contact: oContactToSave },
         fCallback: (mResult, oError) => {
-          if (mResult && mResult.UUID === oContactToSave.UUID) {
+          if (mResult && (mResult.UUID === oContactToSave.UUID || oContactToSave.UUID === '')) {
             oContactToSave.ETag = mResult.ETag
+            oContactToSave.UUID = mResult.UUID
             contactsDbManager.setContacts({ aContacts: [oContactToSave] })
             .then(
               () => {

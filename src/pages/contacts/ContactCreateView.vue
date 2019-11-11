@@ -375,7 +375,6 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
-import webApi from 'src/utils/webApi.js'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 

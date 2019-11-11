@@ -174,14 +174,8 @@ export default {
 
   methods: {
     onSave () {
-        let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
-        let oGroup = _.cloneDeep(oGroupContainer.group)
-        let oSavedGroup = null
-        let bEqual = _.isEqual(this.oGroup, oGroup)
-       
-        if (!bEqual) {
-          oSavedGroup = _.cloneDeep(this.oGroup)
-        }
+        let oGroup = this.oGroup
+        console.log('create new group')
 
         this.disableCreatingGroup()
     },

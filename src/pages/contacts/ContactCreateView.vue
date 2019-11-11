@@ -386,27 +386,30 @@ export default {
       groupFilteredList: [],
     }
   },
+  beforeMount: function () {
+    this.oContact = new CContact({})
+
+    this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': this.oContact.PrimaryEmail})
+    this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': this.oContact.PrimaryPhone})
+    this.oPrimaryAddress = _.find(this.aPrimaryAddressOptions, {'value': this.oContact.PrimaryAddress})
+
+    this.oContact.BirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : "2000"
+
+    this.oContact.BirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : '01'
+    this.oContact.BirthMonth = this.oContact.BirthMonth.length > 1 ? this.oContact.BirthMonth : "0" + this.oContact.BirthMonth
+
+    this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
+    this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : "0" + this.oContact.BirthDay
+    this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
+   
+
+    this.setFilteredGroups()
+  },
 
   mounted: function() {
     // let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
     // let oContact = _.cloneDeep(ContactByUUID.contact)
-    this.oContact = CContact
-    // console.log('uuids', this.oContact.GroupUUIDs)
-
-    this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})
-    this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
-    this.oPrimaryAddress = _.find(this.aPrimaryAddressOptions, {'value': oContact.PrimaryAddress})
-
-    this.oContact.BirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : '2000'
-
-    this.oContact.BirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : '01'
-    this.oContact.BirthMonth = this.oContact.BirthMonth.length > 1 ? this.oContact.BirthMonth : '0' + this.oContact.BirthMonth
-
-    this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
-    this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : '0' + this.oContact.BirthDay
-    this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
-
-    this.setFilteredGroups()
+    
 
   },
   beforeDestroy: function () {
@@ -487,13 +490,14 @@ export default {
 
   methods: {
     onSave () {
-        let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
-        let oContactSource = ContactByUUID.contact
-        let oSavedContact = null
-        let bEqual = _.isEqual(this.oContact, oContactSource)
+        let oNewContact = this.oContact
+        oNewContact.BirthYear = isNaN(Number(oNewContact.BirthYear)) ? Number(oNewContact.BirthYear) : 0
+        oNewContact.BirthMonth = isNaN(Number(oNewContact.BirthMonth)) ? Number(oNewContact.BirthMonth) : 0
+        oNewContact.BirthDay = isNaN(Number(oNewContact.BirthDay)) ? Number(oNewContact.BirthDay) : 0
 
-        if (!bEqual) {
-          oSavedContact = _.cloneDeep(this.oContact)
+        if (oNewContact && oNewContact instanceof CContact ) {
+        
+          console.log('contact created')
         }
 
         this.disableCreatingContact()

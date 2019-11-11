@@ -173,6 +173,32 @@ export default {
       this.refreshGroups(oEvent, { sApiHost, sAuthToken })
       _refreshStorages(oEvent, { sApiHost, sAuthToken })
     })
+
+    ipcMain.on('contacts-save-contact', (oEvent, { sApiHost, sAuthToken, oContactToSave }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'UpdateContact',
+        oParameters: { Contact: oContactToSave },
+        fCallback: (mResult, oError) => {
+          if (mResult && mResult.UUID === oContactToSave.UUID) {
+            oContactToSave.ETag = mResult.ETag
+            contactsDbManager.setContacts({ aContacts: [oContactToSave] })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-save-contact', { oContactWithUpdatedETag: oContactToSave })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-save-contact', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-save-contact', { oError })
+          }
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

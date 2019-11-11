@@ -241,7 +241,8 @@
           </q-scroll-area>
         </div>
         <div class="buttons q-pa-md">
-          <q-btn unelevated color="primary" label="Save" @click="onSave"/>
+          <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
+          <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
           <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditContact"/>
         </div>
       </div>
@@ -363,9 +364,14 @@
 </style>
 
 <script>
-import webApi from "src/utils/webApi.js"
-import CContact from "src/modules/contacts/classes/CContact.js"
+import { ipcRenderer } from 'electron'
 import _ from 'lodash'
+
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+import webApi from "src/utils/webApi.js"
+
+import CContact from "src/modules/contacts/classes/CContact.js"
 
 export default {
   name: 'ContactEditView',
@@ -379,10 +385,11 @@ export default {
       oPrimaryAddress: null,
       date: '',
       groupFilteredList: [],
+      bSaving: false,
     }
   },
 
-  mounted: function() {
+  mounted () {
     let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
     let oContact = _.cloneDeep(ContactByUUID.contact)
     this.oContact = (oContact && oContact instanceof CContact) ? oContact : null
@@ -402,11 +409,14 @@ export default {
     this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
 
     this.setFilteredGroups()
-
+    this.initSubscriptions()
   },
+
   beforeDestroy: function () {
     this.disableEditContact()
+    this.destroySubscriptions()
   },
+
   watch: {
     'oPrimaryEmail': function (v) {
       if (v) {
@@ -482,20 +492,46 @@ export default {
 
   methods: {
     onSave () {
-        let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
-        let oContactSource = ContactByUUID.contact
-        let oSavedContact = null
-        let bEqual = _.isEqual(this.oContact, oContactSource)
+      let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
+      let oContactSource = ContactByUUID.contact
 
-        if (!bEqual) {
-          oSavedContact = _.cloneDeep(this.oContact)
-        }
+      if (this.oContact.BirthDay === '01' && this.oContact.BirthMonth === '01' && this.oContact.BirthYear === '2000') {
+        this.oContact.BirthDay = oContactSource.BirthDay
+        this.oContact.BirthMonth = oContactSource.BirthMonth
+        this.oContact.BirthYear = oContactSource.BirthYear
+      }
 
-        this.disableEditContact()
+      let bEqual = _.isEqual(this.oContact, oContactSource)
+
+      if (!bEqual) {
+        this.bSaving = true
+        ipcRenderer.send('contacts-save-contact', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          oContactToSave: _.cloneDeep(this.oContact),
+        })
+      }
     },
 
     disableEditContact() {
       this.$store.dispatch('contacts/disableEditContact')
+    },
+
+    onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
+      this.bSaving = false
+      if (oContactWithUpdatedETag) {
+        notification.showReport('The contact has been updated.')
+        this.disableEditContact()
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while updating of the contact.'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('contacts-save-contact', this.onSaveContact)
+    },
+    destroySubscriptions () {
+      console.log('destroySubscriptions')
+      ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
 
     changeSmallEditView() {

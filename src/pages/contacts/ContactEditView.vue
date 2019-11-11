@@ -521,6 +521,7 @@ export default {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been updated.')
+        this.$store.commit('contacts/setHasChanges', true)
         this.disableEditContact()
       } else {
         notification.showError(errors.getText(oError, 'Error updating contact.'))

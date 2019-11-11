@@ -520,6 +520,7 @@ export default {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been created.')
+        this.$store.commit('contacts/setHasChanges', true)
         this.disableCreatingContact()
       } else {
         notification.showError(errors.getText(oError, 'Error creating contact.'))

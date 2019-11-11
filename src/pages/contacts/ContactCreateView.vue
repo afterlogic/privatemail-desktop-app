@@ -245,7 +245,7 @@
         <div class="buttons">
           <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
           <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
-          <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="disableCreatingContact"/>
+          <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="closeCreatingContact"/>
         </div>
       </div>
     </div>
@@ -422,7 +422,7 @@ export default {
   },
   beforeDestroy: function () {
     this.destroySubscriptions()
-    this.disableCreatingContact()
+    this.closeCreatingContact()
   },
   watch: {
     'oPrimaryEmail': function (v) {
@@ -520,7 +520,7 @@ export default {
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been created.')
         this.$store.commit('contacts/setHasChanges', true)
-        this.disableCreatingContact()
+        this.closeCreatingContact()
       } else {
         notification.showError(errors.getText(oError, 'Error creating contact.'))
       }
@@ -532,7 +532,7 @@ export default {
       ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
 
-    disableCreatingContact() {
+    closeCreatingContact() {
       this.$store.commit('contacts/changeStateForCreatingContact', false)
     },
 

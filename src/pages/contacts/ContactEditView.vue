@@ -243,7 +243,7 @@
         <div class="buttons q-pa-md">
           <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
           <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
-          <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="disableEditContact"/>
+          <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="closeEditContact"/>
         </div>
       </div>
     </div>
@@ -413,7 +413,7 @@ export default {
   },
 
   beforeDestroy: function () {
-    this.disableEditContact()
+    this.closeEditContact()
     this.destroySubscriptions()
   },
 
@@ -513,8 +513,8 @@ export default {
       }
     },
 
-    disableEditContact() {
-      this.$store.dispatch('contacts/disableEditContact')
+    closeEditContact() {
+      this.$store.dispatch('contacts/closeEditContact')
     },
 
     onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
@@ -522,7 +522,7 @@ export default {
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been updated.')
         this.$store.commit('contacts/setHasChanges', true)
-        this.disableEditContact()
+        this.closeEditContact()
       } else {
         notification.showError(errors.getText(oError, 'Error updating contact.'))
       }

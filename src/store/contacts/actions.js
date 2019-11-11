@@ -90,7 +90,7 @@ export function enableEditContact({ state, commit, dispatch, getters }) {
   }
 }
 
-export function disableEditContact({ state, commit, dispatch, getters }) {
+export function closeEditContact({ state, commit, dispatch, getters }) {
   if (state.contactByUUID.editable) {
     commit('changeEditContact', false)
     console.log(state.contactByUUID.editable)
@@ -125,7 +125,7 @@ export function enableEditGroup({ state, commit, dispatch, getters }) {
   }
 }
 
-export function disableEditGroup({ state, commit, dispatch, getters }) {
+export function closeEditGroup({ state, commit, dispatch, getters }) {
   if (state.currentGroup.editable) {
     commit('changeEditGroup', false)
     console.log(state.currentGroup.editable)

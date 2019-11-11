@@ -60,7 +60,7 @@
         </div>
         <div class="buttons q-pa-md">
           <q-btn unelevated color="primary" label="Save" @click="onSave"/>
-          <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="disableCreatingGroup"/>
+          <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="closeCreatingGroup"/>
         </div>
       </div>
     </div>
@@ -160,7 +160,7 @@ export default {
     this.bIsOrganization = this.oGroup.IsOrganization ? this.oGroup.IsOrganization : false
   },
   beforeDestroy: function () {
-    this.disableCreatingGroup()
+    this.closeCreatingGroup()
   },
   watch: {
     'bIsOrganization': function (v) {
@@ -177,10 +177,10 @@ export default {
         let oGroup = this.oGroup
         console.log('create new group')
 
-        this.disableCreatingGroup()
+        this.closeCreatingGroup()
     },
 
-    disableCreatingGroup() {
+    closeCreatingGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', false)
     },
 

@@ -60,7 +60,7 @@
         </div>
         <div class="buttons q-pa-md">
           <q-btn unelevated color="primary" label="Save" @click="onSave"/>
-          <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="disableEditGroup"/>
+          <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="closeEditGroup"/>
         </div>
       </div>
     </div>
@@ -162,7 +162,7 @@ export default {
     this.bIsOrganization = this.oCurrentGroup.IsOrganization
   },
   beforeDestroy: function () {
-    this.disableEditGroup()
+    this.closeEditGroup()
   },
   watch: {
     'bIsOrganization': function (v) {
@@ -185,11 +185,11 @@ export default {
           oSavedGroup = _.cloneDeep(this.oCurrentGroup)
         }
 
-        this.disableEditGroup()
+        this.closeEditGroup()
     },
 
-    disableEditGroup() {
-      this.$store.dispatch('contacts/disableEditGroup')
+    closeEditGroup() {
+      this.$store.dispatch('contacts/closeEditGroup')
     },
 
     changeSmallEditView() {

@@ -534,7 +534,7 @@ export default {
     },
 
     disableCreatingContact() {
-      this.$store.commit('contacts/changeCreating', false)
+      this.$store.commit('contacts/changeStateForCreatingContact', false)
     },
 
     changeSmallEditView() {

@@ -67,10 +67,13 @@ export function setCurrentGroup(state, oGroup) {
 }
 
 export function changeEditGroup(state, editable) {
-  console.log('1')
   state.currentGroup.editable = editable
 }
 
-export function changeCreating(state, val) {
-  state.creatingView = val
+export function changeStateForCreatingContact(state, val) {
+  state.stateForCreatingContact = val
+}
+
+export function changeStateForCreatingGroup(state, val) {
+  state.stateForCreatingGroup = val
 }

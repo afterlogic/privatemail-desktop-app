@@ -49,9 +49,10 @@
                   <!-- <div class="text-h4 q-mb-md">After</div>
                   <div v-for="n in 10" :key="n" class="q-my-md">{{ n }}. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</div>
                   -->
-                  <contact v-if="showContact && !creatingState" />
-                  <group v-if="showGroup && !showContact && !creatingState" />
-                  <contact-create-view v-if="creatingState" />
+                  <contact v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup" />
+                  <group v-if="showGroup && !showContact && !stateForCreatingContact && !stateForCreatingGroup" />
+                  <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" />
+                  <group-create-view v-if="stateForCreatingGroup && !stateForCreatingContact" />
                 </div>
               <!-- </q-scroll-area> -->
             </template>
@@ -72,6 +73,7 @@ import Contact from './Contact.vue'
 import Group from './Group.vue'
 import Pagination from '../Pagination.vue'
 import ContactCreateView from './ContactCreateView.vue'
+import GroupCreateView from './GroupCreateView.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
@@ -86,6 +88,7 @@ export default {
     Group,
     Pagination,
     ContactCreateView,
+    GroupCreateView,
   },
   data () {
     return {
@@ -120,8 +123,11 @@ export default {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },
-    'creatingState': function() {
-      return this.$store.getters['contacts/getCreatingState']
+    'stateForCreatingContact': function() {
+      return this.$store.getters['contacts/getStateForCreatingContact']
+    },
+    'stateForCreatingGroup': function() {
+      return this.$store.getters['contacts/getStateForCreatingGroup']
     },
     currentPage () {
       return this.$store.getters['contacts/getСurrentPage']
@@ -142,7 +148,7 @@ export default {
   methods: {
     createContact() {
       console.log('createContact')
-      this.$store.commit('contacts/changeCreating', true)
+      this.$store.commit('contacts/changeStateForCreatingContact', true)
     },
     onCheckChange(value) {
       this.allChecked = value

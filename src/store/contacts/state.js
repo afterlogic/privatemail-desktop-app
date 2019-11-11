@@ -21,7 +21,8 @@ export default {
     editable: false,
     contact: {},
   },
-  creatingView: false,
+  stateForCreatingContact: false,
+  stateForCreatingGroup: false,
   selectedContact: null,
   contactsToDowload: {
     chunk: [],

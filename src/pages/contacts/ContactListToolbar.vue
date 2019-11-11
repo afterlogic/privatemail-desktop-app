@@ -1,6 +1,6 @@
 <template>
   <div class="row q-pa-sm items-center">
-    <q-btn flat color="primary" icon="group_add" />
+    <q-btn @click="createGroup" flat color="primary" icon="group_add" />
     <q-btn flat color="primary" icon="mail_outline" />
     <q-btn-dropdown flat color="primary" icon="folder_open">
       <q-list>
@@ -60,6 +60,9 @@ export default {
   },
 
   computed: {
+    'stateForCreatingGroup': function() {
+      return this.$store.getters['contacts/getStateForCreatingGroup']
+    },
     contactsSyncing () {
       return this.$store.getters['contacts/getSyncing'] || this.$store.getters['contacts/getLoading']
     },
@@ -105,7 +108,12 @@ export default {
 
     selectGroupForContactsList (UUID) {
       this.$emit('groupsUUIDforChangeGroup', UUID)
-    }
+    },
+
+    createGroup() {
+      console.log('createContact')
+      this.$store.commit('contacts/changeStateForCreatingGroup', true)
+    },
   },
 
   beforeDestroy () {

@@ -73,17 +73,40 @@ export default {
     }
   },
 
-  getMessages: function ({iAccountId, sFolderFullName, aUids}) {
+  getMessages: function ({iAccountId, sFolderFullName, aUids, sSearch, sFilter}) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        let sQuestions = aUids.map(function(){ return '?' }).join(',')
-        let aParams = _.union([iAccountId, sFolderFullName], aUids)
+        let aWhere = ['account_id = ?', 'folder = ?']
+        let aParams = [iAccountId, sFolderFullName]
+
+        if (typesUtils.isNonEmptyArray(aUids)) {
+          let sQuestions = aUids.map(function(){ return '?' }).join(',')
+          aWhere.push('uid IN (' + sQuestions + ')')
+          aParams = _.union(aParams, aUids)
+        }
+
+        if (typesUtils.isNonEmptyString(sSearch)) {
+          aWhere.push('subject LIKE ?')
+          aParams.push('%"' + sSearch + '"%')
+        }
+
+        if (typesUtils.isNonEmptyString(sFilter)) {
+          if (sFilter.indexOf('unseen') !== -1) {
+            aWhere.push('is_seen = ?')
+            aParams.push(0)
+          }
+          if (sFilter.indexOf('flagged') !== -1) {
+            aWhere.push('is_flagged = ?')
+            aParams.push(1)
+          }
+        }
+
         oDb.all(
-          'SELECT * FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')',
+          'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
           aParams,
           function (oError, aRows) {
             if (oError) {
-              reject({ sMethod: 'getMessages', oError })
+              reject({ sMethod: 'getMessagesByCondition', oError })
             } else {
               let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
               resolve(aMessages)

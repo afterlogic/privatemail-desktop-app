@@ -73,7 +73,7 @@ export default {
     }
   },
 
-  getMessages: function ({iAccountId, sFolderFullName, aUids, sSearch, sFilter}) {
+  getMessages: function ({ iAccountId, sFolderFullName, aUids, sSearch, sFilter }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         let aWhere = ['account_id = ?', 'folder = ?']
@@ -93,11 +93,11 @@ export default {
         if (typesUtils.isNonEmptyString(sFilter)) {
           if (sFilter.indexOf('unseen') !== -1) {
             aWhere.push('is_seen = ?')
-            aParams.push(0)
+            aParams.push(false)
           }
           if (sFilter.indexOf('flagged') !== -1) {
             aWhere.push('is_flagged = ?')
-            aParams.push(1)
+            aParams.push(true)
           }
         }
 
@@ -106,7 +106,7 @@ export default {
           aParams,
           function (oError, aRows) {
             if (oError) {
-              reject({ sMethod: 'getMessagesByCondition', oError })
+              reject({ sMethod: 'getMessages', oError })
             } else {
               let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
               resolve(aMessages)
@@ -119,7 +119,7 @@ export default {
     })
   },
 
-  getMessage: function ({iAccountId, sFolderFullName, sMessageUid}) {
+  getMessage: function ({ iAccountId, sFolderFullName, sMessageUid }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb

@@ -161,10 +161,10 @@ ipcMain.on('db-set-messagesinfo', (oEvent, { iAccountId, sFolderFullName, oMessa
   )
 })
 
-ipcMain.on('db-get-messages', (oEvent, { iAccountId, sFolderFullName, aUids }) => {
-  messagesDbManager.getMessages({ iAccountId, sFolderFullName, aUids }).then(
+ipcMain.on('db-get-messages', (oEvent, { iAccountId, sFolderFullName, aUids, sSearch, sFilter }) => {
+  messagesDbManager.getMessages({ iAccountId, sFolderFullName, aUids, sSearch, sFilter }).then(
     (aMessages) => {
-      oEvent.sender.send('db-get-messages', { iAccountId, sFolderFullName, aUids, aMessages })
+      oEvent.sender.send('db-get-messages', { iAccountId, sFolderFullName, aUids, sSearch, sFilter, aMessages })
     },
     (oResult) => {
       oEvent.sender.send('notification', oResult)

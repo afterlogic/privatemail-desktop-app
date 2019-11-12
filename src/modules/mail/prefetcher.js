@@ -1,7 +1,9 @@
 import { ipcRenderer } from 'electron'
 import store from 'src/store'
-
 import _ from 'lodash'
+
+import typesUtils from 'src/utils/types.js'
+
 import foldersUtils from 'src/store/mail/utils/folders.js'
 import messagesUtils from 'src/store/mail/utils/messages.js'
 
@@ -71,26 +73,38 @@ ipcRenderer.on('db-get-messagesinfo', (event, { iAccountId, sFolderFullName, oMe
   }
 })
 
-ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, aMessages }) => {
+ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, sSearch, sFilter, aMessages }) => {
   if (store.state.mail.currentAccount && store.state.mail.currentAccount.AccountID === iAccountId) {
-    if (aMessages.length > 0) {
-      store.commit('mail/updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
-      let bCurrentFolder = sFolderFullName === store.getters['mail/getСurrentFolderFullName']
-      if (bCurrentFolder) {
-        store.commit('mail/setCurrentMessages')
+    if (typesUtils.isNonEmptyArray(aUids)) {
+      if (aMessages.length > 0) {
+        store.commit('mail/updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
+        let bCurrentFolder = sFolderFullName === store.getters['mail/getСurrentFolderFullName']
+        if (bCurrentFolder) {
+          store.commit('mail/setCurrentMessages')
+        }
+        prefetcher.start()
       }
-      prefetcher.start()
-    }
-    if (aMessages.length < aUids.length) {
-      let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
-      let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
-      let aUidsToRetrieve = aMessageList === null ? aUids : messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, sFolderFullName)
-      if (aUidsToRetrieve.length > 0) {
-        store.dispatch('mail/asyncGetMessages', {
-          iAccountId,
-          sFolderFullName,
-          aUids: aUidsToRetrieve,
-        })
+      if (aMessages.length < aUids.length) {
+        let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+        let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
+        let aUidsToRetrieve = aMessageList === null ? aUids : messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, sFolderFullName)
+        if (aUidsToRetrieve.length > 0) {
+          store.dispatch('mail/asyncGetMessages', {
+            iAccountId,
+            sFolderFullName,
+            aUids: aUidsToRetrieve,
+          })
+        }
+      }
+    } else {
+      store.commit('mail/setCurrentFilter', sFilter)
+      store.commit('mail/setCurrentFolder', sFolderFullName)
+      store.commit('mail/setCurrentFolderChanged')
+      store.commit('mail/setСurrentPage', 1)
+      store.commit('mail/setCurrentMessages', aMessages)
+      let oСurrentMessage = store.getters['mail/getСurrentMessage']
+      if (oСurrentMessage && oСurrentMessage.Folder !== sFolderFullName) {
+        store.commit('mail/setCurrentMessage', null)
       }
     }
   }

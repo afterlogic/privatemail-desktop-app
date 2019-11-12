@@ -16,7 +16,7 @@
       <q-item-section>
         <q-item-label lines="1">{{folder.Name}}</q-item-label>
       </q-item-section>
-      <q-item-section side v-if="folder.UnseenCount > 0">
+      <q-item-section side v-if="folder.UnseenCount > 0" @click.native.stop="showUnreadMessages">
         <q-chip dense>{{folder.UnseenCount}}
           <q-tooltip>
             Show unread messages only
@@ -37,6 +37,8 @@
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
+
 import FolderListItem from './FolderListItem.vue'
 
 export default {
@@ -64,6 +66,11 @@ export default {
       } else if (_.isFunction(this.$parent.$parent.selectFolder)) {
         this.$parent.$parent.selectFolder(folderFullName)
       }
+    },
+    showUnreadMessages: function () {
+      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
+      let sFolderFullName = this.folder.FullName
+      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sFilter: 'unseen' })
     },
   },
 }

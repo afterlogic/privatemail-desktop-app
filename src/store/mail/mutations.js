@@ -233,23 +233,27 @@ export function updateMessagesCacheFromDb (state, { iAccountId, sFolderFullName,
   })
 }
 
-export function setCurrentMessages (state) {
+export function setCurrentMessages (state, aMessages) {
   if (state.currentAccount) {
-    let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
-    let iAccountId = state.currentAccount.AccountID
-    let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
-  
-    state.currentMessages = aCurrentMessages
-  
-    if (aNotFounUids.length > 0) {
-      state.syncing = true
-      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
+    if (_.isArray(aMessages)) {
+      state.currentMessages = aMessages
     } else {
-      if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 ) {
+      let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
+      let iAccountId = state.currentAccount.AccountID
+      let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
+    
+      state.currentMessages = aCurrentMessages
+    
+      if (aNotFounUids.length > 0) {
         state.syncing = true
-        prefetcher.start()
+        ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
       } else {
-        state.syncing = false
+        if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 ) {
+          state.syncing = true
+          prefetcher.start()
+        } else {
+          state.syncing = false
+        }
       }
     }
   }
@@ -257,6 +261,10 @@ export function setCurrentMessages (state) {
 
 export function setСurrentPage (state, payload) {
   state.currentPage = payload
+}
+
+export function setCurrentFilter (state, sFilter) {
+  state.currentFilter = sFilter
 }
 
 export function setMessagesRead (state, payload) {
@@ -344,11 +352,13 @@ export function setMessageFlagged (state, payload) {
   })
 }
 
-export function setCurrentMessage (state, payload) {
-  state.currentMessage = payload
+export function setCurrentMessage (state, oMessage) {
+  state.currentMessage = oMessage
+  if (oMessage) {
+    oMessage.IsSeen = true
+  }
 }
 
 export function setCurrentFolder (state, payload) {
   state.currentFolderList.Current = state.currentFolderList.Flat[payload]
-  state.currentFolderList.Current.HasChanges = true
 }

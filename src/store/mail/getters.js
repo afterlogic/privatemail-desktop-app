@@ -27,11 +27,18 @@ export function getСurrentPage (state) {
   return state.currentPage
 }
 
+export function getCurrentFilter (state) {
+  return state.currentFilter
+}
+
 export function getMessagesPerPage (state) {
   return state.messagesPerPage
 }
 
 export function getMessagesCount (state) {
+  if (state.currentFilter !== '') {
+    return _.isArray(state.currentMessages) ? state.currentMessages.length : 0
+  }
   return _.isArray(state.messageList) ? state.messageList.length : 0
 }
 
@@ -41,6 +48,10 @@ export function getСurrentMessage (state) {
 
 export function getСurrentMessageUid (state) {
   return state.currentMessage ? state.currentMessage.Uid : ''
+}
+
+export function getСurrentFolder (state) {
+  return state.currentFolderList.Current
 }
 
 export function getСurrentFolderFullName (state) {

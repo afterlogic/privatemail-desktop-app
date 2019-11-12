@@ -103,7 +103,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
           sFolderFullName,
           oMessagesInfo: oResult,
         })
-        if (bCurrentFolder) {
+        if (bCurrentFolder && state.currentFilter === '') {
           commit('setCurrentMessages')
         }
       } else {
@@ -149,7 +149,9 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, {iAccoun
 }
 
 export function setCurrentFolder ({ state, commit, getters }, sFolderFullName) {
+  commit('setCurrentFilter', '')
   commit('setCurrentFolder', sFolderFullName)
+  commit('setCurrentFolderChanged')
   commit('setMessagesInfo', {
     AccountId: state.currentAccount.AccountID,
     FolderFullName: sFolderFullName,
@@ -167,14 +169,14 @@ export function setСurrentPage ({ commit }, payload) {
   commit('setCurrentMessages')
 }
 
-export function setCurrentMessage ({ commit, dispatch }, payload) {
-  commit('setCurrentMessage', payload)
-  if (!payload.IsSeen) {
+export function setCurrentMessage ({ commit, dispatch }, oMessage) {
+  if (!oMessage.IsSeen) { // check here because setCurrentMessage method also sets message seen
     dispatch('setMessagesRead', {
-      Uids: [payload.Uid],
+      Uids: [oMessage.Uid],
       IsSeen: true
     })
   }
+  commit('setCurrentMessage', oMessage)
 }
 
 export function setMessagesRead ({ state, commit, dispatch, getters }, payload) {

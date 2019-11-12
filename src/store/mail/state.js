@@ -25,6 +25,7 @@ export default {
   messageList: null, // messages info
   currentMessages: [], // list of messages for current page
   currentPage: 1,
+  currentFilter: '',
   messagesPerPage: 20,
 
   messagesCache: {},

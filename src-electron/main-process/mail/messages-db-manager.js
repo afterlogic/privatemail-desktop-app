@@ -8,7 +8,7 @@ let oDb = null
 
 let aMessageDbMap = [
   {Name: 'AccountId', DbName: 'account_id', Type: 'INTEGER'},
-  {Name: 'Attachments', DbName: 'attachments', Type: 'TEXT', IsArray: true},
+  {Name: 'Attachments', DbName: 'attachments', Type: 'TEXT', IsObject: true},
   {Name: 'Bcc', DbName: 'bcc_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Cc', DbName: 'cc_addr', Type: 'TEXT', IsObject: true},
   {Name: 'Custom', DbName: 'custom', Type: 'TEXT', IsArray: true},

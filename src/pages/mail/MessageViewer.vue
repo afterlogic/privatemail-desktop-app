@@ -1,9 +1,9 @@
 <template>
   <div class="full-height bg-white text-black">
-    <div v-if="message === null">
+    <div class="pannel-hint" v-if="message === null">
       No message selected.
       <br />
-      Click any message in the list to preview it here or double-click to view it full size.
+      <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
       <div class="col-auto">

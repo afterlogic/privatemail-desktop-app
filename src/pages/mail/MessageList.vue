@@ -2,12 +2,12 @@
   <div>
     <template v-if="folderSelected">
       <template v-if="currentFilter !== ''">
-        <a href="javascript:void(0)" @click="showAllMessages" style="display: block;">View all messages</a>
-        <div>Unread messages in {{ folderName }} folder:</div>
+        <span class="pannel-hint--link" @click="showAllMessages">View all messages</span>
+        <div class="pannel-hint">Unread messages in {{ folderName }} folder:</div>
       </template>
       <template v-if="messages.length === 0">
-        <div v-if="!syncing">The folder is empty</div>
-        <div v-if="syncing">Loading message list...</div>
+        <div class="pannel-hint" v-if="!syncing">The folder is empty</div>
+        <div class="pannel-hint" v-if="syncing">Loading message list...</div>
       </template>
     </template>
     <MessageListItem v-for="message in messages" :key="message.Uid" :message="message" />

@@ -128,4 +128,24 @@ hr.selected {
     }
   }
 }
+
+.pannel-hint {
+  font-size: 16pt;
+  font-weight: 300;
+  padding: 30px;
+  color: #aaa;
+  text-align: center;
+
+  .sub-hint {
+    padding-top: 1em;
+    font-size: 12pt;
+  }
+
+  &--link {
+    color: var(--q-color-primary);
+    float: right;
+    margin: 6px 10px 0;
+    font-size: 90%;
+  }
+}
 </style>

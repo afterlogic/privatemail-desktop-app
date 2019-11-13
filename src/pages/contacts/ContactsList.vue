@@ -1,5 +1,9 @@
 <template>
   <div>
+    <template v-if="contacts.list.length === 0">
+      <div class="pannel-hint" v-if="!contactsSyncing">No contacts</div>
+      <div class="pannel-hint" v-if="contactsSyncing">Loading contact list...</div>
+    </template>
     <q-list>
       <div v-for="contact in contacts.list" :key="contact.UUID">
         <q-item clickable v-ripple @click="setCurrentContactByUUID(contact.UUID)" 
@@ -17,10 +21,6 @@
         <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selectedContact }" />
       </div>
     </q-list>
-    <template v-if="contacts.list.length === 0">
-      <div v-if="!contactsSyncing">No contacts</div>
-      <div v-if="contactsSyncing">Loading contact list...</div>
-    </template>
   </div>
 </template>
 

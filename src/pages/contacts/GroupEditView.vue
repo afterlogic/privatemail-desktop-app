@@ -15,8 +15,8 @@
                 <label class="label-size">Group Name:</label>
                 <q-input outlined dense class="input-size" v-model="oCurrentGroup.Name"/>
               </div>
-              <div class="q-gutter-sm toggle-organization">
-                <q-toggle v-model="bIsOrganization" label=" This group is a Company"/>
+              <div class="input-line organization-toggle">
+                <q-toggle v-model="bIsOrganization" label="This group is a Company"/>
               </div>
               <div v-if="bIsOrganization">
                 <div class="input-line">
@@ -89,15 +89,15 @@
   height: 5px; 
   border: 1px solid #ccc;
   border-bottom: 0;
-  border-radius: 5px 5px 0px 0px; 
+  border-radius: 5px 5px 0px 0px;
 }
 
 .frame-without-top {
   border: 1px solid #ccc;
   border-top: 0;
-  border-radius: 0px 0px 5px 5px; 
-  min-height: 200px; 
-  padding: 1px 0px 0px
+  border-radius: 0px 0px 5px 5px;
+  min-height: 200px;
+  padding: 8px 0px 12px;
 }
 
 .input-size {
@@ -124,8 +124,8 @@
   }
 }
 
-.toggle-organization {
-  transform: none;
+.organization-toggle {
+  padding-left: 8px;
 }
 
 h2 {

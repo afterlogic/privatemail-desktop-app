@@ -123,18 +123,17 @@
   height: 5px; 
   border: 1px solid #ccc;
   border-bottom: 0; 
-  border-radius: 5px 5px 0px 0px; 
+  border-radius: 5px 5px 0px 0px;
   margin: 0px 20px;
 }
 
 .frame-without-top {
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc; 
-  border-radius: 0px 0px 5px 5px; 
-  min-height: 200px; 
-  margin: 0px 20px; 
-  padding: 1px 0px 0px
+  border: 1px solid #ccc;
+  border-top: 0px;
+  border-radius: 0px 0px 5px 5px;
+  min-height: 200px;
+  margin: 0px 20px;
+  padding: 8px 0px 12px;
  }
 
 .btn-edit {
@@ -167,13 +166,11 @@
 .group {
   margin-right: 10px;
   color: #98387b;
-  
 }
 
 .group:hover {
   text-decoration: underline;
   text-decoration-line: #98387b;
-  
   cursor: pointer;
 }
 </style>

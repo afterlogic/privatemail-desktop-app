@@ -95,11 +95,9 @@ export default {
     GroupList,
     ContactsList,
     ContactListToolbar,
-    // Contact,
     ContactView,
     ContactEditView,
 
-    // Group,
     GroupView,
     GroupEditView,
 

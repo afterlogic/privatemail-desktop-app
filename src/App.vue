@@ -146,6 +146,7 @@ hr.selected {
     float: right;
     margin: 6px 10px 0;
     font-size: 90%;
+    cursor: pointer;
   }
 }
 </style>

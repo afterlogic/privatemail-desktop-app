@@ -1,30 +1,24 @@
 <template>
-  <div class="pagination">
-    <ul>
-      <li v-if="firstPage !== null" @click="changePage(firstPage)">&laquo;</li>
-      <li v-for="page in pages" :key="page" :class="currentPage === page ? 'current-page' : ''" @click="changePage(page)">{{page}}</li>
-      <li v-if="lastPage !== null" @click="changePage(lastPage)">&raquo;</li>
-    </ul>
+  <div class="pagination" :class="{'hidden': pages.length <= 1}">
+    <q-btn icon="chevron_left" dense flat unelevated color="primary" v-if="firstPage !== null" @click="changePage(firstPage)" />
+    <q-btn unelevated flat color="primary" :class="{'current-page': currentPage === page}" :label="page" v-for="page in pages" :key="page" @click="changePage(page)" />
+    <q-btn icon="chevron_right" dense flat unelevated color="primary" v-if="lastPage !== null" @click="changePage(lastPage)" />
   </div>
 </template>
 
 <style lang="scss" scoped>
   .pagination {
     border-top: solid 1px #ddd;
-    background: rgb(238, 238, 238);
+    padding: 10px;
+    text-align: right;
 
-    ul {
-      list-style-type: none;
+    &.hidden {
+      display: none;
+    }
 
-      li {
-        cursor: pointer;
-        float: left;
-        padding: 4px 10px;
-      }
-
-      li.current-page {
-        background: gray;
-        border-radius: 16px;
+    .q-btn {
+      &.current-page {
+        color: #000000;
         cursor: default;
       }
     }

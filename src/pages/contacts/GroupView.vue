@@ -11,12 +11,12 @@
       </div>
     </div>
 
-    <div class="frame-top"></div>
+    <div class="frame-top q-mx-md"></div>
     <div class="col">
       <div class="column full-height">
         <div class="col">
           <q-scroll-area class="full-height">
-            <div class="frame-without-top">
+            <div class="frame-without-top q-mx-md">
               <q-item-label class="info-line" v-if="oCurrentGroup.Name"><span class="label-names">Group Name:</span> {{ oCurrentGroup.Name }}</q-item-label>
               <q-item-label class="info-line" v-if="oCurrentGroup.Email"><span class="label-names">Email: </span>{{ oCurrentGroup.Email }}</q-item-label>
               <q-item-label class="info-line" v-if="oCurrentGroup.Company"><span class="label-names">Company: </span>{{ oCurrentGroup.Company }}</q-item-label>
@@ -52,21 +52,18 @@
 }
 
 .frame-top {
-  height: 5px; 
+  height: 5px;
   border: 1px solid #ccc;
-  border-bottom: 0; 
-  border-radius: 5px 5px 0px 0px; 
-  margin: 0px 20px;
+  border-bottom: 0;
+  border-radius: 5px 5px 0px 0px;
 }
 
 .frame-without-top {
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc; 
-  border-radius: 0px 0px 5px 5px; 
-  min-height: 200px; 
-  margin: 0px 20px; 
-  padding: 1px 0px 0px
+  border: 1px solid #ccc;
+  border-top: 0px;
+  border-radius: 0px 0px 5px 5px;
+  min-height: 200px;
+  padding: 8px 0px 12px;
 }
 
 .label-names {

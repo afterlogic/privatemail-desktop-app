@@ -16,7 +16,6 @@
                   <label class="label-size">Display name:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.FullName"/>
                 </div>
-
                 <div class="input-line" v-if="oContact.PrimaryEmail === 0">
                   <label class="label-size">Email:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalEmail"/>
@@ -222,7 +221,6 @@
                     </template>
                   </q-input>
                 </div>
-                
                 <div class="input-line">
                   <label class="label-size">Other E-mail:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.OtherEmail"/>
@@ -231,9 +229,8 @@
                   <label class="label-size">Notes:</label>
                   <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.Notes" type="textarea"/>
                 </div>
-                
                 <q-item-label class="caption-style">Groups</q-item-label>
-                <div class="groups">
+                <div class="groups-line">
                   <q-checkbox v-model="groupFilteredList" v-for="group in groupList" :key="group.id" :val="group.UUID" :label="group.Name"/>
                 </div>
               </div>
@@ -266,16 +263,16 @@
 .frame-top {
   height: 5px; 
   border: 1px solid #ccc;
-  border-bottom: 0; 
-  border-radius: 5px 5px 0px 0px; 
+  border-bottom: 0;
+  border-radius: 5px 5px 0px 0px;
 }
 
 .frame-without-top {
   border: 1px solid #ccc;
-  border-top: 0; 
-  border-radius: 0px 0px 5px 5px; 
-  min-height: 200px; 
-  padding: 1px 0px 0px
+  border-top: 0;
+  border-radius: 0px 0px 5px 5px;
+  min-height: 200px;
+  padding: 8px 0px 12px;
 }
 
 .input-line {
@@ -314,7 +311,7 @@
 }
 
 .caption-style {
-  margin: 30px 0px 30px 20px; 
+  margin: 30px 20px; 
   font-size: 10.5pt; 
   color: #3d3d3d; 
   font-weight: 600;
@@ -324,30 +321,20 @@
   width: 100%;
   border-radius: 4px 4px 2px 2px;
   border: 1px solid #d4cece;
-  /* box-shadow: 0 1px 0px 0 grey;  */
   margin-top: 20px;
 }
 
 .container-link {
-    /* width: 32%;
-    width: 150px;
-    position: absolute;
-    right: 3%; */
-    padding: 0px 20px;
-    text-align: right;
-    /* white-space: nowrap;
-    text-overflow: ellipsis;
-    width: 100%;
-    overflow: hidden; */
+  padding: 0px 20px;
+  text-align: right;
 }
 
 .link, .link:visited{
-    color: #BC4799;
-    cursor: pointer;
-    /* margin-left: 75%; */
-    text-decoration-line: none;
-    text-decoration-style: initial;
-    text-decoration-color: initial;
+  color: #BC4799;
+  cursor: pointer;
+  text-decoration-line: none;
+  text-decoration-style: initial;
+  text-decoration-color: initial;
 }
 
 .link:hover {
@@ -360,6 +347,13 @@
 
 .btn-cancel {
   background: #a7afb9;
+}
+
+.groups-line {
+  padding: 10px 20px 10px 10px;
+  .q-checkbox {
+    margin-right: 40px;
+  }
 }
 </style>
 

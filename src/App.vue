@@ -65,7 +65,13 @@ export default {
   background: #6d5d7e;
 }
 .panel-rounded {
-  border-radius: 0px;
+  border-radius: 5px;
+}
+
+.q-splitter--vertical {
+  & > .main-split-separator {
+    width: 4px ;
+  }
 }
 
 .search-field.q-field--dense {

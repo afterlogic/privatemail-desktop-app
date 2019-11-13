@@ -1,7 +1,7 @@
 <template>
   <q-page-container style="height: 100vh">
     <q-page class="flex flex-stretch full-height">
-      <q-splitter v-model="splitterFolderModel" :limits="[10,30]" class="full-height full-width">
+      <q-splitter v-model="splitterFolderModel" :limits="[10,30]" class="full-height full-width" separator-class="main-split-separator">
         <template v-slot:before>
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
@@ -20,7 +20,7 @@
         </template>
 
         <template v-slot:after>
-          <q-splitter v-model="splitterMessageModel" :limits="[2,50]">
+          <q-splitter v-model="splitterMessageModel" :limits="[2,50]" separator-class="main-split-separator">
             <template v-slot:before>
               <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
                 <div class="col-auto">

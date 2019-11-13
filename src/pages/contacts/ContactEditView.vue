@@ -212,7 +212,7 @@
 
                 <div class="input-line">
                   <label class="label-size">Birthday:</label>
-                  <q-input outlined dense hide-bottom-space class="input-size" v-model="date" mask="date" :rules="['date']" @change="console">
+                  <q-input outlined dense hide-bottom-space class="input-size" v-model="date" mask="date" :rules="['date']" @change="logDate">
                     <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer">
                         <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -369,7 +369,6 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
-import webApi from 'src/utils/webApi.js'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 
@@ -393,7 +392,6 @@ export default {
     let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
     let oContact = _.cloneDeep(ContactByUUID.contact)
     this.oContact = (oContact && oContact instanceof CContact) ? oContact : null
-    // console.log('uuids', this.oContact.GroupUUIDs)
 
     this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})
     this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
@@ -439,6 +437,7 @@ export default {
       }
     },
   },
+
   computed: {
     'aPrimaryMailOptions': function () {
       let aOptions = []
@@ -503,7 +502,10 @@ export default {
 
       let bEqual = _.isEqual(this.oContact, oContactSource)
 
-      if (!bEqual) {
+      if (bEqual) {
+        notification.showReport('The contact has not been changed.')
+        this.closeEditContact()
+      } else {
         this.bSaving = true
         ipcRenderer.send('contacts-save-contact', {
           sApiHost: this.$store.getters['main/getApiHost'],
@@ -512,11 +514,9 @@ export default {
         })
       }
     },
-
     closeEditContact() {
       this.$store.dispatch('contacts/closeEditContact')
     },
-
     onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
@@ -533,28 +533,24 @@ export default {
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
-
     changeSmallEditView() {
       this.bSmallEditView = !this.bSmallEditView
     },
-
     setFilteredGroups() {
       let groupList =[]
-        
+
       this.oContact.GroupUUIDs.forEach(element => {
         let group = _.find(this.groupList,  { 'UUID': element } )
         if (group) {
-
-            groupList.push(group.UUID)
-          }
-        })
+          groupList.push(group.UUID)
+        }
+      })
 
       this.groupFilteredList = groupList
     },
-
-    console() {
+    logDate() {
       console.log(this.date)
-    }
+    },
   },
 }
 </script>

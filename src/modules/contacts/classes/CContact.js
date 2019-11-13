@@ -1,11 +1,9 @@
 import typesUtils from '../../../utils/types'
 
 function CContact(data) {
-  this['@Object'] = 'Object/Aurora\\Modules\\Contacts\\Classes\\Contact'
   this.EntityId = null
   this.UUID = ''
   this.ParentUUID = ''
-  this.ModuleName = ''
   this.IdUser = null
   this.IdTenant = null
   this.Storage = ''
@@ -62,11 +60,9 @@ function CContact(data) {
 
 CContact.prototype.parse = function (data) {
   this.BusinessFax = typesUtils.pString(data.BusinessFax)
-  this['@Object'] = typesUtils.pString(data['@Object'])
   this.EntityId = typesUtils.pInt(data.EntityId)
   this.UUID = typesUtils.pString(data.UUID)
   this.ParentUUID = typesUtils.pString(data.ParentUUID)
-  this.ModuleName = typesUtils.pString(data.ModuleName)
   this.IdUser = typesUtils.pInt(data.IdUser)
   this.IdTenant = typesUtils.pInt(data.IdTenant)
   this.Storage = typesUtils.pString(data.Storage)

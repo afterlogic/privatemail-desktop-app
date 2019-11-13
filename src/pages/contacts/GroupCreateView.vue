@@ -59,7 +59,8 @@
           </q-scroll-area>
         </div>
         <div class="buttons q-pa-md">
-          <q-btn unelevated color="primary" label="Save" @click="onSave"/>
+          <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
+          <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
           <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="closeCreatingGroup"/>
         </div>
       </div>
@@ -144,6 +145,12 @@ h2 {
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
+import _ from 'lodash'
+
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
 export default {
@@ -152,40 +159,57 @@ export default {
     return {
       oGroup: null,
       bIsOrganization: false,
+      bSaving: false,
     }
   },
 
   mounted: function() {
     this.oGroup = new CGroup({})
     this.bIsOrganization = this.oGroup.IsOrganization ? this.oGroup.IsOrganization : false
+    this.initSubscriptions()
   },
+
   beforeDestroy: function () {
     this.closeCreatingGroup()
+    this.destroySubscriptions()
   },
+
   watch: {
-    'bIsOrganization': function (v) {
-      if (v) {
-        this.oGroup.IsOrganization = v.value
-      }
-    },  
-  },
-  computed: {
+    'bIsOrganization': function () {
+      this.oGroup.IsOrganization = this.bIsOrganization
+    },
   },
 
   methods: {
     onSave () {
-        let oGroup = this.oGroup
-        console.log('create new group')
-
-        this.closeCreatingGroup()
+      this.bSaving = true
+      ipcRenderer.send('contacts-save-group', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        oGroupToSave: _.cloneDeep(this.oGroup),
+      })
     },
-
     closeCreatingGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', false)
     },
-
     changeSmallEditView() {
       this.bIsOrganization = !this.bIsOrganization
+    },
+    onSaveGroup (oEvent, { bSaved, oError }) {
+      this.bSaving = false
+      if (bSaved) {
+        notification.showReport('The group has been created.')
+        this.$store.dispatch('contacts/asyncGetGroups')
+        this.closeCreatingGroup()
+      } else {
+        notification.showError(errors.getText(oError, 'Error updating group.'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('contacts-save-group', this.onSaveGroup)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('contacts-save-group', this.onSaveGroup)
     },
   },
 }

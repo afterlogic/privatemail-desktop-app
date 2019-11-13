@@ -17,7 +17,7 @@
         <div class="column full-height">
 
           <div class="col-auto">
-            <q-btn no-caps no-wrap unelevated class="btn-edit" color="primary" label="Edit contact" @click="enableEditContact"/>
+            <q-btn no-caps no-wrap unelevated class="btn-edit" color="primary" label="Edit contact" @click="openEditContact"/>
           </div>
 
           <div class="frame-top" ></div>
@@ -183,7 +183,8 @@ import CContact from 'src/modules/contacts/classes/CContact.js'
 import moment from 'moment'
 
 export default {
-  name: 'ContactFields', 
+  name: 'ContactFields',
+
   data() {
     return {
       checkboxVal: false,
@@ -192,20 +193,18 @@ export default {
     }
   },
 
-  mounted: function() { 
-    console.log('null year', this.contact)
+  mounted: function() {
     this.setBirthDate()
-
     this.setFilteredGroups()
-
-    
   },
+
   watch: {
     'contact': function() {
       this.setFilteredGroups()
       this.setBirthDate()
     },
   },
+
   computed: {
     'groupList': function () {
         return this.$store.getters['contacts/getGroups']
@@ -213,32 +212,27 @@ export default {
     'contact': function() {
       let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
       let contact = ContactByUUID.contact
-
       return (contact && contact instanceof CContact) ? contact : null
-
-      
     },
   },
 
   methods: {
-    enableEditContact() {
-      this.$store.dispatch('contacts/enableEditContact')
+    openEditContact() {
+      this.$store.dispatch('contacts/openEditContact')
     },
     setCurrentGroup (sGroupName) {
-      let oGroup = _.find(this.groupList,  { 'Name': sGroupName } )
+      let oGroup = _.find(this.groupList, { 'Name': sGroupName } )
       this.$store.dispatch('contacts/setCurrentContactByUUID', null)
       this.$store.commit('contacts/setCurrentGroup', oGroup)
     },
     setFilteredGroups() {
       let groupList =[]
       this.contact.GroupUUIDs.forEach(element => {
-        let group = _.find(this.groupList,  { 'UUID': element } )
+        let group = _.find(this.groupList, { 'UUID': element } )
         if (group) {
-
-            groupList.push(group.Name)
-          }
-        })
-
+          groupList.push(group.Name)
+        }
+      })
       this.groupFilteredList = groupList
     },
     setBirthDate() {

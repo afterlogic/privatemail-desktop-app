@@ -46,16 +46,15 @@ export function setSearchText(state, sSearchText) {
 }
 
 export function setContactByUUID(state, contactByUUID) {
-    state.contactByUUID = contactByUUID
+  state.contactByUUID = contactByUUID
 }
 
 export function changeEditContact(state, editable) {
-    state.contactByUUID.editable = editable
+  state.contactByUUID.editable = editable
 }
 
 export function saveChangesCurrentContact(state, savedContact, index) {
-    state.contacts.list[index] = savedContact
-    // console.log(state.contacts.list[index])
+  state.contacts.list[index] = savedContact
 }
 
 export function setGroups(state, aGroups) {

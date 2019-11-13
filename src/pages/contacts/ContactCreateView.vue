@@ -213,7 +213,7 @@
                 <div class="input-line">
                   <label class="label-size">Birthday:</label>
                   <!-- <div class="q-pa-md" style="max-width: 55.5%; margin: 15px -16px 0px 0px;"> -->
-                    <q-input outlined dense class="input-size" v-model="date" mask="date" :rules="['date']" @change="console">
+                    <q-input outlined dense class="input-size" v-model="date" mask="date" :rules="['date']" @change="logDate">
                       <template v-slot:append>
                         <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -407,23 +407,17 @@ export default {
     this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
     this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : "0" + this.oContact.BirthDay
     this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
-   
 
     this.setFilteredGroups()
 
     this.initSubscriptions()
   },
 
-  mounted: function() {
-    // let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
-    // let oContact = _.cloneDeep(ContactByUUID.contact)
-    
-
-  },
   beforeDestroy: function () {
     this.destroySubscriptions()
     this.closeCreatingContact()
   },
+
   watch: {
     'oPrimaryEmail': function (v) {
       if (v) {
@@ -446,6 +440,7 @@ export default {
       }
     },
   },
+
   computed: {
     'aPrimaryMailOptions': function () {
       let aOptions = []
@@ -514,7 +509,6 @@ export default {
         })
       }
     },
-
     onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
@@ -531,32 +525,27 @@ export default {
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
-
     closeCreatingContact() {
       this.$store.commit('contacts/changeStateForCreatingContact', false)
     },
-
     changeSmallEditView() {
       this.bSmallEditView = !this.bSmallEditView
     },
-
     setFilteredGroups() {
       let groupList =[]
-        
+
       this.oContact.GroupUUIDs.forEach(element => {
         let group = _.find(this.groupList,  { 'UUID': element } )
         if (group) {
-
-            groupList.push(group.UUID)
-          }
-        })
+          groupList.push(group.UUID)
+        }
+      })
 
       this.groupFilteredList = groupList
     },
-
-    console() {
+    logDate() {
       console.log(this.date)
-    }
+    },
   },
 }
 </script>

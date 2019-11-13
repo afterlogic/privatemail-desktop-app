@@ -114,12 +114,10 @@ export default {
   },
   computed: {
     'showContact': function() {
-      //console.log('showContact');
       let oContactContainer = this.$store.getters['contacts/getCurrentContact']
       return (oContactContainer.contact && oContactContainer.contact instanceof CContact) ? true : false
     },
     'showGroup': function() {
-      //console.log('showGroup');
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },
@@ -147,7 +145,6 @@ export default {
   },
   methods: {
     createContact() {
-      console.log('createContact')
       this.$store.commit('contacts/changeStateForCreatingContact', true)
     },
     onCheckChange(value) {

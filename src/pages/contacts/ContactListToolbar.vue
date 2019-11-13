@@ -111,7 +111,6 @@ export default {
     },
 
     createGroup() {
-      console.log('create group')
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
   },

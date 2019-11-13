@@ -6,11 +6,10 @@ import typesUtils from '../../../src/utils/types.js'
 
 let oDb = null
 
-let aContactsDbFields = [
+let aContactDbMap = [
   {Name: 'EntityId', DbName: 'entity_id', Type: 'INTEGER'},
   {Name: 'UUID', DbName: 'uuid', Type: 'TEXT'},
   {Name: 'ParentUUID', DbName: 'parent_uuid', Type: 'TEXT'},
-  {Name: 'IdUser', DbName: 'id_user', Type: 'INTEGER'},
   {Name: 'IdTenant', DbName: 'id_tenant', Type: 'INTEGER'},
   {Name: 'Storage', DbName: 'storage', Type: 'TEXT'},
   {Name: 'FullName', DbName: 'full_name', Type: 'TEXT'},
@@ -62,7 +61,7 @@ let aContactsDbFields = [
   {Name: 'GroupUUIDs', DbName: 'group_uuids', Type: 'TEXT', IsArray: true},
 ]
 
-let aGroupsDbFields = [
+let aGroupDbMap = [
   {Name: 'City', DbName: 'city', Type: 'TEXT'},
   {Name: 'Company', DbName: 'company', Type: 'TEXT'},
   {Name: 'Country', DbName: 'country', Type: 'TEXT'},
@@ -70,7 +69,6 @@ let aGroupsDbFields = [
   {Name: 'Email', DbName: 'email', Type: 'TEXT'},
   {Name: 'EntityId', DbName: 'entityId', Type: 'INTEGER'},
   {Name: 'Fax', DbName: 'fax', Type: 'TEXT'},
-  {Name: 'IdUser', DbName: 'id_user', Type: 'INTEGER'},
   {Name: 'IsOrganization', DbName: 'is_organization', Type: 'INTEGER', IsBool: true},
   {Name: 'Name', DbName: 'name', Type: 'TEXT'},
   {Name: 'ParentUUID', DbName: 'parent_uuid', Type: 'TEXT'},
@@ -122,13 +120,13 @@ export default {
         oDb.run('CREATE TABLE IF NOT EXISTS contacts_storages (storage TEXT, ctag INTEGER)')
         oDb.run('CREATE TABLE IF NOT EXISTS contacts_info (storage TEXT, uuid TEXT, etag TEXT)')
 
-        let aContactsFields = _.map(aContactsDbFields, function (oContactDbFields) {
+        let aContactsFields = _.map(aContactDbMap, function (oContactDbFields) {
           return oContactDbFields.DbName + ' ' + oContactDbFields.Type
         })
         let sContactsFields = aContactsFields.join(', ')
         oDb.run('CREATE TABLE IF NOT EXISTS contacts (' + sContactsFields + ')')
 
-        let aGroupsFields = _.map(aGroupsDbFields, function (oGroupDbFields) {
+        let aGroupsFields = _.map(aGroupDbMap, function (oGroupDbFields) {
           return oGroupDbFields.DbName + ' ' + oGroupDbFields.Type
         })
         let sGroupsFields = aGroupsFields.join(', ')
@@ -229,7 +227,7 @@ export default {
         bEqual = false
       } else {
         let oOldGroup = aOldGroups[oOldGroupIndex]
-        _.each(aGroupsDbFields, function (oDbField) {
+        _.each(aGroupDbMap, function (oDbField) {
           bEqual = bEqual && (oNewGroup[oDbField.Name] === oOldGroup[oDbField.Name])
         })
         if (bEqual) {
@@ -255,7 +253,7 @@ export default {
             if (oError) {
               reject({ sMethod: 'getGroups', oError })
             } else {
-              let aGroups = dbHelper.prepareDataFromDb(aRows, aGroupsDbFields)
+              let aGroups = dbHelper.prepareDataFromDb(aRows, aGroupDbMap)
               resolve(aGroups)
             }
           }
@@ -275,13 +273,13 @@ export default {
           oStatement.finalize()
         })
 
-        let sFieldsDbNames = _.map(aGroupsDbFields, function (oGroupDbField) {
+        let sFieldsDbNames = _.map(aGroupDbMap, function (oGroupDbField) {
           return oGroupDbField.DbName
         }).join(', ')
-        let sQuestions = aGroupsDbFields.map(function(){ return '?' }).join(',')
+        let sQuestions = aGroupDbMap.map(function(){ return '?' }).join(',')
         let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
         _.each(aGroups, function (oGroup) {
-          let aParams = dbHelper.prepareInsertParams(oGroup, aGroupsDbFields)
+          let aParams = dbHelper.prepareInsertParams(oGroup, aGroupDbMap)
           oStatement.run.apply(oStatement, aParams)
         })
         oStatement.finalize(function (oError) {
@@ -290,6 +288,39 @@ export default {
           } else {
             resolve()
           }
+        })
+      } else {
+        reject({ sMethod: 'setGroups', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setGroup: function ({ oGroup }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function () {
+          let oStatement = oDb.prepare('DELETE FROM contacts_groups WHERE uuid = ?')
+          oStatement.run([oGroup.UUID])
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'setGroups', oError })
+            } else {
+              let sFieldsDbNames = _.map(aGroupDbMap, function (oGroupDbField) {
+                return oGroupDbField.DbName
+              }).join(', ')
+              let sQuestions = aGroupDbMap.map(function () { return '?' }).join(',')
+              let aParams = dbHelper.prepareInsertParams(oGroup, aGroupDbMap)
+              let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+              oStatement.run(aParams)
+              oStatement.finalize(function (oError) {
+                if (oError) {
+                  reject({ sMethod: 'setGroups', oError })
+                } else {
+                  resolve()
+                }
+              })
+            }
+          })
         })
       } else {
         reject({ sMethod: 'setGroups', sError: 'No DB connection' })
@@ -417,13 +448,13 @@ export default {
           let sQuestions = aUuids.map(function(){ return '(?)' }).join(',')
           oDb.run('DELETE FROM contacts WHERE uuid IN (' + sQuestions + ')', aUuids)
 
-          let sFieldsDbNames = _.map(aContactsDbFields, function (oContactDbField) {
+          let sFieldsDbNames = _.map(aContactDbMap, function (oContactDbField) {
             return oContactDbField.DbName
           }).join(', ')
-          sQuestions = aContactsDbFields.map(function(){ return '?' }).join(',')
+          sQuestions = aContactDbMap.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('INSERT INTO contacts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
           _.each(aContacts, function (oContact) {
-            let aParams = dbHelper.prepareInsertParams(oContact, aContactsDbFields)
+            let aParams = dbHelper.prepareInsertParams(oContact, aContactDbMap)
             oStatement.run.apply(oStatement, aParams)
           })
           oStatement.finalize(function (oError) {
@@ -452,7 +483,7 @@ export default {
                 if (oError) {
                   reject({ sMethod: 'getContacts', oError })
                 } else {
-                  let aContacts = dbHelper.prepareDataFromDb(aRows, aContactsDbFields)
+                  let aContacts = dbHelper.prepareDataFromDb(aRows, aContactDbMap)
                   if (iCount === 0) {
                     iCount = aContacts.length
                   }

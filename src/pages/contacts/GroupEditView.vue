@@ -59,7 +59,8 @@
           </q-scroll-area>
         </div>
         <div class="buttons q-pa-md">
-          <q-btn unelevated color="primary" label="Save" @click="onSave"/>
+          <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
+          <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
           <q-btn unelevated class="btn-cancel" color="grey-6" label="Cancel" @click="closeEditGroup"/>
         </div>
       </div>
@@ -144,14 +145,22 @@ h2 {
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
+import _ from 'lodash'
+
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
 export default {
   name: 'ContactEditView',
+
   data() {
     return {
       oCurrentGroup: null,
       bIsOrganization: false,
+      bSaving: false,
     }
   },
 
@@ -160,40 +169,60 @@ export default {
     let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
     this.oCurrentGroup = (oCurrentGroup && oCurrentGroup instanceof CGroup) ? oCurrentGroup : null
     this.bIsOrganization = this.oCurrentGroup.IsOrganization
+    this.initSubscriptions()
   },
+
   beforeDestroy: function () {
     this.closeEditGroup()
+    this.destroySubscriptions()
   },
+
   watch: {
-    'bIsOrganization': function (v) {
-      if (v) {
-        this.oCurrentGroup.IsOrganization = v.value
-      }
-    },  
-  },
-  computed: {
+    'bIsOrganization': function () {
+      this.oCurrentGroup.IsOrganization = this.bIsOrganization
+    },
   },
 
   methods: {
     onSave () {
-        let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
-        let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
-        let oSavedGroup = null
-        let bEqual = _.isEqual(this.oCurrentGroup, oCurrentGroup)
-       
-        if (!bEqual) {
-          oSavedGroup = _.cloneDeep(this.oCurrentGroup)
-        }
+      let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
+      let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
+      let oSavedGroup = null
+      let bEqual = _.isEqual(this.oCurrentGroup, oCurrentGroup)
 
+      if (bEqual) {
+        notification.showReport('The group has not been changed.')
         this.closeEditGroup()
+      } else {
+        this.bSaving = true
+        ipcRenderer.send('contacts-save-group', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          oGroupToSave: _.cloneDeep(this.oCurrentGroup),
+        })
+      }
     },
-
     closeEditGroup() {
       this.$store.dispatch('contacts/closeEditGroup')
     },
-
     changeSmallEditView() {
       this.bIsOrganization = !this.bIsOrganization
+    },
+    onSaveGroup (oEvent, { bSaved, oError }) {
+      this.bSaving = false
+      if (bSaved) {
+        notification.showReport('The group has been updated.')
+        this.$store.dispatch('contacts/asyncGetGroups')
+        this.closeEditGroup()
+      } else {
+        notification.showError(errors.getText(oError, 'Error updating group.'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('contacts-save-group', this.onSaveGroup)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('contacts-save-group', this.onSaveGroup)
     },
   },
 }

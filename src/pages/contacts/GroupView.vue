@@ -6,7 +6,7 @@
       </div>
       <div class="buttons">
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" />
-        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="enableEditGroup"/>
+        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="openEditGroup"/>
         <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" />
       </div>
     </div>
@@ -91,34 +91,42 @@
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
+
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
 export default {
   name: 'GroupView',
+
   data() {
     return {
-      // checkboxVal: false,
-      // sBirthDate: '',
-      bIsOrganization: null,
     }
   },
 
-  mounted: function() {
-
-  },
-  watch: {},
   computed: {
     'oCurrentGroup': function() {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
-      console.log(oCurrentGroup instanceof CGroup)
       return (oCurrentGroup && oCurrentGroup instanceof CGroup) ? oCurrentGroup : null
+    },
+    'groupList': function() {
+      return this.$store.getters['contacts/getGroups']
+    },
+  },
+
+  watch: {
+    'groupList': function () {
+      let sCurrentUUID = this.$store.getters['contacts/getCurrentGroupUUID']
+      let oGroup = _.find(this.groupList, function (oGroup) {
+        return oGroup.UUID === sCurrentUUID
+      })
+      this.$store.commit('contacts/setCurrentGroup', oGroup)
     },
   },
 
   methods: {
-    enableEditGroup() {
-      this.$store.dispatch('contacts/enableEditGroup')
+    openEditGroup() {
+      this.$store.dispatch('contacts/openEditGroup')
     },
   },
 }

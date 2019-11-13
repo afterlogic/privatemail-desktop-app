@@ -79,27 +79,23 @@ export function setCurrentContactByUUID({ state, commit, dispatch, getters }, UU
     editable: false,
     contact: _.find(state.contacts.list, { 'UUID': UUID }) || {},
   }
-
   commit('setContactByUUID', contactByUUID)
 }
 
-export function enableEditContact({ state, commit, dispatch, getters }) {
+export function openEditContact({ state, commit, dispatch, getters }) {
   if (!state.contactByUUID.editable) {
     commit('changeEditContact', true)
-    console.log(state.contactByUUID.editable)
   }
 }
 
 export function closeEditContact({ state, commit, dispatch, getters }) {
   if (state.contactByUUID.editable) {
     commit('changeEditContact', false)
-    console.log(state.contactByUUID.editable)
   }
 }
 
 export function saveChangesCurrentContact({ state, commit, dispatch, getters }, savedContact) {
   let index = null
-  // console.log( state.contacts.list)
   state.contacts.list.forEach( (item, i) => {
     if (item.UUID === savedContact.UUID) index = i
   })
@@ -117,21 +113,14 @@ export function logout ({ commit, dispatch }) {
   dispatch('setCurrentContactByUUID', null)
 }
 
-export function enableEditGroup({ state, commit, dispatch, getters }) {
-  console.log('123',state.currentGroup.editable)
+export function openEditGroup({ state, commit, dispatch, getters }) {
   if (!state.currentGroup.editable) {
     commit('changeEditGroup', true)
-    console.log(state.currentGroup.editable)
   }
 }
 
 export function closeEditGroup({ state, commit, dispatch, getters }) {
   if (state.currentGroup.editable) {
     commit('changeEditGroup', false)
-    console.log(state.currentGroup.editable)
   }
 }
-
-// export function setCheckedContacts({ state, commit, dispatch, getters }, list) {
-//   commit('setCheckedContacts',list)
-// }

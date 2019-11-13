@@ -1,19 +1,16 @@
 import typesUtils from '../../../utils/types'
 
 function CGroup(data) {
-  this['@Object'] = 'Object/Aurora\\Modules\\Contacts\\Classes\\Group'
-  this.EntityId = null
+  this.EntityId = 0
   this.UUID = ''
   this.ParentUUID = ''
-  this.ModuleName = ''
-  this.IdUser = null
-  this.Name = null
-  this.IsOrganization = ''
+  this.Name = ''
+  this.IsOrganization = false
   this.Email = ''
-  this.Company = null
-  this.Street = null
-  this.City = null
-  this.State = null
+  this.Company = ''
+  this.Street = ''
+  this.City = ''
+  this.State = ''
   this.Zip = ''
   this.Country = ''
   this.Phone = ''
@@ -25,12 +22,9 @@ function CGroup(data) {
 }
 
 CGroup.prototype.parse = function (data) {
-  this['@Object'] = typesUtils.pString(data['@Object'])
   this.EntityId = typesUtils.pInt(data.EntityId)
   this.UUID = typesUtils.pString(data.UUID)
   this.ParentUUID = typesUtils.pString(data.ParentUUID)
-  this.ModuleName = typesUtils.pString(data.ModuleName)
-  this.IdUser = typesUtils.pInt(data.IdUser)
   this.Name = typesUtils.pString(data.Name)
   this.IsOrganization = typesUtils.pBool(data.IsOrganization)
   this.Email = typesUtils.pString(data.Email)

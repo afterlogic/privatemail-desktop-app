@@ -201,6 +201,35 @@ export default {
         },
       })
     })
+
+    ipcMain.on('contacts-save-group', (oEvent, { sApiHost, sAuthToken, oGroupToSave }) => {
+      let sMethod = oGroupToSave.UUID === '' ? 'CreateGroup' : 'UpdateGroup'
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod,
+        oParameters: { Group: oGroupToSave },
+        fCallback: (mResult, oError) => {
+          if (mResult) {
+            if (oGroupToSave.UUID === '') {
+              oGroupToSave.UUID = mResult
+            }
+            contactsDbManager.setGroup({ oGroup: oGroupToSave })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-save-group', { bSaved: true })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-save-group', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-save-group', { oError })
+          }
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

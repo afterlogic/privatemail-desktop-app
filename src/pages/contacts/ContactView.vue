@@ -7,8 +7,8 @@
             <q-item-label class="head--labels-email">{{ contact.ViewEmail }}</q-item-label>
           </div>
           <div class="buttons">
-            <q-btn no-wrap no-caps unelevated color="primary" label="Send this contact" />
-            <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" />
+            <q-btn no-wrap no-caps unelevated color="primary" label="Send this contact" @click="dummyAction" />
+            <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" @click="dummyAction" />
           </div>
         </div>
       </div>
@@ -178,6 +178,7 @@
 <script>
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import moment from 'moment'
+import notification from 'src/utils/notification.js'
 
 export default {
   name: 'ContactFields',
@@ -237,6 +238,9 @@ export default {
         let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
         this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
       }
+    },
+    dummyAction() {
+      notification.showReport('There is no action here yet')
     },
   },
 }

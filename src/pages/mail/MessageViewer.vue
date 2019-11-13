@@ -40,7 +40,7 @@
               </q-tooltip>
             </template>
             <q-list>
-              <q-item clickable>
+              <q-item clickable @click="dummyAction">
                 <q-item-section side>
                   <q-icon name="print" />
                 </q-item-section>
@@ -49,7 +49,7 @@
                 </q-item-section>
               </q-item>
 
-              <q-item clickable>
+              <q-item clickable @click="dummyAction">
                 <q-item-section side>
                   <q-icon name="arrow_downward" />
                 </q-item-section>
@@ -58,7 +58,7 @@
                 </q-item-section>
               </q-item>
 
-              <q-item clickable>
+              <q-item clickable @click="dummyAction">
                 <q-item-section side>
                   <q-icon name="forward" />
                 </q-item-section>
@@ -66,7 +66,7 @@
                   <q-item-label>Forward as attachment</q-item-label>
                 </q-item-section>
               </q-item>
-              <q-item clickable>
+              <q-item clickable @click="dummyAction">
                 <q-item-section side>
                   <q-icon name="code" />
                 </q-item-section>
@@ -93,13 +93,21 @@
           <div class="q-pa-md" v-if="!message.Html" v-html="message.Plain"></div>
         </q-scroll-area>
       </div>
-      <div class="col-3" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']" style="background: yellow;">
-        <div v-for="attach in message.Attachments['@Collection']" :key="attach.Hash" v-show="!attach.IsLinked">
-          {{attach.FileName}} - {{attach.FriendlySize}} - 
-          <a  v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url"
-              href="javascript:void(0)"
-              @click="download(attach.Actions.download.url, attach.FileName)">download</a>
-        </div>
+      <div class="col-auto attachments-panel" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']">
+        <q-item class="attachment-item" v-for="attach in message.Attachments['@Collection']" :key="attach.Hash" v-show="!attach.IsLinked">
+          <q-item-section avatar>
+            <q-icon name="insert_drive_file" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{attach.FileName}}</q-item-label>
+            <q-item-label caption>{{attach.FriendlySize}}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat icon="get_app" color="primary" v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url"
+              @click="download(attach.Actions.download.url, attach.FileName)"></q-btn>
+          </q-item-section>
+          <q-separator />
+        </q-item>
       </div>
       <q-slide-transition>
         <div class="col-auto" v-if="!isSentFolder && !isDraftsFolder" v-show="!isSendingOrSaving">
@@ -120,7 +128,19 @@
   </div>
 </template>
 
-<style></style>
+<style lang="scss" scoped>
+.attachments-panel {
+  background: #fafafa;
+  .attachment-item {
+    border-bottom: 1px solid #eee;
+
+    .q-item__section--avatar {
+      color: #777;
+      font-size: 18pt;
+    }
+  }
+}
+</style>
 
 <script>
 import addressUtils from 'src/utils/address'
@@ -284,6 +304,9 @@ export default {
         oCompose.openCompose(oComposeReplyParams)
         this.clearAll()
       }
+    },
+    dummyAction() {
+      notification.showReport('There is no action here yet')
     },
   },
   mounted: function () {

@@ -1,7 +1,7 @@
 <template>
   <div class="row q-pa-sm items-center">
     <q-btn @click="createGroup" flat color="primary" icon="group_add" />
-    <q-btn flat color="primary" icon="mail_outline" />
+    <q-btn flat color="primary" icon="mail_outline" @click="dummyAction" />
     <q-btn-dropdown flat color="primary" icon="folder_open">
       <q-list>
         <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="selectGroupForContactsList(group.UUID)">
@@ -12,20 +12,20 @@
         </q-item>
       </q-list>
     </q-btn-dropdown>
-    <q-btn flat color="primary" icon="delete_outline" />
+    <q-btn flat color="primary" icon="delete_outline" @click="dummyAction" />
     <q-btn-dropdown flat color="primary" icon="import_export">
       <q-list>
-        <q-item clickable>
+        <q-item clickable @click="dummyAction">
           <q-item-section>
             <q-item-label>Export as CSV</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable>
+        <q-item clickable @click="dummyAction">
           <q-item-section>
             <q-item-label>Export as VCF</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable>
+        <q-item clickable @click="dummyAction">
           <q-item-section>
             <q-item-label>Import</q-item-label>
           </q-item-section>
@@ -113,6 +113,10 @@ export default {
     createGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
+
+    dummyAction() {
+      notification.showReport('There is no action here yet')
+    }
   },
 
   beforeDestroy () {

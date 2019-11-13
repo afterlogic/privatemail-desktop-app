@@ -5,9 +5,9 @@
         <q-item-label class="head--labels-name">View Group</q-item-label>
       </div>
       <div class="buttons">
-        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" />
+        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" @click="dummyAction" />
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="openEditGroup"/>
-        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" />
+        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" @click="dummyAction" />
       </div>
     </div>
 
@@ -91,6 +91,7 @@
 import { ipcRenderer } from 'electron'
 
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
+import notification from 'src/utils/notification.js'
 
 export default {
   name: 'GroupView',
@@ -124,6 +125,9 @@ export default {
   methods: {
     openEditGroup() {
       this.$store.dispatch('contacts/openEditGroup')
+    },
+    dummyAction() {
+      notification.showReport('There is no action here yet')
     },
   },
 }

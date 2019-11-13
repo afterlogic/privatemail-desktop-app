@@ -1,7 +1,7 @@
 <template>
   <div class="pagination" :class="{'hidden': pages.length <= 1}">
     <q-btn icon="chevron_left" dense flat unelevated color="primary" v-if="firstPage !== null" @click="changePage(firstPage)" />
-    <q-btn unelevated flat color="primary" :class="{'current-page': currentPage === page}" :label="page" v-for="page in pages" :key="page" @click="changePage(page)" />
+    <q-btn unelevated flat color="primary" :disable="currentPage === page" :class="{'current-page': currentPage === page}" :label="page" v-for="page in pages" :key="page" @click="changePage(page)" />
     <q-btn icon="chevron_right" dense flat unelevated color="primary" v-if="lastPage !== null" @click="changePage(lastPage)" />
   </div>
 </template>
@@ -18,8 +18,8 @@
 
     .q-btn {
       &.current-page {
-        color: #000000;
-        cursor: default;
+          color: #000000 !important;
+          cursor: default !important;
       }
     }
   }

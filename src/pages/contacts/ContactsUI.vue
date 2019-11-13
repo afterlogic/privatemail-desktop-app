@@ -44,17 +44,24 @@
               </div>
             </template>
             <template v-slot:after>
-              <!-- <q-scroll-area class="full-height bg-white text-black panel-rounded"> -->
-                <div class="full-height bg-white text-black panel-rounded">
-                  <!-- <div class="text-h4 q-mb-md">After</div>
-                  <div v-for="n in 10" :key="n" class="q-my-md">{{ n }}. Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quis praesentium cumque magnam odio iure quidem, quod illum numquam possimus obcaecati commodi minima assumenda consectetur culpa fuga nulla ullam. In, libero.</div>
-                  -->
-                  <contact v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup" />
-                  <group v-if="showGroup && !showContact && !stateForCreatingContact && !stateForCreatingGroup" />
-                  <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" />
-                  <group-create-view v-if="stateForCreatingGroup && !stateForCreatingContact" />
+              <div class="full-height bg-white text-black panel-rounded">
+                <div class="pannel-hint" v-if="!(showContact || showGroup)">
+                  No contact selected.
                 </div>
-              <!-- </q-scroll-area> -->
+
+                <template v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup">
+                  <contactView v-if="!currentContact.editable"/>
+                  <contactEditView v-if="currentContact.editable"/>
+                </template>
+
+                <template v-if="showGroup && !showContact && !stateForCreatingContact && !stateForCreatingGroup">
+                  <GroupView v-if="!currentGroup.editable"/>
+                  <GroupEditView v-if="currentGroup.editable"/>
+                </template>
+
+                <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" />
+                <group-create-view v-if="stateForCreatingGroup && !stateForCreatingContact" />
+              </div>
             </template>
           </q-splitter>
         </template>
@@ -69,8 +76,12 @@
 import GroupList from './GroupList.vue'
 import ContactsList from './ContactsList.vue'
 import ContactListToolbar from './ContactListToolbar.vue'
-import Contact from './Contact.vue'
-import Group from './Group.vue'
+import ContactView from './ContactView.vue'
+import ContactEditView from './ContactEditView.vue'
+
+import GroupView from './GroupView.vue'
+import GroupEditView from './GroupEditView.vue'
+
 import Pagination from '../Pagination.vue'
 import ContactCreateView from './ContactCreateView.vue'
 import GroupCreateView from './GroupCreateView.vue'
@@ -84,8 +95,14 @@ export default {
     GroupList,
     ContactsList,
     ContactListToolbar,
-    Contact,
-    Group,
+    // Contact,
+    ContactView,
+    ContactEditView,
+
+    // Group,
+    GroupView,
+    GroupEditView,
+
     Pagination,
     ContactCreateView,
     GroupCreateView,
@@ -100,9 +117,6 @@ export default {
     }
   },
   watch: {
-    'allChecked': function (v) {
-      // console.log(this.allChecked)
-    },
     currentStorage: function () {
       this.searchText = ''
       this.search()
@@ -113,18 +127,24 @@ export default {
     },
   },
   computed: {
-    'showContact': function() {
+    currentContact () {
+      return this.$store.getters['contacts/getCurrentContact']
+    },
+    showContact () {
       let oContactContainer = this.$store.getters['contacts/getCurrentContact']
       return (oContactContainer.contact && oContactContainer.contact instanceof CContact) ? true : false
     },
-    'showGroup': function() {
+    currentGroup () {
+      return this.$store.getters['contacts/getCurrentGroup']
+    },
+    showGroup () {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       return (oGroupContainer.group && oGroupContainer.group instanceof CGroup) ? true : false
     },
-    'stateForCreatingContact': function() {
+    stateForCreatingContact () {
       return this.$store.getters['contacts/getStateForCreatingContact']
     },
-    'stateForCreatingGroup': function() {
+    stateForCreatingGroup () {
       return this.$store.getters['contacts/getStateForCreatingGroup']
     },
     currentPage () {

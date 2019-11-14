@@ -89,7 +89,7 @@ export default {
     },
     onContactsRefresh (event, { bHasChanges, sStorage, oError }) {
       if (_.isBoolean(bHasChanges)) {
-        if (sStorage === this.currentStorage) {
+        if (sStorage === this.currentStorage || this.currentStorage === 'all') {
           if (bHasChanges) {
             this.$store.commit('contacts/setHasChanges', true)
           }

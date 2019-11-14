@@ -86,6 +86,7 @@ export default {
                   this.$store.commit('main/setLastLogin', this.login)
                 }
                 this.$store.dispatch('user/login', oResult.AuthToken)
+                ipcRenderer.send('init', { sApiHost, sAuthToken: oResult.AuthToken })
                 this.$router.push({ path: '/mail' })
               } else {
                 _catchSignInError(oError)

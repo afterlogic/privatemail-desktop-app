@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, session } from 'electron'
 import _ from 'lodash'
 
 import foldersManager from './mail/folders-manager.js'
@@ -64,6 +64,11 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow()
   }
+})
+
+ipcMain.on('init', (oEvent, { sApiHost, sAuthToken }) => {
+  const oCookie = { url: sApiHost, name: 'AuthToken', value: sAuthToken }
+  session.defaultSession.cookies.set(oCookie)
 })
 
 ipcMain.on('db-remove-all', () => {

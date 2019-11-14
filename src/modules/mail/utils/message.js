@@ -72,7 +72,7 @@ export default {
   getFullAddress: function (oAddressesFromServer) {
     let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
 
-    var aAddresses = _.map(aCollection, function (oAddress) {
+    let aAddresses = _.map(aCollection, function (oAddress) {
       return addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email)
     })
 
@@ -111,4 +111,28 @@ export default {
     // return (oDomText.length > 0) ? oDomText.wrap('<p>').parent().html() : ''
   },
 
+  prepareInlinePictures: function (sHtml, aAttachments, aFoundCids, sAppPath) {
+    let
+      fFindAttachmentByCid = function (sCid) {
+        return _.find(aAttachments, function (oAttachment) {
+          return oAttachment.CID === sCid
+        })
+      },
+      sResHtml = sHtml
+
+    if (typeof sAppPath !== 'string') {
+      sAppPath = ''
+    }
+
+    if (aFoundCids.length > 0) {
+      _.each(aFoundCids, function (sFoundCid) {
+        let oAttachment = fFindAttachmentByCid(sFoundCid)
+        if (oAttachment && oAttachment.Actions.view && oAttachment.Actions.view.url.length > 0) {
+          sResHtml = sResHtml.replace('data-x-src-cid="' + sFoundCid + '"', 'src="' + sAppPath + oAttachment.Actions.view.url + '"')
+        }
+      })
+    }
+
+    return sResHtml
+  }
 }

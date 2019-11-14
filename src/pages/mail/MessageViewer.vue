@@ -89,8 +89,7 @@
       </div>
       <div class="col" style="height: 100%;">
         <q-scroll-area style="height: 100%;">
-          <div class="q-pa-md" v-if="message.Html" v-html="message.Html"></div>
-          <div class="q-pa-md" v-if="!message.Html" v-html="message.Plain"></div>
+          <div class="q-pa-md" v-html="text"></div>
         </q-scroll-area>
       </div>
       <div class="col-auto attachments-panel" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']">
@@ -148,6 +147,7 @@ import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
 import composeUtils from 'src/modules/mail/utils/compose.js'
+import messageUtils from 'src/modules/mail/utils/message.js'
 import mailEnums from 'src/modules/mail/enums.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
@@ -180,6 +180,20 @@ export default {
         aTo.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
       })
       return aTo
+    },
+    text () {
+      if (this.message) {
+        if (this.message.Html) {
+          if (this.message.Attachments && this.message.Attachments['@Collection']) {
+            return messageUtils.prepareInlinePictures( this.message.Html, this.message.Attachments['@Collection'], this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
+          } else {
+            return this.message.Html
+          }
+        } else {
+          return this.message.Plain
+        }
+      }
+      return ''
     },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']

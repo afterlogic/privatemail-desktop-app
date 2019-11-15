@@ -78,6 +78,7 @@ module.exports = function (ctx) {
         'QSlideTransition',
         'QPopupProxy',
         'QUploader',
+        'QUploaderAddTrigger',
       ],
 
       directives: [

@@ -120,8 +120,36 @@
               :factory="uploaderFactory"
               @uploaded="onFileUploaded"
               @failed="onFileUploadFailed"
+              @removed="onFileRemoved"
             >
-              <template v-slot:list="scope">
+              <template v-slot:header="scope">
+                <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
+                  <!-- <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
+                    <q-tooltip>Clear All</q-tooltip>
+                  </q-btn>
+                  <q-btn v-if="scope.uploadedFiles.length > 0" icon="done_all" @click="scope.removeUploadedFiles" round dense flat >
+                    <q-tooltip>Remove Uploaded Files</q-tooltip>
+                  </q-btn>
+                  <q-spinner v-if="scope.isUploading" class="q-uploader__spinner">
+                  </q-spinner>
+                  <div class="col">
+                    <div class="q-uploader__title">Upload your files</div>
+                    <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+                  </div> -->
+                  <q-btn type="a" icon="add_box" round dense flat>
+                    <q-uploader-add-trigger />
+                    <q-tooltip>Pick Files</q-tooltip>
+                  </q-btn>
+                  <!-- <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
+                    <q-tooltip>Upload Files</q-tooltip>
+                  </q-btn>
+
+                  <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
+                    <q-tooltip>Abort Upload</q-tooltip>
+                  </q-btn> -->
+                </div>
+              </template>
+              <!-- <template v-slot:list="scope">
                 <q-list separator>
 
                   <q-item v-for="file in scope.files" :key="file.name">
@@ -161,7 +189,7 @@
                   </q-item>
 
                 </q-list>
-              </template>
+              </template> -->
             </q-uploader>
           </div>
         </div>
@@ -334,10 +362,33 @@ export default {
       }
     },
     onFileUploaded ({ files, xhr }) {
-      console.log('files', files, 'xhr.responseText', xhr.responseText)
+      let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
+      let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
+      if (oFile && oResponse && oResponse.Result && oResponse.Result.Attachment) {
+        let oAttach = oResponse.Result.Attachment
+        this.attachments.push({
+          sLocalPath: oFile.path,
+          sFileName: oAttach.FileName || oFile.name,
+          iSize: oAttach.Size || oFile.size,
+          sType: oAttach.MimeType || oFile.type,
+          sHash: oAttach.Hash,
+          sTempName: oAttach.TempName,
+          oActions: oAttach.Actions,
+          bLinked: false,
+          bInline: false,
+          sCid: '',
+          sContentLocation: '',
+        })
+      }
     },
     onFileUploadFailed ({ files, xhr }) {
       console.log('files', files, 'xhr.status', xhr.status)
+    },
+    onFileRemoved(files) {
+      let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
+      this.attachments = _.filter(this.attachments, function (oAttach) {
+        return oAttach.sLocalPath !== oFile.path
+      })
     },
   },
 }

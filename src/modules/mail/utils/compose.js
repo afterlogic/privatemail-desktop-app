@@ -127,9 +127,26 @@ export default {
     return true
   },
 
+  convertAttachmentsForSending: function (aAttachments)
+  {
+    let oAttachments = {}
+
+    _.each(aAttachments, function (oAttach) {
+      oAttachments[oAttach.sTempName] = [
+        oAttach.sFileName,
+        oAttach.bLinked ? oAttach.sCid : '',
+        oAttach.bInline ? '1' : '0',
+        oAttach.bLinked ? '1' : '0',
+        oAttach.sContentLocation
+      ]
+    })
+    
+    return oAttachments
+  },
+
   getSendSaveParameters: function ({oCurrentFolderList, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments}) {
     let
-      oAttachments = {}, //SendingUtils.convertAttachmentsForSending(this.Attachments),
+      oAttachments = this.convertAttachmentsForSending(aAttachments),
       oParameters = null
 
     // _.each(this.oHtmlEditor.getUploadedImagesData(), function (oAttach) {

@@ -113,6 +113,57 @@
               verdana: 'Verdana'
             }"
           />
+          <div>
+            <q-uploader
+              multiple
+              auto-upload
+              :factory="uploaderFactory"
+              @uploaded="onFileUploaded"
+              @failed="onFileUploadFailed"
+            >
+              <template v-slot:list="scope">
+                <q-list separator>
+
+                  <q-item v-for="file in scope.files" :key="file.name">
+                    <q-item-section>
+                      <q-item-label class="full-width ellipsis">
+                        {{ file.name }}
+                      </q-item-label>
+
+                      <q-item-label caption>
+                        Status: {{ file.__status }}
+                      </q-item-label>
+
+                      <q-item-label caption>
+                        {{ file.__sizeLabel }} / {{ file.__progressLabel }}
+                      </q-item-label>
+                    </q-item-section>
+
+                    <q-item-section
+                      v-if="file.__img"
+                      thumbnail
+                      class="gt-xs"
+                    >
+                      <img :src="file.__img.src">
+                    </q-item-section>
+
+                    <q-item-section top side>
+                      <q-btn
+                        class="gt-xs"
+                        size="12px"
+                        flat
+                        dense
+                        round
+                        icon="delete"
+                        @click="scope.removeFile(file)"
+                      />
+                    </q-item-section>
+                  </q-item>
+
+                </q-list>
+              </template>
+            </q-uploader>
+          </div>
         </div>
       </div>
       <!-- <q-bar> -->
@@ -260,6 +311,33 @@ export default {
     },
     insertImage () {
       console.log('insertImage')
+    },
+    uploaderFactory () {
+      let url = this.$store.getters['main/getApiHost'] + '?/Api/'
+      let sAuthToken = this.$store.getters['user/getAuthToken']
+      let headers = []
+      if (sAuthToken) {
+        headers.push({name: 'Authorization', value: 'Bearer ' + sAuthToken})
+      }
+      let iAccountId = this.currentAccount ? this.currentAccount.AccountID : 0
+      return {
+        url,
+        method: 'POST',
+        headers,
+        fieldName: 'jua-uploader',
+        formFields: [
+          { name: 'jua-post-type', value: 'ajax' },
+          { name: 'Module', value: 'Mail' },
+          { name: 'Method', value: 'UploadAttachment' },
+          { name: 'Parameters', value: JSON.stringify({ "AccountID": iAccountId }) },
+        ],
+      }
+    },
+    onFileUploaded ({ files, xhr }) {
+      console.log('files', files, 'xhr.responseText', xhr.responseText)
+    },
+    onFileUploadFailed ({ files, xhr }) {
+      console.log('files', files, 'xhr.status', xhr.status)
     },
   },
 }

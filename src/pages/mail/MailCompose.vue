@@ -240,18 +240,23 @@
 <style></style>
 
 <script>
+import prefetcher from 'src/modules/mail/prefetcher.js'
+
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
+import webApi from 'src/utils/webApi'
 
 import CAttachment from 'src/modules/mail/classes/CAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
 
 export default {
   name: 'MailCompose',
+
   components: {
   },
+
   data () {
     return {
       dialog: false,
@@ -276,6 +281,7 @@ export default {
       isBccShowed: false,
     }
   },
+
   computed: {
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
@@ -294,6 +300,7 @@ export default {
       return bCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
     },
   },
+
   methods: {
     send () {
       if (this.isEnableSending) {
@@ -315,6 +322,7 @@ export default {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
             notification.showReport('Your message has been sent.')
             this.closeCompose()
+            prefetcher.checkMail()
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
@@ -342,6 +350,7 @@ export default {
           if (oParameters && oParameters.DraftUid === this.draftUid) {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }
+          prefetcher.checkMail()
         } else {
           notification.showError(errors.getText(oError, 'Error occurred while saving message'))
         }
@@ -354,7 +363,41 @@ export default {
       this.subjectText = typesUtils.pString(sSubject)
       this.editortext = typesUtils.pString(sText)
 
-      this.attachments = typesUtils.pArray(aAttachments)
+      this.attachments = []
+      if (typesUtils.isNonEmptyArray(aAttachments)) {
+        let aHashes = []
+        let sApiHost = this.$store.getters['main/getApiHost']
+        _.each(aAttachments, (oAttachData) => {
+          let oAttach = new CAttachment()
+          oAttach.parseDataFromServer(oAttachData, sApiHost)
+          this.attachments.push(oAttach)
+          aHashes.push(oAttach.sHash)
+        })
+        webApi.sendRequest({
+          sApiHost,
+          sModule: 'Mail',
+          sMethod: 'SaveAttachmentsAsTempFiles',
+          oParameters: {
+            Attachments: aHashes,
+            AccountID: this.$store.getters['mail/getCurrentAccountId'],
+          },
+          fCallback: (oResult, oError) => {
+            if (oResult) {
+              _.each(oResult, (sHash, sTempName) => {
+                let oAttach = _.find(this.attachments, (oTmpAttach) => {
+                  return oTmpAttach.sHash === sHash
+                })
+                if (oAttach) {
+                  oAttach.setTempName(sTempName)
+                  oAttach.onUploadComplete()
+                }
+              })
+            } else {
+              notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
+            }
+          },
+        })
+      }
 
       this.draftUid = typesUtils.pString(sDraftUid)
       this.draftInfo = typesUtils.pArray(aDraftInfo)
@@ -418,7 +461,8 @@ export default {
       let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
       if (oAttach) {
         if (oResponse && oResponse.Result && oResponse.Result.Attachment) {
-          oAttach.parseUploadedAttach(oResponse.Result.Attachment, this.$store.getters['main/getApiHost'])
+          oAttach.parseDataFromServer(oResponse.Result.Attachment, this.$store.getters['main/getApiHost'])
+          oAttach.onUploadComplete()
         } else {
           notification.showError(errors.getText(oResponse, 'Error occurred while uploading file'))
           oAttach.onUploadFailed()

@@ -307,7 +307,6 @@ export default {
         sInReplyTo: oMessage.MessageId,
         sReferences: this.getReplyReferences(oMessage),
       },
-      aAttachments = [],
       sToAddr = messageUtils.getFullAddress(oMessage.ReplyTo),
       sTo = messageUtils.getFullAddress(oMessage.To)
 
@@ -342,38 +341,40 @@ export default {
         oReplyData.aDraftInfo = [mailEnums.ReplyType.Reply, oMessage.Uid, oMessage.Folder]
         oReplyData.sToAddr = sToAddr
         oReplyData.sSubject = this.getReplySubject(oMessage.Subject, true)
-        aAttachments = _.filter(oMessage.Attachments, function (oAttach) {
-          return oAttach.IsLinked
-        })
+        if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
+          oReplyData.aAttachments = _.filter(oMessage.Attachments['@Collection'], function (oAttachData) {
+            return oAttachData.IsLinked
+          })
+        }
         break
       case mailEnums.ReplyType.ReplyAll:
         oReplyData.aDraftInfo = [mailEnums.ReplyType.ReplyAll, oMessage.Uid, oMessage.Folder]
         oReplyData.sToAddr = sToAddr
         oReplyData.sCcAddr = _getReplyAllCcAddr(oMessage, oCurrentAccount, oFetcherOrIdentity)
         oReplyData.sSubject = this.getReplySubject(oMessage.Subject, true)
-        aAttachments = _.filter(oMessage.Attachments, function (oAttach) {
-          return oAttach.IsLinked
-        })
+        if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
+          oReplyData.aAttachments = _.filter(oMessage.Attachments['@Collection'], function (oAttachData) {
+            return oAttachData.IsLinked
+          })
+        }
         break
       case mailEnums.ReplyType.Resend:
         oReplyData.aDraftInfo = [mailEnums.ReplyType.Resend, oMessage.Uid, oMessage.Folder, oMessage.Cc, oMessage.Bcc]
         oReplyData.sToAddr = sTo
         oReplyData.sSubject = oMessage.Subject
-        aAttachments = oMessage.Attachments
+        if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
+          oReplyData.aAttachments = oMessage.Attachments['@Collection']
+        }
         break
       case mailEnums.ReplyType.ForwardAsAttach:
       case mailEnums.ReplyType.Forward:
         oReplyData.aDraftInfo = [mailEnums.ReplyType.Forward, oMessage.Uid, oMessage.Folder]
         oReplyData.sSubject = this.getReplySubject(oMessage.Subject, false)
-        aAttachments = oMessage.Attachments
+        if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
+          oReplyData.aAttachments = oMessage.Attachments['@Collection']
+        }
         break
     }
-
-    _.each(aAttachments, function (oAttachment) {
-      if (oAttachment && oAttachment.getCopy) {
-        oReplyData.aAttachments.push(oAttachment.getCopy())
-      }
-    })
 
     return oReplyData
   },

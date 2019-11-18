@@ -138,22 +138,22 @@ export default {
         let
           oMailUI = this._getParentComponent('MailUI'),
           oCompose = oMailUI ? oMailUI.$refs.compose : null,
-          oComposeReplyParams = {
+          oComposeParams = {
             aDraftInfo: this.message.DraftInfo,
-            sDraftUid: this.message.DraftUid,
+            sDraftUid: this.message.Uid,
             sToAddr: messageUtils.getFullAddress(this.message.To),
             sCcAddr: messageUtils.getFullAddress(this.message.Cc),
             sBccAddr: messageUtils.getFullAddress(this.message.Bcc),
             sSubject: this.message.Subject,
             sText: this.message.Html ? this.message.Html : this.message.Plain,
             bPlainText: !this.message.Html && !!this.message.Plain,
-            // aAttachments: this.message.Attachments,
+            aAttachments: this.message.Attachments && _.isArray(this.message.Attachments['@Collection']) ? this.message.Attachments['@Collection'] : [],
             sInReplyTo: this.message.InReplyTo,
             sReferences: this.message.References,
           }
 
         if (oCompose) {
-          oCompose.openCompose(oComposeReplyParams)
+          oCompose.openCompose(oComposeParams)
         }
       }
     },

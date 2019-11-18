@@ -9,10 +9,12 @@ function CAttachment () {
   this.iSize = 0
   this.oFile = null
   this.sCid = ''
+  this.sContent = ''
   this.sContentLocation = ''
   this.sDownloadLink = ''
   this.sFileName = ''
   this.sHash = ''
+  this.iMimePartIndex = 0
   this.sLocalPath = ''
   this.sTempName = ''
   this.sThumbnailLink = ''
@@ -55,8 +57,7 @@ CAttachment.prototype.parseUploaderFile = function (oFile) {
   this.sType = typesUtils.pString(oFile.type, this.sType)
 }
 
-CAttachment.prototype.parseUploadedAttach = function (oAttach, sApiHost) {
-  this.iProgressPercent = 100
+CAttachment.prototype.parseDataFromServer = function (oAttach, sApiHost) {
   let sDownloadLink = typesUtils.pString(oAttach.Actions && oAttach.Actions.download && oAttach.Actions.download.url, this.sDownloadLink)
   if (typesUtils.isNonEmptyString(sDownloadLink)) {
     sDownloadLink = sApiHost + '/' + sDownloadLink
@@ -69,19 +70,34 @@ CAttachment.prototype.parseUploadedAttach = function (oAttach, sApiHost) {
   if (typesUtils.isNonEmptyString(sViewLink)) {
     sViewLink = sApiHost + '/' + sViewLink
   }
-  this.iSize = typesUtils.pInt(oAttach.Size, this.iSize)
+  this.bInline = typesUtils.pBool(oAttach.IsInline, this.bInline)
+  this.bLinked = typesUtils.pBool(oAttach.IsLinked, this.bLinked)
+  this.iSize = typesUtils.pInt(oAttach.Size || oAttach.EstimatedSize, this.iSize)
+  this.sCid = typesUtils.pString(oAttach.CID, this.sCid)
+  this.sContent = typesUtils.pString(oAttach.Content, this.sContent)
+  this.sContentLocation = typesUtils.pString(oAttach.ContentLocation, this.sContentLocation)
   this.sDownloadLink = sDownloadLink
   this.sFileName = typesUtils.pString(oAttach.FileName, this.sFileName)
   this.sHash = typesUtils.pString(oAttach.Hash, this.sHash)
+  this.iMimePartIndex = typesUtils.pInt(oAttach.MimePartIndex, this.iMimePartIndex)
   this.sTempName = typesUtils.pString(oAttach.TempName, this.sTempName)
   this.sThumbnailLink = sThumbnailLink
   this.sType = typesUtils.pString(oAttach.MimeType, this.sType)
   this.sViewLink = sViewLink
 }
 
-CAttachment.prototype.onUploadFailed = function (oAttach, sApiHost) {
+CAttachment.prototype.onUploadComplete = function () {
+  this.bUploadFailed = false
+  this.iProgressPercent = 100
+}
+
+CAttachment.prototype.onUploadFailed = function () {
   this.bUploadFailed = true
   this.iProgressPercent = 100
+}
+
+CAttachment.prototype.setTempName = function (sTempName) {
+  this.sTempName = typesUtils.pString(sTempName, this.sTempName)
 }
 
 export default CAttachment

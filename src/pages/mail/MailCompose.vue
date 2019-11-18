@@ -118,6 +118,7 @@
               multiple
               auto-upload
               :factory="uploaderFactory"
+              @added="onFileAdded"
               @uploaded="onFileUploaded"
               @failed="onFileUploadFailed"
               @removed="onFileRemoved"
@@ -149,8 +150,45 @@
                   </q-btn> -->
                 </div>
               </template>
-              <!-- <template v-slot:list="scope">
+              <template v-slot:list="scope">
                 <q-list separator>
+                  <q-item v-for="attach in attachments" :key="attach.sLocalPath">
+                    <q-item-section>
+                      <q-item-label class="full-width ellipsis">
+                        {{ attach.sFileName }}
+                      </q-item-label>
+
+                      <q-item-label caption>
+                        Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
+                      </q-item-label>
+
+                      <q-item-label caption>
+                        {{ attach.getFriendlySize() }} / {{ attach.getProgressPercent() }}%
+                      </q-item-label>
+                    </q-item-section>
+
+                    <q-item-section
+                      v-if="attach.sThumbnailLink"
+                      thumbnail
+                      class="gt-xs"
+                    >
+                      <img :src="attach.sThumbnailLink">
+                    </q-item-section>
+
+                    <q-item-section top side>
+                      <q-btn
+                        class="gt-xs"
+                        size="12px"
+                        flat
+                        dense
+                        round
+                        icon="delete"
+                        @click="scope.removeFile(attach.oFile)"
+                      />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+                <!-- <q-list separator>
 
                   <q-item v-for="file in scope.files" :key="file.name">
                     <q-item-section>
@@ -188,8 +226,8 @@
                     </q-item-section>
                   </q-item>
 
-                </q-list>
-              </template> -->
+                </q-list> -->
+              </template>
             </q-uploader>
           </div>
         </div>
@@ -202,11 +240,13 @@
 <style></style>
 
 <script>
-import composeUtils from 'src/modules/mail/utils/compose.js'
-import textUtils from 'src/utils/text.js'
-import typesUtils from 'src/utils/types.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import textUtils from 'src/utils/text.js'
+import typesUtils from 'src/utils/types.js'
+
+import CAttachment from 'src/modules/mail/classes/CAttachment.js'
+import composeUtils from 'src/modules/mail/utils/compose.js'
 
 export default {
   name: 'MailCompose',
@@ -357,36 +397,48 @@ export default {
           { name: 'jua-post-type', value: 'ajax' },
           { name: 'Module', value: 'Mail' },
           { name: 'Method', value: 'UploadAttachment' },
-          { name: 'Parameters', value: JSON.stringify({ "AccountID": iAccountId }) },
+          { name: 'Parameters', value: JSON.stringify({ 'AccountID': iAccountId }) },
         ],
+      }
+    },
+    onFileAdded (files) {
+      if (typesUtils.isNonEmptyArray(files)) {
+        _.each(files, (oFile) => {
+          let oAttach = new CAttachment()
+          oAttach.parseUploaderFile(oFile)
+          this.attachments.push(oAttach)
+        })
       }
     },
     onFileUploaded ({ files, xhr }) {
       let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
+      let oAttach = oFile ? _.find(this.attachments, (oTmpAttach) => {
+        return oTmpAttach.sLocalPath === oFile.path
+      }) : null
       let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
-      if (oFile && oResponse && oResponse.Result && oResponse.Result.Attachment) {
-        let oAttach = oResponse.Result.Attachment
-        this.attachments.push({
-          sLocalPath: oFile.path,
-          sFileName: oAttach.FileName || oFile.name,
-          iSize: oAttach.Size || oFile.size,
-          sType: oAttach.MimeType || oFile.type,
-          sHash: oAttach.Hash,
-          sTempName: oAttach.TempName,
-          oActions: oAttach.Actions,
-          bLinked: false,
-          bInline: false,
-          sCid: '',
-          sContentLocation: '',
-        })
+      if (oAttach) {
+        if (oResponse && oResponse.Result && oResponse.Result.Attachment) {
+          oAttach.parseUploadedAttach(oResponse.Result.Attachment, this.$store.getters['main/getApiHost'])
+        } else {
+          notification.showError(errors.getText(oResponse, 'Error occurred while uploading file'))
+          oAttach.onUploadFailed()
+        }
       }
     },
     onFileUploadFailed ({ files, xhr }) {
-      console.log('files', files, 'xhr.status', xhr.status)
+      let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
+      let oAttach = oFile ? _.find(this.attachments, (oTmpAttach) => {
+        return oTmpAttach.sLocalPath === oFile.path
+      }) : null
+      if (oAttach) {
+        let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
+        notification.showError(errors.getText(oResponse, 'Error occurred while uploading file'))
+        oAttach.onUploadFailed()
+      }
     },
     onFileRemoved(files) {
       let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
-      this.attachments = _.filter(this.attachments, function (oAttach) {
+      this.attachments = _.filter(this.attachments, (oAttach) => {
         return oAttach.sLocalPath !== oFile.path
       })
     },

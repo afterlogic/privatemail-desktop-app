@@ -213,11 +213,11 @@
                 <div class="input-line">
                   <label class="label-size">Birthday:</label>
                   <!-- <div class="q-pa-md" style="max-width: 55.5%; margin: 15px -16px 0px 0px;"> -->
-                    <q-input outlined dense class="input-size" v-model="date" mask="date" :rules="['date']" @change="logDate">
+                    <q-input outlined dense hide-bottom-space class="input-size" v-model="sBirthDate" mask="date" :rules="['date']">
                       <template v-slot:append>
                         <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                            <q-date v-model="date" @input="() => $refs.qDateProxy.hide()" today-btn minimal/>
+                            <q-date v-model="sBirthDate" @input="() => $refs.qDateProxy.hide()" today-btn minimal/>
                           </q-popup-proxy>
                         </q-icon>
                       </template>
@@ -372,6 +372,7 @@
 <script>
 import { ipcRenderer } from 'electron'
 import _ from 'lodash'
+import moment from 'moment'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
@@ -387,7 +388,8 @@ export default {
       oPrimaryEmail: null,
       oPrimaryPhone: null,
       oPrimaryAddress: null,
-      date: '',
+      sBirthDate: '',
+      sBirthDatePrev: '',
       groupFilteredList: [],
       bSaving: false,
     }
@@ -399,14 +401,11 @@ export default {
     this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': this.oContact.PrimaryPhone})
     this.oPrimaryAddress = _.find(this.aPrimaryAddressOptions, {'value': this.oContact.PrimaryAddress})
 
-    this.oContact.BirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : "2000"
-
-    this.oContact.BirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : '01'
-    this.oContact.BirthMonth = this.oContact.BirthMonth.length > 1 ? this.oContact.BirthMonth : "0" + this.oContact.BirthMonth
-
-    this.oContact.BirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : '01'
-    this.oContact.BirthDay = this.oContact.BirthDay.length > 1 ? this.oContact.BirthDay : "0" + this.oContact.BirthDay
-    this.date = this.oContact.BirthYear + '/' + this.oContact.BirthMonth + '/' + this.oContact.BirthDay
+    let iBirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : 2000
+    let iBirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : 1
+    let iBirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : 1
+    this.sBirthDate = moment(iBirthMonth + '-' + iBirthDay + '-' + iBirthYear, 'M-D-YYYY').format('YYYY/MM/DD')
+    this.sBirthDatePrev = this.sBirthDate
 
     this.setFilteredGroups()
 
@@ -494,10 +493,13 @@ export default {
 
   methods: {
     onSave () {
-      let oNewContact = this.oContact
-      oNewContact.BirthYear = isNaN(Number(oNewContact.BirthYear)) ? Number(oNewContact.BirthYear) : 0
-      oNewContact.BirthMonth = isNaN(Number(oNewContact.BirthMonth)) ? Number(oNewContact.BirthMonth) : 0
-      oNewContact.BirthDay = isNaN(Number(oNewContact.BirthDay)) ? Number(oNewContact.BirthDay) : 0
+      let oNewContact = _.clone(this.oContact)
+      if (this.sBirthDatePrev !== this.sBirthDate) {
+        let oBirthDate = moment(this.sBirthDate, 'YYYY/MM/DD')
+        oNewContact.BirthYear = oBirthDate.year()
+        oNewContact.BirthMonth = oBirthDate.month() + 1
+        oNewContact.BirthDay = oBirthDate.date()
+      }
 
       if (oNewContact && oNewContact instanceof CContact ) {
         this.bSaving = true
@@ -542,9 +544,6 @@ export default {
       })
 
       this.groupFilteredList = groupList
-    },
-    logDate() {
-      console.log(this.date)
     },
   },
 }

@@ -39,8 +39,8 @@ export default {
   name: 'LoginUI',
   data () {
     return {
-      host: '',
-      login: '',
+      host: 'https://test.afterlogic.com',
+      login: 'test@afterlogic.com',
       password: '',
       loading: false,
     }
@@ -49,8 +49,8 @@ export default {
     this.$store.dispatch('user/logout')
     this.$store.dispatch('mail/logout')
     this.$store.dispatch('contacts/logout')
-    this.host = this.$store.getters['main/getApiHost']
-    this.login = this.$store.getters['main/getLastLogin']
+    this.host = this.$store.getters['main/getApiHost'] ? this.$store.getters['main/getApiHost'] : this.host
+    this.login = this.$store.getters['main/getLastLogin'] ? this.$store.getters['main/getLastLogin'] : this.login
   },
   computed: {
   },

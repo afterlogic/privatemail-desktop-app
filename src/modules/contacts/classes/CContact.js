@@ -4,8 +4,6 @@ function CContact(data) {
   this.EntityId = null
   this.UUID = ''
   this.ParentUUID = ''
-  this.IdUser = null
-  this.IdTenant = null
   this.Storage = ''
   this.FullName = ''
   this.UseFriendlyName = null
@@ -63,8 +61,6 @@ CContact.prototype.parse = function (data) {
   this.EntityId = typesUtils.pInt(data.EntityId)
   this.UUID = typesUtils.pString(data.UUID)
   this.ParentUUID = typesUtils.pString(data.ParentUUID)
-  this.IdUser = typesUtils.pInt(data.IdUser)
-  this.IdTenant = typesUtils.pInt(data.IdTenant)
   this.Storage = typesUtils.pString(data.Storage)
   this.FullName = typesUtils.pString(data.FullName)
   this.UseFriendlyName = typesUtils.pBool(data.UseFriendlyName)

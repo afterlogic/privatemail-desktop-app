@@ -13,8 +13,8 @@
               </q-scroll-area>
             </div>
             <div class="col-auto q-pa-md items-center">
-              <q-btn label="Manage folders" class="full-width" flat no-caps/>
-              <q-btn label="Clear all user data" @click="clearAllUserData" class="full-width" flat no-caps/>
+              <q-btn flat no-caps label="Manage folders" class="full-width"/>
+              <q-btn flat no-caps label="Clear all user data" @click="clearAllUserData" class="full-width"/>
             </div>
           </div>
         </template>

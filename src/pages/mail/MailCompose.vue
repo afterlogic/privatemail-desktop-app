@@ -2,233 +2,259 @@
     <q-dialog
       v-model="dialog"
       persistent
+      :seamless="maximizedToggle"
       :maximized="maximizedToggle"
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <div class="column bg-white" style="min-width: 800px; ">
-        <div class="col-auto bg-grey-9 theme-text">
-          <div class="row">
-          </div>
-        </div>
-        <q-toolbar class=" bg-grey-9 theme-text">
-          <q-btn  flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
-          <q-btn  flat icon="save" label="Save" @click="save" />
+      <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
+        <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
+          <q-toolbar-title @dblclick="maximizedToggle = false">
+            {{subjectText}}
+          </q-toolbar-title>
           <q-space />
-          <q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
+          <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">
             <!-- <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip> -->
           </q-btn>
-          <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
+        </q-toolbar>
+      </div>
+      <div class="column bg-white" style="min-width: 1100px;" v-show="!maximizedToggle">
+        <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
+          <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
+          <q-btn flat icon="save" label="Save" @click="save" />
+          <q-space />
+          <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
             <!-- <q-tooltip v-if="!maximizedToggle" content-class="bg-white text-primary">Maximize</q-tooltip> -->
           </q-btn>
-          <q-btn dense flat icon="close" v-close-popup>
+          <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">
+            <!-- <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip> -->
+          </q-btn>
+          <q-btn flat icon="close" v-close-popup>
             <!-- <q-tooltip content-class="bg-white text-primary">Close</q-tooltip> -->
           </q-btn>
         </q-toolbar>
-        <div class="col q-pa-md">
-          <q-list>
-            <q-item>
-              <q-item-section side center style="min-width: 100px;">
-                To
-              </q-item-section>
-              <q-item-section>
-                <q-input outlined v-model="toAddr" :dense=true style="width: 100%;" />
-              </q-item-section>
-              <q-item-section style="max-width: 100px;">
-                <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
-                <a href="javascript:void(0)" v-show="!isBccShowed" @click="showBcc">Show BCC</a>
-              </q-item-section>
-            </q-item>
-            <q-item v-show="isCcShowed">
-              <q-item-section side center style="min-width: 100px;">
-                CC
-              </q-item-section>
-              <q-item-section>
-                <q-input outlined v-model="ccAddr" :dense=true style="width: 100%;" />
-              </q-item-section>
-            </q-item>
-            <q-item v-show="isBccShowed">
-              <q-item-section side center style="min-width: 100px;">
-                BCC
-              </q-item-section>
-              <q-item-section>
-                <q-input outlined v-model="bccAddr" :dense=true style="width: 100%;" />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section side center style="min-width: 100px;">
-                Subject
-              </q-item-section>
-              <q-item-section>
-                <q-input outlined v-model="subjectText" :dense=true style="width: 100%;" />
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <!-- :definitions="{
-              colors: {
-                tip: 'Font & background colors',
-                icon: 'text_format',
-                handler: changeColors
-              },
-              image: {
-                tip: 'Insert image',
-                icon: 'image',
-                handler: insertImage
-              },
-            }" -->
-          <q-editor v-model="editortext" height="400px" class="col" 
-            :toolbar="[
-              ['undo', 'redo'],
-              ['bold', 'italic', 'underline', 'strike'],
-              [{
-                list: 'no-icons',
-                options: [
-                  'default_font',
-                  'arial',
-                  'arial_black',
-                  'courier_new',
-                  'tahoma',
-                  'times_new_roman',
-                  'verdana'
-                ]
-              }, {
-                list: 'no-icons',
-                options: [
-                  'size-2',
-                  'size-3',
-                  'size-5',
-                  'size-7'
-                ],
-              },
-              'colors'],
-              ['unordered', 'ordered'],
-              ['link', 'image', 'removeFormat']
-            ]"
-            :fonts="{
-              arial: 'Arial',
-              arial_black: 'Arial Black',
-              courier_new: 'Courier New',
-              tahoma: 'Tahoma',
-              times_new_roman: 'Times New Roman',
-              verdana: 'Verdana'
-            }"
-          />
-          <div>
-            <q-uploader
-              multiple
-              auto-upload
-              :factory="uploaderFactory"
-              @added="onFileAdded"
-              @uploaded="onFileUploaded"
-              @failed="onFileUploadFailed"
-              @removed="onFileRemoved"
-            >
-              <template v-slot:header="scope">
-                <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
-                  <!-- <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
-                    <q-tooltip>Clear All</q-tooltip>
-                  </q-btn>
-                  <q-btn v-if="scope.uploadedFiles.length > 0" icon="done_all" @click="scope.removeUploadedFiles" round dense flat >
-                    <q-tooltip>Remove Uploaded Files</q-tooltip>
-                  </q-btn>
-                  <q-spinner v-if="scope.isUploading" class="q-uploader__spinner">
-                  </q-spinner>
-                  <div class="col">
-                    <div class="q-uploader__title">Upload your files</div>
-                    <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
-                  </div> -->
-                  <q-btn type="a" icon="add_box" round dense flat>
-                    <q-uploader-add-trigger />
-                    <q-tooltip>Pick Files</q-tooltip>
-                  </q-btn>
-                  <!-- <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
-                    <q-tooltip>Upload Files</q-tooltip>
-                  </q-btn>
-
-                  <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
-                    <q-tooltip>Abort Upload</q-tooltip>
-                  </q-btn> -->
-                </div>
-              </template>
-              <template v-slot:list="scope">
-                <q-list separator>
-                  <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath">
+        <div class="col">
+          <div class="row full-height full-width">
+            <div class="col column">
+              <div class="col-auto">
+                <q-list>
+                  <q-item>
+                    <q-item-section side center style="min-width: 100px;">
+                      To
+                    </q-item-section>
                     <q-item-section>
-                      <q-item-label class="full-width ellipsis">
-                        {{ attach.sFileName }}
-                      </q-item-label>
-
-                      <q-item-label caption>
-                        Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
-                      </q-item-label>
-
-                      <q-item-label caption>
-                        {{ attach.getFriendlySize() }} / {{ attach.getProgressPercent() }}%
-                      </q-item-label>
+                      <q-input outlined v-model="toAddr" :dense=true style="width: 100%;" />
                     </q-item-section>
-
-                    <q-item-section
-                      v-if="attach.sThumbnailLink"
-                      thumbnail
-                      class="gt-xs"
-                    >
-                      <img :src="attach.sThumbnailLink">
+                    <q-item-section style="max-width: 100px;">
+                      <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
+                      <a href="javascript:void(0)" v-show="!isBccShowed" @click="showBcc">Show BCC</a>
                     </q-item-section>
-
-                    <q-item-section top side>
-                      <q-btn
-                        class="gt-xs"
-                        size="12px"
-                        flat
-                        dense
-                        round
-                        icon="delete"
-                        @click="removeAttachment(scope, attach)"
-                      />
+                  </q-item>
+                  <q-item v-show="isCcShowed">
+                    <q-item-section side center style="min-width: 100px;">
+                      CC
+                    </q-item-section>
+                    <q-item-section>
+                      <q-input outlined v-model="ccAddr" :dense=true style="width: 100%;" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item v-show="isBccShowed">
+                    <q-item-section side center style="min-width: 100px;">
+                      BCC
+                    </q-item-section>
+                    <q-item-section>
+                      <q-input outlined v-model="bccAddr" :dense=true style="width: 100%;" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item>
+                    <q-item-section side center style="min-width: 100px;">
+                      Subject
+                    </q-item-section>
+                    <q-item-section>
+                      <q-input outlined v-model="subjectText" :dense=true style="width: 100%;" />
                     </q-item-section>
                   </q-item>
                 </q-list>
-                <!-- <q-list separator>
+                <!-- :definitions="{
+                    colors: {
+                      tip: 'Font & background colors',
+                      icon: 'text_format',
+                      handler: changeColors
+                    },
+                    image: {
+                      tip: 'Insert image',
+                      icon: 'image',
+                      handler: insertImage
+                    },
+                  }" -->
+              </div>
+              <div class="col q-pa-md"> 
+              <q-editor v-model="editortext" height="400px" class="full-height"
+                  :toolbar="[
+                    ['undo', 'redo'],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{
+                      list: 'no-icons',
+                      options: [
+                        'default_font',
+                        'arial',
+                        'arial_black',
+                        'courier_new',
+                        'tahoma',
+                        'times_new_roman',
+                        'verdana'
+                      ]
+                    }, {
+                      list: 'no-icons',
+                      options: [
+                        'size-2',
+                        'size-3',
+                        'size-5',
+                        'size-7'
+                      ],
+                    },
+                    'colors'],
+                    ['unordered', 'ordered'],
+                    ['link', 'image', 'removeFormat']
+                  ]"
+                  :fonts="{
+                    arial: 'Arial',
+                    arial_black: 'Arial Black',
+                    courier_new: 'Courier New',
+                    tahoma: 'Tahoma',
+                    times_new_roman: 'Times New Roman',
+                    verdana: 'Verdana'
+                  }"
+                />
+              </div>
+            </div>
+            <div class="col-auto q-pa-md column" style="min-width: 400px;">
+              <div class="col-auto items-center">
+                <q-btn no-wrap no-caps unelevated type="a" icon="attachment" @click="pickFiles">
+                  <q-tooltip>Pick Files</q-tooltip>
+                </q-btn>
+                <q-separator />
+              </div>
+              <q-scroll-area class="col column full-height full-width">
+                <q-uploader
+                    style="max-height: initial"
+                    class="col full-height"
+                    flat
+                    ref="uploader"
+                    multiple
+                    auto-upload
+                    hide-upload-btn
+                    :factory="uploaderFactory"
+                    @added="onFileAdded"
+                    @uploaded="onFileUploaded"
+                    @failed="onFileUploadFailed"
+                    @removed="onFileRemoved"
+                  >
+                    <template v-slot:header="scope">
+                      <div class="row no-wrap items-center q-pa-sm q-gutter-xs" style="opacity: 0; height: 0px;">
+                        <!-- <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
+                          <q-tooltip>Clear All</q-tooltip>
+                        </q-btn>
+                        <q-btn v-if="scope.uploadedFiles.length > 0" icon="done_all" @click="scope.removeUploadedFiles" round dense flat >
+                          <q-tooltip>Remove Uploaded Files</q-tooltip>
+                        </q-btn>
+                        <q-spinner v-if="scope.isUploading" class="q-uploader__spinner">
+                        </q-spinner>
+                        <div class="col">
+                          <div class="q-uploader__title">Upload your files</div>
+                          <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+                        </div> -->
+                        <q-btn dense flat type="a" icon="add_box">
+                          <q-uploader-add-trigger />
+                          <q-tooltip>Pick Files</q-tooltip>
+                        </q-btn>
+                        <!-- <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
+                          <q-tooltip>Upload Files</q-tooltip>
+                        </q-btn>
 
-                  <q-item v-for="file in scope.files" :key="file.name">
-                    <q-item-section>
-                      <q-item-label class="full-width ellipsis">
-                        {{ file.name }}
-                      </q-item-label>
+                        <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
+                          <q-tooltip>Abort Upload</q-tooltip>
+                        </q-btn> -->
+                      </div>
+                    </template>
+                    <template v-slot:list="scope" class="ull-height">
+                      <q-list separator>
+                        <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath">
+                          <q-item-section>
+                            <q-item-label class="full-width ellipsis">
+                              {{ attach.sFileName }}
+                            </q-item-label>
+                            <q-item-label caption>
+                              Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
+                            </q-item-label>
+                            <q-item-label caption>
+                              {{ attach.getFriendlySize() }} / {{ attach.getProgressPercent() }}%
+                            </q-item-label>
+                          </q-item-section>
+                          <q-item-section
+                            v-if="attach.sThumbnailLink"
+                            thumbnail
+                            class="gt-xs"
+                          >
+                            <img :src="attach.sThumbnailLink">
+                          </q-item-section>
 
-                      <q-item-label caption>
-                        Status: {{ file.__status }}
-                      </q-item-label>
+                          <q-item-section top side>
+                            <q-btn
+                              class="gt-xs"
+                              size="12px"
+                              flat
+                              dense
+                              round
+                              icon="delete"
+                              @click="removeAttachment(scope, attach)"
+                            />
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                      <!-- <q-list separator>
 
-                      <q-item-label caption>
-                        {{ file.__sizeLabel }} / {{ file.__progressLabel }}
-                      </q-item-label>
-                    </q-item-section>
+                        <q-item v-for="file in scope.files" :key="file.name">
+                          <q-item-section>
+                            <q-item-label class="full-width ellipsis">
+                              {{ file.name }}
+                            </q-item-label>
 
-                    <q-item-section
-                      v-if="file.__img"
-                      thumbnail
-                      class="gt-xs"
-                    >
-                      <img :src="file.__img.src">
-                    </q-item-section>
+                            <q-item-label caption>
+                              Status: {{ file.__status }}
+                            </q-item-label>
 
-                    <q-item-section top side>
-                      <q-btn
-                        class="gt-xs"
-                        size="12px"
-                        flat
-                        dense
-                        round
-                        icon="delete"
-                        @click="scope.removeFile(file)"
-                      />
-                    </q-item-section>
-                  </q-item>
+                            <q-item-label caption>
+                              {{ file.__sizeLabel }} / {{ file.__progressLabel }}
+                            </q-item-label>
+                          </q-item-section>
 
-                </q-list> -->
-              </template>
-            </q-uploader>
+                          <q-item-section
+                            v-if="file.__img"
+                            thumbnail
+                            class="gt-xs"
+                          >
+                            <img :src="file.__img.src">
+                          </q-item-section>
+
+                          <q-item-section top side>
+                            <q-btn
+                              class="gt-xs"
+                              size="12px"
+                              flat
+                              dense
+                              round
+                              icon="delete"
+                              @click="scope.removeFile(file)"
+                            />
+                          </q-item-section>
+                        </q-item>
+
+                      </q-list> -->
+                    </template>
+                  </q-uploader>
+              </q-scroll-area>
+            </div>
           </div>
         </div>
       </div>
@@ -237,7 +263,24 @@
     </q-dialog>
 </template>
 
-<style></style>
+<style lang="scss">
+.q-uploader__header {
+  background: none;
+}
+
+.q-dialog__inner--maximized {
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  & > div {
+    height: 60px;
+    width: 500px;
+    max-height: 100vh;
+    max-width: 100vw;
+    border-radius: 0 !important;
+  }
+} 
+</style>
 
 <script>
 import prefetcher from 'src/modules/mail/prefetcher.js'
@@ -260,7 +303,7 @@ export default {
   data () {
     return {
       dialog: false,
-      maximizedToggle: true,
+      maximizedToggle: false,
 
       sending: false, // indicates if sending is happening right now
       allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
@@ -499,6 +542,9 @@ export default {
           return oTmpAttach.sHash !== oAttach.sHash
         })
       }
+    },
+    pickFiles () {
+      this.$refs.uploader.pickFiles();
     },
   },
 }

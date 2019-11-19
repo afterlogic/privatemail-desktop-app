@@ -10,7 +10,7 @@
       <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-toolbar-title @dblclick="maximizedToggle = false">
-            {{subjectText}}
+            {{subjectText !== '' ? subjectText : 'New message'}}
           </q-toolbar-title>
           <q-space />
           <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">

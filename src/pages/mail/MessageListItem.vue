@@ -12,12 +12,13 @@
         <q-item-label lines="1">{{fromTo}}</q-item-label>
         <q-item-label lines="2">{{message.Subject}}</q-item-label>
       </q-item-section>
-      <q-item-section style="flex: auto;" v-if="message.HasAttachments">
-        <q-icon lines="1" flat name="attachment" style="font-size: 1.5em;" />
-      </q-item-section>
-      <q-item-section style="flex: auto;">
-        <q-item-label lines="1">{{message.ShortDate}}</q-item-label>
-        <q-chip lines="2" dense v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" :color="message.ThreadHasUnread ? 'grey': ''">
+      <q-item-section side>
+        <q-item-label>
+          <q-icon flat name="attachment" style="font-size: 1.5em;" v-if="message.HasAttachments" />
+          {{message.ShortDate}}
+        </q-item-label>
+
+        <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" text-color="white" size="sm" :color="message.ThreadHasUnread ? 'primary-dark': 'primary'">
           {{message.Threads.length}}
           <q-tooltip v-if="!threadOpened && !message.ThreadHasUnread">
             Unfold thread

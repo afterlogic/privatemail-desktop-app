@@ -241,7 +241,7 @@ export default {
     },
     sendQuickReply: function () {
       if (this.isEnableSending) {
-        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
         oComposeReplyParams.oCurrentAccount = this.currentAccount
         oComposeReplyParams.oCurrentFolderList = this.currentFolderList
         this.isSendingOrSaving = true
@@ -259,7 +259,7 @@ export default {
     },
     saveQuickReply: function () {
       if (this.isEnableSaving) {
-        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
         oComposeReplyParams.oCurrentAccount = this.currentAccount
         oComposeReplyParams.oCurrentFolderList = this.currentFolderList
         this.isSendingOrSaving = true
@@ -312,7 +312,7 @@ export default {
       let
         oMailUI = this._getParentComponent('MailUI'),
         oCompose = oMailUI ? oMailUI.$refs.compose : null,
-        oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
+        oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
 
       if (oCompose) {
         oCompose.openCompose(oComposeReplyParams)

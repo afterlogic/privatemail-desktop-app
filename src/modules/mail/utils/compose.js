@@ -229,13 +229,14 @@ export default {
   },
 
   /**
+   * @param {string} sOrigText
    * @param {Object} oMessage
    * @param {Object} oCurrentAccount
    * @param {Object} oFetcherOrIdentity
    * @param {boolean} bPasteSignatureAnchor
    * @return {string}
    */
-  getReplyMessageBody: function (oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
+  getReplyMessageBody: function (sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
   {
     let
       // sReplyTitle = textUtils.i18n('%MODULENAME%/TEXT_REPLY_MESSAGE', {
@@ -248,18 +249,19 @@ export default {
         .replace('%TIME%', dateUtils.getTime(oMessage.TimeStampInUTC))
         .replace('%SENDER%', textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.From))),
       sReplyBody = '<br /><br />' + this.getSignatureText(oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor) + '<br /><br />' +
-        '<div data-anchor="reply-title">' + sReplyTitle + '</div><blockquote>' + messageUtils.getConvertedHtml(oMessage) + '</blockquote>'
+        '<div data-anchor="reply-title">' + sReplyTitle + '</div><blockquote>' + sOrigText + '</blockquote>'
 
     return sReplyBody
   },
 
   /**
+   * @param {string} sOrigText
    * @param {Object} oMessage
    * @param {Object} oCurrentAccount
    * @param {Object} oFetcherOrIdentity
    * @return {string}
    */
-  getForwardMessageBody: function (oMessage, oCurrentAccount, oFetcherOrIdentity) {
+  getForwardMessageBody: function (sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity) {
     let
       sCcAddr = textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.Cc)),
       // sCcPart = (sCcAddr !== '') ? textUtils.i18n('%MODULENAME%/TEXT_FORWARD_MESSAGE_CCPART', {'CCADDR': sCcAddr}) : '',
@@ -278,22 +280,23 @@ export default {
         .replace('%FULLDATE%', dateUtils.getFullDate(oMessage.TimeStampInUTC))
         .replace('%SUBJECT%', textUtils.encodeHtml(oMessage.Subject)),
       sForwardBody = '<br /><br />' + this.getSignatureText(oCurrentAccount, oFetcherOrIdentity, true) + '<br /><br />' + 
-        '<div data-anchor="reply-title">' + sForwardTitle + '</div><br /><br />' + messageUtils.getConvertedHtml(oMessage)
+        '<div data-anchor="reply-title">' + sForwardTitle + '</div><br /><br />' + sOrigText
 
     return sForwardBody
   },
 
   /**
+   * @param {string} sOrigText
    * @param {Object} oMessage
    * @param {string} sReplyType
    * @param {Object} oCurrentAccount
    * @param {Object} oFetcherOrIdentity
    * @param {boolean} bPasteSignatureAnchor
-   * @param {string} sText
+   * @param {string} sReplyText
    * @param {string} sDraftUid
    * @return {Object}
    */
-  getReplyDataFromMessage: function (oMessage, sReplyType, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor, sText, sDraftUid) {
+  getReplyDataFromMessage: function (sOrigText, oMessage, sReplyType, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor, sReplyText, sDraftUid) {
     let
       oReplyData = {
         aDraftInfo: [],
@@ -314,19 +317,19 @@ export default {
       sToAddr = messageUtils.getFullAddress(oMessage.From)
     }
 
-    // if (!sText || sText === '') {
-    //   sText = this.sReplyText
+    // if (!sReplyText || sReplyText === '') {
+    //   sReplyText = this.sReplyText
     //   this.sReplyText = ''
     // }
 
     if (sReplyType === mailEnums.ReplyType.Forward) {
-      oReplyData.sText = sText + this.getForwardMessageBody(oMessage, oCurrentAccount, oFetcherOrIdentity)
+      oReplyData.sText = sReplyText + this.getForwardMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity)
     } else if (sReplyType === mailEnums.ReplyType.Resend) {
-      oReplyData.sText = messageUtils.getConvertedHtml(oMessage)
+      oReplyData.sText = sOrigText
       oReplyData.sCcAddr = messageUtils.getFullAddress(oMessage.Cc)
       oReplyData.sBccAddr = messageUtils.getFullAddress(oMessage.Bcc)
     } else {
-      oReplyData.sText = sText + this.getReplyMessageBody(oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
+      oReplyData.sText = sReplyText + this.getReplyMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
     }
 
     if (sDraftUid) {

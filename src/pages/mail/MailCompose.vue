@@ -152,7 +152,7 @@
               </template>
               <template v-slot:list="scope">
                 <q-list separator>
-                  <q-item v-for="attach in attachments" :key="attach.sLocalPath">
+                  <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath">
                     <q-item-section>
                       <q-item-label class="full-width ellipsis">
                         {{ attach.sFileName }}
@@ -183,7 +183,7 @@
                         dense
                         round
                         icon="delete"
-                        @click="scope.removeFile(attach.oFile)"
+                        @click="removeAttachment(scope, attach)"
                       />
                     </q-item-section>
                   </q-item>
@@ -298,6 +298,11 @@ export default {
         bCurrentFolderListLoaded = !!this.currentFolderList && this.currentFolderList.AccountId !== 0
 
       return bCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
+    },
+    notLinkedAttachments () {
+      return _.filter(this.attachments, function (oAttach) {
+        return !oAttach.bLinked
+      })
     },
   },
 
@@ -480,11 +485,20 @@ export default {
         oAttach.onUploadFailed()
       }
     },
-    onFileRemoved(files) {
+    onFileRemoved (files) {
       let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
       this.attachments = _.filter(this.attachments, (oAttach) => {
         return oAttach.sLocalPath !== oFile.path
       })
+    },
+    removeAttachment (scope, oAttach) {
+      if (oAttach.oFile) {
+        scope.removeFile(oAttach.oFile)
+      } else {
+        this.attachments = _.filter(this.attachments, (oTmpAttach) => {
+          return oTmpAttach.sHash !== oAttach.sHash
+        })
+      }
     },
   },
 }

@@ -99,18 +99,6 @@ export default {
     return ''
   },
 
-  /**
-   * @param {object} oMessage
-   * @param {string=} sAppPath = ''
-   * @param {boolean=} bForcedShowPictures = false
-   * return {string}
-   */
-  getConvertedHtml: function (oMessage, sAppPath, bForcedShowPictures) {
-    return oMessage.Html !== '' ? oMessage.Html : oMessage.Plain
-    // let oDomText = this.getDomText(sAppPath, bForcedShowPictures)
-    // return (oDomText.length > 0) ? oDomText.wrap('<p>').parent().html() : ''
-  },
-
   prepareInlinePictures: function (sHtml, aAttachments, aFoundCids, sAppPath) {
     let
       fFindAttachmentByCid = function (sCid) {
@@ -128,7 +116,7 @@ export default {
       _.each(aFoundCids, function (sFoundCid) {
         let oAttachment = fFindAttachmentByCid(sFoundCid)
         if (oAttachment && oAttachment.Actions.view && oAttachment.Actions.view.url.length > 0) {
-          sResHtml = sResHtml.replace('data-x-src-cid="' + sFoundCid + '"', 'src="' + sAppPath + oAttachment.Actions.view.url + '"')
+          sResHtml = sResHtml.replace('data-x-src-cid="' + sFoundCid + '"', 'data-x-src-cid="' + sFoundCid + '" src="' + sAppPath + oAttachment.Actions.view.url + '"')
         }
       })
     }

@@ -202,6 +202,33 @@ export default {
       })
     })
 
+    ipcMain.on('contacts-delete-contacts', (oEvent, { sApiHost, sAuthToken, sStorage, aContactsUUIDs }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'DeleteContacts',
+        oParameters: { Storage: sStorage, UUIDs: aContactsUUIDs },
+        fCallback: (mResult, oError) => {
+          console.log('mResult', mResult)
+          console.log('oError', oError)
+          if (mResult) {
+            contactsDbManager.deleteContacts({ sStorage, aContactsUUIDs })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-delete-contacts', { bDeleted: true })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-delete-contacts', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-delete-contacts', { oError })
+          }
+        },
+      })
+    })
+
     ipcMain.on('contacts-save-group', (oEvent, { sApiHost, sAuthToken, oGroupToSave }) => {
       let sMethod = oGroupToSave.UUID === '' ? 'CreateGroup' : 'UpdateGroup'
       webApi.sendRequest({

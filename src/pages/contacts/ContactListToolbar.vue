@@ -12,7 +12,7 @@
         </q-item>
       </q-list>
     </q-btn-dropdown>
-    <q-btn flat color="primary" icon="delete_outline" @click="dummyAction" />
+    <q-btn flat color="primary" v-if="currentStorage === 'personal' && currentGroupUUID === ''" icon="delete_outline" @click="askDeleteContacts" />
     <q-btn-dropdown flat color="primary" icon="import_export">
       <q-list>
         <q-item clickable @click="dummyAction">
@@ -38,6 +38,19 @@
         Refresh
       </q-tooltip>
     </q-btn>
+
+    <q-dialog v-model="deleteConfirm" persistent>
+      <q-card>
+        <q-card-section class="row items-center">
+          <span class="q-ml-sm">Delete selected contact(s) permanently?</span>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Delete" color="primary" @click="deleteContacts" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -51,11 +64,11 @@ import notification from 'src/utils/notification.js'
 
 export default {
   name: 'ContactsListToolbar',
-  components: {
-  },
+
   data () {
     return {
       groupsList: [],
+      deleteConfirm: false,
     }
   },
 
@@ -69,11 +82,13 @@ export default {
     currentStorage () {
       return this.$store.getters['contacts/getCurrentStorage']
     },
+    currentGroupUUID () {
+      return this.$store.getters['contacts/getCurrentGroupUUID']
+    },
   },
 
   mounted: function () {
     this.groupsList = this.$store.getters['contacts/getGroups']
-
     this.initSubscriptions()
     this.sync()
   },
@@ -84,7 +99,7 @@ export default {
       ipcRenderer.send('contacts-refresh', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
-        sStorage: this.$store.getters['contacts/getCurrentStorage'],
+        sStorage: this.currentStorage,
       })
     },
     onContactsRefresh (event, { bHasChanges, sStorage, oError }) {
@@ -96,24 +111,50 @@ export default {
           this.$store.commit('contacts/setSyncing', false)
         }
       } else {
-        notification.showError(errors.getText(oError, 'Error occurred while refreshing of contacts'))
+        notification.showError(errors.getText(oError, 'Error occurred while refreshing contacts'))
+      }
+    },
+    onDeleteContacts (oEvent, { bDeleted, oError }) {
+      if (bDeleted) {
+        this.$store.commit('contacts/setCheckedContacts', [])
+        this.$store.commit('contacts/setHasChanges', true)
+        notification.showReport('Contact(s) have been deleted successfully')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while deleting contact(s)'))
       }
     },
     initSubscriptions () {
       ipcRenderer.on('contacts-refresh', this.onContactsRefresh)
+      ipcRenderer.on('contacts-delete-contacts', this.onDeleteContacts)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
+      ipcRenderer.removeListener('contacts-delete-contacts', this.onDeleteContacts)
     },
-
     selectGroupForContactsList (UUID) {
       this.$emit('groupsUUIDforChangeGroup', UUID)
     },
-
     createGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
-
+    askDeleteContacts () {
+      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
+      console.log('aCheckedContacts.length', aCheckedContacts.length)
+      if (aCheckedContacts.length > 0) {
+        this.deleteConfirm = true
+      } else {
+        notification.showReport('Check at least one contact to delete')
+      }
+    },
+    deleteContacts () {
+      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
+      ipcRenderer.send('contacts-delete-contacts', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        sStorage: this.currentStorage,
+        aContactsUUIDs: aCheckedContacts,
+      })
+    },
     dummyAction() {
       notification.showReport('There is no action here yet')
     }

@@ -70,6 +70,7 @@ module.exports = function (ctx) {
         'QBreadcrumbsEl',
         'QCard',
         'QCardSection',
+        'QCardActions',
         'QDate',
         'QDialog',
         'QRadio',

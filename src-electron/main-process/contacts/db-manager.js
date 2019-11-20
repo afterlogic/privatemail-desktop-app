@@ -496,4 +496,20 @@ export default {
       }
     })
   },
+
+  deleteContacts: function ({ sStorage, aContactsUUIDs }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function () {
+          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
+          let aParams = _.union([sStorage], aContactsUUIDs)
+          oDb.run('DELETE FROM contacts_info WHERE storage = ? AND uuid IN (' + sQuestions + ')', aParams)
+          oDb.run('DELETE FROM contacts WHERE storage = ? AND uuid IN (' + sQuestions + ')', aParams)
+          resolve()
+        })
+      } else {
+        reject({ sMethod: 'deleteContacts', sError: 'No DB connection' })
+      }
+    })
+  },
 }

@@ -67,6 +67,8 @@ export default {
         }
 
         let _trySignIn = (sApiHost) => {
+          ipcRenderer.send('logout', { sApiHost })
+
           let oParameters = {
             Login: this.login,
             Password: this.password,

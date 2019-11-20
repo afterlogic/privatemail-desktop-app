@@ -18,7 +18,7 @@
           </q-btn>
         </q-toolbar>
       </div>
-      <div class="column bg-white" style="min-width: 1100px;" v-show="!maximizedToggle">
+      <div class="column no-wrap bg-white" style="min-width: 1100px;" v-show="!maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />

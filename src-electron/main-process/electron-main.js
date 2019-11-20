@@ -71,6 +71,10 @@ ipcMain.on('init', (oEvent, { sApiHost, sAuthToken }) => {
   session.defaultSession.cookies.set(oCookie)
 })
 
+ipcMain.on('logout', (oEvent, { sApiHost }) => {
+  session.defaultSession.cookies.remove(sApiHost, 'AuthToken')
+})
+
 ipcMain.on('db-remove-all', () => {
   if (oDbConnect) {
     oDbConnect.close(function (oDbCloseError) {

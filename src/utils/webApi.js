@@ -33,6 +33,12 @@ export default {
       url,
       data: oBodyFormData,
       headers: oHeaders,
+      // transformRequest: [function (data, headers) {
+      //   console.log('transformRequest', data, headers);
+    
+      //   return data;
+      // }],
+      // withCredentials: false,
     })
       .then((response) => {
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)

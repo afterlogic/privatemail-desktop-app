@@ -73,11 +73,15 @@ export function asyncGetContacts({ state, commit, dispatch, getters }) {
   }
 }
 
-export function setCurrentContactByUUID({ state, commit, dispatch, getters }, UUID) {
+export function setCurrentContactByUUID({ state, commit, dispatch, getters }, sUUID) {
+  let bEditable = false
+  if (state.contactByUUID.UUID === sUUID) {
+    bEditable = state.contactByUUID.editable
+  }
   let contactByUUID = {
-    UUID,
-    editable: false,
-    contact: _.find(state.contacts.list, { 'UUID': UUID }) || {},
+    UUID: sUUID,
+    editable: bEditable,
+    contact: _.find(state.contacts.list, { 'UUID': sUUID }) || {},
   }
   commit('setContactByUUID', contactByUUID)
 }

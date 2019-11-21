@@ -111,4 +111,18 @@ CContact.prototype.parse = function (data) {
   this.GroupUUIDs = typesUtils.isNonEmptyArray(data.GroupUUIDs) ? data.GroupUUIDs : []
 }
 
+CContact.prototype.setViewEmail = function () {
+  switch (this.PrimaryEmail) {
+    case 0:
+      this.ViewEmail = this.PersonalEmail
+      break
+    case 1:
+      this.ViewEmail = this.BusinessEmail
+      break
+    case 2:
+      this.ViewEmail = this.OtherEmail
+      break
+  }
+}
+
 export default CContact

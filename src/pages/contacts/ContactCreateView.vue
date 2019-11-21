@@ -504,6 +504,7 @@ export default {
       if (oNewContact && oNewContact instanceof CContact ) {
         this.bSaving = true
         oNewContact.Storage = 'personal' // creating contact is allowed only for personal storage
+        oNewContact.setViewEmail()
         ipcRenderer.send('contacts-save-contact', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],

@@ -501,10 +501,12 @@ export default {
         this.closeEditContact()
       } else {
         this.bSaving = true
+        let oContactToSave = _.cloneDeep(this.oContact)
+        oContactToSave.setViewEmail()
         ipcRenderer.send('contacts-save-contact', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],
-          oContactToSave: _.cloneDeep(this.oContact),
+          oContactToSave,
         })
       }
     },
@@ -534,7 +536,7 @@ export default {
       let groupList =[]
 
       this.oContact.GroupUUIDs.forEach(element => {
-        let group = _.find(this.groupList,  { 'UUID': element } )
+        let group = _.find(this.groupList, { 'UUID': element } )
         if (group) {
           groupList.push(group.UUID)
         }

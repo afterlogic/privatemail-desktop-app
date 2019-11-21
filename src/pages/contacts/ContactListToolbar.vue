@@ -34,9 +34,9 @@
     </q-btn-dropdown>
     <q-space/>
     <q-btn flat color="primary" icon="sync" :loading=contactsSyncing @click="sync">
-      <q-tooltip>
+      <!-- <q-tooltip>
         Refresh
-      </q-tooltip>
+      </q-tooltip> -->
     </q-btn>
 
     <q-dialog v-model="deleteConfirm" persistent>

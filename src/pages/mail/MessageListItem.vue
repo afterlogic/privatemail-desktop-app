@@ -10,7 +10,7 @@
 
       <q-item-section>
         <q-item-label lines="1">{{fromTo}}</q-item-label>
-        <q-item-label lines="2">{{message.Subject}}</q-item-label>
+        <q-item-label lines="1">{{message.Subject}}</q-item-label>
       </q-item-section>
       <q-item-section side>
         <q-item-label>

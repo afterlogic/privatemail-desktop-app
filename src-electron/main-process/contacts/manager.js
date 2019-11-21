@@ -257,6 +257,31 @@ export default {
         },
       })
     })
+
+    ipcMain.on('contacts-delete-group', (oEvent, { sApiHost, sAuthToken, sUUID }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'DeleteGroup',
+        oParameters: { UUID: sUUID },
+        fCallback: (mResult, oError) => {
+          if (mResult) {
+            contactsDbManager.deleteGroup({ sUUID })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-delete-group', { bDeleted: true })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-delete-group', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-delete-group', { oError })
+          }
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

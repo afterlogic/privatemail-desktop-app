@@ -5,7 +5,7 @@
         <q-item-label class="head--labels-name">View Group</q-item-label>
       </div>
       <div class="buttons">
-        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" @click="dummyAction" />
+        <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" @click="askDeleteGroup" />
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="openEditGroup"/>
         <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" @click="dummyAction" />
       </div>
@@ -32,6 +32,19 @@
         </div>
       </div>
     </div>
+
+    <q-dialog v-model="deleteConfirm" persistent>
+      <q-card>
+        <q-card-section class="row items-center">
+          <span class="q-ml-sm">Delete the group permanently?</span>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Delete" color="primary" @click="deleteGroup" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-item-section>
 </template>
 
@@ -98,6 +111,7 @@ export default {
 
   data() {
     return {
+      deleteConfirm: false,
     }
   },
 
@@ -122,13 +136,45 @@ export default {
     },
   },
 
+  mounted: function () {
+    this.initSubscriptions()
+  },
+
   methods: {
     openEditGroup() {
       this.$store.dispatch('contacts/openEditGroup')
     },
+    askDeleteGroup () {
+      this.deleteConfirm = true
+    },
+    deleteGroup () {
+      ipcRenderer.send('contacts-delete-group', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        sUUID: this.oCurrentGroup.UUID,
+      })
+    },
+    onDeleteGroup (oEvent, { bDeleted, oError }) {
+      if (bDeleted) {
+        this.$store.dispatch('contacts/asyncGetGroups')
+        notification.showReport('Group has been deleted successfully')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while deleting group'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('contacts-delete-group', this.onDeleteGroup)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('contacts-delete-group', this.onDeleteGroup)
+    },
     dummyAction() {
       notification.showReport('There is no action here yet')
     },
+  },
+
+  beforeDestroy () {
+    this.destroySubscriptions()
   },
 }
 </script>

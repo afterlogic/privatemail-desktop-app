@@ -111,6 +111,7 @@ export default {
           this.$store.commit('contacts/setSyncing', false)
         }
       } else {
+        this.$store.commit('contacts/setSyncing', false)
         notification.showError(errors.getText(oError, 'Error occurred while refreshing contacts'))
       }
     },
@@ -139,7 +140,6 @@ export default {
     },
     askDeleteContacts () {
       let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
-      console.log('aCheckedContacts.length', aCheckedContacts.length)
       if (aCheckedContacts.length > 0) {
         this.deleteConfirm = true
       } else {

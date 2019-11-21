@@ -327,6 +327,27 @@ export default {
     })
   },
 
+  deleteGroup: function ({ sUUID }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function () {
+          let oStatement = oDb.prepare('DELETE FROM contacts_groups WHERE uuid = ?')
+          oStatement.run([sUUID])
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'deleteGroup', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'deleteGroup', sError: 'No DB connection' })
+      }
+    })
+  },
+
+
   getContactsInfo: function ({ sStorage }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

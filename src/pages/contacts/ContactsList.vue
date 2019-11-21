@@ -1,5 +1,9 @@
 <template>
   <div>
+    <template v-if="searchText !== ''">
+      <span class="pannel-hint--link" @click="clearSearch">Clear search</span>
+      <div class="pannel-hint">Search results for "{{ searchText }}" in contacts:</div>
+    </template>
     <template v-if="contacts.list.length === 0">
       <div class="pannel-hint" v-if="!contactsSyncing">No contacts</div>
       <div class="pannel-hint" v-if="contactsSyncing">Loading contact list...</div>
@@ -161,6 +165,9 @@ export default {
     },
     isChecked(UUID) {
       return !!_.find(this.aCheckedList, (el) => el === UUID)
+    },
+    clearSearch () {
+      this.$store.commit('contacts/setSearchText', '')
     },
   },
 }

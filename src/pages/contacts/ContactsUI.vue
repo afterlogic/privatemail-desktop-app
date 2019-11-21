@@ -23,7 +23,7 @@
                   <contact-list-toolbar @groupsUUIDforChangeGroup="changeGroupByToolbar"/>
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="allChecked" />
-                    <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
+                    <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchInputText" v-on:keyup.enter="search" style="width: 100%;">
                       <template v-slot:prepend>
                         <q-icon name="search" ></q-icon>
                       </template>
@@ -110,18 +110,21 @@ export default {
       splitterFolderModel: 20,
       splitterMessageModel: 50,
       allChecked: false,
-      searchText: '',
+      searchInputText: '',
       groupUUID: '',
     }
   },
   watch: {
     currentStorage: function () {
-      this.searchText = ''
+      this.searchInputText = ''
       this.search()
     },
     currentGroupUUID: function () {
-      this.searchText = ''
+      this.searchInputText = ''
       this.search()
+    },
+    searchText: function () {
+      this.searchInputText = this.searchText
     },
   },
   computed: {
@@ -160,6 +163,9 @@ export default {
     currentGroupUUID() {
       return this.$store.getters['contacts/getCurrentGroupUUID']
     },
+    searchText () {
+      return this.$store.getters['contacts/getSearchText']
+    },
   },
   methods: {
     createContact() {
@@ -177,7 +183,7 @@ export default {
       }
     },
     search () {
-      this.$store.commit('contacts/setSearchText', this.searchText)
+      this.$store.commit('contacts/setSearchText', this.searchInputText)
     },
   },
 }

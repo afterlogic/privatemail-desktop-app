@@ -11,6 +11,10 @@ export function getCurrentAccountId (state) {
   return state.currentAccount ? state.currentAccount.AccountID : 0
 }
 
+export function getCurrentAccountEmail (state) {
+  return state.currentAccount ? state.currentAccount.Email : ''
+}
+
 export function getCurrentFolderList (state) {
   return state.currentFolderList
 }

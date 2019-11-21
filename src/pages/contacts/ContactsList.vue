@@ -17,6 +17,9 @@
             <q-item-label v-if="contact.ViewEmail" lines="1">{{contact.ViewEmail}}</q-item-label>
             <q-item-label v-else lines="1" class="contact-notext">No email address</q-item-label>
           </q-item-section>
+          <q-item-section side v-if="contact.Storage === 'team' && contact.BusinessEmail === currentAccountEmail">
+            <q-chip dense>It's me!</q-chip>
+          </q-item-section>
         </q-item>
         <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selectedContact }" />
       </div>
@@ -43,15 +46,14 @@ export default {
       selectedContact: null,
     }
   },
+
   beforeMount: function () {
     let contact = this.$store.getters['contacts/getCurrentContact']
     if (contact.UUID) {
       this.selectedContact = contact.UUID
     }
   },
-  mounted: function() {
-     
-  },
+
   watch: {
     'currentStorage': function() {
       this.startAsyncGetContacts(true)
@@ -112,16 +114,19 @@ export default {
   },
 
   computed: {
-    currentStorage() {
+    currentAccountEmail () {
+      return this.$store.getters['mail/getCurrentAccountEmail']
+    },
+    currentStorage () {
       return this.$store.getters['contacts/getCurrentStorage']
     },
-    currentGroupUUID() {
+    currentGroupUUID () {
       return this.$store.getters['contacts/getCurrentGroupUUID']
     },
-    hasChanges() {
+    hasChanges () {
       return this.$store.getters['contacts/getHasChanges']
     },
-    contacts() {
+    contacts () {
       return this.$store.getters['contacts/getContacts']
     },
     aCheckedList: {

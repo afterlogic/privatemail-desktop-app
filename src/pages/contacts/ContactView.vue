@@ -16,7 +16,7 @@
       <div class="col">
         <div class="column full-height">
 
-          <div class="col-auto">
+          <div class="col-auto" v-if="allowEdit">
             <q-btn no-caps no-wrap unelevated class="btn-edit" color="primary" label="Edit contact" @click="openEditContact"/>
           </div>
 
@@ -76,13 +76,9 @@
                   <a v-for="(group,index) in groupFilteredList" :key="group.id" class="group" @click="setCurrentGroup(group)">{{group}}<span v-if="index+1 < groupFilteredList.length">,</span></a>
                 </div>
               </div>
-              
             </q-scroll-area>
           </div>
         </div>
-        
-        
-        
       </div>
     </q-item-section>
 </template>
@@ -211,6 +207,10 @@ export default {
       let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
       let contact = ContactByUUID.contact
       return (contact && contact instanceof CContact) ? contact : null
+    },
+    allowEdit: function () {
+      let sCurrentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      return this.contact.Storage === 'personal' || this.contact.BusinessEmail === sCurrentAccountEmail
     },
   },
 

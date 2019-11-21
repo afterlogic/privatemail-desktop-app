@@ -67,7 +67,6 @@ export default {
 
   data () {
     return {
-      groupsList: [],
       deleteConfirm: false,
     }
   },
@@ -85,10 +84,12 @@ export default {
     currentGroupUUID () {
       return this.$store.getters['contacts/getCurrentGroupUUID']
     },
+    groupsList () {
+      return this.$store.getters['contacts/getGroups']
+    },
   },
 
   mounted: function () {
-    this.groupsList = this.$store.getters['contacts/getGroups']
     this.initSubscriptions()
     this.sync()
   },

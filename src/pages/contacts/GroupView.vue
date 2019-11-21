@@ -103,8 +103,10 @@
 <script>
 import { ipcRenderer } from 'electron'
 
-import CGroup from 'src/modules/contacts/classes/CGroup.js'
+import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+
+import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
 export default {
   name: 'GroupView',

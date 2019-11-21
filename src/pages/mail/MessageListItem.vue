@@ -5,12 +5,13 @@
         <q-checkbox v-model="checked" />
         <q-icon name="star" color="orange" v-if="message.IsFlagged" @click.native.stop="toggleFlagged" />
         <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" @click.native.stop="toggleFlagged" />
-        <q-icon name="star_border" color="grey" v-if="!message.IsFlagged && !message.PartialFlagged" @click.native.stop="toggleFlagged" />
+        <q-icon name="star_border" class="innactive_icon" v-if="!message.IsFlagged && !message.PartialFlagged" @click.native.stop="toggleFlagged" />
       </q-item-section>
 
       <q-item-section>
         <q-item-label lines="1">{{fromTo}}</q-item-label>
-        <q-item-label lines="1">{{message.Subject}}</q-item-label>
+        <q-item-label lines="1" v-if="message.Subject">{{message.Subject}}</q-item-label>
+        <q-item-label v-else lines="1" class="nodata">No subject</q-item-label>
       </q-item-section>
       <q-item-section side>
         <q-item-label>
@@ -39,30 +40,13 @@
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .unread {
   font-weight: bold;
   background: #fafafa;
 }
 hr.unread {
   background: #ddd;
-}
-.checked {
-  background: var(--q-color-t-selection-alt);
-}
-hr.checked {
-  background: #d6d6a9;
-}
-.selected {
-  background: var(--q-color-t-selection);
-  color: #fff;
-
-  .q-icon {
-    color: #fff;
-  }
-}
-hr.selected {
-  background: #6d5d7e;
 }
 </style>
 

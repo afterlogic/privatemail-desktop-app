@@ -43,9 +43,9 @@
                       To
                     </q-item-section>
                     <q-item-section>
-                      <q-input outlined v-model="toAddr" :dense=true style="width: 100%;" />
+                      <q-input dense outlined v-model="toAddr" style="width: 100%;" />
                     </q-item-section>
-                    <q-item-section style="max-width: 100px;">
+                    <q-item-section style="max-width: 100px;" v-show="!isCcShowed || !isBccShowed">
                       <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
                       <a href="javascript:void(0)" v-show="!isBccShowed" @click="showBcc">Show BCC</a>
                     </q-item-section>
@@ -55,7 +55,7 @@
                       CC
                     </q-item-section>
                     <q-item-section>
-                      <q-input outlined v-model="ccAddr" :dense=true style="width: 100%;" />
+                      <q-input dense outlined v-model="ccAddr" style="width: 100%;" />
                     </q-item-section>
                   </q-item>
                   <q-item v-show="isBccShowed">
@@ -63,7 +63,7 @@
                       BCC
                     </q-item-section>
                     <q-item-section>
-                      <q-input outlined v-model="bccAddr" :dense=true style="width: 100%;" />
+                      <q-input dense outlined v-model="bccAddr" style="width: 100%;" />
                     </q-item-section>
                   </q-item>
                   <q-item>
@@ -71,7 +71,7 @@
                       Subject
                     </q-item-section>
                     <q-item-section>
-                      <q-input outlined v-model="subjectText" :dense=true style="width: 100%;" />
+                      <q-input dense outlined v-model="subjectText" style="width: 100%;" />
                     </q-item-section>
                   </q-item>
                 </q-list>
@@ -88,8 +88,8 @@
                     },
                   }" -->
               </div>
-              <div class="col q-pa-md"> 
-              <q-editor v-model="editortext" height="400px" class="full-height"
+              <div class="col q-pa-md full-width"> 
+                <q-editor v-model="editortext" height="400px" class="full-height"
                   :toolbar="[
                     ['undo', 'redo'],
                     ['bold', 'italic', 'underline', 'strike'],

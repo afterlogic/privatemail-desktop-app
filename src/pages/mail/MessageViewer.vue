@@ -87,8 +87,8 @@
         </div>
         <q-separator />
       </div>
-      <div class="col" style="height: 100%;">
-        <q-scroll-area style="height: 100%;">
+      <div class="col">
+        <q-scroll-area class="full-height">
           <div class="q-pa-md" v-html="text"></div>
         </q-scroll-area>
       </div>

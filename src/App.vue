@@ -82,14 +82,14 @@ export default {
 }
 
 .q-item {
-  .contact-notext {
+  .nodata {
     color: #b9b9b9;
   }
 
   &.checked {
     background: var(--q-color-t-selection-alt);
 
-    .contact-notext {
+    .nodata {
       // color: #bfbf9e;
       color: desaturate(darken(#eeeecd, 20%), 20%);
     }
@@ -99,19 +99,29 @@ export default {
     background: var(--q-color-t-selection);
     color: #fff;
 
-    .contact-notext {
+    .nodata {
       // color: #ad98c5;
       color: lighten(#816f95, 15%);
+    }
+
+    .q-icon {
+      color: #fff;
+    }
+
+    .q-item__section--side {
+      color: inherit;
     }
   }
 }
 
-hr.checked {
-  background: #d6d6a9;
-}
+.q-separator {
+  &.checked {
+    background: #d6d6a9;
+  }
 
-hr.selected {
-  background: #6d5d7e;
+  &.selected {
+    background: #6d5d7e;
+  }
 }
 
 .buttons {

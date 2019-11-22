@@ -1,8 +1,23 @@
 <template>
   <div class="row q-pa-sm items-center">
-    <q-btn @click="createGroup" flat color="primary" icon="group_add" />
-    <q-btn flat color="primary" icon="mail_outline" @click="dummyAction" />
-    <q-btn-dropdown flat color="primary" icon="folder_open">
+    <q-btn v-if="currentStorage !== 'team' || currentGroupUUID !== ''" @click="createGroup" flat color="primary" icon="group_add">
+      <q-tooltip>
+        New Group
+      </q-tooltip>
+    </q-btn>
+
+    <q-btn flat color="primary" icon="mail_outline" :disable="checkedContactsCount === 0" @click="dummyAction">
+      <q-tooltip>
+        New Message
+      </q-tooltip>
+    </q-btn>
+
+    <q-btn-dropdown :disable="checkedContactsCount === 0" flat color="primary" icon="folder_open">
+      <template v-slot:label>
+        <q-tooltip>
+          Add Contacts to
+        </q-tooltip>
+      </template>
       <q-list>
         <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="selectGroupForContactsList(group.UUID)">
           <q-item-section>{{group.Name}}</q-item-section>
@@ -12,39 +27,52 @@
         </q-item>
       </q-list>
     </q-btn-dropdown>
-    <q-btn flat color="primary" v-if="currentStorage === 'personal' && currentGroupUUID === ''" icon="delete_outline" @click="askDeleteContacts" />
+
+    <q-btn v-if="currentStorage === 'personal' && currentGroupUUID === ''" flat color="primary" :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" icon="delete_outline" @click="askDeleteContacts">
+      <q-tooltip>
+        Delete
+      </q-tooltip>
+    </q-btn>
+
     <q-btn-dropdown flat color="primary" icon="import_export">
+      <template v-slot:label>
+        <q-tooltip>
+          More
+        </q-tooltip>
+      </template>
       <q-list>
-        <q-item clickable @click="dummyAction">
+        <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
           <q-item-section>
             <q-item-label>Export as CSV</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable @click="dummyAction">
+        <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
           <q-item-section>
             <q-item-label>Export as VCF</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable @click="dummyAction">
+        <q-item clickable @click="dummyAction" v-if="currentStorage !== 'team' || currentGroupUUID !== ''">
           <q-item-section>
             <q-item-label>Import</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
     </q-btn-dropdown>
+
     <q-space/>
-    <q-btn flat color="primary" icon="sync" :loading=contactsSyncing @click="sync">
-      <!-- <q-tooltip>
+
+    <span>
+      <q-btn flat color="primary" icon="sync" :loading=contactsSyncing @click="sync" />
+      <q-tooltip>
         Refresh
-      </q-tooltip> -->
-    </q-btn>
+      </q-tooltip>
+    </span>
 
     <q-dialog v-model="deleteConfirm" persistent>
       <q-card>
         <q-card-section class="row items-center">
           <span class="q-ml-sm">Delete selected contact(s) permanently?</span>
         </q-card-section>
-
         <q-card-actions align="right">
           <q-btn flat label="Delete" color="primary" @click="deleteContacts" v-close-popup />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
@@ -54,13 +82,21 @@
   </div>
 </template>
 
-<style></style>
+<style>
+  .q-chip {
+    min-width: 2em;
+    justify-content: center;
+    background: var(--q-color-primary);
+    color: #fff;
+  }
+</style>
 
 <script>
 import { ipcRenderer } from 'electron'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
 
 export default {
   name: 'ContactsListToolbar',
@@ -72,7 +108,7 @@ export default {
   },
 
   computed: {
-    'stateForCreatingGroup': function() {
+    stateForCreatingGroup: function() {
       return this.$store.getters['contacts/getStateForCreatingGroup']
     },
     contactsSyncing () {
@@ -86,6 +122,23 @@ export default {
     },
     groupsList () {
       return this.$store.getters['contacts/getGroups']
+    },
+    contactsCount () {
+      return this.$store.getters['contacts/getContactsCount']
+    },
+    checkedContacts () {
+      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
+      if (typesUtils.isNonEmptyArray(aCheckedContacts)) {
+        return aCheckedContacts
+      }
+      let sCurrentContactUUID = this.$store.getters['contacts/getCurrentContactUUID']
+      if (typesUtils.isNonEmptyString(sCurrentContactUUID)) {
+        return [sCurrentContactUUID]
+      }
+      return []
+    },
+    checkedContactsCount () {
+      return this.checkedContacts.length
     },
   },
 
@@ -140,20 +193,18 @@ export default {
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
     askDeleteContacts () {
-      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
-      if (aCheckedContacts.length > 0) {
+      if (this.checkedContactsCount > 0) {
         this.deleteConfirm = true
       } else {
         notification.showReport('Check at least one contact to delete')
       }
     },
     deleteContacts () {
-      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
       ipcRenderer.send('contacts-delete-contacts', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
         sStorage: this.currentStorage,
-        aContactsUUIDs: aCheckedContacts,
+        aContactsUUIDs: this.checkedContacts,
       })
     },
     dummyAction() {

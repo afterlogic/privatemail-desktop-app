@@ -40,11 +40,13 @@
       </q-tooltip>
     </q-btn>
     <q-space/>
-    <q-btn flat color="primary" icon="sync" :loading=mailSyncing @click="sync">
-      <!-- <q-tooltip>
+
+    <span>
+      <q-btn flat color="primary" icon="sync" :loading=mailSyncing @click="sync" />
+      <q-tooltip>
         Check Mail
-      </q-tooltip> -->
-    </q-btn>
+      </q-tooltip>
+    </span>
   </div>
 </template>
 

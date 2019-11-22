@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import typesUtils from '../../utils/types.js'
 
+import CContact from 'src/modules/contacts/classes/CContact.js'
+
 export function getStorageList(state) {
   return state.storages && _.isFunction(state.storages.getList) ? state.storages.getList() : []
 }
@@ -43,6 +45,10 @@ export function getCurrentStorage(state) {
 
 export function getCurrentContact(state) {
   return state.contactByUUID
+}
+
+export function getCurrentContactUUID(state) {
+  return (state.contactByUUID.contact && state.contactByUUID.contact instanceof CContact) ? state.contactByUUID.UUID : ''
 }
 
 export function getGroups(state) {

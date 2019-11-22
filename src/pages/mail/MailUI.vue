@@ -165,7 +165,9 @@ export default {
       this.$root.$off('message-checked', this.onMessageChecked)
     },
     clearAllUserData () {
+      let sApiHost = this.$store.getters['main/getApiHost']
       ipcRenderer.send('db-remove-all')
+      ipcRenderer.send('logout', { sApiHost })
       this.$store.dispatch('main/clearAll')
       this.$router.push({ path: '/' })
     },

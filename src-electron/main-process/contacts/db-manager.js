@@ -83,7 +83,7 @@ function _getContactsSql ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
   let aWhere = []
   let aParams = []
 
-  if (sGroupUUID !== '') {
+  if (typesUtils.isNonEmptyString(sGroupUUID)) {
     aWhere.push('group_uuids LIKE ?')
     aParams.push('%"' + sGroupUUID + '"%')
   } else if (sStorage !== 'all') {
@@ -91,7 +91,7 @@ function _getContactsSql ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
     aParams.push(sStorage)
   }
 
-  if (sSearch !== '') {
+  if (typesUtils.isNonEmptyString(sSearch)) {
     aWhere.push('(full_name LIKE ? OR view_email LIKE ?)')
     aParams.push('%' + sSearch + '%')
     aParams.push('%' + sSearch + '%')
@@ -104,9 +104,12 @@ function _getContactsSql ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
 
   let sCountSql = 'SELECT COUNT(*) as count FROM contacts ' + sWhere
   let aCountParams = _.clone(aParams)
-  let sSql = 'SELECT * FROM contacts ' + sWhere + ' ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
-  aParams.push(iPerPage)
-  aParams.push(iPerPage * (iPage - 1))
+  let sSql = 'SELECT * FROM contacts ' + sWhere + ' ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC'
+  if (_.isNumber(iPerPage) && _.isNumber(iPage)) {
+    sSql = 'SELECT * FROM contacts ' + sWhere + ' ORDER BY full_name COLLATE NOCASE ASC, view_email COLLATE NOCASE ASC LIMIT ? OFFSET ?'
+    aParams.push(iPerPage)
+    aParams.push(iPerPage * (iPage - 1))
+  }
 
   return { sCountSql, aCountParams, sSql, aParams }
 }

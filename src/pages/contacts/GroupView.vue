@@ -7,7 +7,7 @@
       <div class="buttons">
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Delete group" @click="askDeleteGroup" />
         <q-btn no-wrap no-caps unelevated flat class="head--buttons-off" color="grey-7" label="Edit group" @click="openEditGroup"/>
-        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" @click="dummyAction" />
+        <q-btn no-wrap no-caps unelevated color="primary" label="Email to this group" @click="emailToGroup" :disable="totalContactsCount === 0" />
       </div>
     </div>
 
@@ -103,8 +103,10 @@
 <script>
 import { ipcRenderer } from 'electron'
 
+import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types'
 
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
@@ -118,13 +120,20 @@ export default {
   },
 
   computed: {
-    'oCurrentGroup': function() {
+    oCurrentGroup: function () {
       let oGroupContainer = this.$store.getters['contacts/getCurrentGroup']
       let oCurrentGroup = _.cloneDeep(oGroupContainer.group)
       return (oCurrentGroup && oCurrentGroup instanceof CGroup) ? oCurrentGroup : null
     },
-    'groupList': function() {
+    groupList: function () {
       return this.$store.getters['contacts/getGroups']
+    },
+    contactsCount: function () {
+      let aCurrentContacts = this.$store.getters['contacts/getContacts'].list
+      return _.isArray(aCurrentContacts) ? aCurrentContacts.length : 0
+    },
+    totalContactsCount: function () {
+      return this.$store.getters['contacts/getContactsCount']
     },
   },
 
@@ -146,6 +155,34 @@ export default {
     openEditGroup() {
       this.$store.dispatch('contacts/openEditGroup')
     },
+    emailToGroup () {
+      if (this.totalContactsCount === this.contactsCount) {
+        let aContacts = this.$store.getters['contacts/getContacts'].list
+        this.onGetGroupEmails(null, { aContacts })
+      } else {
+        ipcRenderer.send('contacts-get-all-group-contacts', {
+          sStorage: 'all',
+          sGroupUUID: this.oCurrentGroup.UUID,
+        })
+      }
+    },
+    onGetGroupEmails (oEvent, { aContacts, oRequestParams, oError }) {
+      let aEmails = []
+      if (typesUtils.isNonEmptyArray(aContacts)) {
+        _.each(aContacts, function (oContact) {
+          let sEmail = _.trim(oContact.ViewEmail)
+          if (addressUtils.isCorrectEmail(sEmail)) {
+            let sFullName = _.trim(oContact.FullName)
+            if (oContact.UseFriendlyName && typesUtils.isNonEmptyString(sFullName)) {
+              aEmails.push('"' + sFullName + '" <' + sEmail + '>')
+            } else {
+              aEmails.push(sEmail)
+            }
+          }
+        })
+      }
+      this.openCompose({ sToAddr: aEmails.join(', ') })
+    },
     askDeleteGroup () {
       this.deleteConfirm = true
     },
@@ -165,9 +202,11 @@ export default {
       }
     },
     initSubscriptions () {
+      ipcRenderer.on('contacts-get-all-group-contacts', this.onGetGroupEmails)
       ipcRenderer.on('contacts-delete-group', this.onDeleteGroup)
     },
     destroySubscriptions () {
+      ipcRenderer.removeListener('contacts-get-all-group-contacts', this.onGetGroupEmails)
       ipcRenderer.removeListener('contacts-delete-group', this.onDeleteGroup)
     },
     dummyAction() {

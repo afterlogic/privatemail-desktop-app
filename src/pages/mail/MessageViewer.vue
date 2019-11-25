@@ -285,17 +285,6 @@ export default {
         this.sendQuickReply()
       }
     },
-    _getParentComponent: function (sComponentName) {
-      let oComponent = null
-      let oParent = this.$parent
-      while (oParent && !oComponent) {
-        if (oParent.$options.name === sComponentName) {
-          oComponent = oParent
-        }
-        oParent = oParent.$parent
-      }
-      return oComponent
-    },
     reply: function () {
       this.openFullReplyForm(mailEnums.ReplyType.Reply)
     },
@@ -310,14 +299,9 @@ export default {
     },
     openFullReplyForm: function (iReplyType) {
       let
-        oMailUI = this._getParentComponent('MailUI'),
-        oCompose = oMailUI ? oMailUI.$refs.compose : null,
         oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
-
-      if (oCompose) {
-        oCompose.openCompose(oComposeReplyParams)
-        this.clearAll()
-      }
+      this.openCompose(oComposeReplyParams)
+      this.clearAll()
     },
     dummyAction() {
       notification.showReport('There is no action here yet')

@@ -5,7 +5,7 @@
         <template v-slot:before>
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
-              <q-btn flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openCompose" label="New message"/>
+              <q-btn flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openNewMessageCompose" label="New message"/>
             </div>
             <div class="col" style="overflow: hidden;">
               <q-scroll-area class="full-height full-width">
@@ -72,7 +72,6 @@
           </q-splitter>
         </template>
       </q-splitter>
-      <MessageCompose ref="compose" />
     </q-page>
   </q-page-container>
 </template>
@@ -85,7 +84,6 @@ import FolderList from "./FolderList.vue"
 import MessageList from "./MessageList.vue"
 import MailListToolbar from "./MailListToolbar.vue"
 import MessageViewer from "./MessageViewer.vue"
-import MessageCompose from "./MailCompose.vue"
 import Pagination from '../Pagination.vue'
 
 export default {
@@ -95,7 +93,6 @@ export default {
     MessageList,
     MailListToolbar,
     MessageViewer,
-    MessageCompose,
     Pagination,
   },
   data () {
@@ -148,8 +145,8 @@ export default {
         this.$store.dispatch('mail/setСurrentPage', iPage)
       }
     },
-    openCompose () {
-      this.$refs.compose.openCompose({})
+    openNewMessageCompose () {
+      this.openCompose({})
     },
     onMessageChecked (sUid, bChecked) {
       if (bChecked) {

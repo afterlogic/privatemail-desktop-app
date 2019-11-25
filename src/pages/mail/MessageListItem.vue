@@ -52,6 +52,7 @@ hr.unread {
 
 <script>
 import addressUtils from 'src/utils/address'
+
 import messageUtils from 'src/modules/mail/utils/message.js'
 
 export default {
@@ -103,17 +104,6 @@ export default {
     selectMessage: function () {
       this.$store.dispatch('mail/setCurrentMessage', this.message)
     },
-    _getParentComponent: function (sComponentName) {
-      let oComponent = null
-      let oParent = this.$parent
-      while (oParent && !oComponent) {
-        if (oParent.$options.name === sComponentName) {
-          oComponent = oParent
-        }
-        oParent = oParent.$parent
-      }
-      return oComponent
-    },
     dblClickHandler: function () {
       let
         oCurrentFolderList = this.$store.getters['mail/getCurrentFolderList'],
@@ -121,8 +111,6 @@ export default {
 
       if (this.message.Folder === sDraftFolder) {
         let
-          oMailUI = this._getParentComponent('MailUI'),
-          oCompose = oMailUI ? oMailUI.$refs.compose : null,
           oComposeParams = {
             aDraftInfo: this.message.DraftInfo,
             sDraftUid: this.message.Uid,
@@ -136,10 +124,7 @@ export default {
             sInReplyTo: this.message.InReplyTo,
             sReferences: this.message.References,
           }
-
-        if (oCompose) {
-          oCompose.openCompose(oComposeParams)
-        }
+        this.openCompose(oComposeParams)
       }
     },
     toggleFlagged: function () {

@@ -1,22 +1,56 @@
 <template>
   <div id="q-app">
     <router-view />
+    <MessageCompose ref="compose" />
   </div>
 </template>
 
 <script>
+import Vue from 'vue'
 import { ipcRenderer } from 'electron'
 import theming from './css/theming'
 import prefetcher from 'src/modules/mail/prefetcher.js'
+import MessageCompose from "./pages/mail/MailCompose.vue"
+
+Vue.mixin({
+  methods: {
+    _getParentComponent: function (sComponentName) {
+      let oComponent = null
+      let oParent = this.$parent
+      while (oParent && !oComponent) {
+        if (oParent.$options.name === sComponentName) {
+          oComponent = oParent
+        }
+        oParent = oParent.$parent
+      }
+      return oComponent
+    },
+    openCompose: function (oComposeParams) {
+      let
+        oAppComponent = this._getParentComponent('App'),
+        oComposeComponent = oAppComponent ? oAppComponent.$refs.compose : null
+
+      if (oComposeComponent) {
+        oComposeComponent.openCompose(oComposeParams)
+      }
+    }
+  }
+})
 
 export default {
   name: 'App',
+
+  components: {
+    MessageCompose,
+  },
+
   computed: {
     currentAccountId () {
       let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
       return oCurrentAccount ? oCurrentAccount.AccountID : 0
     },
   },
+
   watch: {
     '$store.state.main.theme': function (v) {
       this.setThemeColors(v)
@@ -25,13 +59,14 @@ export default {
       prefetcher.currentAccountChanged()
     },
   },
+
   mounted () {
     ipcRenderer.on('notification', (event, mNotification) => {
       console.log('mNotification', mNotification)
     })
-
     this.setThemeColors(this.$store.state.main.theme)
   },
+
   methods: {
     setThemeColors (v) {
       if (v === 'light') {

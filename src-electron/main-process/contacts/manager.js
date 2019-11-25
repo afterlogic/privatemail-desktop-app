@@ -42,6 +42,17 @@ export default {
       )
     })
 
+    ipcMain.on('contacts-get-all-group-contacts', (oEvent, { sStorage, sGroupUUID }) => {
+      contactsDbManager.getContacts({ sStorage, sGroupUUID }).then(
+        ({ aContacts }) => {
+          oEvent.sender.send('contacts-get-all-group-contacts', { aContacts, oRequestParams: { sStorage, sGroupUUID } })
+        },
+        (oError) => {
+          oEvent.sender.send('contacts-get-all-group-contacts', { oError })
+        }
+      )
+    })
+
     function _refreshContacts (oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew }) {
       webApi.sendRequest({
         sApiHost,

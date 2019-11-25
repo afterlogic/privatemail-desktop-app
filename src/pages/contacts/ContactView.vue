@@ -8,7 +8,7 @@
           </div>
           <div class="buttons">
             <q-btn no-wrap no-caps unelevated color="primary" label="Send this contact" @click="dummyAction" />
-            <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" @click="dummyAction" />
+            <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" @click="emailToContact" />
           </div>
         </div>
       </div>
@@ -172,9 +172,13 @@
 </style>
 
 <script>
-import CContact from 'src/modules/contacts/classes/CContact.js'
 import moment from 'moment'
+
+import addressUtils from 'src/utils/address.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types'
+
+import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'ContactFields',
@@ -238,6 +242,20 @@ export default {
         let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`
         this.sBirthDate = `${moment(sDate).format('ll')} ( ${moment(sDate).fromNow(true)} )`
       }
+    },
+    emailToContact () {
+      let sToAddr = ''
+      let sEmail = _.trim(this.contact.ViewEmail)
+      if (addressUtils.isCorrectEmail(sEmail)) {
+        let sFullName = _.trim(this.contact.FullName)
+        if (this.contact.UseFriendlyName && typesUtils.isNonEmptyString(sFullName)) {
+          sToAddr = '"' + sFullName + '" <' + sEmail + '>'
+        } else {
+          sToAddr = sEmail
+        }
+      }
+
+      this.openCompose({ sToAddr })
     },
     dummyAction() {
       notification.showReport('There is no action here yet')

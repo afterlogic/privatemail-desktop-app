@@ -209,9 +209,6 @@ export default {
       ipcRenderer.removeListener('contacts-get-all-group-contacts', this.onGetGroupEmails)
       ipcRenderer.removeListener('contacts-delete-group', this.onDeleteGroup)
     },
-    dummyAction() {
-      notification.showReport('There is no action here yet')
-    },
   },
 
   beforeDestroy () {

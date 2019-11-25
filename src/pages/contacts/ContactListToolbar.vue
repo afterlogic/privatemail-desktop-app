@@ -19,7 +19,7 @@
         </q-tooltip>
       </template>
       <q-list>
-        <q-item clickable v-ripple v-for="group in groupsList" :key="group.id" @click="selectGroupForContactsList(group.UUID)">
+        <q-item clickable v-close-popup v-ripple v-for="group in groupsList" :key="group.UUID" @click.native="addContactsToGroup(group.UUID)">
           <q-item-section>{{group.Name}}</q-item-section>
         </q-item>
         <q-item clickable @click="createGroup" v-ripple>
@@ -97,6 +97,7 @@ import { ipcRenderer } from 'electron'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
+import webApi from 'src/utils/webApi.js'
 
 export default {
   name: 'ContactsListToolbar',
@@ -186,8 +187,21 @@ export default {
       ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
       ipcRenderer.removeListener('contacts-delete-contacts', this.onDeleteContacts)
     },
-    selectGroupForContactsList (UUID) {
-      this.$emit('groupsUUIDforChangeGroup', UUID)
+    addContactsToGroup (sUUID) {
+      notification.showLoading('Adding contacts to the group...')
+      webApi.sendRequest({
+        sModule: 'Contacts',
+        sMethod: 'AddContactsToGroup',
+        oParameters: { GroupUUID: sUUID, ContactUUIDs: this.checkedContacts },
+        fCallback: (oResult, oError) => {
+          notification.hideLoading()
+          if (oResult) {
+            notification.showReport('Contacts were added to the group successfully.')
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while adding contacts to the group'))
+          }
+        },
+      })
     },
     createGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', true)

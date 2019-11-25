@@ -20,7 +20,7 @@
             <template v-slot:before>
               <div class="column full-height bg-white text-black panel-rounded">
                 <div class="col-auto">
-                  <contact-list-toolbar @groupsUUIDforChangeGroup="changeGroupByToolbar"/>
+                  <contact-list-toolbar />
                   <q-toolbar style="width: 100%; background: #eee;">
                     <q-checkbox v-model="allChecked" />
                     <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchInputText" v-on:keyup.enter="search" style="width: 100%;">
@@ -35,7 +35,7 @@
                 </div>
                 <div class="col">
                   <q-scroll-area class="full-height">
-                    <contacts-list v-bind:allChecked="allChecked" v-bind:groupUUID="groupUUID" @allCheckChanged="onCheckChange"/>
+                    <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange"/>
                   </q-scroll-area>
                 </div>
                 <div class="col-auto">
@@ -111,7 +111,6 @@ export default {
       splitterMessageModel: 50,
       allChecked: false,
       searchInputText: '',
-      groupUUID: '',
     }
   },
   watch: {
@@ -173,9 +172,6 @@ export default {
     },
     onCheckChange(value) {
       this.allChecked = value
-    },
-    changeGroupByToolbar (UUID) {
-      this.groupUUID = UUID
     },
     changePage (iPage) {
       if (iPage !== this.currentPage) {

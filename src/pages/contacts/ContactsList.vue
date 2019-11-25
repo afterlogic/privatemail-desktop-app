@@ -41,12 +41,13 @@
 <script>
 export default {
   name: 'ContactsList',
-  props: ['allChecked', 'groupUUID'],
+
+  props: ['allChecked'],
+
   data() {
     return {
       page: 1,
       perPage: 20,
-      // aCheckedList: [],
       selectedContact: null,
     }
   },
@@ -83,37 +84,23 @@ export default {
     'contacts.list': function () {
       this.setCurrentContactByUUID(this.selectedContact)
     },
-    'allChecked': function() {
+    allChecked: function () {
       if (this.allChecked) {
         let aContactsUUIDsList = []
         this.contacts.list.forEach(element => {
           aContactsUUIDsList.push(element.UUID)
-        }); 
+        })
         this.aCheckedList = aContactsUUIDsList
       } else {
         this.aCheckedList = []
       }
     },
-    'aCheckedList': function() {      
+    aCheckedList: function () {
       if (this.aCheckedList.length === this.contacts.list.length && this.contacts.list.lenght) {
         this.$emit('allCheckChanged', true)
       } else if (this.aCheckedList.length === 0) {
         this.$emit('allCheckChanged', false)
       }
-
-    },
-    'groupUUID': function() {
-      if (this.groupUUID) {
-        let contactsToMoveInGroup = []
-        this.aCheckedList.forEach(element => {
-          let contact = _.find(this.contacts.list, element.UUID)
-          contact ? contactsToMoveInGroup.push(contact) : null
-        })
-
-        if (contactsToMoveInGroup.length) {
-          console.log(contactsToMoveInGroup)
-        }
-      } 
     },
   },
 
@@ -139,7 +126,7 @@ export default {
       },
       set (value) {
         this.$store.commit('contacts/setCheckedContacts', value)
-      }
+      },
     },
     currentPage () {
       return this.$store.getters['contacts/getСurrentPage']

@@ -221,8 +221,6 @@ export default {
         sMethod: 'DeleteContacts',
         oParameters: { Storage: sStorage, UUIDs: aContactsUUIDs },
         fCallback: (mResult, oError) => {
-          console.log('mResult', mResult)
-          console.log('oError', oError)
           if (mResult) {
             contactsDbManager.deleteContacts({ sStorage, aContactsUUIDs })
             .then(
@@ -289,6 +287,31 @@ export default {
             )
           } else {
             oEvent.sender.send('contacts-delete-group', { oError })
+          }
+        },
+      })
+    })
+
+    ipcMain.on('contacts-add-contacts-to-group', (oEvent, { sApiHost, sAuthToken, sGroupUUID, aContacts, aContactsUUIDs }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'AddContactsToGroup',
+        oParameters: { GroupUUID: sGroupUUID, ContactUUIDs: aContactsUUIDs },
+        fCallback: (mResult, oError) => {
+          if (mResult) {
+            contactsDbManager.addContactsToGroup({ sGroupUUID, aContacts, aContactsUUIDs })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-add-contacts-to-group', { bAdded: true })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-add-contacts-to-group', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-add-contacts-to-group', { oError })
           }
         },
       })

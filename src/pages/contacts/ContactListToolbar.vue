@@ -182,28 +182,37 @@ export default {
     initSubscriptions () {
       ipcRenderer.on('contacts-refresh', this.onContactsRefresh)
       ipcRenderer.on('contacts-delete-contacts', this.onDeleteContacts)
+      ipcRenderer.on('contacts-add-contacts-to-group', this.onAddContactsToGroup)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
       ipcRenderer.removeListener('contacts-delete-contacts', this.onDeleteContacts)
+      ipcRenderer.removeListener('contacts-add-contacts-to-group', this.onAddContactsToGroup)
     },
-    addContactsToGroup (sUUID) {
+    addContactsToGroup (sGroupUUID) {
+      let aAllContacts = this.$store.getters['contacts/getContacts'].list
+      let aContacts = _.filter(aAllContacts, (oContact) => {
+        return _.indexOf(this.checkedContacts, oContact.UUID) !== -1
+      })
       notification.showLoading('Adding contacts to the group...')
-      webApi.sendRequest({
-        sModule: 'Contacts',
-        sMethod: 'AddContactsToGroup',
-        oParameters: { GroupUUID: sUUID, ContactUUIDs: this.checkedContacts },
-        fCallback: (oResult, oError) => {
-          notification.hideLoading()
-          if (oResult) {
-            notification.showReport('Contacts were added to the group successfully.')
-          } else {
-            notification.showError(errors.getText(oError, 'Error occurred while adding contacts to the group'))
-          }
-        },
+      ipcRenderer.send('contacts-add-contacts-to-group', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        sGroupUUID,
+        aContacts,
+        aContactsUUIDs: this.checkedContacts,
       })
     },
-    createGroup() {
+    onAddContactsToGroup (oEvent, { bAdded, oError }) {
+      notification.hideLoading()
+      if (bAdded) {
+        this.$store.commit('contacts/setHasChanges', true)
+        notification.showReport('Contacts were added to the group successfully.')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while adding contacts to the group'))
+      }
+    },
+    createGroup () {
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
     askDeleteContacts () {

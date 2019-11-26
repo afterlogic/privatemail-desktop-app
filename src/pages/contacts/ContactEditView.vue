@@ -2,7 +2,7 @@
   <q-item-section class="column full-height">
     <div class="col-auto">
       <div class="head">
-        <q-item-label class="head--labels-name">Edit Contact</q-item-label>
+        <q-item-label class="head--labels-name">{{editMode ? 'Edit Contact' : 'Create Contact'}}</q-item-label>
       </div>
     </div>
     <div class="frame-top q-mx-md"></div>
@@ -369,9 +369,15 @@ import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'ContactEditView',
+  props: {
+    contact: {
+      type: Object,
+      default: null
+    },
+  },
   data() {
     return {
-      checkboxVal: false,
+      editMode: false,
       oContact: null,
       bSmallEditView: true,
       oPrimaryEmail: null,
@@ -385,9 +391,10 @@ export default {
   },
 
   mounted () {
-    let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
-    let oContact = _.cloneDeep(ContactByUUID.contact)
-    this.oContact = (oContact && oContact instanceof CContact) ? oContact : null
+    this.editMode = !!(this.contact && this.contact instanceof CContact)
+
+    let oContact = (this.contact && this.contact instanceof CContact) ? _.cloneDeep(this.contact) : new CContact({})
+    this.oContact = oContact
 
     this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})
     this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
@@ -511,7 +518,11 @@ export default {
       }
     },
     closeEditContact() {
-      this.$store.dispatch('contacts/closeEditContact')
+      if (this.editMode) {
+        this.$store.dispatch('contacts/closeEditContact')
+      } else {
+        this.$store.commit('contacts/changeStateForCreatingContact', false)
+      }
     },
     onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
       this.bSaving = false

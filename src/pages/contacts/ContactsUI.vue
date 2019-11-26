@@ -51,15 +51,18 @@
 
                 <template v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup">
                   <contactView v-if="!currentContact.editable"/>
-                  <contactEditView v-if="currentContact.editable"/>
+                  <contactEditView v-if="currentContact.editable" :contact="currentContact.contact" />
                 </template>
+
+                <contactEditView v-if="stateForCreatingContact && !stateForCreatingGroup" />
+                <!-- <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" /> -->
 
                 <template v-if="showGroup && !showContact && !stateForCreatingContact && !stateForCreatingGroup">
                   <GroupView v-if="!currentGroup.editable"/>
                   <GroupEditView v-if="currentGroup.editable"/>
                 </template>
 
-                <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" />
+                <!-- <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" /> -->
                 <group-create-view v-if="stateForCreatingGroup && !stateForCreatingContact" />
               </div>
             </template>
@@ -83,7 +86,7 @@ import GroupView from './GroupView.vue'
 import GroupEditView from './GroupEditView.vue'
 
 import Pagination from '../Pagination.vue'
-import ContactCreateView from './ContactCreateView.vue'
+// import ContactCreateView from './ContactCreateView.vue'
 import GroupCreateView from './GroupCreateView.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
@@ -102,7 +105,7 @@ export default {
     GroupEditView,
 
     Pagination,
-    ContactCreateView,
+    // ContactCreateView,
     GroupCreateView,
   },
   data () {

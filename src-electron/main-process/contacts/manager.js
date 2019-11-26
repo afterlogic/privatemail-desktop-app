@@ -316,6 +316,31 @@ export default {
         },
       })
     })
+
+    ipcMain.on('contacts-remove-contacts-from-group', (oEvent, { sApiHost, sAuthToken, sGroupUUID, aContacts, aContactsUUIDs }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'RemoveContactsFromGroup',
+        oParameters: { GroupUUID: sGroupUUID, ContactUUIDs: aContactsUUIDs },
+        fCallback: (mResult, oError) => {
+          if (mResult) {
+            contactsDbManager.removeContactsFromGroup({ sGroupUUID, aContacts, aContactsUUIDs })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-remove-contacts-from-group', { bRemoved: true })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-remove-contacts-from-group', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-remove-contacts-from-group', { oError })
+          }
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

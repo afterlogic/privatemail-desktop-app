@@ -563,4 +563,31 @@ export default {
       }
     })
   },
+
+  removeContactsFromGroup: function ({ sGroupUUID, aContacts, aContactsUUIDs }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function () {
+          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
+          let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
+          _.each(aContacts, function (oContact) {
+            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.without(oContact.GroupUUIDs, sGroupUUID)}, _.filter(aContactDbMap, function (oContactDbMap) {
+              return oContactDbMap.DbName === 'group_uuids'
+            }))
+            aParams = _.union(aParams, aContactsUUIDs)
+            oStatement.run.apply(oStatement, aParams)
+          })
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'removeContactsFromGroup', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'removeContactsFromGroup', sError: 'No DB connection' })
+      }
+    })
+  },
 }

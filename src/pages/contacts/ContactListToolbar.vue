@@ -28,7 +28,15 @@
       </q-list>
     </q-btn-dropdown>
 
-    <q-btn v-if="currentStorage === 'personal' && currentGroupUUID === ''" flat color="primary" :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" icon="delete_outline" @click="askDeleteContacts">
+    <q-btn v-if="currentGroupUUID !== ''" flat color="primary" :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" 
+        icon="remove_circle_outline" @click="removeContactsFromGroup">
+      <q-tooltip>
+        Remove from group
+      </q-tooltip>
+    </q-btn>
+
+    <q-btn v-if="currentStorage === 'personal' && currentGroupUUID === ''" flat color="primary" 
+        :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" icon="delete_outline" @click="askDeleteContacts">
       <q-tooltip>
         Delete
       </q-tooltip>
@@ -183,11 +191,13 @@ export default {
       ipcRenderer.on('contacts-refresh', this.onContactsRefresh)
       ipcRenderer.on('contacts-delete-contacts', this.onDeleteContacts)
       ipcRenderer.on('contacts-add-contacts-to-group', this.onAddContactsToGroup)
+      ipcRenderer.on('contacts-remove-contacts-from-group', this.onRemoveContactsFromGroup)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
       ipcRenderer.removeListener('contacts-delete-contacts', this.onDeleteContacts)
       ipcRenderer.removeListener('contacts-add-contacts-to-group', this.onAddContactsToGroup)
+      ipcRenderer.removeListener('contacts-remove-contacts-from-group', this.onRemoveContactsFromGroup)
     },
     addContactsToGroup (sGroupUUID) {
       let aAllContacts = this.$store.getters['contacts/getContacts'].list
@@ -210,6 +220,32 @@ export default {
         notification.showReport('Contacts were added to the group successfully.')
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while adding contacts to the group'))
+      }
+    },
+    removeContactsFromGroup () {
+      let sGroupUUID = this.currentGroupUUID
+      let aAllContacts = this.$store.getters['contacts/getContacts'].list
+      let aContacts = _.filter(aAllContacts, (oContact) => {
+        return _.indexOf(this.checkedContacts, oContact.UUID) !== -1
+      })
+      notification.showLoading('Removing contacts from the group...')
+      ipcRenderer.send('contacts-remove-contacts-from-group', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        sGroupUUID,
+        aContacts,
+        aContactsUUIDs: this.checkedContacts,
+      })
+    },
+    onRemoveContactsFromGroup (oEvent, oResult) {
+      let { bRemoved, oError } = oResult
+      notification.hideLoading()
+      if (bRemoved) {
+        this.$store.commit('contacts/setCheckedContacts', [])
+        this.$store.commit('contacts/setHasChanges', true)
+        notification.showReport('Contacts were removed from the group successfully.')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while removing contacts from the group'))
       }
     },
     createGroup () {

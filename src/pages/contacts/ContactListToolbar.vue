@@ -105,7 +105,6 @@ import { ipcRenderer } from 'electron'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
-import webApi from 'src/utils/webApi.js'
 
 export default {
   name: 'ContactsListToolbar',

@@ -55,6 +55,9 @@
                   <q-input outlined dense class="input-size" v-model="oGroup.Web"/>
                 </div>
               </div>
+              <div>
+                with {{ checkedContactsCount }} contact(s)
+              </div>
             </div>
           </q-scroll-area>
         </div>
@@ -150,6 +153,7 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
 
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
@@ -161,6 +165,23 @@ export default {
       bIsOrganization: false,
       bSaving: false,
     }
+  },
+
+  computed: {
+    checkedContacts () {
+      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
+      if (typesUtils.isNonEmptyArray(aCheckedContacts)) {
+        return aCheckedContacts
+      }
+      let sCurrentContactUUID = this.$store.getters['contacts/getCurrentContactUUID']
+      if (typesUtils.isNonEmptyString(sCurrentContactUUID)) {
+        return [sCurrentContactUUID]
+      }
+      return []
+    },
+    checkedContactsCount () {
+      return this.checkedContacts.length
+    },
   },
 
   mounted: function() {
@@ -183,10 +204,12 @@ export default {
   methods: {
     onSave () {
       this.bSaving = true
+      let oGroupToSave = _.cloneDeep(this.oGroup)
+      oGroupToSave.Contacts = this.checkedContacts
       ipcRenderer.send('contacts-save-group', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
-        oGroupToSave: _.cloneDeep(this.oGroup),
+        oGroupToSave,
       })
     },
     closeCreatingGroup() {

@@ -45,7 +45,7 @@
             </template>
             <template v-slot:after>
               <div class="full-height bg-white text-black panel-rounded">
-                <div class="pannel-hint" v-if="!(showContact || showGroup || stateForCreatingContact || stateForCreatingContact)">
+                <div class="pannel-hint" v-if="!(showContact || showGroup || stateForCreatingContact || stateForCreatingGroup)">
                   No contact selected.
                 </div>
 

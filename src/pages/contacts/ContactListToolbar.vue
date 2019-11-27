@@ -6,7 +6,7 @@
       </q-tooltip>
     </q-btn>
 
-    <q-btn flat color="primary" icon="mail_outline" :disable="checkedContactsCount === 0" @click="dummyAction">
+    <q-btn flat color="primary" icon="mail_outline" :disable="checkedContactsCount === 0" @click="emailToContacts">
       <q-tooltip>
         New Message
       </q-tooltip>
@@ -271,6 +271,21 @@ export default {
         sStorage: this.currentStorage,
         aContactsUUIDs: this.checkedContacts,
       })
+    },
+    emailToContacts () {
+      let aAllContacts = this.$store.getters['contacts/getContacts'].list
+      let aCheckedContactsUUIDs = _.clone(this.$store.getters['contacts/getCheckedContacts'])
+      let aCheckedContacts = _.filter(aAllContacts, (oContact) => {
+        return _.indexOf(aCheckedContactsUUIDs, oContact.UUID) !== -1
+      })
+      let aToAddr = []
+      _.each(aCheckedContacts, function (oContact) {
+        let sToAddr = oContact.getFull()
+        if (typesUtils.isNonEmptyString(sToAddr)) {
+          aToAddr.push(sToAddr)
+        }
+      })
+      this.openCompose({ sToAddr: aToAddr.join(', ') })
     },
     dummyAction() {
       notification.showReport('There is no action here yet')

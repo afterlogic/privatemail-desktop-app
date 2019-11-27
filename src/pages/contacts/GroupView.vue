@@ -103,7 +103,6 @@
 <script>
 import { ipcRenderer } from 'electron'
 
-import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
@@ -167,21 +166,16 @@ export default {
       }
     },
     onGetGroupEmails (oEvent, { aContacts, oRequestParams, oError }) {
-      let aEmails = []
+      let aToAddr = []
       if (typesUtils.isNonEmptyArray(aContacts)) {
         _.each(aContacts, function (oContact) {
-          let sEmail = _.trim(oContact.ViewEmail)
-          if (addressUtils.isCorrectEmail(sEmail)) {
-            let sFullName = _.trim(oContact.FullName)
-            if (oContact.UseFriendlyName && typesUtils.isNonEmptyString(sFullName)) {
-              aEmails.push('"' + sFullName + '" <' + sEmail + '>')
-            } else {
-              aEmails.push(sEmail)
-            }
+          let sToAddr = oContact.getFull()
+          if (typesUtils.isNonEmptyString(sToAddr)) {
+            aToAddr.push(sToAddr)
           }
         })
       }
-      this.openCompose({ sToAddr: aEmails.join(', ') })
+      this.openCompose({ sToAddr: aToAddr.join(', ') })
     },
     askDeleteGroup () {
       this.deleteConfirm = true

@@ -1,3 +1,4 @@
+import addressUtils from '../../../utils/address.js'
 import typesUtils from '../../../utils/types'
 
 function CContact(data) {
@@ -123,6 +124,20 @@ CContact.prototype.setViewEmail = function () {
       this.ViewEmail = this.OtherEmail
       break
   }
+}
+
+CContact.prototype.getFull = function () {
+  let sFull = ''
+  let sEmail = _.trim(this.ViewEmail)
+  if (addressUtils.isCorrectEmail(sEmail)) {
+    let sFullName = _.trim(this.FullName)
+    if (this.UseFriendlyName && typesUtils.isNonEmptyString(sFullName)) {
+      sFull = '"' + sFullName + '" <' + sEmail + '>'
+    } else {
+      sFull = sEmail
+    }
+  }
+  return sFull
 }
 
 export default CContact

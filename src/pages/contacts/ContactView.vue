@@ -174,7 +174,6 @@
 <script>
 import moment from 'moment'
 
-import addressUtils from 'src/utils/address.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
 
@@ -244,17 +243,7 @@ export default {
       }
     },
     emailToContact () {
-      let sToAddr = ''
-      let sEmail = _.trim(this.contact.ViewEmail)
-      if (addressUtils.isCorrectEmail(sEmail)) {
-        let sFullName = _.trim(this.contact.FullName)
-        if (this.contact.UseFriendlyName && typesUtils.isNonEmptyString(sFullName)) {
-          sToAddr = '"' + sFullName + '" <' + sEmail + '>'
-        } else {
-          sToAddr = sEmail
-        }
-      }
-
+      let sToAddr = this.contact.getFull()
       this.openCompose({ sToAddr })
     },
     dummyAction() {

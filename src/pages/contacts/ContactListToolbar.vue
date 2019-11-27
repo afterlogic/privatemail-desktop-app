@@ -248,6 +248,13 @@ export default {
       }
     },
     createGroup () {
+      let oCurrentContact = this.$store.getters['contacts/getCurrentContact'].contact
+      if (oCurrentContact) {
+        let aCheckedContacts = _.clone(this.$store.getters['contacts/getCheckedContacts'])
+        aCheckedContacts.push(oCurrentContact.UUID)
+        this.$store.commit('contacts/setCheckedContacts', aCheckedContacts)
+        this.$store.dispatch('contacts/setCurrentContactByUUID', null)
+      }
       this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
     askDeleteContacts () {

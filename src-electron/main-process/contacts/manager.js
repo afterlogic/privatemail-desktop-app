@@ -238,7 +238,7 @@ export default {
       })
     })
 
-    ipcMain.on('contacts-save-group', (oEvent, { sApiHost, sAuthToken, oGroupToSave }) => {
+    ipcMain.on('contacts-save-group', (oEvent, { sApiHost, sAuthToken, oGroupToSave, aContacts }) => {
       let bCreateGroup = oGroupToSave.UUID === ''
       let sMethod = bCreateGroup ? 'CreateGroup' : 'UpdateGroup'
       webApi.sendRequest({
@@ -255,19 +255,19 @@ export default {
             contactsDbManager.setGroup({ oGroup: oGroupToSave })
             .then(
               () => {
-                // if (bCreateGroup) {
-                //   contactsDbManager.addContactsToGroup({ sGroupUUID: oGroupToSave.UUID, aContacts: oGroupToSave.Contacts, aContactsUUIDs: oGroupToSave.Contacts })
-                //   .then(
-                //     () => {
-                //       oEvent.sender.send('contacts-add-contacts-to-group', { bAdded: true })
-                //     },
-                //     (oError) => {
-                //       oEvent.sender.send('contacts-add-contacts-to-group', { oError })
-                //     }
-                //   )
-                // } else {
-                  oEvent.sender.send('contacts-save-group', { bSaved: true })
-                // }
+                if (bCreateGroup && typesUtils.isNonEmptyArray(oGroupToSave.Contacts) && typesUtils.isNonEmptyArray(aContacts)) {
+                  contactsDbManager.addContactsToGroup({ sGroupUUID: oGroupToSave.UUID, aContacts, aContactsUUIDs: oGroupToSave.Contacts })
+                  .then(
+                    () => {
+                      oEvent.sender.send('contacts-save-group', { bSaved: true, iAddedContactsCount: aContacts.length })
+                    },
+                    (oError) => {
+                      oEvent.sender.send('contacts-save-group', { oError })
+                    }
+                  )
+                } else {
+                  oEvent.sender.send('contacts-save-group', { bSaved: true, iAddedContactsCount: 0 })
+                }
               },
               (oError) => {
                 oEvent.sender.send('contacts-save-group', { oError })

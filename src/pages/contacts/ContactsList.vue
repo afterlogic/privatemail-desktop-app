@@ -39,6 +39,8 @@
 </style>
 
 <script>
+import typesUtils from 'src/utils/types.js'
+
 export default {
   name: 'ContactsList',
 
@@ -48,14 +50,6 @@ export default {
     return {
       page: 1,
       perPage: 20,
-      selectedContact: null,
-    }
-  },
-
-  beforeMount: function () {
-    let contact = this.$store.getters['contacts/getCurrentContact']
-    if (contact.UUID) {
-      this.selectedContact = contact.UUID
     }
   },
 
@@ -72,17 +66,16 @@ export default {
     },
     'searchText': function() {
       this.startAsyncGetContacts(true)
+      this.aCheckedList = []
     },
     'currentPage': function() {
       this.startAsyncGetContacts(false)
+      this.aCheckedList = []
     },
     'hasChanges': function () {
       if (this.hasChanges) {
         this.startAsyncGetContacts(false)
       }
-    },
-    'contacts.list': function () {
-      this.setCurrentContactByUUID(this.selectedContact)
     },
     allChecked: function () {
       if (this.allChecked) {
@@ -105,6 +98,10 @@ export default {
   },
 
   computed: {
+    selectedContact () {
+      let oContactData = this.$store.getters['contacts/getCurrentContact']
+      return typesUtils.pString(oContactData && oContactData.UUID)
+    },
     currentAccountEmail () {
       return this.$store.getters['mail/getCurrentAccountEmail']
     },
@@ -148,7 +145,6 @@ export default {
     },
     setCurrentContactByUUID(UUID) {
       this.$store.dispatch('contacts/setCurrentContactByUUID', UUID)
-      this.selectedContact = UUID
     },
     isChecked(UUID) {
       return !!_.find(this.aCheckedList, (el) => el === UUID)

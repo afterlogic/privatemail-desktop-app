@@ -55,7 +55,7 @@
                   <q-input outlined dense class="input-size" v-model="oGroup.Web"/>
                 </div>
               </div>
-              <div>
+              <div class="input-line">
                 with {{ checkedContactsCount }} contact(s)
               </div>
             </div>
@@ -169,15 +169,7 @@ export default {
 
   computed: {
     checkedContacts () {
-      let aCheckedContacts = this.$store.getters['contacts/getCheckedContacts']
-      if (typesUtils.isNonEmptyArray(aCheckedContacts)) {
-        return aCheckedContacts
-      }
-      let sCurrentContactUUID = this.$store.getters['contacts/getCurrentContactUUID']
-      if (typesUtils.isNonEmptyString(sCurrentContactUUID)) {
-        return [sCurrentContactUUID]
-      }
-      return []
+      return this.$store.getters['contacts/getCheckedContacts']
     },
     checkedContactsCount () {
       return this.checkedContacts.length
@@ -206,10 +198,15 @@ export default {
       this.bSaving = true
       let oGroupToSave = _.cloneDeep(this.oGroup)
       oGroupToSave.Contacts = this.checkedContacts
+      let aAllContacts = this.$store.getters['contacts/getContacts'].list
+      let aContacts = _.filter(aAllContacts, (oContact) => {
+        return _.indexOf(this.checkedContacts, oContact.UUID) !== -1
+      })
       ipcRenderer.send('contacts-save-group', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
         oGroupToSave,
+        aContacts,
       })
     },
     closeCreatingGroup() {
@@ -218,11 +215,14 @@ export default {
     changeSmallEditView() {
       this.bIsOrganization = !this.bIsOrganization
     },
-    onSaveGroup (oEvent, { bSaved, oError }) {
+    onSaveGroup (oEvent, { bSaved, iAddedContactsCount, oError }) {
       this.bSaving = false
       if (bSaved) {
         notification.showReport('The group has been created.')
         this.$store.dispatch('contacts/asyncGetGroups')
+        if (iAddedContactsCount > 0) {
+          this.$store.commit('contacts/setHasChanges', true)
+        }
         this.closeCreatingGroup()
       } else {
         notification.showError(errors.getText(oError, 'Error updating group.'))

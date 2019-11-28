@@ -6,7 +6,7 @@
       :maximized="maximizedToggle"
       transition-show="slide-up"
       transition-hide="slide-down"
-      @before-hide="clearAutosaveTimer"
+      @before-hide="onBeforeHide"
     >
       <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
@@ -364,6 +364,9 @@ export default {
   },
 
   methods: {
+    onBeforeHide () {
+      this.clearAutosaveTimer()
+    },
     send () {
       if (this.isEnableSending) {
         this.clearAutosaveTimer()
@@ -415,9 +418,7 @@ export default {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }
           prefetcher.checkMail()
-          if (this.dialog) {
-            this.setAutosaveTimer()
-          }
+          this.setAutosaveTimer()
         } else {
           notification.showError(errors.getText(oError, 'Error occurred while saving message'))
         }
@@ -482,15 +483,13 @@ export default {
     },
     setAutosaveTimer () {
       this.clearAutosaveTimer()
-      console.log('setAutosaveTimer')
-      if (settings.bAllowAutosaveInDrafts && settings.iAutoSaveIntervalSeconds > 0) {
+      if (this.dialog && settings.bAllowAutosaveInDrafts && settings.iAutoSaveIntervalSeconds > 0) {
         this.iAutosaveTimer = setTimeout(() => {
           this.save()
         }, settings.iAutoSaveIntervalSeconds * 1000)
       }
     },
     clearAutosaveTimer () {
-      console.log('clearAutosaveTimer')
       clearTimeout(this.iAutosaveTimer)
     },
     showCc () {

@@ -1,11 +1,14 @@
 import { ipcRenderer } from 'electron'
 import _ from 'lodash'
-import webApi from 'src/utils/webApi.js'
+
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import webApi from 'src/utils/webApi.js'
+
 import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/modules/mail/prefetcher.js'
+import settings from 'src/modules/mail/objects/settings.js'
 
 export function asyncGetSettings ({ commit }) {
   webApi.sendRequest({
@@ -16,6 +19,7 @@ export function asyncGetSettings ({ commit }) {
       if (oResult && oResult.Accounts && oResult.Accounts[0]) {
         commit('setCurrentAccount', oResult.Accounts[0])
         commit('resetCurrentFolderList')
+        settings.parse(oResult)
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while getting mail settings'))
       }

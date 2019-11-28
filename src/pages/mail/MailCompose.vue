@@ -6,6 +6,7 @@
       :maximized="maximizedToggle"
       transition-show="slide-up"
       transition-hide="slide-down"
+      @before-hide="clearAutosaveTimer"
     >
       <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
@@ -299,6 +300,7 @@ import webApi from 'src/utils/webApi'
 
 import CAttachment from 'src/modules/mail/classes/CAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
+import settings from 'src/modules/mail/objects/settings.js'
 
 export default {
   name: 'MailCompose',
@@ -328,6 +330,8 @@ export default {
 
       isCcShowed: false,
       isBccShowed: false,
+
+      iAutosaveTimer: 0,
     }
   },
 
@@ -355,9 +359,14 @@ export default {
     },
   },
 
+  beforeDestroy: function () {
+    this.clearAutosaveTimer()
+  },
+
   methods: {
     send () {
       if (this.isEnableSending) {
+        this.clearAutosaveTimer()
         composeUtils.sendMessage({
           oCurrentAccount: this.currentAccount,
           oCurrentFolderList: this.currentFolderList,
@@ -384,6 +393,7 @@ export default {
       }
     },
     save () {
+      this.clearAutosaveTimer()
       composeUtils.saveMessage({
         oCurrentAccount: this.currentAccount,
         oCurrentFolderList: this.currentFolderList,
@@ -405,6 +415,9 @@ export default {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }
           prefetcher.checkMail()
+          if (this.dialog) {
+            this.setAutosaveTimer()
+          }
         } else {
           notification.showError(errors.getText(oError, 'Error occurred while saving message'))
         }
@@ -461,9 +474,24 @@ export default {
       this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddr)
       this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddr)
       this.dialog = true
+
+      this.setAutosaveTimer()
     },
     closeCompose () {
       this.dialog = false
+    },
+    setAutosaveTimer () {
+      this.clearAutosaveTimer()
+      console.log('setAutosaveTimer')
+      if (settings.bAllowAutosaveInDrafts && settings.iAutoSaveIntervalSeconds > 0) {
+        this.iAutosaveTimer = setTimeout(() => {
+          this.save()
+        }, settings.iAutoSaveIntervalSeconds * 1000)
+      }
+    },
+    clearAutosaveTimer () {
+      console.log('clearAutosaveTimer')
+      clearTimeout(this.iAutosaveTimer)
     },
     showCc () {
       this.isCcShowed = true

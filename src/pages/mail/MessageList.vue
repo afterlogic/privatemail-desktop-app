@@ -1,12 +1,17 @@
 <template>
   <div>
     <template v-if="folderSelected">
+      <template v-if="currentSearch !== ''">
+        <span class="pannel-hint--link" @click="showAllMessages">Clear search</span>
+        <div class="pannel-hint">Search results for <b>{{ currentSearch }}</b> in {{ folderName }} folder:</div>
+      </template>
       <template v-if="currentFilter !== ''">
         <span class="pannel-hint--link" @click="showAllMessages">View all messages</span>
         <div class="pannel-hint">Unread messages in {{ folderName }} folder:</div>
       </template>
       <template v-if="messages.length === 0">
-        <div class="pannel-hint" v-if="!syncing">The folder is empty</div>
+        <div class="pannel-hint" v-if="!syncing && currentFilter === '' && currentSearch === ''">The folder is empty</div>
+        <div class="pannel-hint" v-if="!syncing && (currentFilter !== '' || currentSearch !== '')">No message found</div>
         <div class="pannel-hint" v-if="syncing">Loading message list...</div>
       </template>
     </template>
@@ -43,6 +48,9 @@ export default {
     },
     currentFilter () {
       return this.$store.getters['mail/getCurrentFilter']
+    },
+    currentSearch () {
+      return this.$store.getters['mail/getCurrentSearch']
     },
   },
 

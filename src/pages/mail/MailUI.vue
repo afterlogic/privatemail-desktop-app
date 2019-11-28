@@ -32,9 +32,13 @@
                     style="width: 100%; background: #eee;">
                     <template v-slot:header>
                       <q-checkbox v-model="checkboxAll" />
-                      <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" style="width: 100%;">
+                      <q-input outlined rounded dense bg-color="white"
+                          @click.stop.prevent class="search-field"
+                          v-model="searchInputText"
+                          @keyup.enter.stop.prevent="search"
+                          style="width: 100%;">
                         <template v-slot:prepend>
-                          <q-icon name="search" ></q-icon>
+                          <q-icon name="search" @click.stop.prevent="search"></q-icon>
                         </template>
                         <!-- <template v-slot:after>
                           <q-btn round dense flat icon="send" ></q-btn>
@@ -43,15 +47,15 @@
                     </template>
                     <div class="row q-gutter-md" style="padding: 0px 20px;">
                       <div class="col q-gutter-md">
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="From" />
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="Subject" />
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="Since" />
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="Has" />
+                        <q-input outlined dense bg-color="white" label="From" />
+                        <q-input outlined dense bg-color="white" label="Subject" />
+                        <q-input outlined dense bg-color="white" label="Since" />
+                        <q-input outlined dense bg-color="white" label="Has" />
                       </div>
                       <div class="col q-gutter-md">
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="To"/>
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="Text"/>
-                        <q-input outlined dense bg-color="white" v-model="searchText" label="Till"/>
+                        <q-input outlined dense bg-color="white" label="To"/>
+                        <q-input outlined dense bg-color="white" label="Text"/>
+                        <q-input outlined dense bg-color="white" label="Till"/>
                       </div>
                     </div>
                   </q-expansion-item>
@@ -88,6 +92,7 @@ import Pagination from '../Pagination.vue'
 
 export default {
   name: 'MailUI',
+
   components: {
     FolderList,
     MessageList,
@@ -95,15 +100,17 @@ export default {
     MessageViewer,
     Pagination,
   },
+
   data () {
     return {
       splitterFolderModel: 20,
       splitterMessageModel: 50,
       checkboxAll: false,
       checkedUids: [],
-      searchText: '',
+      searchInputText: '',
     }
   },
+
   computed: {
     currentAccount () {
       return this.$store.getters['mail/getCurrentAccount']
@@ -127,9 +134,16 @@ export default {
       }
       return this.checkedUids
     },
+    searchText () {
+      return this.$store.getters['mail/getCurrentSearch']
+    },
   },
+
   watch: {
-    checkboxAll: function(val, oldval) {
+    searchText: function () {
+      this.searchInputText = this.searchText
+    },
+    checkboxAll: function (val, oldval) {
       this.$root.$emit('check-all-messages', val)
     },
     messages: function (val, oldVal) {
@@ -139,7 +153,13 @@ export default {
       this.checkedUids = _.intersection(this.checkedUids, aCurrentUids)
     },
   },
+
   methods: {
+    search: function () {
+      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
+      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: this.searchInputText })
+    },
     changePage (iPage) {
       if (iPage !== this.currentPage) {
         this.$store.dispatch('mail/setСurrentPage', iPage)
@@ -169,14 +189,15 @@ export default {
       this.$router.push({ path: '/' })
     },
   },
+
   mounted: function () {
     this.initSubscriptions()
-
     let bAuthorized = this.$store.getters['user/isAuthorized']
     if (!this.currentAccount && bAuthorized) {
       this.$store.dispatch('mail/asyncGetSettings')
     }
   },
+
   beforeDestroy() {
     this.destroySubscriptions()
   },

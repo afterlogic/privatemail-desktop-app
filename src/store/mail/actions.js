@@ -108,7 +108,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
           sFolderFullName,
           oMessagesInfo: aMessagesInfo,
         })
-        if (bCurrentFolder && state.currentFilter === '') {
+        if (bCurrentFolder && state.currentFilter === '' && state.currentSearch === '') {
           commit('setCurrentMessages')
         }
       } else {
@@ -155,6 +155,7 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, {iAccoun
 
 export function setCurrentFolder ({ state, commit, getters }, sFolderFullName) {
   commit('setCurrentFilter', '')
+  commit('setCurrentSearch', '')
   commit('setCurrentFolder', sFolderFullName)
   commit('setCurrentFolderChanged')
   commit('setMessagesInfo', {

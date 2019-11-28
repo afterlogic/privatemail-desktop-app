@@ -26,6 +26,7 @@ export default {
   currentMessages: [], // list of messages for current page
   currentPage: 1,
   currentFilter: '',
+  currentSearch: '',
   messagesPerPage: 20,
 
   messagesCache: {},

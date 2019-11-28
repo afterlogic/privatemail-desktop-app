@@ -1,8 +1,11 @@
 import { ipcRenderer } from 'electron'
-import _ from 'lodash'
-import dateUtils from 'src/utils/date'
-import messagesUtils from './utils/messages.js'
 import * as getters from './getters'
+import _ from 'lodash'
+
+import dateUtils from 'src/utils/date'
+import typesUtils from 'src/utils/types'
+
+import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/modules/mail/prefetcher.js';
 
 export function setSyncing (state, payload) {
@@ -243,14 +246,14 @@ export function setCurrentMessages (state, aMessages) {
       let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
       let iAccountId = state.currentAccount.AccountID
       let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
-    
+
       state.currentMessages = aCurrentMessages
-    
-      if (aNotFounUids.length > 0) {
+
+      if (aCurrentMessages.length > 0 && aNotFounUids.length > 0) {
         state.syncing = true
         ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
       } else {
-        if (state.currentMessages.length === 0 && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 ) {
+        if (state.currentMessages.length === 0 && state.currentFolderList.Current && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 && state.currentFilter === '' && state.currentSearch === '' ) {
           state.syncing = true
           prefetcher.start()
         } else {
@@ -266,7 +269,11 @@ export function setСurrentPage (state, payload) {
 }
 
 export function setCurrentFilter (state, sFilter) {
-  state.currentFilter = sFilter
+  state.currentFilter = typesUtils.pString(sFilter)
+}
+
+export function setCurrentSearch (state, sSearch) {
+  state.currentSearch = typesUtils.pString(sSearch)
 }
 
 export function setMessagesRead (state, payload) {

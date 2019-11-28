@@ -35,6 +35,10 @@ export function getCurrentFilter (state) {
   return state.currentFilter
 }
 
+export function getCurrentSearch (state) {
+  return state.currentSearch
+}
+
 export function getMessagesPerPage (state) {
   return state.messagesPerPage
 }

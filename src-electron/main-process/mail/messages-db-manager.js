@@ -87,7 +87,9 @@ export default {
 
         if (typesUtils.isNonEmptyString(sSearch)) {
           aWhere.push('subject LIKE ?')
-          aParams.push('%"' + sSearch + '"%')
+          aParams.push('%' + sSearch + '%')
+          aWhere.push('to_addr LIKE ?')
+          aParams.push('%' + sSearch + '%')
         }
 
         if (typesUtils.isNonEmptyString(sFilter)) {

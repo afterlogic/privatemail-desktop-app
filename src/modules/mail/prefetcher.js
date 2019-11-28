@@ -99,6 +99,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
     } else {
       store.commit('mail/updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
       store.commit('mail/setCurrentFilter', sFilter)
+      store.commit('mail/setCurrentSearch', sSearch)
       store.commit('mail/setCurrentFolder', sFolderFullName)
       store.commit('mail/setCurrentFolderChanged')
       store.commit('mail/setСurrentPage', 1)

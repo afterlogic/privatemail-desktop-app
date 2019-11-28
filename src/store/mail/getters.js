@@ -40,9 +40,6 @@ export function getMessagesPerPage (state) {
 }
 
 export function getMessagesCount (state) {
-  if (state.currentFilter !== '') {
-    return _.isArray(state.currentMessages) ? state.currentMessages.length : 0
-  }
   return _.isArray(state.messageList) ? state.messageList.length : 0
 }
 

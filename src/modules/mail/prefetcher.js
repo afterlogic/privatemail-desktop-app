@@ -97,11 +97,38 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
         }
       }
     } else {
+      store.commit('mail/updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
       store.commit('mail/setCurrentFilter', sFilter)
       store.commit('mail/setCurrentFolder', sFolderFullName)
       store.commit('mail/setCurrentFolderChanged')
       store.commit('mail/setСurrentPage', 1)
-      store.commit('mail/setCurrentMessages', aMessages)
+      let aMessagesInfo = _.map(aMessages, function (oMessage) {
+        let aFlags = []
+        if (oMessage.IsAnswered) {
+          aFlags.push('\\answered')
+        }
+        if (oMessage.IsFlagged) {
+          aFlags.push('\\flagged')
+        }
+        if (oMessage.IsForwarded) {
+          aFlags.push('$forwarded')
+        }
+        if (oMessage.IsSeen) {
+          aFlags.push('\\seen')
+        }
+        return {
+          NeedPopulateThread: false,
+          flags: aFlags,
+          thread: [],
+          uid: oMessage.Uid
+        }
+      })
+      let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+      store.commit('mail/setMessagesInfo', {
+        Parameters: oParameters,
+        MessagesInfo: aMessagesInfo,
+      })
+      store.commit('mail/setCurrentMessages')
       let oСurrentMessage = store.getters['mail/getСurrentMessage']
       if (oСurrentMessage && oСurrentMessage.Folder !== sFolderFullName) {
         store.commit('mail/setCurrentMessage', null)

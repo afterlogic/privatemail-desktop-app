@@ -3,6 +3,7 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
 import webApi from 'src/utils/webApi.js'
 
 import foldersUtils from './utils/folders.js'
@@ -93,19 +94,19 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
     sModule: 'Mail',
     sMethod: 'GetMessagesInfo',
     oParameters,
-    fCallback: (oResult, oError) => {
+    fCallback: (aMessagesInfo, oError) => {
       if (bCurrentFolder) {
         commit('setSyncing', false)
       }
-      if (oResult) {
+      if (typesUtils.isNonEmptyArray(aMessagesInfo)) {
         commit('setMessagesInfo', {
           Parameters: oParameters,
-          MessagesInfo: oResult,
+          MessagesInfo: aMessagesInfo,
         })
         ipcRenderer.send('db-set-messagesinfo', {
           iAccountId,
           sFolderFullName,
-          oMessagesInfo: oResult,
+          oMessagesInfo: aMessagesInfo,
         })
         if (bCurrentFolder && state.currentFilter === '') {
           commit('setCurrentMessages')

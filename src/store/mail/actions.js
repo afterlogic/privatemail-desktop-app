@@ -213,7 +213,14 @@ export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payl
     sMethod: 'MoveMessages',
     oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, ToFolder: payload.ToFolder, Uids: payload.Uids.join(',')},
     fCallback: (oResult, oError) => {
-      if (!oResult) {
+      if (oResult) {
+        // remove current message from preview pane if it was deleted
+        let oСurrentMessage = getters.getСurrentMessage
+        if (oСurrentMessage && _.indexOf(payload.Uids, oСurrentMessage.Uid) !== -1) {
+          commit('setCurrentMessage', null)
+        }
+      } else {
+        // restore deleted messages
         commit('setMessagesDeleted', {
           Uids: payload.Uids,
           Deleted: false,

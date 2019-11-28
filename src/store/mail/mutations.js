@@ -104,6 +104,8 @@ function _syncMessageFlags(oNewInfo, oOldInfo, iAccountId, FolderFullName, oStat
     if (oMessage) {
       oMessage.IsSeen = (oNewInfo.flags.indexOf('\\seen') >= 0)
       oMessage.IsFlagged = (oNewInfo.flags.indexOf('\\flagged') >= 0)
+      oMessage.IsAnswered = (oNewInfo.flags.indexOf('\\answered') >= 0)
+      oMessage.IsForwarded = (oNewInfo.flags.indexOf('$forwarded') >= 0)
       ipcRenderer.send('db-set-messages', {
         iAccountId,
         aMessages: [oMessage],

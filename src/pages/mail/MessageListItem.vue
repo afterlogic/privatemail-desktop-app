@@ -14,6 +14,11 @@
         <q-item-label v-else lines="1" class="nodata">No subject</q-item-label>
       </q-item-section>
       <q-item-section side>
+        <q-item-label style="position: absolute; top: 6px; right: 6px;">
+          <q-icon color="green" v-if="message.IsAnswered && !message.IsForwarded" flat name="reply" />
+          <q-icon color="orange" v-if="!message.IsAnswered && message.IsForwarded" flat name="forward" />
+          <q-icon color="red" v-if="message.IsAnswered && message.IsForwarded" flat name="sync" />
+        </q-item-label>
         <q-item-label>
           <q-icon flat name="attachment" style="font-size: 1.5em;" v-if="message.HasAttachments" />
           {{message.ShortDate}}

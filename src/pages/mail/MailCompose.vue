@@ -13,8 +13,14 @@
             {{subjectText !== '' ? subjectText : 'New message'}}
           </q-toolbar-title>
           <q-space />
+          <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
+            <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
+          </q-btn>
           <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">
-            <!-- <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip> -->
+            <!-- <q-tooltip content-class="bg-white text-primary">Maximize</q-tooltip> -->
+          </q-btn>
+          <q-btn flat icon="close" @click="saveAndClose">
+            <q-tooltip content-class="bg-white text-primary">Save&nbsp;and&nbsp;Close</q-tooltip>
           </q-btn>
         </q-toolbar>
       </div>
@@ -24,13 +30,13 @@
           <q-btn flat icon="save" label="Save" @click="save" />
           <q-space />
           <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
-            <!-- <q-tooltip v-if="!maximizedToggle" content-class="bg-white text-primary">Maximize</q-tooltip> -->
+            <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
           </q-btn>
           <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">
-            <!-- <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip> -->
+            <!-- <q-tooltip content-class="bg-white text-primary">Maximize</q-tooltip> -->
           </q-btn>
-          <q-btn flat icon="close" v-close-popup>
-            <!-- <q-tooltip content-class="bg-white text-primary">Close</q-tooltip> -->
+          <q-btn flat icon="close" @click="saveAndClose">
+            <q-tooltip content-class="bg-white text-primary">Save&nbsp;and&nbsp;Close</q-tooltip>
           </q-btn>
         </q-toolbar>
         <div class="col">
@@ -544,7 +550,11 @@ export default {
       }
     },
     pickFiles () {
-      this.$refs.uploader.pickFiles();
+      this.$refs.uploader.pickFiles()
+    },
+    saveAndClose () {
+      this.save()
+      this.closeCompose()
     },
   },
 }

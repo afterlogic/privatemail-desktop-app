@@ -186,7 +186,8 @@ export default {
     })
 
     ipcMain.on('contacts-save-contact', (oEvent, { sApiHost, sAuthToken, oContactToSave }) => {
-      let sMethod = oContactToSave.UUID === '' ? 'CreateContact' : 'UpdateContact'
+      let bNewContact = oContactToSave.UUID === ''
+      let sMethod = bNewContact ? 'CreateContact' : 'UpdateContact'
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -194,10 +195,10 @@ export default {
         sMethod,
         oParameters: { Contact: oContactToSave },
         fCallback: (mResult, oError) => {
-          if (mResult && (mResult.UUID === oContactToSave.UUID || oContactToSave.UUID === '')) {
+          if (mResult && (mResult.UUID === oContactToSave.UUID || bNewContact)) {
             oContactToSave.ETag = mResult.ETag
             oContactToSave.UUID = mResult.UUID
-            contactsDbManager.setContacts({ aContacts: [oContactToSave] })
+            contactsDbManager.setContacts({ aContacts: [oContactToSave], bCreateInfo: bNewContact })
             .then(
               () => {
                 oEvent.sender.send('contacts-save-contact', { oContactWithUpdatedETag: oContactToSave })

@@ -463,7 +463,7 @@ export default {
     })
   },
 
-  setContacts: function ({ aContacts }) {
+  setContacts: function ({ aContacts, bCreateInfo }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function() {
@@ -476,9 +476,13 @@ export default {
           }).join(', ')
           sQuestions = aContactDbMap.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('INSERT INTO contacts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+          let oInfoStatement = oDb.prepare('INSERT INTO contacts_info (storage, uuid, etag) VALUES (?, ?, ?)')
           _.each(aContacts, function (oContact) {
             let aParams = dbHelper.prepareInsertParams(oContact, aContactDbMap)
             oStatement.run.apply(oStatement, aParams)
+            if (bCreateInfo) {
+              oInfoStatement.run.apply(oInfoStatement, [oContact.Storage, oContact.UUID, oContact.ETag])
+            }
           })
           oStatement.finalize(function (oError) {
             if (oError) {

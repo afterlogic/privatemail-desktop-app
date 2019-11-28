@@ -364,6 +364,7 @@ import moment from 'moment'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 
@@ -510,6 +511,9 @@ export default {
         this.bSaving = true
         let oContactToSave = _.cloneDeep(this.oContact)
         oContactToSave.setViewEmail()
+        if (!typesUtils.isNonEmptyString(oContactToSave.Storage)) {
+          oContactToSave.Storage = 'personal' // creating contact is allowed only for personal storage
+        }
         ipcRenderer.send('contacts-save-contact', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],

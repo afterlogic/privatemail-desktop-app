@@ -35,10 +35,10 @@ export default {
       let sMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oMessageInfo.uid)
       let oMessage = oStateMessagesCache[sMessageKey]
       if (oMessage) {
-        let bFlagsChanged = -1 !== _.findIndex(oMessageInfo.thread, function (oThreadInfo) {
-          return oThreadInfo.flagsChanged
-        })
-        if (oMessageInfo.NeedPopulateThread || bFlagsChanged || /** for the first time */_.isArray(oMessageInfo.thread) && !_.isArray(oMessage.Threads)) {
+        // let bFlagsChanged = -1 !== _.findIndex(oMessageInfo.thread, function (oThreadInfo) {
+        //   return oThreadInfo.flagsChanged
+        // })
+        // if (oMessageInfo.NeedPopulateThread || bFlagsChanged || /** for the first time */_.isArray(oMessageInfo.thread) && !_.isArray(oMessage.Threads)) {
             let aThreads = []
           _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
             let sThreadMessageKey = this.getMessageCacheKey(iCurrentAccountId, sStateCurrentFolderFullName, oThreadMessageInfo.uid)
@@ -59,7 +59,7 @@ export default {
             oMessage.Threads = null // do not delete because it will not trigger changes in UI
           }
           oMessageInfo.NeedPopulateThread = false
-        }
+        // }
         delete oMessage.ThreadParentUid
         aCurrentMessages.push(oMessage)
       } else {
@@ -71,13 +71,15 @@ export default {
     return { aCurrentMessages, aNotFounUids }
   },
 
-  getMessagesInfoParameters: function (iAccountId, sFolderFullName) {
+  getMessagesInfoParameters: function (iAccountId, sFolderFullName, sSearch, sFilter) {
     return {
       AccountID: iAccountId,
       Folder: sFolderFullName,
-      UseThreading: true,
+      UseThreading: (sFilter || sSearch) ? false : true,
       SortBy: 'arrival',
       SortOrder: 1,
+      Search: sSearch,
+      Filter: sFilter,
     }
   },
 

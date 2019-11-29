@@ -198,7 +198,7 @@ export function setMessagesInfo (state, payload) {
       state.messageList = payload.MessagesInfo
     }
   } else if (payload && payload.AccountId && payload.FolderFullName) {
-    let oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName)
+    let oParameters = messagesUtils.getMessagesInfoParameters(payload.AccountId, payload.FolderFullName, getters.getCurrentSearch(state), getters.getCurrentFilter(state))
     state.messageList = state.allMessageLists[JSON.stringify(oParameters)] || null
   } else {
     state.messageList = null

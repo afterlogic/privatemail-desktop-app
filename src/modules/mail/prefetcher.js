@@ -56,7 +56,7 @@ ipcRenderer.on('db-get-messagesinfo', (event, { iAccountId, sFolderFullName, oMe
   if (store.state.mail.currentAccount && store.state.mail.currentAccount.AccountID === iAccountId) {
     bAllowPrefetch = true
     if (oMessagesInfo) {
-      let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+      let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, store.getters['mail/getCurrentSearch'], store.getters['mail/getCurrentFilter'])
       store.commit('mail/setMessagesInfo', {
         Parameters: oParameters,
         MessagesInfo: oMessagesInfo,
@@ -85,7 +85,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
         prefetcher.start()
       }
       if (aMessages.length < aUids.length) {
-        let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+        let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, store.getters['mail/getCurrentSearch'], store.getters['mail/getCurrentFilter'])
         let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
         let aUidsToRetrieve = aMessageList === null ? aUids : messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, sFolderFullName)
         if (aUidsToRetrieve.length > 0) {
@@ -124,7 +124,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
           uid: oMessage.Uid
         }
       })
-      let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+      let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, store.getters['mail/getCurrentSearch'], store.getters['mail/getCurrentFilter'])
       store.commit('mail/setMessagesInfo', {
         Parameters: oParameters,
         MessagesInfo: aMessagesInfo,
@@ -141,7 +141,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
 function _getMessages(oFolder) {
   let bPrefetchStarted = false
   let iAccountId = store.state.mail.currentAccount.AccountID
-  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, oFolder.FullName)
+  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, oFolder.FullName, store.getters['mail/getCurrentSearch'], store.getters['mail/getCurrentFilter'])
   let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
   if (aMessageList === null) {
     store.dispatch('mail/asyncGetMessagesInfo', oFolder.FullName)

@@ -3,7 +3,6 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
-import typesUtils from 'src/utils/types.js'
 import webApi from 'src/utils/webApi.js'
 
 import foldersUtils from './utils/folders.js'
@@ -85,7 +84,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
   let iAccountId = state.currentAccount.AccountID
   let sFolderFullName = payload
   let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
-  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName)
+  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, getters.getCurrentSearch, getters.getCurrentFilter)
 
   if (bCurrentFolder) {
     commit('setSyncing', true)
@@ -98,7 +97,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
       if (bCurrentFolder) {
         commit('setSyncing', false)
       }
-      if (typesUtils.isNonEmptyArray(aMessagesInfo)) {
+      if (_.isArray(aMessagesInfo)) {
         commit('setMessagesInfo', {
           Parameters: oParameters,
           MessagesInfo: aMessagesInfo,

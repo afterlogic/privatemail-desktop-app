@@ -78,6 +78,7 @@ export default {
       if (oDb && oDb.open) {
         let aWhere = ['account_id = ?', 'folder = ?']
         let aParams = [iAccountId, sFolderFullName]
+        let sOrder = ''
 
         if (typesUtils.isNonEmptyArray(aUids)) {
           let sQuestions = aUids.map(function(){ return '?' }).join(',')
@@ -86,25 +87,27 @@ export default {
         }
 
         if (typesUtils.isNonEmptyString(sSearch)) {
-          aWhere.push('subject LIKE ?')
+          aWhere.push('(subject LIKE ? OR to_addr LIKE ?)')
           aParams.push('%' + sSearch + '%')
-          aWhere.push('to_addr LIKE ?')
           aParams.push('%' + sSearch + '%')
+          sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
         }
 
         if (typesUtils.isNonEmptyString(sFilter)) {
           if (sFilter.indexOf('unseen') !== -1) {
             aWhere.push('is_seen = ?')
             aParams.push(false)
+            sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
           }
           if (sFilter.indexOf('flagged') !== -1) {
             aWhere.push('is_flagged = ?')
             aParams.push(true)
+            sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
           }
         }
 
         oDb.all(
-          'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
+          'SELECT * FROM messages WHERE ' + aWhere.join(' AND ') + sOrder,
           aParams,
           function (oError, aRows) {
             if (oError) {

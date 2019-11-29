@@ -23,7 +23,7 @@
           </q-tooltip>
         </q-chip>
       </q-item-section>
-      <q-item-section side v-if="folder.Type === 3 && folder.Count > 0">
+      <q-item-section side v-if="showTotalCount">
         <q-chip color="transparent" dense>{{folder.Count}}</q-chip>
       </q-item-section>
     </q-item>
@@ -38,6 +38,8 @@
 
 <script>
 import { ipcRenderer } from 'electron'
+
+import mailEnums from 'src/modules/mail/enums.js'
 
 import FolderListItem from './FolderListItem.vue'
 
@@ -59,6 +61,13 @@ export default {
       subfolders: [],
     }
   },
+
+  computed: {
+    showTotalCount () {
+      return this.folder.Type === mailEnums.FolderType.Drafts && this.folder.Count > 0
+    },
+  },
+
   methods: {
     selectFolder: function (folderFullName) {
       if (_.isFunction(this.$parent.selectFolder)) {

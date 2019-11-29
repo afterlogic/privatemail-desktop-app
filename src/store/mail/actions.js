@@ -208,6 +208,34 @@ export function setAllMessagesRead ({ state, commit, dispatch, getters }) {
   })
 }
 
+export function deleteMessages ({ state, commit, dispatch, getters }, payload) {
+  commit('setMessagesDeleted', {
+    Uids: payload.Uids,
+    Deleted: true,
+  })
+  webApi.sendRequest({
+    sModule: 'Mail',
+    sMethod: 'DeleteMessages',
+    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, Uids: payload.Uids.join(',')},
+    fCallback: (oResult, oError) => {
+      if (oResult) {
+        // remove current message from preview pane if it was deleted
+        let oСurrentMessage = getters.getСurrentMessage
+        if (oСurrentMessage && _.indexOf(payload.Uids, oСurrentMessage.Uid) !== -1) {
+          commit('setCurrentMessage', null)
+        }
+      } else {
+        // restore deleted messages
+        commit('setMessagesDeleted', {
+          Uids: payload.Uids,
+          Deleted: false,
+        })
+      }
+      dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
+    },
+  })
+}
+
 export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payload) {
   commit('setMessagesDeleted', {
     Uids: payload.Uids,
@@ -219,13 +247,13 @@ export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payl
     oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, ToFolder: payload.ToFolder, Uids: payload.Uids.join(',')},
     fCallback: (oResult, oError) => {
       if (oResult) {
-        // remove current message from preview pane if it was deleted
+        // remove current message from preview pane if it was moved
         let oСurrentMessage = getters.getСurrentMessage
         if (oСurrentMessage && _.indexOf(payload.Uids, oСurrentMessage.Uid) !== -1) {
           commit('setCurrentMessage', null)
         }
       } else {
-        // restore deleted messages
+        // restore moved messages
         commit('setMessagesDeleted', {
           Uids: payload.Uids,
           Deleted: false,

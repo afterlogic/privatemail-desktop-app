@@ -29,7 +29,7 @@
         <MoveToFolderItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
       </q-list>
     </q-btn-dropdown>
-    <q-btn flat color="primary" icon="delete_outline" no-wrap :label="checkedCount > 0 ? checkedCount : ''" :disable="checkedCount === 0" @click="moveMessagesToTrash">
+    <q-btn flat color="primary" icon="delete_outline" no-wrap :label="checkedCount > 0 ? checkedCount : ''" :disable="checkedCount === 0" @click="deleteMessages">
       <q-tooltip>
         Delete
       </q-tooltip>
@@ -47,6 +47,18 @@
         Check Mail
       </q-tooltip>
     </span>
+
+    <q-dialog v-model="confirmDeletePermanently" persistent>
+      <q-card>
+        <q-card-section class="row items-center">
+          <span class="q-ml-sm">Delete selected message(s) permanently?</span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Delete" color="primary" @click="deleteMessagesPermanently" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -54,8 +66,11 @@
 </style>
 
 <script>
-import prefetcher from 'src/modules/mail/prefetcher.js'
 import { colors } from 'quasar'
+
+import mailEnums from 'src/modules/mail/enums.js'
+import prefetcher from 'src/modules/mail/prefetcher.js'
+
 import MoveToFolderItem from './MoveToFolderItem.vue'
 
 const alerts = [
@@ -69,16 +84,21 @@ const alerts = [
 
 export default {
   name: 'MailListToolbar',
+
   components: {
     MoveToFolderItem,
   },
+
   props: {
     checkedMessagesUids: Array
   },
+
   data () {
     return {
+      confirmDeletePermanently: false,
     }
   },
+
   computed: {
     mailSyncing () {
       return this.$store.getters['mail/getSyncing']
@@ -89,7 +109,11 @@ export default {
     foldersTree () {
       return this.$store.getters['mail/getCurrentFoldersTree']
     },
+    currentFolder () {
+      return this.$store.getters['mail/getСurrentFolder']
+    },
   },
+
   methods: {
     setMessagesRead (bIsSeen) {
       if (this.checkedCount > 0) {
@@ -101,6 +125,22 @@ export default {
     },
     setAllMessagesRead () {
       this.$store.dispatch('mail/setAllMessagesRead')
+    },
+    deleteMessagesPermanently () {
+      if (this.checkedCount > 0) {
+        this.$store.dispatch('mail/deleteMessages', {
+          'Uids': this.checkedMessagesUids,
+        })
+      }
+    },
+    deleteMessages () {
+      if (this.currentFolder.Type === mailEnums.FolderType.Spam) {
+        this.deleteMessagesPermanently()
+      } else if (this.currentFolder.Type === mailEnums.FolderType.Trash) {
+        this.confirmDeletePermanently = true
+      } else {
+        this.moveMessagesToTrash()
+      }
     },
     moveMessagesToTrash () {
       this.moveMessagesToFolder('Trash')
@@ -153,6 +193,6 @@ export default {
         timeout: Math.random() * 5000 + 3000
       })
     },
-  }
+  },
 }
 </script>

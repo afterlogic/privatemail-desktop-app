@@ -1,23 +1,25 @@
+import mailEnums from 'src/modules/mail/enums.js'
+
 function _getIconName (sType, sFolderFullName) {
   let sIconName = ''
   switch (sType) {
-    case 1:
-      sIconName = 'mail' // inbox
+    case mailEnums.FolderType.Inbox:
+      sIconName = 'mail'
       break
-    case 2:
-      sIconName = 'send' // sent
+    case mailEnums.FolderType.Sent:
+      sIconName = 'send'
       break
-    case 3:
-      sIconName = 'insert_drive_file' // drafts
+    case mailEnums.FolderType.Drafts:
+      sIconName = 'insert_drive_file'
       break
-    case 4:
-      sIconName = 'error' // spam
+    case mailEnums.FolderType.Spam:
+      sIconName = 'error'
       break
-    case 5:
-      sIconName = 'delete' // trash
+    case mailEnums.FolderType.Trash:
+      sIconName = 'delete'
       break
-    case 7:
-      sIconName = 'star' // starred
+    case mailEnums.FolderType.Starred:
+      sIconName = 'star'
       break
   }
   if (sFolderFullName === 'Notes') {
@@ -66,19 +68,19 @@ export default {
         bHasSubscribed = bHasSubscribed || oNewFolder.Exists && oNewFolder.IsSubscribed || oNewFolder.HasSubscribed
 
         switch (oNewFolder.Type) {
-          case 1:
+          case mailEnums.FolderType.Inbox:
             oInbox = oNewFolder
             break
-          case 2:
+          case mailEnums.FolderType.Sent:
             oSent = oNewFolder
             break
-          case 3:
+          case mailEnums.FolderType.Drafts:
             oDrafts = oNewFolder
             break
-          case 4:
+          case mailEnums.FolderType.Spam:
             oSpam = oNewFolder
             break
-          case 5:
+          case mailEnums.FolderType.Trash:
             oTrash = oNewFolder
             break
         }
@@ -128,19 +130,19 @@ export default {
     function _recursive(aFoldersTree) {
       _.each(aFoldersTree, function (oFolder) {
         switch (oFolder.Type) {
-          case 1:
+          case mailEnums.FolderType.Inbox:
             oInbox = oFolder
             break
-          case 2:
+          case mailEnums.FolderType.Sent:
             oSent = oFolder
             break
-          case 3:
+          case mailEnums.FolderType.Drafts:
             oDrafts = oFolder
             break
-          case 4:
+          case mailEnums.FolderType.Spam:
             oSpam = oFolder
             break
-          case 5:
+          case mailEnums.FolderType.Trash:
             oTrash = oFolder
             break
         }

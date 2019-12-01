@@ -88,15 +88,17 @@
                       icon: 'text_format',
                       handler: changeColors
                     },
-                    image: {
-                      tip: 'Insert image',
-                      icon: 'image',
-                      handler: insertImage
-                    },
                   }" -->
               </div>
               <div class="col q-pa-md full-width"> 
                 <q-editor v-model="editortext" height="400px" class="full-height"
+                  :definitions="{
+                      image: {
+                        tip: 'Insert image',
+                        icon: 'image',
+                        handler: insertImage
+                      },
+                    }"
                   :toolbar="[
                     ['undo', 'redo'],
                     ['bold', 'italic', 'underline', 'strike'],
@@ -502,7 +504,7 @@ export default {
       console.log('changeColors')
     },
     insertImage () {
-      console.log('insertImage')
+      this.pickFiles()
     },
     uploaderFactory () {
       let url = this.$store.getters['main/getApiHost'] + '?/Api/'

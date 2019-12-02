@@ -83,6 +83,11 @@
                   </q-item>
                 </q-list>
                 <!-- :definitions="{
+                      image: {
+                        tip: 'Insert image',
+                        icon: 'image',
+                        handler: insertImage
+                      },
                     colors: {
                       tip: 'Font & background colors',
                       icon: 'text_format',
@@ -92,13 +97,6 @@
               </div>
               <div class="col q-pa-md full-width"> 
                 <q-editor v-model="editortext" ref="editor" height="400px" class="full-height"
-                  :definitions="{
-                      image: {
-                        tip: 'Insert image',
-                        icon: 'image',
-                        handler: insertImage
-                      },
-                    }"
                   :toolbar="[
                     ['undo', 'redo'],
                     ['bold', 'italic', 'underline', 'strike'],
@@ -134,8 +132,45 @@
                     times_new_roman: 'Times New Roman',
                     verdana: 'Verdana'
                   }"
-                />
-                <q-uploader
+                >
+                  <template v-slot:image>
+                    <q-btn-dropdown flat
+                      dropdown-icon="none"
+                      ref="insertImageDropdown"
+                      @hide="imageUrl=''"
+                    >
+                      <template v-slot:label>
+                        <q-btn flat icon="image" />
+                        <q-tooltip>
+                          Insert Image
+                        </q-tooltip>
+                      </template>
+                      <div style="padding: 10px;">
+                        <div>
+                          <div>
+                            Please select an image file to upload
+                          </div>
+                          <div clickable @click="insertImage">
+                            <q-btn flat label="Choose File" />
+                          </div>
+                        </div>
+                        <div>
+                          <div>
+                            or enter an URL:
+                          </div>
+                          <div>
+                            <input type="text" v-model="imageUrl" />
+                          </div>
+                          <div clickable>
+                            <q-btn flat label="Insert" @click="insertImageByUrl" />
+                            <q-btn flat label="Cancel" @click="cancelInsertImage" />
+                          </div>
+                        </div>
+                      </div>
+                    </q-btn-dropdown>
+                  </template>
+                </q-editor>
+                <q-uploader style="display: none;"
                     ref="imageUploader"
                     auto-upload
                     hide-upload-btn
@@ -149,7 +184,7 @@
                     <template v-slot:header="scope">
                       <q-uploader-add-trigger />
                     </template>
-                    <template v-slot:list="scope">
+                    <template v-slot:list="scope" >
                     </template>
                 </q-uploader>
               </div>
@@ -353,6 +388,7 @@ export default {
       iAutosaveTimer: 0,
 
       acceptedImageTypes: 'image/*',
+      imageUrl: '',
     }
   },
 
@@ -525,6 +561,13 @@ export default {
     insertImage () {
       this.$refs.editor.focus()
       this.$refs.imageUploader.pickFiles()
+    },
+    insertImageByUrl () {
+      this.$refs.editor.focus()
+      document.execCommand('insertHTML', true, '<img src="' + this.imageUrl + '" />')
+    },
+    cancelInsertImage () {
+      this.$refs.insertImageDropdown.hide()
     },
     uploaderFactory () {
       let url = this.$store.getters['main/getApiHost'] + '?/Api/'

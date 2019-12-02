@@ -48,9 +48,12 @@ CAttachment.prototype.getStatus = function () {
   return 'Uploading'
 }
 
-CAttachment.prototype.parseUploaderFile = function (oFile) {
+CAttachment.prototype.parseUploaderFile = function (oFile, bLinked) {
+  this.bInline = bLinked
+  this.bLinked = bLinked
   this.iProgressPercent = 0
   this.iSize = typesUtils.pInt(oFile.size, this.iSize)
+  this.sCid = typesUtils.pString('cid-' + Math.round(Math.random() * 1000000), this.sCid)
   this.oFile = oFile
   this.sFileName = typesUtils.pString(oFile.name, this.sFileName)
   this.sLocalPath = typesUtils.pString(oFile.path, this.sLocalPath)

@@ -91,7 +91,7 @@
                   }" -->
               </div>
               <div class="col q-pa-md full-width"> 
-                <q-editor v-model="editortext" height="400px" class="full-height"
+                <q-editor v-model="editortext" ref="editor" height="400px" class="full-height"
                   :definitions="{
                       image: {
                         tip: 'Insert image',
@@ -135,6 +135,23 @@
                     verdana: 'Verdana'
                   }"
                 />
+                <q-uploader
+                    ref="imageUploader"
+                    auto-upload
+                    hide-upload-btn
+                    :accept="acceptedImageTypes"
+                    :factory="uploaderFactory"
+                    @added="onImageFileAdded"
+                    @uploaded="onFileUploaded"
+                    @failed="onFileUploadFailed"
+                    @removed="onFileRemoved"
+                  >
+                    <template v-slot:header="scope">
+                      <q-uploader-add-trigger />
+                    </template>
+                    <template v-slot:list="scope">
+                    </template>
+                </q-uploader>
               </div>
             </div>
             <div class="col-auto q-pa-md column" style="min-width: 400px;">
@@ -334,6 +351,8 @@ export default {
       isBccShowed: false,
 
       iAutosaveTimer: 0,
+
+      acceptedImageTypes: 'image/*',
     }
   },
 
@@ -504,7 +523,8 @@ export default {
       console.log('changeColors')
     },
     insertImage () {
-      this.pickFiles()
+      this.$refs.editor.focus()
+      this.$refs.imageUploader.pickFiles()
     },
     uploaderFactory () {
       let url = this.$store.getters['main/getApiHost'] + '?/Api/'
@@ -527,11 +547,20 @@ export default {
         ],
       }
     },
+    onImageFileAdded (files) {
+      if (typesUtils.isNonEmptyArray(files)) {
+        _.each(files, (oFile) => {
+          let oAttach = new CAttachment()
+          oAttach.parseUploaderFile(oFile, true)
+          this.attachments.push(oAttach)
+        })
+      }
+    },
     onFileAdded (files) {
       if (typesUtils.isNonEmptyArray(files)) {
         _.each(files, (oFile) => {
           let oAttach = new CAttachment()
-          oAttach.parseUploaderFile(oFile)
+          oAttach.parseUploaderFile(oFile, false)
           this.attachments.push(oAttach)
         })
       }
@@ -546,6 +575,9 @@ export default {
         if (oResponse && oResponse.Result && oResponse.Result.Attachment) {
           oAttach.parseDataFromServer(oResponse.Result.Attachment, this.$store.getters['main/getApiHost'])
           oAttach.onUploadComplete()
+          if (oAttach.bLinked) {
+            document.execCommand('insertHTML', true, '<img src="' + oAttach.sViewLink + '" data-x-src-cid="' + oAttach.sCid + '" />')
+          }
         } else {
           notification.showError(errors.getText(oResponse, 'Error occurred while uploading file'))
           oAttach.onUploadFailed()

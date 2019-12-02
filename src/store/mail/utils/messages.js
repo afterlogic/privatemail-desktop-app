@@ -1,17 +1,17 @@
 export default {
-  getUidsToRetrieve: function (aMessageList, oStateMessagesCache, iAccountId, sFolderFullName) {
+  getUidsToRetrieve: function (aMessageList, aRequestedUids, oStateMessagesCache, iAccountId, sFolderFullName) {
     var aUids = []
     _.each(aMessageList, (oMessageInfo) => {
       var sMessageKey = this.getMessageCacheKey(iAccountId, sFolderFullName, oMessageInfo.uid)
       var oMessage = oStateMessagesCache[sMessageKey]
-      if (!oMessage) {
+      if (!oMessage && _.indexOf(aRequestedUids, oMessageInfo.uid) === -1) {
         aUids.push(oMessageInfo.uid)
       }
       if (oMessage && oMessageInfo.thread) {
         _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
           var sThreadMessageKey = this.getMessageCacheKey(iAccountId, sFolderFullName, oThreadMessageInfo.uid)
           var oThreadMessage = oStateMessagesCache[sThreadMessageKey]
-          if (!oThreadMessage) {
+          if (!oThreadMessage && _.indexOf(aRequestedUids, oThreadMessageInfo.uid) === -1) {
             aUids.push(oThreadMessageInfo.uid)
           }
         })

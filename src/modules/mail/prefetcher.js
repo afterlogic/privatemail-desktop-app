@@ -86,8 +86,11 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
       }
       if (aMessages.length < aUids.length) {
         let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, store.getters['mail/getCurrentSearch'], store.getters['mail/getCurrentFilter'])
-        let aMessageList = store.state.mail.allMessageLists[JSON.stringify(oParameters)] || null
-        let aUidsToRetrieve = aMessageList === null ? aUids : messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, sFolderFullName)
+        let sKey = JSON.stringify(oParameters)
+        let aMessageList = store.state.mail.allMessageLists[sKey] || null
+        let aRequestedUids = aAllRequestedUids[sKey] || []
+        let aUidsToRetrieve = aMessageList === null ? aUids : messagesUtils.getUidsToRetrieve(aMessageList, aRequestedUids, store.state.mail.messagesCache, iAccountId, sFolderFullName)
+        aAllRequestedUids[sKey] = _.union(aRequestedUids, aUidsToRetrieve)
         if (aUidsToRetrieve.length > 0) {
           store.dispatch('mail/asyncGetMessages', {
             iAccountId,
@@ -147,7 +150,7 @@ function _getMessages(oFolder) {
     store.dispatch('mail/asyncGetMessagesInfo', oFolder.FullName)
     bPrefetchStarted = true
   } else {
-    let aUids = messagesUtils.getUidsToRetrieve(aMessageList, store.state.mail.messagesCache, iAccountId, oFolder.FullName)
+    let aUids = messagesUtils.getUidsToRetrieve(aMessageList, [], store.state.mail.messagesCache, iAccountId, oFolder.FullName)
     if (aUids.length > 0) {
       ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: oFolder.FullName, aUids })
       bPrefetchStarted = true
@@ -161,6 +164,7 @@ let iCurrentAccountId = 0
 let bAllowPrefetch = false
 let bFoldersRetrieved = false
 let bFoldersFirstRefreshed = false
+let aAllRequestedUids = {}
 
 let prefetcher = {
   currentAccountChanged: function () {

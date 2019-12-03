@@ -179,7 +179,6 @@
                     @added="onImageFileAdded"
                     @uploaded="onFileUploaded"
                     @failed="onFileUploadFailed"
-                    @removed="onFileRemoved"
                   >
                     <template v-slot:header="scope">
                       <q-uploader-add-trigger />
@@ -209,7 +208,6 @@
                     @added="onFileAdded"
                     @uploaded="onFileUploaded"
                     @failed="onFileUploadFailed"
-                    @removed="onFileRemoved"
                   >
                     <template v-slot:header="scope">
                       <div class="row no-wrap items-center q-pa-sm q-gutter-xs" style="opacity: 0; height: 0px;">
@@ -262,6 +260,7 @@
 
                           <q-item-section top side>
                             <q-btn
+                              v-if="attach.iProgressPercent === 100"
                               class="gt-xs"
                               size="12px"
                               flat
@@ -620,6 +619,8 @@ export default {
           oAttach.onUploadComplete()
           if (oAttach.bLinked) {
             document.execCommand('insertHTML', true, '<img src="' + oAttach.sViewLink + '" data-x-src-cid="' + oAttach.sCid + '" />')
+            this.$refs.imageUploader.removeFile(oFile)
+            oAttach.oFile = null
           }
         } else {
           notification.showError(errors.getText(oResponse, 'Error occurred while uploading file'))
@@ -638,20 +639,13 @@ export default {
         oAttach.onUploadFailed()
       }
     },
-    onFileRemoved (files) {
-      let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
-      this.attachments = _.filter(this.attachments, (oAttach) => {
-        return oAttach.sLocalPath !== oFile.path
-      })
-    },
     removeAttachment (scope, oAttach) {
       if (oAttach.oFile) {
         scope.removeFile(oAttach.oFile)
-      } else {
-        this.attachments = _.filter(this.attachments, (oTmpAttach) => {
-          return oTmpAttach.sHash !== oAttach.sHash
-        })
       }
+      this.attachments = _.filter(this.attachments, (oTmpAttach) => {
+        return oTmpAttach.sHash !== oAttach.sHash
+      })
     },
     pickFiles () {
       this.$refs.uploader.pickFiles()

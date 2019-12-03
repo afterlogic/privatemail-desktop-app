@@ -116,7 +116,7 @@ export default {
       _.each(aFoundCids, function (sFoundCid) {
         let oAttachment = fFindAttachmentByCid(sFoundCid)
         if (oAttachment && oAttachment.Actions.view && oAttachment.Actions.view.url.length > 0) {
-          sResHtml = sResHtml.replace('data-x-src-cid="' + sFoundCid + '"', 'data-x-src-cid="' + sFoundCid + '" src="' + sAppPath + oAttachment.Actions.view.url + '"')
+          sResHtml = sResHtml.replace(new RegExp('data-x-src-cid="' + sFoundCid + '"', 'g'), 'data-x-src-cid="' + sFoundCid + '" src="' + sAppPath + oAttachment.Actions.view.url + '"')
         }
       })
     }

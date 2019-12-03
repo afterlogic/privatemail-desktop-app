@@ -5,74 +5,91 @@
     <q-list>
       <q-item tag="label" v-ripple>
         <q-item-section side top>
-          <q-checkbox v-model="checkDesktopNotifications" />
+          <q-checkbox v-model="enableOpenPgp" />
         </q-item-section>
 
         <q-item-section>
-          <q-item-label>Enable desktop notifications</q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item tag="label" v-ripple>
-        <q-item-section side top>
-          <q-checkbox v-model="check2" />
-        </q-item-section>
-
-        <q-item-section>
-          <q-item-label>Sound</q-item-label>
+          <q-item-label>Enable OpenPGP</q-item-label>
           <q-item-label caption>
-            Auto-update apps at anytime. Data charges may apply
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item tag="label" v-ripple>
-        <q-item-section side top>
-          <q-checkbox v-model="check3" />
-        </q-item-section>
-
-        <q-item-section>
-          <q-item-label>Auto-add widgets</q-item-label>
-          <q-item-label caption>
-            Automatically add home screen widgets
+            Be aware of "Allow autosave in Drafts" setting in Mail module. Turn it off if you don't want the server to store unencrypted drafts. You will still be able to save drafts manually (Ctrl-S).
           </q-item-label>
         </q-item-section>
       </q-item>
 
       <q-separator spaced />
-      <q-item-label header>Notifications</q-item-label>
+      <q-btn color="primary" label="Save" />
 
-      <q-item tag="label" v-ripple>
+      <q-separator spaced />
+      <q-item-label header>Public keys</q-item-label>
+      <q-item v-ripple>
         <q-item-section>
-          <q-item-label>Battery too low</q-item-label>
+          <q-item-label>test2@afterlogic.com</q-item-label>
         </q-item-section>
         <q-item-section side >
-          <q-toggle color="blue" v-model="notif1" val="battery" />
+          <q-btn flat icon="visibility" />
+        </q-item-section>
+        <q-item-section side >
+          <q-btn flat icon="delete" />
         </q-item-section>
       </q-item>
 
-      <q-item tag="label" v-ripple>
+      <q-item-label header>Private keys</q-item-label>
+      <q-item v-ripple>
         <q-item-section>
-          <q-item-label>Friend request</q-item-label>
-          <q-item-label caption>Allow notification</q-item-label>
+          <q-item-label>test2@afterlogic.com</q-item-label>
         </q-item-section>
-        <q-item-section side top>
-          <q-toggle color="green" v-model="notif2" val="friend" />
+        <q-item-section side >
+          <q-btn flat icon="visibility" />
         </q-item-section>
-      </q-item>
-
-      <q-item tag="label" v-ripple>
-        <q-item-section>
-          <q-item-label>Picture uploaded</q-item-label>
-          <q-item-label caption>Allow notification when uploading images</q-item-label>
-        </q-item-section>
-        <q-item-section side top>
-          <q-toggle color="red" v-model="notif3" val="picture" />
+        <q-item-section side >
+          <q-btn flat icon="delete" />
         </q-item-section>
       </q-item>
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" icon="done" label="Save" align="right" />
+    <q-btn color="primary" label="Export all public keys" />
+    <q-btn color="primary" label="Import key" />
+    <q-btn color="primary" label="Generate new key" @click="openGenerateNewKey" />
+
+    <q-dialog v-model="generateNewKeyDialog" persistent>
+      <q-card>
+        <q-card-section class="row items-center q-pa-md">
+          <q-list>
+            <q-item>
+              <q-item-label header>Generate new key</q-item-label>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Email</q-item-label>
+              </q-item-section>
+              <q-item-section side >
+                <q-item-label>{{ newKeyEmail }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Password</q-item-label>
+              </q-item-section>
+              <q-item-section side >
+                <q-input type="password" v-model="newKeyPassword" />
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Key length</q-item-label>
+              </q-item-section>
+              <q-item-section side >
+                <q-item-label>{{ newKeyLength }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Generate" color="primary" @click="generateNewKey" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 
 </template>
@@ -80,21 +97,34 @@
 <style></style>
 
 <script>
-// import FolderList from "components/FolderList.vue"
-
 export default {
-  name: "CommonSettings",
+  name: 'OpenPgpSettings',
+
   components: {
   },
+
   data () {
     return {
-      checkDesktopNotifications: false,
-      check2: true,
-      check3: false,
-      notif1: false,
-      notif2: true,
-      notif3: true
+      enableOpenPgp: false,
+      generateNewKeyDialog: false,
+      newKeyPassword: '',
+      newKeyLength: 2048,
     }
-  }
-};
+  },
+
+  computed: {
+    newKeyEmail () {
+      return this.$store.getters['mail/getCurrentAccountEmail']
+    },
+  },
+
+  methods: {
+    openGenerateNewKey () {
+      this.generateNewKeyDialog = true
+    },
+    generateNewKey () {
+
+    },
+  },
+}
 </script>

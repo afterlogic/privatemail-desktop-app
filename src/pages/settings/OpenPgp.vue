@@ -198,6 +198,8 @@
 <style></style>
 
 <script>
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+
 export default {
   name: 'OpenPgpSettings',
 
@@ -244,6 +246,9 @@ export default {
     newKeyEmail () {
       return this.$store.getters['mail/getCurrentAccountEmail']
     },
+    openPgpKeys () {
+      return this.$store.getters['mail/getOpenPgpKeys']
+    },
   },
 
   methods: {
@@ -283,6 +288,11 @@ export default {
     },
     generateNewKey () {
       console.log('newKeyPassword', this.newKeyPassword)
+      OpenPgp.generateKey(this.newKeyEmail, this.newKeyPassword, this.newKeyLength, function () {
+        console.log('fOkHandler', arguments)
+      }, function () {
+        console.log('fErrorHandler', arguments)
+      })
     },
   },
 }

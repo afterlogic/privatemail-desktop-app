@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import openpgp from 'openpgp'
+const openpgp = require('openpgp')
 
 import addressUtils from 'src/utils/address.js'
 import typesUtils from 'src/utils/types.js'
@@ -49,51 +49,41 @@ function COpenPgp() {
   this.aKeys = []
 }
 
-COpenPgp.prototype.oKeyring = null
+// /**
+//  * @return {Array}
+//  */
+// COpenPgp.prototype.getKeys = function () {
+//   return this.aKeys
+// }
 
-COpenPgp.prototype.init = function (iUserId, sApiHost) {
-  let sPrefix = 'user_' + sApiHost + '_' + iUserId + '_'
-  this.oKeyring = new openpgp.Keyring(new openpgp.Keyring.localstore(sPrefix))
-  this.oKeyring.load()
-  .then(() => {
-    this.reloadKeysFromStorage()
-  })
-}
+// /**
+//  * @private
+//  */
+// COpenPgp.prototype.reloadKeysFromStorage = function () {
+//   console.log('reloadKeysFromStorage')
+//   let
+//     aKeys = [],
+//     oOpenpgpKeys = this.oKeyring.getAllKeys()
+// console.log('oOpenpgpKeys', oOpenpgpKeys)
+//   _.each(oOpenpgpKeys, function (oItem) {
+//     if (oItem && oItem.primaryKey) {
+//       aKeys.push(oItem)
+//     }
+//   })
+// console.log('aKeys', aKeys)
+//   this.aKeys = aKeys
+// }
 
-/**
- * @return {Array}
- */
-COpenPgp.prototype.getKeys = function () {
-  return this.aKeys
-}
-
-/**
- * @private
- */
-COpenPgp.prototype.reloadKeysFromStorage = function () {
-  let
-    aKeys = [],
-    oOpenpgpKeys = this.oKeyring.getAllKeys()
-
-  _.each(oOpenpgpKeys, function (oItem) {
-    if (oItem && oItem.primaryKey) {
-      aKeys.push(oItem)
-    }
-  })
-
-  this.aKeys = aKeys
-}
-
-/**
- * @private
- * @param {Array} aKeys
- * @return {Array}
- */
-COpenPgp.prototype.convertToNativeKeys = function (aKeys) {
-  return _.map(aKeys, function (oItem) {
-    return (oItem && oItem.pgpKey) ? oItem.pgpKey : oItem
-  })
-}
+// /**
+//  * @private
+//  * @param {Array} aKeys
+//  * @return {Array}
+//  */
+// COpenPgp.prototype.convertToNativeKeys = function (aKeys) {
+//   return _.map(aKeys, function (oItem) {
+//     return (oItem && oItem.pgpKey) ? oItem.pgpKey : oItem
+//   })
+// }
 
 /**
  * @private
@@ -224,18 +214,18 @@ COpenPgp.prototype.generateKey = function (sUserID, sPassword, nKeyLength, fOkHa
       passphrase: sPassword
     }
 
-  openpgp.generateKey(oOptions).then(_.bind(async function(oKeyPair) {
-    await this.oKeyring.privateKeys.importKey(oKeyPair.privateKeyArmored)
-    await this.oKeyring.publicKeys.importKey(oKeyPair.publicKeyArmored)
-    await this.oKeyring.store()
-    if (_.isFunction(fOkHandler)) {
-      fOkHandler()
-    }
-    this.reloadKeysFromStorage()
-    }, this),
+  openpgp.generateKey(oOptions).then(async (oKeyPair) => {
+    // await this.oKeyring.privateKeys.importKey(oKeyPair.privateKeyArmored)
+    // await this.oKeyring.publicKeys.importKey(oKeyPair.publicKeyArmored)
+    // await this.oKeyring.store()
+      if (_.isFunction(fOkHandler)) {
+        fOkHandler(oKeyPair)
+      }
+      // this.reloadKeysFromStorage()
+    },
     function (err) {
       if (_.isFunction(fErrorHandler)) {
-        fErrorHandler()
+        fErrorHandler(err)
       }
     }
   )

@@ -46,7 +46,7 @@
     "file-saver": "^2.0.2",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "openpgp": "^4.7.1",
+    "openpgp": "4.5.2",
     "quasar": "^1.1.6",
     "sqlite3": "^4.1.0",
     "vue-i18n": "^8.14.1",

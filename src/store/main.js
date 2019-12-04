@@ -4,6 +4,7 @@ export default {
     apiHost: '',
     lastLogin: '',
     theme: 'dark',
+    openPgpKeys: [],
   },
   mutations: {
     setApiHost (state, sApiHost) {
@@ -11,6 +12,9 @@ export default {
     },
     setLastLogin (state, sLastLogin) {
       state.lastLogin = sLastLogin
+    },
+    setOpenPgpKeys (state, aOpenPgpKeys) {
+      state.openPgpKeys = aOpenPgpKeys
     },
     setTheme (state, v) {
       state.theme = v
@@ -36,6 +40,9 @@ export default {
     },
     getLastLogin (state) {
       return state.lastLogin
+    },
+    getOpenPgpKeys (state) {
+      return state.openPgpKeys
     },
   },
 }

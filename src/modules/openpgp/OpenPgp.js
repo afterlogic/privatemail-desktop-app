@@ -459,14 +459,41 @@ COpenPgp.prototype.getPublicKeysIfExistsByEmail = function (sEmail) {
  * @returns {object}
  */
 COpenPgp.prototype.verifyKeyPassword = async function (oKey, sPrivateKeyPassword) {
-  let
-    oResult = {},
-    oPrivateKey = this.convertToNativeKeys([oKey])[0],
-    oPrivateKeyClone = await this.cloneKey(oPrivateKey)
+  let oKeysInfo = await openpgp.key.readArmored(oKey.sArmor)
+  let oOpenPgpKey = oKeysInfo.keys[0]
+  console.log('oOpenPgpKey', oOpenPgpKey)
+  console.log('oOpenPgpKey.primaryKey.isDecrypted', oOpenPgpKey.primaryKey.isDecrypted())
+  console.log('oOpenPgpKey.primaryKey.isEncrypted', oOpenPgpKey.primaryKey.isEncrypted)
+  if (oOpenPgpKey && oOpenPgpKey.primaryKey && oOpenPgpKey.primaryKey.isDecrypted() && sPrivateKeyPassword === '') {
+    //key is encoded with an empty password
+    return true
+  } else if (oOpenPgpKey) {
+    try {
+      await oOpenPgpKey.decrypt(typesUtils.pString(sPrivateKeyPassword))
+      console.log('oOpenPgpKey.primaryKey.isDecrypted', oOpenPgpKey.primaryKey.isDecrypted())
+      console.log('oOpenPgpKey.primaryKey.isEncrypted', oOpenPgpKey.primaryKey.isEncrypted)
+      if (!oOpenPgpKey || !oOpenPgpKey.primaryKey || !oOpenPgpKey.primaryKey.isDecrypted()) {
+        return false
+        // oResult = { iError: Enums.OpenPgpErrors.KeyIsNotDecodedError, sKeyEmail }
+      } else {
+        return true
+      }
+    } catch (e) {
+      return false
+      // oResult = { oException: e, iError: Enums.OpenPgpErrors.KeyIsNotDecodedError, sKeyEmail }
+    }
+  } else {
+    return false
+    // oResult = { iError: Enums.OpenPgpErrors.KeyIsNotDecodedError, sKeyEmail }
+  }
+  // let
+  //   oResult = {},
+  //   oPrivateKey = this.convertToNativeKeys([oKey])[0],
+  //   oPrivateKeyClone = await this.cloneKey(oPrivateKey)
 
-  await this.decryptKeyHelper(oResult, oPrivateKeyClone, sPrivateKeyPassword, '')
+  // await this.decryptKeyHelper(oResult, oPrivateKeyClone, sPrivateKeyPassword, '')
 
-  return oResult
+  // return oResult
 }
 
 /**

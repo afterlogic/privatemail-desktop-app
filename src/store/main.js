@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export default {
   namespaced: true,
   state: {
@@ -13,8 +15,13 @@ export default {
     setLastLogin (state, sLastLogin) {
       state.lastLogin = sLastLogin
     },
-    setOpenPgpKeys (state, aOpenPgpKeys) {
-      state.openPgpKeys = aOpenPgpKeys
+    addOpenPgpKeys (state, aOpenPgpKeys) {
+      state.openPgpKeys = _.union(state.openPgpKeys, aOpenPgpKeys)
+    },
+    deleteOpenPgpKey (state, sKeyId) {
+      state.openPgpKeys = _.filter(state.openPgpKeys, function (oKey) {
+        return oKey.sId !== sKeyId
+      })
     },
     setTheme (state, v) {
       state.theme = v

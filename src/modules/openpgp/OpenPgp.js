@@ -461,39 +461,24 @@ COpenPgp.prototype.getPublicKeysIfExistsByEmail = function (sEmail) {
 COpenPgp.prototype.verifyKeyPassword = async function (oKey, sPrivateKeyPassword) {
   let oKeysInfo = await openpgp.key.readArmored(oKey.sArmor)
   let oOpenPgpKey = oKeysInfo.keys[0]
-  console.log('oOpenPgpKey', oOpenPgpKey)
-  console.log('oOpenPgpKey.primaryKey.isDecrypted', oOpenPgpKey.primaryKey.isDecrypted())
-  console.log('oOpenPgpKey.primaryKey.isEncrypted', oOpenPgpKey.primaryKey.isEncrypted)
+  let sDecodeKeyError = 'You might have entered the wrong password for %USER% key.'
   if (oOpenPgpKey && oOpenPgpKey.primaryKey && oOpenPgpKey.primaryKey.isDecrypted() && sPrivateKeyPassword === '') {
     //key is encoded with an empty password
-    return true
+    return { bVerified: true }
   } else if (oOpenPgpKey) {
     try {
       await oOpenPgpKey.decrypt(typesUtils.pString(sPrivateKeyPassword))
-      console.log('oOpenPgpKey.primaryKey.isDecrypted', oOpenPgpKey.primaryKey.isDecrypted())
-      console.log('oOpenPgpKey.primaryKey.isEncrypted', oOpenPgpKey.primaryKey.isEncrypted)
       if (!oOpenPgpKey || !oOpenPgpKey.primaryKey || !oOpenPgpKey.primaryKey.isDecrypted()) {
-        return false
-        // oResult = { iError: Enums.OpenPgpErrors.KeyIsNotDecodedError, sKeyEmail }
+        return { bVerified: false, sError: sDecodeKeyError.replace('%USER%', oKey.sEmail) }
       } else {
-        return true
+        return { bVerified: true }
       }
     } catch (e) {
-      return false
-      // oResult = { oException: e, iError: Enums.OpenPgpErrors.KeyIsNotDecodedError, sKeyEmail }
+      return { bVerified: false, sError: sDecodeKeyError.replace('%USER%', oKey.sEmail) }
     }
   } else {
-    return false
-    // oResult = { iError: Enums.OpenPgpErrors.KeyIsNotDecodedError, sKeyEmail }
+    return { bVerified: false, sError: sDecodeKeyError.replace('%USER%', oKey.sEmail) }
   }
-  // let
-  //   oResult = {},
-  //   oPrivateKey = this.convertToNativeKeys([oKey])[0],
-  //   oPrivateKeyClone = await this.cloneKey(oPrivateKey)
-
-  // await this.decryptKeyHelper(oResult, oPrivateKeyClone, sPrivateKeyPassword, '')
-
-  // return oResult
 }
 
 /**

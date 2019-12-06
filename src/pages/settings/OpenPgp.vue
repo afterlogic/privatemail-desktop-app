@@ -57,7 +57,7 @@
       </q-item>
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" />
+    <q-btn color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" :disable="openPgpPublicKeys.length === 0" />
     <q-btn color="primary" label="Import key" @click="openImportKey" />
     <q-btn color="primary" v-if="isGenerating" label="Generating new key..." />
     <q-btn color="primary" v-if="!isGenerating" label="Generate new key" @click="openGenerateNewKey" :disable="!allowGenerateNewKey" />
@@ -114,7 +114,7 @@
         <q-card-section class="row items-center q-pa-md">
           <q-list>
             <q-item>
-              <q-item-label header>View all OpenPGP public keys</q-item-label>
+              <q-item-label header>{{ viewKeysHeader }}</q-item-label>
             </q-item>
             <q-item>
               <q-item-section>
@@ -123,6 +123,7 @@
                   filled
                   type="textarea"
                   style="width: 500px; height: 300px;"
+                  ref="viewKeysInput"
                 />
               </q-item-section>
             </q-item>
@@ -131,7 +132,7 @@
         <q-card-actions align="right">
           <q-btn flat label="Send" color="primary" @click="sendKeys" v-close-popup />
           <q-btn flat label="Download" color="primary" @click="downloadKeys" v-close-popup />
-          <q-btn flat label="Select" color="primary" @click="selectKeys" v-close-popup />
+          <q-btn flat label="Select" color="primary" @click="$refs.viewKeysInput.select()" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -147,7 +148,7 @@
             <q-item>
               <q-item-section>
                 <q-input
-                  v-model="keyToImport"
+                  v-model="keysArmorToImport"
                   filled
                   type="textarea"
                   style="width: 500px; height: 300px;"
@@ -157,7 +158,7 @@
           </q-list>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Check" color="primary" @click="checkKey" v-close-popup />
+          <q-btn flat label="Check" color="primary" @click="checkKey" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -209,8 +210,10 @@
 <style></style>
 
 <script>
+import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 
@@ -233,10 +236,11 @@ export default {
       keyPassword: '',
 
       viewKeysDialog: false,
+      viewKeysHeader: '',
       viewKeysValue: '',
 
       importKeyDialog: false,
-      keyToImport: '',
+      keysArmorToImport: '',
 
       isGenerating: false,
       generateNewKeyDialog: false,
@@ -250,10 +254,12 @@ export default {
       this.keyPassword = ''
     },
     viewKeysDialog () {
-      this.viewKeysValue = ''
+      if (!this.viewKeysDialog) {
+        this.viewKeysValue = ''
+      }
     },
     importKeyDialog () {
-      this.keyToImport = ''
+      this.keysArmorToImport = ''
     },
     generateNewKeyDialog () {
       this.newKeyPassword = ''
@@ -309,30 +315,96 @@ export default {
       this.keyToCheckAndView = oKey
       this.enterPasswordDialog = true
     },
-    checkPasswordAndViewKeys () {
-      if (OpenPgp.verifyKeyPassword(this.keyToCheckAndView, this.keyPassword)) {
+    async checkPasswordAndViewKeys () {
+      let { bVerified, sError } = await OpenPgp.verifyKeyPassword(this.keyToCheckAndView, this.keyPassword)
+      if (bVerified) {
         this.viewKeys([this.keyToCheckAndView])
+      } else {
+        notification.showError(sError)
       }
       this.keyToCheckAndView = null
     },
     viewKeys (aKeys) {
-      console.log('viewKeys', aKeys)
+      if (aKeys.length === 1) {
+        if (aKeys[0].bPublic) {
+          this.viewKeysHeader = 'View OpenPGP public key for ' + aKeys[0].sEmail
+        } else {
+          this.viewKeysHeader = 'View OpenPGP private key for ' + aKeys[0].sEmail
+        }
+      } else {
+        this.viewKeysHeader = 'View all OpenPGP public keys'
+      }
+      let aArmors = _.map(aKeys, function (oKey) {
+        return oKey.sArmor
+      })
+      this.viewKeysValue = aArmors.join('\r\n\r\n')
       this.viewKeysDialog = true
     },
+    dummyAction() {
+      notification.showReport('There is no action here yet')
+    },
     sendKeys () {
-
+      this.dummyAction()
     },
     downloadKeys () {
-
-    },
-    selectKeys () {
-
+      this.dummyAction()
     },
     openImportKey () {
       this.importKeyDialog = true
     },
-    checkKey () {
-      console.log('keyToImport', this.keyToImport)
+    async checkKey () {
+      let
+        aRes = null,
+        aKeys = [],
+        bHasExistingKeys = false,
+        bHasKeyWithoutEmail = false,
+        aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+
+      if (this.keysArmorToImport === '') {
+        notification.showReport('Please enter key armor into the field.')
+      } else {
+        aRes = await OpenPgp.getArmorInfo(this.keysArmorToImport)
+        console.log('aRes', aRes)
+
+//         if (typesUtils.isNonEmptyArray(aRes)) {
+//           _.each(aRes, function (oKey) {
+//             if (oKey) {
+//               let
+//                 bHasSameKey = !!_.find(aOpenPgpKeys, function (oStoredKey) {
+//                   console.log('oKey', oKey)
+//                   console.log('oStoredKey.sEmail', oStoredKey.sEmail)
+//                   console.log('oKey.getEmail()', oKey.getEmail())
+//                   console.log('oStoredKey.bPublic', oStoredKey.bPublic)
+//                   console.log('oKey.isPublic()', oKey.isPublic())
+//                   return oStoredKey.sEmail === oKey.getEmail() && oStoredKey.bPublic === oKey.isPublic()
+//                 }),
+//                 sAddInfoLangKey = oKey.isPublic() ? '%MODULENAME%/INFO_PUBLIC_KEY_LENGTH' : '%MODULENAME%/INFO_PRIVATE_KEY_LENGTH',
+//                 bNoEmail = !addressUtils.isCorrectEmail(oKey.getEmail())
+// console.log('bHasSameKey', bHasSameKey)
+// console.log('bNoEmail', bNoEmail)
+//               bHasExistingKeys = bHasExistingKeys || bHasSameKey
+//               bHasKeyWithoutEmail = bHasKeyWithoutEmail || bNoEmail
+//               aKeys.push({
+//                 'armor': oKey.getArmor(),
+//                 'email': oKey.user,
+//                 'id': oKey.getId(),
+//                 'addInfo': TextUtils.i18n(sAddInfoLangKey, {'LENGTH': oKey.getBitSize()}),
+//                 'needToImport': ko.observable(!bHasSameKey && !bNoEmail),
+//                 'disabled': bHasSameKey || bNoEmail,
+//                 'noEmail': bNoEmail
+//               })
+//             }
+//           })
+//         }
+//         console.log('aKeys', aKeys)
+        if (aKeys.length === 0) {
+          notification.showError('No OpenPGP keys found for import.')
+        }
+        
+        // this.keys(aKeys)
+        // this.hasExistingKeys(bHasExistingKeys)
+        // this.bHasKeyWithoutEmail(bHasKeyWithoutEmail)
+      }
     },
     openGenerateNewKey () {
       if (this.allowGenerateNewKey) {

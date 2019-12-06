@@ -145,7 +145,24 @@
             <q-item>
               <q-item-label header>Import key</q-item-label>
             </q-item>
-            <q-item>
+            <q-item v-if="keysToImport.length > 0">
+              <q-item-label>Text includes OpenPGP keys</q-item-label>
+            </q-item>
+            <q-item v-for="oKey in keysToImport" :key="oKey.sEmail" :disable="oKey.bDisabled">
+              <q-item-section side top>
+                <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ oKey.sEmail }}</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ oKey.sAddInfo }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item v-if="keysToImport.length > 0 && importHasExistingKeys">
+              <q-item-label caption>Keys which are already in the system are greyed out.</q-item-label>
+            </q-item>
+            <q-item v-if="keysToImport.length === 0">
               <q-item-section>
                 <q-input
                   v-model="keysArmorToImport"
@@ -158,7 +175,8 @@
           </q-list>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Check" color="primary" @click="checkKey" />
+          <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />
+          <q-btn flat label="Check" color="primary" @click="checkKey" v-if="keysToImport.length === 0" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -241,6 +259,10 @@ export default {
 
       importKeyDialog: false,
       keysArmorToImport: '',
+      keysToImport: [],
+      importHasExistingKeys: false,
+      importHasKeyWithoutEmail: false,
+
 
       isGenerating: false,
       generateNewKeyDialog: false,
@@ -260,6 +282,7 @@ export default {
     },
     importKeyDialog () {
       this.keysArmorToImport = ''
+      this.keysToImport = []
     },
     generateNewKeyDialog () {
       this.newKeyPassword = ''
@@ -364,46 +387,60 @@ export default {
         notification.showReport('Please enter key armor into the field.')
       } else {
         aRes = await OpenPgp.getArmorInfo(this.keysArmorToImport)
-        console.log('aRes', aRes)
 
-//         if (typesUtils.isNonEmptyArray(aRes)) {
-//           _.each(aRes, function (oKey) {
-//             if (oKey) {
-//               let
-//                 bHasSameKey = !!_.find(aOpenPgpKeys, function (oStoredKey) {
-//                   console.log('oKey', oKey)
-//                   console.log('oStoredKey.sEmail', oStoredKey.sEmail)
-//                   console.log('oKey.getEmail()', oKey.getEmail())
-//                   console.log('oStoredKey.bPublic', oStoredKey.bPublic)
-//                   console.log('oKey.isPublic()', oKey.isPublic())
-//                   return oStoredKey.sEmail === oKey.getEmail() && oStoredKey.bPublic === oKey.isPublic()
-//                 }),
-//                 sAddInfoLangKey = oKey.isPublic() ? '%MODULENAME%/INFO_PUBLIC_KEY_LENGTH' : '%MODULENAME%/INFO_PRIVATE_KEY_LENGTH',
-//                 bNoEmail = !addressUtils.isCorrectEmail(oKey.getEmail())
-// console.log('bHasSameKey', bHasSameKey)
-// console.log('bNoEmail', bNoEmail)
-//               bHasExistingKeys = bHasExistingKeys || bHasSameKey
-//               bHasKeyWithoutEmail = bHasKeyWithoutEmail || bNoEmail
-//               aKeys.push({
-//                 'armor': oKey.getArmor(),
-//                 'email': oKey.user,
-//                 'id': oKey.getId(),
-//                 'addInfo': TextUtils.i18n(sAddInfoLangKey, {'LENGTH': oKey.getBitSize()}),
-//                 'needToImport': ko.observable(!bHasSameKey && !bNoEmail),
-//                 'disabled': bHasSameKey || bNoEmail,
-//                 'noEmail': bNoEmail
-//               })
-//             }
-//           })
-//         }
-//         console.log('aKeys', aKeys)
+        if (typesUtils.isNonEmptyArray(aRes)) {
+          _.each(aRes, function (oKey) {
+            if (oKey) {
+              let
+                aKeyUsersIds = oKey.getUserIds(),
+                sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0',
+                bHasSameKey = !!_.find(aOpenPgpKeys, function (oStoredKey) {
+                  return oStoredKey.sEmail === sKeyEmail && oStoredKey.bPublic === oKey.isPublic()
+                }),
+                sAddInfoLangKey = oKey.isPublic() ? '(%LENGTH%-bit, public)' : '(%LENGTH%-bit, private)',
+                bNoEmail = false // !addressUtils.isCorrectEmail(sKeyEmail)
+
+              bHasExistingKeys = bHasExistingKeys || bHasSameKey
+              bHasKeyWithoutEmail = bHasKeyWithoutEmail || bNoEmail
+              let iBitSize = oKey.primaryKey.params[0].byteLength() * 8;
+              aKeys.push({
+                sArmor: oKey.armor(),
+                bPublic: oKey.isPublic(),
+                sEmail: sKeyEmail,
+                sAddInfo: sAddInfoLangKey.replace('%LENGTH%', iBitSize),
+                bDisabled: bHasSameKey || bNoEmail,
+                bChecked: false,
+                // 'id': oKey.getId(),
+                // 'needToImport': !bHasSameKey && !bNoEmail,
+                // 'noEmail': bNoEmail,
+              })
+            }
+          })
+        }
+
+        this.keysToImport = aKeys
+        this.importHasExistingKeys = bHasExistingKeys
+        this.importHasKeyWithoutEmail = bHasKeyWithoutEmail
+
         if (aKeys.length === 0) {
           notification.showError('No OpenPGP keys found for import.')
         }
-        
-        // this.keys(aKeys)
-        // this.hasExistingKeys(bHasExistingKeys)
-        // this.bHasKeyWithoutEmail(bHasKeyWithoutEmail)
+      }
+    },
+    importSelectedKeys () {
+      let aKeys = []
+      _.each(this.keysToImport, function (oKey) {
+        if (oKey.bChecked) {
+          aKeys.push({
+            bPublic: oKey.bPublic,
+            sArmor: oKey.sArmor,
+            sId: 'key-' + Math.round(Math.random() * 1000000),
+            sEmail: oKey.sEmail,
+          })
+        }
+      })
+      if (aKeys.length > 0) {
+        this.$store.commit('main/addOpenPgpKeys', aKeys)
       }
     },
     openGenerateNewKey () {

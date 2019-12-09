@@ -8,6 +8,53 @@
       transition-hide="slide-down"
       @before-hide="onBeforeHide"
     >
+      <q-dialog v-model="convertToPlainConfirm" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <span class="q-ml-sm">OpenPGP supports plain text only. Click OK to remove all the formatting and continue.</span>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Ok" color="primary" @click="convertToPlain" v-close-popup />
+            <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+      <q-dialog v-model="pgpSignEncryptDialog" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <span class="q-ml-sm" header>OpenPGP Sign/Encrypt</span>
+          </q-card-section>
+          <q-card-section class="row items-center">
+            <q-list>
+              <q-item tag="label" v-ripple>
+                <q-item-section side top>
+                  <q-checkbox v-model="signCheckbox" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Sign</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-input outlined v-model="signPassword" label="Password" @click.stop.prevent />
+                </q-item-section>
+              </q-item>
+              <q-item tag="label" v-ripple>
+                <q-item-section side top>
+                  <q-checkbox v-model="encryptCheckbox" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Encrypt</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="PGP Sign/Encrypt" color="primary" @click="signAndEncrypt" v-close-popup v-if="signCheckbox && encryptCheckbox" />
+            <q-btn flat label="Sign" color="primary" @click="sign" v-close-popup v-if="signCheckbox && !encryptCheckbox" />
+            <q-btn flat label="Encrypt" color="primary" @click="encrypt" v-close-popup v-if="!signCheckbox && encryptCheckbox" />
+            <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
       <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-toolbar-title @dblclick="maximizedToggle = false">
@@ -29,6 +76,8 @@
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />
+          <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="pgpSignEncrypt" />
+          <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
           <q-space />
           <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
             <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
@@ -97,6 +146,7 @@
               </div>
               <div class="col q-pa-md full-width"> 
                 <q-editor v-model="editortext" ref="editor" height="400px" class="full-height"
+                  :disable="disableEditor"
                   :toolbar="[
                     ['undo', 'redo'],
                     ['bold', 'italic', 'underline', 'strike'],
@@ -369,7 +419,11 @@ export default {
       sending: false, // indicates if sending is happening right now
       allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
 
+      plainText: false,
+      disableEditor: false,
+      pgpApplied: false,
       editortext: '',
+      prevHtmlText: '',
       toAddr: '',
       ccAddr: '',
       bccAddr: '',
@@ -388,6 +442,12 @@ export default {
 
       acceptedImageTypes: 'image/*',
       imageUrl: '',
+
+      convertToPlainConfirm: false,
+      pgpSignEncryptDialog: false,
+      signCheckbox: true,
+      encryptCheckbox: true,
+      signPassword: '',
     }
   },
 
@@ -420,8 +480,51 @@ export default {
   },
 
   methods: {
+    pgpSignEncrypt () {
+      this.convertToPlainConfirm = true
+    },
+    convertToPlain () {
+      this.signCheckbox = true
+      this.encryptCheckbox = true
+      this.signPassword = ''
+      this.pgpSignEncryptDialog = true
+    },
+    convertEditorTextToPlain () {
+      this.prevHtmlText = this.editortext
+      this.plainText = true
+      this.disableEditor = true
+      this.pgpApplied = true
+      this.editortext = this.editortext
+        .replace(/([^>]{1})<div>/gi, '$1\n')
+        .replace(/<style[^>]*>[^<]*<\/style>/gi, '\n')
+        .replace(/<br *\/{0,1}>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<a [^>]*href="([^"]*?)"[^>]*>(.*?)<\/a>/gi, '$2 ($1)')
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+    },
+    signAndEncrypt () {
+      this.convertEditorTextToPlain()
+    },
+    sign () {
+      this.convertEditorTextToPlain()
+    },
+    encrypt () {
+      this.convertEditorTextToPlain()
+    },
+    undoPGP () {
+      this.editortext = this.prevHtmlText
+      this.plainText = false
+      this.disableEditor = false
+      this.pgpApplied = true
+    },
     onBeforeHide () {
-      this.clearAutosaveTimer()
+      this.clearAutosaveTimer() 
     },
     send () {
       if (this.isEnableSending) {
@@ -434,6 +537,7 @@ export default {
           sBccAddr: this.bccAddr,
           sSubject: this.subjectText,
           sText: this.editortext,
+          bPlainText: this.plainText,
           aAttachments: this.attachments,
           sDraftUid: this.draftUid,
           aDraftInfo: this.draftInfo,
@@ -461,6 +565,7 @@ export default {
         sBccAddr: this.bccAddr,
         sSubject: this.subjectText,
         sText: this.editortext,
+        bPlainText: this.plainText,
         aAttachments: this.attachments,
         sDraftUid: this.draftUid,
         aDraftInfo: this.draftInfo,
@@ -486,6 +591,9 @@ export default {
       this.bccAddr = typesUtils.pString(sBccAddr)
       this.subjectText = typesUtils.pString(sSubject)
       this.editortext = typesUtils.pString(sText)
+      this.plainText = false
+      this.disableEditor = false
+      this.pgpApplied = false
 
       this.attachments = []
       if (typesUtils.isNonEmptyArray(aAttachments)) {

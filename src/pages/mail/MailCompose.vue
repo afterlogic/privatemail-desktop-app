@@ -14,7 +14,7 @@
             <span class="q-ml-sm">OpenPGP supports plain text only. Click OK to remove all the formatting and continue.</span>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat label="Ok" color="primary" @click="convertToPlain" v-close-popup />
+            <q-btn flat label="Ok" color="primary" @click="openPgpSignEncryptDialog" v-close-popup />
             <q-btn flat label="Cancel" color="grey-6" v-close-popup />
           </q-card-actions>
         </q-card>
@@ -76,7 +76,7 @@
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />
-          <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="pgpSignEncrypt" />
+          <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="openConvertToPlainDialog" />
           <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
           <q-space />
           <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
@@ -480,10 +480,10 @@ export default {
   },
 
   methods: {
-    pgpSignEncrypt () {
+    openConvertToPlainDialog () {
       this.convertToPlainConfirm = true
     },
-    convertToPlain () {
+    openPgpSignEncryptDialog () {
       this.signCheckbox = true
       this.encryptCheckbox = true
       this.signPassword = ''

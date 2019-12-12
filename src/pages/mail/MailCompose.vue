@@ -13,6 +13,9 @@
           <q-card-section class="row items-center">
             <span class="q-ml-sm">OpenPGP supports plain text only. Click OK to remove all the formatting and continue.</span>
           </q-card-section>
+          <q-card-section class="row items-center" v-if="attachments.length > 0">
+            <span class="q-ml-sm">Also, attachments cannot be encrypted or signed and will stay as-is.</span>
+          </q-card-section>
           <q-card-actions align="right">
             <q-btn flat label="Ok" color="primary" @click="openPgpSignEncryptDialog" v-close-popup />
             <q-btn flat label="Cancel" color="grey-6" v-close-popup />
@@ -48,9 +51,9 @@
             </q-list>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat label="PGP Sign/Encrypt" color="primary" @click="signAndEncrypt" v-close-popup v-if="signCheckbox && encryptCheckbox" />
-            <q-btn flat label="Sign" color="primary" @click="sign" v-close-popup v-if="signCheckbox && !encryptCheckbox" />
-            <q-btn flat label="Encrypt" color="primary" @click="encrypt" v-close-popup v-if="!signCheckbox && encryptCheckbox" />
+            <q-btn flat label="PGP Sign/Encrypt" color="primary" @click="signAndEncrypt" v-if="signCheckbox && encryptCheckbox" />
+            <q-btn flat label="Sign" color="primary" @click="sign" v-if="signCheckbox && !encryptCheckbox" />
+            <q-btn flat label="Encrypt" color="primary" @click="encrypt" v-if="!signCheckbox && encryptCheckbox" />
             <q-btn flat label="Cancel" color="grey-6" v-close-popup />
           </q-card-actions>
         </q-card>
@@ -76,7 +79,7 @@
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />
-          <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="openConvertToPlainDialog" />
+          <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
           <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
           <q-space />
           <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
@@ -99,7 +102,7 @@
                       To
                     </q-item-section>
                     <q-item-section>
-                      <q-input dense outlined v-model="toAddr" style="width: 100%;" />
+                      <q-input dense outlined v-model="toAddr" :disable="disableRecipients" style="width: 100%;" />
                     </q-item-section>
                     <q-item-section style="max-width: 100px;" v-show="!isCcShowed || !isBccShowed">
                       <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
@@ -111,7 +114,7 @@
                       CC
                     </q-item-section>
                     <q-item-section>
-                      <q-input dense outlined v-model="ccAddr" style="width: 100%;" />
+                      <q-input dense outlined v-model="ccAddr" :disable="disableRecipients" style="width: 100%;" />
                     </q-item-section>
                   </q-item>
                   <q-item v-show="isBccShowed">
@@ -119,7 +122,7 @@
                       BCC
                     </q-item-section>
                     <q-item-section>
-                      <q-input dense outlined v-model="bccAddr" style="width: 100%;" />
+                      <q-input dense outlined v-model="bccAddr" :disable="disableRecipients" style="width: 100%;" />
                     </q-item-section>
                   </q-item>
                   <q-item>
@@ -395,6 +398,7 @@
 <script>
 import prefetcher from 'src/modules/mail/prefetcher.js'
 
+import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import textUtils from 'src/utils/text.js'
@@ -404,6 +408,8 @@ import webApi from 'src/utils/webApi'
 import CAttachment from 'src/modules/mail/classes/CAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
 import settings from 'src/modules/mail/objects/settings.js'
+
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 
 export default {
   name: 'MailCompose',
@@ -427,6 +433,7 @@ export default {
       toAddr: '',
       ccAddr: '',
       bccAddr: '',
+      disableRecipients: false,
       subjectText: '',
 
       draftInfo: [],
@@ -473,6 +480,23 @@ export default {
         return !oAttach.bLinked
       })
     },
+    recipientEmails () {
+      let
+        aRecip = [this.toAddr, this.ccAddr, this.bccAddr].join(',').split(','),
+        aEmails = []
+
+      _.each(aRecip, function (sRecip) {
+        let sTrimmedRecip = _.trim(sRecip)
+        if (sTrimmedRecip !== '') {
+          let oRecip = addressUtils.getEmailParts(sTrimmedRecip)
+          if (oRecip.email) {
+            aEmails.push(oRecip.email)
+          }
+        }
+      })
+
+      return aEmails
+    },
   },
 
   beforeDestroy: function () {
@@ -480,8 +504,14 @@ export default {
   },
 
   methods: {
-    openConvertToPlainDialog () {
-      this.convertToPlainConfirm = true
+    confirmOpenPgp () {
+      if (this.recipientEmails.length === 0) {
+        notification.showError('To encrypt your message you need to specify at least one recipient.')
+      } else if (!this.plainText) {
+        this.convertToPlainConfirm = true
+      } else {
+        this.openPgpSignEncryptDialog()
+      }
     },
     openPgpSignEncryptDialog () {
       this.signCheckbox = true
@@ -489,12 +519,8 @@ export default {
       this.signPassword = ''
       this.pgpSignEncryptDialog = true
     },
-    convertEditorTextToPlain () {
-      this.prevHtmlText = this.editortext
-      this.plainText = true
-      this.disableEditor = true
-      this.pgpApplied = true
-      this.editortext = this.editortext
+    getPlainEditorText () {
+      return this.editortext
         .replace(/([^>]{1})<div>/gi, '$1\n')
         .replace(/<style[^>]*>[^<]*<\/style>/gi, '\n')
         .replace(/<br *\/{0,1}>/gi, '\n')
@@ -508,23 +534,88 @@ export default {
         .replace(/&amp;/g, '&')
         .replace(/&quot;/g, '"')
     },
+    getPrivateCurrentKey () {
+      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      let aPrivateCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
+        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+        return !oKey.bPublic && oKeyEmail === this.currentAccount.Email
+      })
+      return aPrivateCurrentKey.length > 0 ? aPrivateCurrentKey[0] : null
+    },
+    async sign () {
+      let oPrivateCurrentKey = this.getPrivateCurrentKey()
+      if (oPrivateCurrentKey) {
+        let { sSignedData, sError, oPgpResult } = await OpenPgp.sign(this.getPlainEditorText(), oPrivateCurrentKey, this.signPassword)
+        if (sSignedData) {
+          this.plainText = true
+          this.disableEditor = true
+          this.pgpApplied = true
+          this.editortext = '<pre>' + sSignedData + '</pre>'
+          this.pgpSignEncryptDialog = false
+        } else {
+          notification.showError(sError)
+        }
+      }
+    },
+    getRecipientPublicKeys () {
+      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      let aRecipientPublicKeys = []
+      let aNotFoundEmails = []
+
+      _.each(this.recipientEmails, function (sEmail) {
+        let oPublicKey = _.find(aOpenPgpKeys, function (oKey) {
+          let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+          return oKey.bPublic && oKeyEmail.email === sEmail
+        })
+        if (oPublicKey) {
+          aRecipientPublicKeys.push(oPublicKey)
+        } else {
+          aNotFoundEmails.push(sEmail)
+        }
+      })
+
+      if (aNotFoundEmails.length > 0) {
+        notification.showError('No public key found for ' + aNotFoundEmails.join(', ') + ' user(s).')
+        return []
+      } else {
+        return aRecipientPublicKeys
+      }
+    },
+    async encrypt () {
+      let aRecipientPublicKeys = this.getRecipientPublicKeys()
+      if (aRecipientPublicKeys.length > 0) {
+        let { sEncryptedData, sError, oPgpResult } = await OpenPgp.encrypt(this.getPlainEditorText(), aRecipientPublicKeys)
+        if (sEncryptedData) {
+          this.plainText = true
+          this.disableEditor = true
+          this.disableRecipients = true
+          this.pgpApplied = true
+          this.editortext = '<pre>' + sEncryptedData + '</pre>'
+          this.pgpSignEncryptDialog = false
+        } else {
+          notification.showError(sError)
+        }
+      }
+    },
     signAndEncrypt () {
-      this.convertEditorTextToPlain()
-    },
-    sign () {
-      this.convertEditorTextToPlain()
-    },
-    encrypt () {
-      this.convertEditorTextToPlain()
+      this.getPlainEditorText()
     },
     undoPGP () {
       this.editortext = this.prevHtmlText
       this.plainText = false
       this.disableEditor = false
+      this.disableRecipients = false
       this.pgpApplied = true
     },
     onBeforeHide () {
       this.clearAutosaveTimer() 
+    },
+    getEditorTextForSend () {
+      let sEditortext = this.editortext
+      if (this.plainText) {
+        return sEditortext.replace('<pre>', '').replace('</pre>', '')
+      }
+      return sEditortext
     },
     send () {
       if (this.isEnableSending) {
@@ -536,7 +627,7 @@ export default {
           sCcAddr: this.ccAddr,
           sBccAddr: this.bccAddr,
           sSubject: this.subjectText,
-          sText: this.editortext,
+          sText: this.getEditorTextForSend(),
           bPlainText: this.plainText,
           aAttachments: this.attachments,
           sDraftUid: this.draftUid,
@@ -564,7 +655,7 @@ export default {
         sCcAddr: this.ccAddr,
         sBccAddr: this.bccAddr,
         sSubject: this.subjectText,
-        sText: this.editortext,
+        sText: this.getEditorTextForSend(),
         bPlainText: this.plainText,
         aAttachments: this.attachments,
         sDraftUid: this.draftUid,
@@ -593,6 +684,7 @@ export default {
       this.editortext = typesUtils.pString(sText)
       this.plainText = false
       this.disableEditor = false
+      this.disableRecipients = false
       this.pgpApplied = false
 
       this.attachments = []

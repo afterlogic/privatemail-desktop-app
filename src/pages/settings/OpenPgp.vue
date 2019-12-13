@@ -131,7 +131,7 @@
             <q-item v-if="keysToImport.length > 0">
               <q-item-label>Text includes OpenPGP keys</q-item-label>
             </q-item>
-            <q-item v-for="oKey in keysToImport" :key="oKey.sEmail" :disable="oKey.bDisabled">
+            <q-item v-for="oKey in keysToImport" :key="oKey.sId" :disable="oKey.bDisabled">
               <q-item-section side top>
                 <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
               </q-item-section>
@@ -349,11 +349,8 @@ export default {
       this.viewKeysValue = aArmors.join('\r\n\r\n')
       this.viewKeysDialog = true
     },
-    dummyAction() {
-      notification.showReport('There is no action here yet')
-    },
     sendKeys () {
-      this.dummyAction()
+      this.openCompose({ aAttachments: [{ FileName: this.viewKeysFileName, Content: this.viewKeysValue }] })
     },
     downloadKeys () {
       let oBlob = new Blob([this.viewKeysValue], {type: 'text/plain'})
@@ -404,7 +401,8 @@ export default {
                 sAddInfo: sAddInfoLangKey.replace('%LENGTH%', iBitSize),
                 bDisabled: bHasSameKey || bNoEmail,
                 bChecked: false,
-                // 'id': oKey.getId(),
+                sId: 'key-' + Math.round(Math.random() * 1000000),
+                // 'id: oKey.getId(),
                 // 'needToImport': !bHasSameKey && !bNoEmail,
                 // 'noEmail': bNoEmail,
               })

@@ -291,7 +291,7 @@
                     </template>
                     <template v-slot:list="scope" class="ull-height">
                       <q-list separator>
-                        <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath">
+                        <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath || attach.sHash">
                           <q-item-section>
                             <q-item-label class="full-width ellipsis">
                               {{ attach.sFileName }}
@@ -717,32 +717,57 @@ export default {
           let oAttach = new CAttachment()
           oAttach.parseDataFromServer(oAttachData, sApiHost)
           this.attachments.push(oAttach)
-          aHashes.push(oAttach.sHash)
+          if (typesUtils.isNonEmptyString(oAttach.sHash)) {
+            aHashes.push(oAttach.sHash)
+          }
         })
-        webApi.sendRequest({
-          sApiHost,
-          sModule: 'Mail',
-          sMethod: 'SaveAttachmentsAsTempFiles',
-          oParameters: {
-            Attachments: aHashes,
-            AccountID: this.$store.getters['mail/getCurrentAccountId'],
-          },
-          fCallback: (oResult, oError) => {
-            if (oResult) {
-              _.each(oResult, (sHash, sTempName) => {
-                let oAttach = _.find(this.attachments, (oTmpAttach) => {
-                  return oTmpAttach.sHash === sHash
+        if (aHashes.length > 0) {
+          webApi.sendRequest({
+            sApiHost,
+            sModule: 'Mail',
+            sMethod: 'SaveAttachmentsAsTempFiles',
+            oParameters: {
+              Attachments: aHashes,
+              AccountID: this.$store.getters['mail/getCurrentAccountId'],
+            },
+            fCallback: (aResult, oError) => {
+              if (aResult) {
+                _.each(aResult, (sHash, sTempName) => {
+                  let oAttach = _.find(this.attachments, (oTmpAttach) => {
+                    return oTmpAttach.sHash === sHash
+                  })
+                  if (oAttach) {
+                    oAttach.setTempName(sTempName)
+                    oAttach.onUploadComplete()
+                  }
                 })
+              } else {
+                notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
+              }
+            },
+          })
+        } else if (typesUtils.isNonEmptyString(aAttachments[0].Content)) {
+          webApi.sendRequest({
+            sApiHost,
+            sModule: 'Core',
+            sMethod: 'SaveContentAsTempFile',
+            oParameters: aAttachments[0],
+            fCallback: (oResult, oError) => {
+              if (oResult) {
+                let oAttach = this.attachments[0]
                 if (oAttach) {
-                  oAttach.setTempName(sTempName)
+                  if (oResult.Size === 0) {
+                    oResult.Size = aAttachments[0].Content.length
+                  }
+                  oAttach.parseDataFromServer(oResult, sApiHost)
                   oAttach.onUploadComplete()
                 }
-              })
-            } else {
-              notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
-            }
-          },
-        })
+              } else {
+                notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
+              }
+            },
+          })
+        }
       }
 
       this.draftUid = typesUtils.pString(sDraftUid)

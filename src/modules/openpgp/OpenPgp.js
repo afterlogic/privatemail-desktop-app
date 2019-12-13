@@ -140,74 +140,6 @@ COpenPgp.prototype.decryptKeyHelper = async function (oResult, oKey, sPassword, 
 }
 
 /**
- * @private
- * @param {Object} oResult
- * @param {string} sFromEmail
- * @param {Object} oDecryptedMessage
- */
-COpenPgp.prototype.verifyMessageHelper = async function (oResult, sFromEmail, oDecryptedMessage) {
-  let
-    bResult = false,
-    oValidKey = null,
-    aVerifyResult = [],
-    aVerifyKeysId = [],
-    aPublicKeys = []
-
-  if (oDecryptedMessage && oDecryptedMessage.getSigningKeyIds) {
-    aVerifyKeysId = oDecryptedMessage.getSigningKeyIds()
-    if (aVerifyKeysId && 0 < aVerifyKeysId.length) {
-      aPublicKeys = this.findKeysByEmails([sFromEmail], true)
-      if (!aPublicKeys || 0 === aPublicKeys.length) {
-        oResult = {iNotice: Enums.OpenPgpErrors.PublicKeyNotFoundNotice, sFromEmail}
-      } else {
-        aVerifyResult = []
-        try {
-          aVerifyResult = await oDecryptedMessage.verify(this.convertToNativeKeys(aPublicKeys))
-        } catch (e) {
-          oResult = {iNotice: Enums.OpenPgpErrors.VerifyErrorNotice, sFromEmail}
-        }
-
-        if (aVerifyResult && 0 < aVerifyResult.length) {
-          let aValidityPromises = []
-          for (let oKey of aVerifyResult) {
-            aValidityPromises.push(
-              oKey.verified
-              .then(validity => {
-                return oKey && oKey.keyid && validity ? oKey : null
-              })
-            )
-          }
-          await Promise.all(aValidityPromises)
-          .then(aKeys => {
-            oValidKey = _.find(aKeys, function (oKey) {
-              return oKey !== null
-            })
-            if (oValidKey && oValidKey.keyid && 
-              aPublicKeys && aPublicKeys[0] &&
-              oValidKey.keyid.toHex().toLowerCase() === aPublicKeys[0].getId())
-            {
-              bResult = true
-            } else {
-              oResult = { iNotice: Enums.OpenPgpErrors.VerifyErrorNotice, sFromEmail }
-            }
-          })
-        }
-      }
-    } else {
-      oResult = { iNotice: Enums.OpenPgpErrors.NoSignDataNotice }
-    }
-  } else {
-    oResult = { iError: Enums.OpenPgpErrors.UnknownError }
-  }
-
-  if (!bResult && !oResult.iNotice) {
-    oResult = { iNotice: Enums.OpenPgpErrors.VerifyErrorNotice }
-  }
-
-  return bResult
-}
-
-/**
  * @param {string} sUserID
  * @param {string} sPassword
  * @param {number} nKeyLength
@@ -563,58 +495,25 @@ COpenPgp.prototype.decryptAndVerify = async function (sData, sAccountEmail, sFro
 
 /**
  * @param {string} sData
- * @param {string} sFromEmail
- * @param {Function} fOkHandler
- * @param {Function} fErrorHandler
+ * @param {array} aPublicKeys
  * @return {string}
  */
-COpenPgp.prototype.verify = async function (sData, sFromEmail, fOkHandler, fErrorHandler) {
-  let
-    oMessage = await openpgp.cleartext.readArmored(sData),
-    oResult = {},
-    aPublicKeys = this.findKeysByEmails([sFromEmail], true, oResult),
-    oOptions = {
-      message: oMessage,
-      publicKeys: this.convertToNativeKeys(aPublicKeys) // for verification
-    }
+COpenPgp.prototype.verify = async function (sData, aPublicKeys) {
+  let oOptions = {
+    message: await openpgp.cleartext.readArmored(sData),
+    publicKeys: await this.convertToNativeKeys(aPublicKeys) // for verification
+  }
 
-  openpgp.verify(oOptions).then(_.bind(async function(oPgpResult) {
-    let aValidityPromises = []
-    let aValidSignatures = []
-    for (let oSignature of oPgpResult.signatures) {
-      aValidityPromises.push(
-        oSignature.verified
-        .then(validity => {
-          return oSignature && validity === true ? oSignature : null
-        })
-      )
-    }
-    await Promise.all(aValidityPromises)
-    .then(aSignatures => {
-      aValidSignatures = _.filter(aSignatures, function (oSignature) {
-        return oSignature !== null
-      })
-    })
-    if (aValidSignatures.length) {
-      await this.verifyMessageHelper(oResult, sFromEmail, oMessage)
-      oResult.result = oMessage.getText()
-      if (oResult.iNotice && _.isFunction(fErrorHandler)) {
-        fErrorHandler(oResult)
-      } else if (_.isFunction(fOkHandler)) {
-        fOkHandler(oResult)
-      }
+  try {
+    let oPgpResult = await openpgp.verify(oOptions)
+    if (typesUtils.isNonEmptyArray(oPgpResult.signatures) && oPgpResult.signatures[0].valid) {
+      return { sVerifiedData: oPgpResult.data }
     } else {
-      oResult = { iError: Enums.OpenPgpErrors.CanNotReadMessage }
-      if (_.isFunction(fErrorHandler)) {
-        fErrorHandler(oResult)
-      }
+      return { sError: 'Message was not verified.', oPgpResult }
     }
-  }, this), function (e) {
-    oResult = { oException: e, iError: Enums.OpenPgpErrors.CanNotReadMessage }
-    if (_.isFunction(fErrorHandler)) {
-      fErrorHandler(oResult)
-    }
-  })
+  } catch (oError) {
+    return { sError: 'Message was not verified (' + oError.message + ').' }
+  }
 }
 
 /**
@@ -649,7 +548,7 @@ COpenPgp.prototype.sign = async function (sData, oPrivateKey, sSignPassword) {
   let { bVerified, oOpenPgpKey, sError } = await this.verifyKeyPassword(oPrivateKey, sSignPassword)
   if (bVerified && oOpenPgpKey) {
     let oOptions = {
-      message: openpgp.message.fromText(sData),
+      message: openpgp.cleartext.fromText(sData),
       privateKeys: oOpenPgpKey,
     }
     try {

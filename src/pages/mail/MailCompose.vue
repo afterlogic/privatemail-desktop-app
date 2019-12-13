@@ -37,7 +37,7 @@
                   <q-item-label>Sign</q-item-label>
                 </q-item-section>
                 <q-item-section side>
-                  <q-input outlined v-model="signPassword" label="Password" @click.stop.prevent />
+                  <q-input type="password" outlined v-model="signPassword" label="Password" @click.stop.prevent />
                 </q-item-section>
               </q-item>
               <q-item tag="label" v-ripple>

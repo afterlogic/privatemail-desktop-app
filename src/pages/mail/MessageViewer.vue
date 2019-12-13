@@ -6,6 +6,15 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
+      <div style="background: #ffffef; color: #b5ad94;" v-if="isDecryptedMessage">
+        OpenPGP encrypted message.<br />
+        <q-input type="password" outlined style="width: 200px; display: inline-block;" label="Enter your password" v-model="privateKeyPass" />
+        <q-btn flat color="primary" label="Click to decrypt" style="display: inline-block;" @click="decrypt" />
+      </div>
+      <div style="background: #ffffef; color: #b5ad94;" v-if="isSignedMessage && !isVerified">
+        OpenPGP signed message.
+        <q-btn flat color="primary" label="Click to verify" style="display: inline-block;" @click="verify" />
+      </div>
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
@@ -142,6 +151,8 @@
 </style>
 
 <script>
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+
 import addressUtils from 'src/utils/address'
 import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
@@ -159,8 +170,12 @@ export default {
       replyText: '',
       draftUid: '',
       isSendingOrSaving: false,
+      privateKeyPass: '',
+      text: '',
+      isVerified: false,
     }
   },
+
   computed: {
     message () {
       return this.$store.getters['mail/getСurrentMessage']
@@ -180,20 +195,6 @@ export default {
         aTo.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
       })
       return aTo
-    },
-    text () {
-      if (this.message) {
-        if (this.message.Html) {
-          if (this.message.Attachments && this.message.Attachments['@Collection']) {
-            return messageUtils.prepareInlinePictures( this.message.Html, this.message.Attachments['@Collection'], this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
-          } else {
-            return this.message.Html
-          }
-        } else {
-          return this.message.Plain
-        }
-      }
-      return ''
     },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
@@ -224,17 +225,40 @@ export default {
     isEnableSaving () {
       return typesUtils.isNonEmptyString(this.replyText)
     },
+    isDecryptedMessage () {
+      return this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
+    },
+    isSignedMessage () {
+      return this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
+    },
   },
+
   watch: {
     message: function () {
+      this.clearAll()
+
       if (this.message && this.message.Attachments && this.message.Attachments['@Collection']) {
         _.each(this.message.Attachments['@Collection'], function (oAttach) {
           oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
         })
       }
-      this.clearAll()
+
+      let sText = ''
+      if (this.message) {
+        if (this.message.Html) {
+          if (this.message.Attachments && this.message.Attachments['@Collection']) {
+            sText = messageUtils.prepareInlinePictures( this.message.Html, this.message.Attachments['@Collection'], this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
+          } else {
+            sText = this.message.Html
+          }
+        } else {
+          sText = this.message.Plain
+        }
+      }
+      this.text = sText
     },
   },
+
   methods: {
     download: function (sDownloadUrl, sFileName) {
       webApi.downloadByUrl(sDownloadUrl, sFileName)
@@ -279,6 +303,7 @@ export default {
       this.replyText = ''
       this.draftUid = ''
       this.isSendingOrSaving = false
+      this.isVerified = false
     },
     onEditorEnter: function (oEvent) {
       if (oEvent.ctrlKey) {
@@ -302,6 +327,34 @@ export default {
         oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
       this.openCompose(oComposeReplyParams)
       this.clearAll()
+    },
+    getPublicCurrentKey () {
+      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
+        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+        return oKey.bPublic && oKeyEmail.email === this.currentAccount.Email
+      })
+      if (aPublicCurrentKey.length > 0) {
+        return aPublicCurrentKey[0]
+      } else {
+        notification.showError('No public key found for ' + this.currentAccount.Email + ' user.')
+        return null
+      }
+    },
+    async verify () {
+      let oPublicCurrentKey = this.getPublicCurrentKey()
+      if (oPublicCurrentKey) {
+        let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicCurrentKey])
+        if (sVerifiedData) {
+          this.text = sVerifiedData
+          this.isVerified = true
+        } else {
+          notification.showError(sError)
+        }
+      }
+    },
+    decrypt () {
+      console.log('decrypt')
     },
     dummyAction() {
       notification.showReport('There is no action here yet')

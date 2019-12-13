@@ -6,15 +6,17 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
-      <div style="background: #ffffef; color: #b5ad94;" v-if="isDecryptedMessage">
+      <div style="background: #ffffef; color: #b5ad94;" v-if="isEcryptedMessage && !isDecrypted">
         OpenPGP encrypted message.<br />
         <q-input type="password" outlined style="width: 200px; display: inline-block;" label="Enter your password" v-model="privateKeyPass" />
         <q-btn flat color="primary" label="Click to decrypt" style="display: inline-block;" @click="decrypt" />
       </div>
+      <div style="background: #efffef; color: #b5ad94;" v-if="isEcryptedMessage && isDecrypted">{{ decryptReport }} </div>
       <div style="background: #ffffef; color: #b5ad94;" v-if="isSignedMessage && !isVerified">
         OpenPGP signed message.
         <q-btn flat color="primary" label="Click to verify" style="display: inline-block;" @click="verify" />
       </div>
+      <div style="background: #efffef; color: #b5ad94;" v-if="isSignedMessage && isVerified">{{ verifyReport }} </div>
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
@@ -172,7 +174,12 @@ export default {
       isSendingOrSaving: false,
       privateKeyPass: '',
       text: '',
+      isEcryptedMessage: false,
+      isSignedMessage: false,
       isVerified: false,
+      verifyReport: '',
+      isDecrypted: false,
+      decryptReport: '',
     }
   },
 
@@ -225,12 +232,6 @@ export default {
     isEnableSaving () {
       return typesUtils.isNonEmptyString(this.replyText)
     },
-    isDecryptedMessage () {
-      return this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
-    },
-    isSignedMessage () {
-      return this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
-    },
   },
 
   watch: {
@@ -256,6 +257,8 @@ export default {
         }
       }
       this.text = sText
+      this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
+      this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
     },
   },
 
@@ -303,7 +306,11 @@ export default {
       this.replyText = ''
       this.draftUid = ''
       this.isSendingOrSaving = false
+      this.privateKeyPass = ''
       this.isVerified = false
+      this.verifyReport = ''
+      this.isDecrypted = false
+      this.decryptReport = ''
     },
     onEditorEnter: function (oEvent) {
       if (oEvent.ctrlKey) {
@@ -341,6 +348,19 @@ export default {
         return null
       }
     },
+    getPrivateCurrentKey () {
+      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
+        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.Email
+      })
+      if (aPublicCurrentKey.length > 0) {
+        return aPublicCurrentKey[0]
+      } else {
+        notification.showError('No private key found for ' + this.currentAccount.Email + ' user.')
+        return null
+      }
+    },
     async verify () {
       let oPublicCurrentKey = this.getPublicCurrentKey()
       if (oPublicCurrentKey) {
@@ -348,13 +368,25 @@ export default {
         if (sVerifiedData) {
           this.text = sVerifiedData
           this.isVerified = true
+          this.verifyReport = 'Message was successfully verified.'
         } else {
           notification.showError(sError)
         }
       }
     },
-    decrypt () {
-      console.log('decrypt')
+    async decrypt () {
+      let oPrivateCurrentKey = this.getPrivateCurrentKey()
+      let oPublicCurrentKey = this.getPublicCurrentKey()
+      if (oPublicCurrentKey) {
+        let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerify(this.message.PlainRaw, oPrivateCurrentKey, this.privateKeyPass, [oPublicCurrentKey])
+        if (sDecryptedData) {
+          this.text = sDecryptedData
+          this.isDecrypted = true
+          this.decryptReport = sReport
+        } else {
+          notification.showError(sError)
+        }
+      }
     },
     dummyAction() {
       notification.showReport('There is no action here yet')

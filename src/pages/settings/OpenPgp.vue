@@ -3,23 +3,6 @@
     <div class="text-h4 q-mb-md">Open PGP</div>
     <q-separator spaced />
     <q-list>
-      <q-item tag="label" v-ripple>
-        <q-item-section side top>
-          <q-checkbox v-model="enableOpenPgp" />
-        </q-item-section>
-
-        <q-item-section>
-          <q-item-label>Enable OpenPGP</q-item-label>
-          <q-item-label caption>
-            Be aware of "Allow autosave in Drafts" setting in Mail module. Turn it off if you don't want the server to store unencrypted drafts. You will still be able to save drafts manually (Ctrl-S).
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-separator spaced />
-      <q-btn color="primary" label="Save" />
-
-      <q-separator spaced />
       <q-item-label header>Public keys</q-item-label>
       <q-item v-ripple v-for="oKey in openPgpPublicKeys" :key="oKey.sId">
         <q-item-section>
@@ -132,7 +115,7 @@
         <q-card-actions align="right">
           <q-btn flat label="Send" color="primary" @click="sendKeys" v-close-popup />
           <q-btn flat label="Download" color="primary" @click="downloadKeys" v-close-popup />
-          <q-btn flat label="Select" color="primary" @click="$refs.viewKeysInput.select()" />
+          <q-btn flat label="Select" color="primary" @click="selectKeysArmor" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -228,6 +211,8 @@
 <style></style>
 
 <script>
+import { saveAs } from 'file-saver'
+
 import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
@@ -243,8 +228,6 @@ export default {
 
   data () {
     return {
-      enableOpenPgp: false,
-
       deleteConfirmDialog: false,
       deleteKeyId: '',
       deleteKeyEmail: '',
@@ -256,13 +239,13 @@ export default {
       viewKeysDialog: false,
       viewKeysHeader: '',
       viewKeysValue: '',
+      viewKeysFileName: '',
 
       importKeyDialog: false,
       keysArmorToImport: '',
       keysToImport: [],
       importHasExistingKeys: false,
       importHasKeyWithoutEmail: false,
-
 
       isGenerating: false,
       generateNewKeyDialog: false,
@@ -351,11 +334,14 @@ export default {
       if (aKeys.length === 1) {
         if (aKeys[0].bPublic) {
           this.viewKeysHeader = 'View OpenPGP public key for ' + aKeys[0].sEmail
+          this.viewKeysFileName = aKeys[0].sEmail + ' OpenPGP public key.asc'
         } else {
           this.viewKeysHeader = 'View OpenPGP private key for ' + aKeys[0].sEmail
+          this.viewKeysFileName = aKeys[0].sEmail + ' OpenPGP private key.asc'
         }
       } else {
         this.viewKeysHeader = 'View all OpenPGP public keys'
+        this.viewKeysFileName = 'OpenPGP public keys.asc'
       }
       let aArmors = _.map(aKeys, function (oKey) {
         return oKey.sArmor
@@ -370,7 +356,15 @@ export default {
       this.dummyAction()
     },
     downloadKeys () {
-      this.dummyAction()
+      let oBlob = new Blob([this.viewKeysValue], {type: 'text/plain'})
+      saveAs(oBlob, this.viewKeysFileName)
+    },
+    selectKeysArmor () {
+      this.$refs.viewKeysInput.select()
+      if (document.queryCommandSupported('copy')) {
+        document.execCommand('copy')
+        notification.showReport('The key has been copied to the clipboard.')
+      }
     },
     openImportKey () {
       this.importKeyDialog = true

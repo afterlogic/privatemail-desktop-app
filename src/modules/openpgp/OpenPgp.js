@@ -625,7 +625,7 @@ COpenPgp.prototype.verify = async function (sData, sFromEmail, fOkHandler, fErro
 COpenPgp.prototype.encrypt = async function (sData, aPublicKeys) {
   let oOptions = {
     message: openpgp.message.fromText(sData),
-    publicKeys: await this.convertToNativeKeys(aPublicKeys)
+    publicKeys: await this.convertToNativeKeys(aPublicKeys),
   }
   try {
     let oPgpResult = await openpgp.encrypt(oOptions)
@@ -646,11 +646,11 @@ COpenPgp.prototype.encrypt = async function (sData, aPublicKeys) {
  * @return {string}
  */
 COpenPgp.prototype.sign = async function (sData, oPrivateKey, sSignPassword) {
-  let { bVerified, oOpenPgpKey, sError } = await OpenPgp.verifyKeyPassword(oPrivateKey, sSignPassword)
+  let { bVerified, oOpenPgpKey, sError } = await this.verifyKeyPassword(oPrivateKey, sSignPassword)
   if (bVerified && oOpenPgpKey) {
     let oOptions = {
-      message: openpgp.cleartext.fromText(sData),
-      privateKeys: oOpenPgpKey
+      message: openpgp.message.fromText(sData),
+      privateKeys: oOpenPgpKey,
     }
     try {
       let oPgpResult = await openpgp.sign(oOptions)
@@ -669,50 +669,31 @@ COpenPgp.prototype.sign = async function (sData, oPrivateKey, sSignPassword) {
 
 /**
  * @param {string} sData
- * @param {string} sFromEmail
- * @param {Array} aPrincipalsEmail
- * @param {string} sPrivateKeyPassword
- * @param {Function} fOkHandler
- * @param {Function} fErrorHandler
+ * @param {Array} aPublicKeys
+ * @param {object} oPrivateKey
+ * @param {string} sSignPassword
  * @return {string}
  */
-COpenPgp.prototype.signAndEncrypt = async function (sData, sFromEmail, aPrincipalsEmail, sPrivateKeyPassword, fOkHandler, fErrorHandler) {
-  let
-    oPrivateKey = null,
-    oPrivateKeyClone = null,
-    oResult = {},
-    aPrivateKeys = this.findKeysByEmails([sFromEmail], false, oResult),
-    aPublicKeys = this.findKeysByEmails(aPrincipalsEmail, true, oResult)
-
-  if (!oResult.iError) {
-    oPrivateKey = this.convertToNativeKeys(aPrivateKeys)[0]
-    oPrivateKeyClone = await this.cloneKey(oPrivateKey)
-
-    await this.decryptKeyHelper(oResult, oPrivateKeyClone, sPrivateKeyPassword, sFromEmail)
-    
-    if (oPrivateKeyClone && !oResult.iError) {
-      let oOptions = {
-        message: openpgp.message.fromText(sData),
-        publicKeys: this.convertToNativeKeys(aPublicKeys), // for encryption
-        privateKeys: oPrivateKeyClone // for signing (optional)
-      }
-
-      openpgp.encrypt(oOptions).then(function(oPgpResult) {
-        oResult.result = oPgpResult.data
-        if (_.isFunction(fOkHandler)) {
-          fOkHandler(oResult)
-        }
-      }, function (e) {
-        oResult = { oException: e, iError: Enums.OpenPgpErrors.SignAndEncryptError }
-        if (_.isFunction(fErrorHandler)) {
-          fErrorHandler(oResult)
-        }
-      })
-    } else if (_.isFunction(fErrorHandler)) {
-      fErrorHandler(oResult)
+COpenPgp.prototype.signAndEncrypt = async function (sData, aPublicKeys, oPrivateKey, sSignPassword) {
+  let { bVerified, oOpenPgpKey, sError } = await this.verifyKeyPassword(oPrivateKey, sSignPassword)
+  if (bVerified && oOpenPgpKey) {
+    let oOptions = {
+      message: openpgp.message.fromText(sData),
+      publicKeys: await this.convertToNativeKeys(aPublicKeys), // for encryption
+      privateKeys: oOpenPgpKey, // for signing (optional)
     }
-  } else if (_.isFunction(fErrorHandler)) {
-    fErrorHandler(oResult)
+    try {
+      let oPgpResult = await openpgp.encrypt(oOptions)
+      if (oPgpResult && oPgpResult.data) {
+        return { sEncryptedSignedData: oPgpResult.data }
+      } else {
+        return { sError: 'An error occurred during encrypting or signing the message.', oPgpResult }
+      }
+    } catch (oError) {
+      return { sError: 'An error occurred during encrypting or signing the message (' + oError.message + ').' }
+    }
+  } else {
+    return { sError }
   }
 }
 

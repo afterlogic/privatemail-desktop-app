@@ -429,7 +429,7 @@ export default {
       disableEditor: false,
       pgpApplied: false,
       editortext: '',
-      prevHtmlText: '',
+      editortextBeforePgp: '',
       toAddr: '',
       ccAddr: '',
       bccAddr: '',
@@ -538,9 +538,14 @@ export default {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       let aPrivateCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
         let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return !oKey.bPublic && oKeyEmail === this.currentAccount.Email
+        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.Email
       })
-      return aPrivateCurrentKey.length > 0 ? aPrivateCurrentKey[0] : null
+      if (aPrivateCurrentKey.length > 0) {
+        return aPrivateCurrentKey[0]
+      } else {
+        notification.showError('No private key found for ' + this.currentAccount.Email + ' user.')
+        return null
+      }
     },
     async sign () {
       let oPrivateCurrentKey = this.getPrivateCurrentKey()
@@ -550,6 +555,7 @@ export default {
           this.plainText = true
           this.disableEditor = true
           this.pgpApplied = true
+          this.editortextBeforePgp = this.editortext
           this.editortext = '<pre>' + sSignedData + '</pre>'
           this.pgpSignEncryptDialog = false
         } else {
@@ -590,6 +596,7 @@ export default {
           this.disableEditor = true
           this.disableRecipients = true
           this.pgpApplied = true
+          this.editortextBeforePgp = this.editortext
           this.editortext = '<pre>' + sEncryptedData + '</pre>'
           this.pgpSignEncryptDialog = false
         } else {
@@ -597,15 +604,30 @@ export default {
         }
       }
     },
-    signAndEncrypt () {
-      this.getPlainEditorText()
+    async signAndEncrypt () {
+      let oPrivateCurrentKey = this.getPrivateCurrentKey()
+      let aRecipientPublicKeys = this.getRecipientPublicKeys()
+      if (aRecipientPublicKeys.length > 0 && oPrivateCurrentKey) {
+        let { sEncryptedSignedData, sError, oPgpResult } = await OpenPgp.signAndEncrypt(this.getPlainEditorText(), aRecipientPublicKeys, oPrivateCurrentKey, this.signPassword)
+        if (sEncryptedSignedData) {
+          this.plainText = true
+          this.disableEditor = true
+          this.disableRecipients = true
+          this.pgpApplied = true
+          this.editortextBeforePgp = this.editortext
+          this.editortext = '<pre>' + sEncryptedSignedData + '</pre>'
+          this.pgpSignEncryptDialog = false
+        } else {
+          notification.showError(sError)
+        }
+      }
     },
     undoPGP () {
-      this.editortext = this.prevHtmlText
+      this.editortext = this.editortextBeforePgp
       this.plainText = false
       this.disableEditor = false
       this.disableRecipients = false
-      this.pgpApplied = true
+      this.pgpApplied = false
     },
     onBeforeHide () {
       this.clearAutosaveTimer() 

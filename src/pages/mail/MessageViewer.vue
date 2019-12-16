@@ -6,17 +6,17 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
-      <div style="background: #ffffef; color: #b5ad94;" v-if="isEcryptedMessage && !isDecrypted">
-        OpenPGP encrypted message.<br />
+      <div style="background: #ffffef; color: #b5ad94; padding: 8px;" v-if="isEcryptedMessage && !isDecrypted">
+        <div style="padding-bottom: 8px;">OpenPGP encrypted message.</div>
         <q-input type="password" outlined style="width: 200px; display: inline-block;" label="Enter your password" v-model="privateKeyPass" />
         <q-btn flat color="primary" label="Click to decrypt" style="display: inline-block;" @click="decrypt" />
       </div>
-      <div style="background: #efffef; color: #b5ad94;" v-if="isEcryptedMessage && isDecrypted">{{ decryptReport }} </div>
-      <div style="background: #ffffef; color: #b5ad94;" v-if="isSignedMessage && !isVerified">
+      <div style="background: #efffef; color: #b5ad94; padding: 8px;" v-if="isEcryptedMessage && isDecrypted">{{ decryptReport }} </div>
+      <div style="background: #ffffef; color: #b5ad94; padding: 8px;" v-if="isSignedMessage && !isVerified">
         OpenPGP signed message.
         <q-btn flat color="primary" label="Click to verify" style="display: inline-block;" @click="verify" />
       </div>
-      <div style="background: #efffef; color: #b5ad94;" v-if="isSignedMessage && isVerified">{{ verifyReport }} </div>
+      <div style="background: #efffef; color: #b5ad94; padding: 8px;" v-if="isSignedMessage && isVerified">{{ verifyReport }} </div>
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
@@ -237,28 +237,12 @@ export default {
   watch: {
     message: function () {
       this.clearAll()
-
+      this.populateMessageData()
       if (this.message && this.message.Attachments && this.message.Attachments['@Collection']) {
         _.each(this.message.Attachments['@Collection'], function (oAttach) {
           oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
         })
       }
-
-      let sText = ''
-      if (this.message) {
-        if (this.message.Html) {
-          if (this.message.Attachments && this.message.Attachments['@Collection']) {
-            sText = messageUtils.prepareInlinePictures( this.message.Html, this.message.Attachments['@Collection'], this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
-          } else {
-            sText = this.message.Html
-          }
-        } else {
-          sText = this.message.Plain
-        }
-      }
-      this.text = sText
-      this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
-      this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
     },
   },
 
@@ -276,7 +260,7 @@ export default {
           if (oResult) {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
             notification.showReport('Your message has been sent.')
-            this.clearAll()
+            this.clearQuickReplyData()
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
@@ -302,15 +286,35 @@ export default {
         })
       }
     },
-    clearAll: function () {
+    clearQuickReplyData: function () {
       this.replyText = ''
       this.draftUid = ''
       this.isSendingOrSaving = false
+    },
+    clearAll: function () {
+      this.clearQuickReplyData()
       this.privateKeyPass = ''
       this.isVerified = false
       this.verifyReport = ''
       this.isDecrypted = false
       this.decryptReport = ''
+    },
+    populateMessageData: function () {
+      let sText = ''
+      if (this.message) {
+        if (this.message.Html) {
+          if (this.message.Attachments && this.message.Attachments['@Collection']) {
+            sText = messageUtils.prepareInlinePictures( this.message.Html, this.message.Attachments['@Collection'], this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
+          } else {
+            sText = this.message.Html
+          }
+        } else {
+          sText = this.message.Plain
+        }
+      }
+      this.text = sText
+      this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
+      this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
     },
     onEditorEnter: function (oEvent) {
       if (oEvent.ctrlKey) {
@@ -333,7 +337,7 @@ export default {
       let
         oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
       this.openCompose(oComposeReplyParams)
-      this.clearAll()
+      this.clearQuickReplyData()
     },
     getPublicCurrentKey () {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
@@ -344,7 +348,6 @@ export default {
       if (aPublicCurrentKey.length > 0) {
         return aPublicCurrentKey[0]
       } else {
-        notification.showError('No public key found for ' + this.currentAccount.Email + ' user.')
         return null
       }
     },
@@ -372,13 +375,16 @@ export default {
         } else {
           notification.showError(sError)
         }
+      } else {
+        notification.showError('No public key found for ' + this.currentAccount.Email + ' user.')
       }
     },
     async decrypt () {
       let oPrivateCurrentKey = this.getPrivateCurrentKey()
       let oPublicCurrentKey = this.getPublicCurrentKey()
-      if (oPublicCurrentKey) {
-        let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerify(this.message.PlainRaw, oPrivateCurrentKey, this.privateKeyPass, [oPublicCurrentKey])
+      let aPublicKeys = oPublicCurrentKey ? [oPublicCurrentKey] : []
+      if (oPrivateCurrentKey) {
+        let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerify(this.message.PlainRaw, oPrivateCurrentKey, this.privateKeyPass, aPublicKeys)
         if (sDecryptedData) {
           this.text = sDecryptedData
           this.isDecrypted = true
@@ -394,6 +400,7 @@ export default {
   },
   mounted: function () {
     this.clearAll()
+    this.populateMessageData()
   },
 }
 </script>

@@ -3,6 +3,12 @@
     <div class="text-h4 q-mb-md">Open PGP</div>
     <q-separator spaced />
     <q-list>
+      <q-item>
+        <q-item-section>
+          <q-item-label caption>Be aware of "Allow autosave in Drafts" setting in Mail module. Turn it off if you don't want the server to store unencrypted drafts. You will still be able to save drafts manually.</q-item-label>
+        </q-item-section>
+      </q-item>
+      <q-separator spaced />
       <q-item-label header>Public keys</q-item-label>
       <q-item v-ripple v-for="oKey in openPgpPublicKeys" :key="oKey.sId">
         <q-item-section>
@@ -40,17 +46,20 @@
       </q-item>
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" :disable="openPgpPublicKeys.length === 0" />
-    <q-btn color="primary" label="Import key" @click="openImportKey" />
-    <q-btn color="primary" v-if="isGenerating" label="Generating new key..." />
-    <q-btn color="primary" v-if="!isGenerating" label="Generate new key" @click="openGenerateNewKey" :disable="!allowGenerateNewKey" />
+    <div class="q-pa-md q-gutter-sm">
+      <q-btn color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" :disable="openPgpPublicKeys.length === 0" />
+      <q-btn color="primary" label="Import key" @click="openImportKey" />
+      <q-btn color="primary" v-if="isGenerating" label="Generating new key..." />
+      <q-btn color="primary" v-if="!isGenerating" label="Generate new key" @click="openGenerateNewKey" :disable="!allowGenerateNewKey" />
+    </div>
 
     <q-dialog v-model="deleteConfirmDialog" persistent>
       <q-card>
         <q-card-section class="row items-center q-pa-md">
           <q-list>
             <q-item>
-              <q-item-label>Are you sure you want to delete OpenPGP key for {{ deleteKeyEmail }}?</q-item-label>
+              <q-item-label v-if="deleteKeyPublic">Are you sure you want to delete public OpenPGP key for {{ deleteKeyEmail }}?</q-item-label>
+              <q-item-label v-if="!deleteKeyPublic">Are you sure you want to delete private OpenPGP key for {{ deleteKeyEmail }}?</q-item-label>
             </q-item>
           </q-list>
         </q-card-section>
@@ -76,11 +85,7 @@
                 <q-item-label>OpenPGP key password</q-item-label>
               </q-item-section>
               <q-item-section side >
-                <q-input
-                  v-model="keyPassword"
-                  filled
-                  type="password"
-                />
+                <q-input type="password" v-model="keyPassword" outlined />
               </q-item-section>
             </q-item>
           </q-list>
@@ -101,13 +106,7 @@
             </q-item>
             <q-item>
               <q-item-section>
-                <q-input
-                  v-model="viewKeysValue"
-                  filled
-                  type="textarea"
-                  style="width: 500px; height: 300px;"
-                  ref="viewKeysInput"
-                />
+                <q-input type="textarea" v-model="viewKeysValue" ref="viewKeysInput" outlined rows="100" style="width: 500px; height: 300px;" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -138,7 +137,7 @@
               <q-item-section>
                 <q-item-label>{{ oKey.sEmail }}</q-item-label>
               </q-item-section>
-              <q-item-section>
+              <q-item-section side>
                 <q-item-label>{{ oKey.sAddInfo }}</q-item-label>
               </q-item-section>
             </q-item>
@@ -147,12 +146,7 @@
             </q-item>
             <q-item v-if="keysToImport.length === 0">
               <q-item-section>
-                <q-input
-                  v-model="keysArmorToImport"
-                  filled
-                  type="textarea"
-                  style="width: 500px; height: 300px;"
-                />
+                <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 500px; height: 300px;" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -185,7 +179,7 @@
                 <q-item-label>Password</q-item-label>
               </q-item-section>
               <q-item-section side >
-                <q-input type="password" v-model="newKeyPassword" />
+                <q-input type="password" v-model="newKeyPassword" outlined />
               </q-item-section>
             </q-item>
             <q-item>
@@ -193,7 +187,7 @@
                 <q-item-label>Key length</q-item-label>
               </q-item-section>
               <q-item-section side >
-                <q-item-label>{{ newKeyLength }}</q-item-label>
+                <q-select v-model="newKeyLength" :options="newKeyLengthList" outlined dense style="width: 100%;" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -231,6 +225,7 @@ export default {
       deleteConfirmDialog: false,
       deleteKeyId: '',
       deleteKeyEmail: '',
+      deleteKeyPublic: false,
 
       enterPasswordDialog: false,
       keyToCheckAndView: null,
@@ -251,6 +246,7 @@ export default {
       generateNewKeyDialog: false,
       newKeyPassword: '',
       newKeyLength: 2048,
+      newKeyLengthList: [2048, 4096],
     }
   },
 
@@ -310,12 +306,14 @@ export default {
     confirmDeleteKey (oKey) {
       this.deleteKeyId = oKey.sId
       this.deleteKeyEmail = oKey.sEmail
+      this.deleteKeyPublic = oKey.bPublic
       this.deleteConfirmDialog = true
     },
     deleteKey () {
       this.$store.commit('main/deleteOpenPgpKey', this.deleteKeyId)
       this.deleteKeyId = ''
       this.deleteKeyEmail = ''
+      this.deleteKeyPublic = false
     },
     enterPassword (oKey) {
       this.keyToCheckAndView = oKey

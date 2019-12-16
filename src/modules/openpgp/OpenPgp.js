@@ -280,8 +280,10 @@ COpenPgp.prototype.decryptAndVerify = async function (sData, oPrivateKey, sSignP
   if (bVerified && oOpenPgpKey) {
     let oOptions = {
       message: await openpgp.message.readArmored(sData),
-      publicKeys: await this.convertToNativeKeys(aPublicKeys), // for verification (optional)
       privateKeys: [oOpenPgpKey], // for decryption
+    }
+    if (typesUtils.isNonEmptyArray(aPublicKeys)) {
+      oOptions.publicKeys = await this.convertToNativeKeys(aPublicKeys) // for verification (optional)
     }
     try {
       let oPgpResult = await openpgp.decrypt(oOptions)

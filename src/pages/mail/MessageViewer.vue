@@ -89,7 +89,7 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <q-chip v-for="fromAddr in from" :key="'from_' + fromAddr" icon-right="add">{{fromAddr}}</q-chip>
+          <q-chip v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" icon-right="add">{{oFromAddr.Full}} {{oFromAddr.Contact}}</q-chip>
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -165,6 +165,8 @@ import mailEnums from 'src/modules/mail/enums.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
+import contactsCache from 'src/modules/contacts/Cache.js'
+
 export default {
   name: 'MessageViewer',
   data () {
@@ -191,7 +193,11 @@ export default {
       let oFrom = this.message.From
       let aFrom = []
       _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
-        aFrom.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
+        aFrom.push({
+          Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+          Email: oAddress.Email,
+          Contact: null,
+        })
       })
       return aFrom
     },
@@ -243,6 +249,18 @@ export default {
           oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
         })
       }
+    },
+    from: function () {
+      let aFromEmails = _.map(this.from, function (oFromAddr) {
+        return oFromAddr.Email
+      })
+      contactsCache.getContactsByEmails(aFromEmails, (oContacts) => {
+        _.each(this.from, function (oFromAddr) {
+          if (oContacts[oFromAddr.Email]) {
+            // oFromAddr.Contact = oContacts[oFromAddr.Email]
+          }
+        })
+      })
     },
   },
 

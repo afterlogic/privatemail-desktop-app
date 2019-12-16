@@ -12,9 +12,9 @@ function CContactsCache() {
   this.oResponseHandlers = {}
   this.aRequestedEmails = []
 
-  this.aVcardAttachments = []
+  // this.aVcardAttachments = []
 
-  this.oNewContactParams = null
+  // this.oNewContactParams = null
 }
 
 /**
@@ -81,7 +81,7 @@ CContactsCache.prototype.onGetContactsByEmailsResponse = function (oParameters, 
   let
     fResponseHandler = this.oResponseHandlers[oParameters.HandlerId],
     aEmails = oParameters.Emails,
-    oContacts = {}
+    aContacts = {}
 
   if (aResult) {
     _.each(aResult, _.bind(function (oContactData) {
@@ -98,68 +98,68 @@ CContactsCache.prototype.onGetContactsByEmailsResponse = function (oParameters, 
     if (!this.oContacts[sEmail]) {
       this.oContacts[sEmail] = null
     }
-    oContacts[sEmail] = this.oContacts[sEmail]
+    aContacts[sEmail] = this.oContacts[sEmail]
   }, this))
 
   if (_.isFunction(fResponseHandler)) {
-    fResponseHandler(oContacts)
+    fResponseHandler(aContacts)
   }
 
   delete this.oResponseHandlers[oParameters.HandlerId]
 }
 
-/**
- * @param {Object} oVcard
- */
-CContactsCache.prototype.addVcard = function (oVcard) {
-  this.aVcardAttachments.push(oVcard)
-}
+// /**
+//  * @param {Object} oVcard
+//  */
+// CContactsCache.prototype.addVcard = function (oVcard) {
+//   this.aVcardAttachments.push(oVcard)
+// }
 
-/**
- * @param {string} sFile
- */
-CContactsCache.prototype.getVcard = function (sFile) {
-  return _.find(this.aVcardAttachments, function (oVcard) {
-    return oVcard.file() === sFile
-  })
-}
+// /**
+//  * @param {string} sFile
+//  */
+// CContactsCache.prototype.getVcard = function (sFile) {
+//   return _.find(this.aVcardAttachments, function (oVcard) {
+//     return oVcard.file() === sFile
+//   })
+// }
 
-/**
- * @param {string} sFile
- */
-CContactsCache.prototype.markVcardsExistentByFile = function (sFile) {
-  _.each(this.aVcardAttachments, function (oVcard) {
-    if (oVcard.file() === sFile) {
-      oVcard.exists(true)
-    }
-  })
-}
+// /**
+//  * @param {string} sFile
+//  */
+// CContactsCache.prototype.markVcardsExistentByFile = function (sFile) {
+//   _.each(this.aVcardAttachments, function (oVcard) {
+//     if (oVcard.file() === sFile) {
+//       oVcard.exists(true)
+//     }
+//   })
+// }
 
-/**
- * @param {Array} aUids
- */
-CContactsCache.prototype.markVcardsNonexistentByUid = function (aUids) {
-  _.each(this.aVcardAttachments, function (oVcard) {
-    if (-1 !== _.indexOf(aUids, oVcard.uid())) {
-      oVcard.exists(false)
-    }
-  })
-}
+// /**
+//  * @param {Array} aUids
+//  */
+// CContactsCache.prototype.markVcardsNonexistentByUid = function (aUids) {
+//   _.each(this.aVcardAttachments, function (oVcard) {
+//     if (-1 !== _.indexOf(aUids, oVcard.uid())) {
+//       oVcard.exists(false)
+//     }
+//   })
+// }
 
-/**
- * @param {Object} oNewContactParams
- */
-CContactsCache.prototype.saveNewContactParams = function (oNewContactParams) {
-  this.oNewContactParams = oNewContactParams
-}
+// /**
+//  * @param {Object} oNewContactParams
+//  */
+// CContactsCache.prototype.saveNewContactParams = function (oNewContactParams) {
+//   this.oNewContactParams = oNewContactParams
+// }
 
-/**
- * @returns {Object}
- */
-CContactsCache.prototype.getNewContactParams = function () {
-  let oNewContactParams = this.oNewContactParams
-  this.oNewContactParams = null
-  return oNewContactParams
-}
+// /**
+//  * @returns {Object}
+//  */
+// CContactsCache.prototype.getNewContactParams = function () {
+//   let oNewContactParams = this.oNewContactParams
+//   this.oNewContactParams = null
+//   return oNewContactParams
+// }
 
 export default new CContactsCache()

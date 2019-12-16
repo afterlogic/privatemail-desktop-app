@@ -89,7 +89,12 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <q-chip v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" icon-right="add">{{oFromAddr.Full}} {{oFromAddr.Contact}}</q-chip>
+          <q-chip class="asd" v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" icon-right="add">
+            {{ oFromAddr.Full }}
+            <q-popup-proxy>
+              <ContactCard :contact="getEmailContact(oFromAddr.Email)" />
+            </q-popup-proxy>
+          </q-chip>
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -166,9 +171,11 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
 import contactsCache from 'src/modules/contacts/Cache.js'
+import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
 export default {
   name: 'MessageViewer',
+
   data () {
     return {
       replyText: '',
@@ -182,7 +189,12 @@ export default {
       verifyReport: '',
       isDecrypted: false,
       decryptReport: '',
+      emailContacts: {},
     }
+  },
+
+  components: {
+    ContactCard,
   },
 
   computed: {
@@ -190,23 +202,26 @@ export default {
       return this.$store.getters['mail/getСurrentMessage']
     },
     from () {
-      let oFrom = this.message.From
       let aFrom = []
-      _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
-        aFrom.push({
-          Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-          Email: oAddress.Email,
-          Contact: null,
+      if (this.message) {
+        let oFrom = this.message.From
+        _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
+          aFrom.push({
+            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+            Email: oAddress.Email,
+          })
         })
-      })
+      }
       return aFrom
     },
     to () {
-      let aAddresses = _.union(this.message.To ? this.message.To['@Collection'] : [], this.message.Cc ? this.message.Cc['@Collection'] : [], this.message.Bcc ? this.message.Bcc['@Collection'] : [])
       let aTo = []
-      _.each(aAddresses, function (oAddress) {
-        aTo.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
-      })
+      if (this.message) {
+        let aAddresses = _.union(this.message.To ? this.message.To['@Collection'] : [], this.message.Cc ? this.message.Cc['@Collection'] : [], this.message.Bcc ? this.message.Bcc['@Collection'] : [])
+        _.each(aAddresses, function (oAddress) {
+          aTo.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
+        })
+      }
       return aTo
     },
     currentFolderList () {
@@ -255,16 +270,15 @@ export default {
         return oFromAddr.Email
       })
       contactsCache.getContactsByEmails(aFromEmails, (oContacts) => {
-        _.each(this.from, function (oFromAddr) {
-          if (oContacts[oFromAddr.Email]) {
-            // oFromAddr.Contact = oContacts[oFromAddr.Email]
-          }
-        })
+        this.emailContacts = _.extend(this.emailContacts, oContacts)
       })
     },
   },
 
   methods: {
+    getEmailContact: function (sEmail) {
+      return this.emailContacts[sEmail]
+    },
     download: function (sDownloadUrl, sFileName) {
       webApi.downloadByUrl(sDownloadUrl, sFileName)
     },

@@ -18,7 +18,7 @@
             <q-tab name="calendar" icon="calendar" label="Calendar" style="justify-content: start;" />
             <q-tab name="files" icon="folder" label="Files" style="justify-content: start;" />
             <q-tab name="mobile-sync" icon="sync" label="Mobile Sync" style="justify-content: start;" />
-            <q-tab name="open-pgp" icon="secure" label="Open PGP" style="justify-content: start;" />
+            <q-tab name="open-pgp" icon="vpn_key" label="Open PGP" style="justify-content: start;" />
           </q-tabs>
         </template>
 

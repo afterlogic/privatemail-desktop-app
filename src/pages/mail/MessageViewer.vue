@@ -6,17 +6,29 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
-      <div style="background: #ffffef; color: #b5ad94; padding: 8px;" v-if="isEcryptedMessage && !isDecrypted">
-        <div style="padding-bottom: 8px;">OpenPGP encrypted message.</div>
-        <q-input type="password" outlined style="width: 200px; display: inline-block;" label="Enter your password" v-model="privateKeyPass" />
-        <q-btn flat color="primary" label="Click to decrypt" style="display: inline-block;" @click="decrypt" />
+      <div class="q-pa-md pgp-notification-panel" v-if="isEcryptedMessage || isSignedMessage" :class="{'success-report': isDecrypted || isVerified}">
+        <template v-if="isEcryptedMessage && !isDecrypted">
+          <div class="q-mb-md hint">OpenPGP encrypted message.</div>
+          <div class="row">
+            <q-input dense outlined type="password" label="Enter your password" v-model="privateKeyPass" />
+            <q-btn unelevated outline color="primary" label="Click to decrypt" @click="decrypt" />
+          </div>
+        </template>
+        <template v-if="isEcryptedMessage && isDecrypted">
+          {{ decryptReport }}
+        </template>
+        <template v-if="isSignedMessage && !isVerified">
+          <div class="q-mb-md hint">
+            OpenPGP signed message.
+          </div>
+          <div class="row">
+            <q-btn unelevated outline color="primary" label="Click to verify" @click="verify" />
+          </div>
+        </template>
+        <template v-if="isSignedMessage && isVerified">
+          {{ verifyReport }}
+        </template>
       </div>
-      <div style="background: #efffef; color: #b5ad94; padding: 8px;" v-if="isEcryptedMessage && isDecrypted">{{ decryptReport }} </div>
-      <div style="background: #ffffef; color: #b5ad94; padding: 8px;" v-if="isSignedMessage && !isVerified">
-        OpenPGP signed message.
-        <q-btn flat color="primary" label="Click to verify" style="display: inline-block;" @click="verify" />
-      </div>
-      <div style="background: #efffef; color: #b5ad94; padding: 8px;" v-if="isSignedMessage && isVerified">{{ verifyReport }} </div>
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
@@ -153,6 +165,20 @@
       color: #777;
       font-size: 18pt;
     }
+  }
+}
+.pgp-notification-panel {
+  background: #ffffef;
+  color: #887b57;
+  border-bottom: 1px solid #e2e2cd;
+
+  &.success-report {
+    background: #f5ffef;
+    color: #616f56;
+  }
+
+  .q-input {
+    margin-right: 10px;
   }
 }
 </style>

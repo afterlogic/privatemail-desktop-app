@@ -22,34 +22,33 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
+
       <q-dialog v-model="pgpSignEncryptDialog" persistent>
-        <q-card>
-          <q-card-section class="row items-center">
-            <span class="q-ml-sm" header>OpenPGP Sign/Encrypt</span>
+        <q-card class="q-px-sm">
+          <q-card-section>
+            <div class="text-h6">OpenPGP Sign/Encrypt</div>
           </q-card-section>
-          <q-card-section class="row items-center">
-            <q-list>
-              <q-item tag="label" v-ripple>
-                <q-item-section side top>
-                  <q-checkbox v-model="signCheckbox" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Sign</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-input type="password" outlined v-model="signPassword" label="Password" @click.stop.prevent />
-                </q-item-section>
-              </q-item>
-              <q-item tag="label" v-ripple>
-                <q-item-section side top>
-                  <q-checkbox v-model="encryptCheckbox" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Encrypt</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
+
+          <q-item tag="label">
+            <q-item-section side top>
+              <q-checkbox v-model="signCheckbox" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Sign</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="password" outlined dense v-model="signPassword" label="Password" @click.stop.prevent="signCheckbox = true" />
+            </q-item-section>
+          </q-item>
+          
+          <q-item tag="label">
+            <q-item-section side top>
+              <q-checkbox v-model="encryptCheckbox" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Encrypt</q-item-label>
+            </q-item-section>
+          </q-item>
           <q-card-actions align="right">
             <q-btn flat label="PGP Sign/Encrypt" color="primary" @click="signAndEncrypt" v-if="signCheckbox && encryptCheckbox" />
             <q-btn flat label="Sign" color="primary" @click="sign" v-if="signCheckbox && !encryptCheckbox" />

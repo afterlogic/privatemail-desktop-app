@@ -14,10 +14,10 @@
         <q-item-section>
           <q-item-label>{{ oKey.sEmail }}</q-item-label>
         </q-item-section>
-        <q-item-section side >
+        <q-item-section side>
           <q-btn flat icon="visibility" @click="viewKeys([oKey])" />
         </q-item-section>
-        <q-item-section side >
+        <q-item-section side>
           <q-btn flat icon="delete" @click="confirmDeleteKey(oKey)" />
         </q-item-section>
       </q-item>
@@ -47,21 +47,19 @@
     </q-list>
     <q-separator spaced />
     <div class="q-pa-md q-gutter-sm">
-      <q-btn color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" :disable="openPgpPublicKeys.length === 0" />
-      <q-btn color="primary" label="Import key" @click="openImportKey" />
-      <q-btn color="primary" v-if="isGenerating" label="Generating new key..." />
-      <q-btn color="primary" v-if="!isGenerating" label="Generate new key" @click="openGenerateNewKey" :disable="!allowGenerateNewKey" />
+      <q-btn unelevated color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" :disable="openPgpPublicKeys.length === 0" />
+      <q-btn unelevated color="primary" label="Import key" @click="openImportKey" />
+      <q-btn unelevated color="primary" v-if="isGenerating" label="Generating new key..." />
+      <q-btn unelevated color="primary" v-if="!isGenerating" label="Generate new key" @click="openGenerateNewKey" :disable="!allowGenerateNewKey" />
     </div>
 
     <q-dialog v-model="deleteConfirmDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center q-pa-md">
-          <q-list>
-            <q-item>
-              <q-item-label v-if="deleteKeyPublic">Are you sure you want to delete public OpenPGP key for {{ deleteKeyEmail }}?</q-item-label>
-              <q-item-label v-if="!deleteKeyPublic">Are you sure you want to delete private OpenPGP key for {{ deleteKeyEmail }}?</q-item-label>
-            </q-item>
-          </q-list>
+      <q-card class="q-px-sm">
+        <q-card-section v-if="deleteKeyPublic">
+          Are you sure you want to delete public OpenPGP key for <b>{{ deleteKeyEmail }}</b>?
+        </q-card-section>
+        <q-card-section v-if="!deleteKeyPublic">
+          Are you sure you want to delete private OpenPGP key for <b>{{ deleteKeyEmail }}</b>?
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Ok" color="primary" @click="deleteKey" v-close-popup />
@@ -71,25 +69,23 @@
     </q-dialog>
 
     <q-dialog v-model="enterPasswordDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center q-pa-md">
-          <q-list>
-            <q-item>
-              <q-item-label header>Enter password</q-item-label>
-            </q-item>
-            <q-item>
-              <q-item-label caption>Before the OpenPGP private key can be shown, we need to verify this key's password.</q-item-label>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>OpenPGP key password</q-item-label>
-              </q-item-section>
-              <q-item-section side >
-                <q-input type="password" v-model="keyPassword" outlined />
-              </q-item-section>
-            </q-item>
-          </q-list>
+      <q-card class="q-px-sm">
+        <q-card-section>
+          <div class="text-h6">Enter password</div>
         </q-card-section>
+
+        <q-item>
+          <q-item-label caption>Before the OpenPGP private key can be shown, we need to verify this key's password.</q-item-label>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>OpenPGP key password</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense type="password" v-model="keyPassword" />
+          </q-item-section>
+        </q-item>
+
         <q-card-actions align="right">
           <q-btn flat label="View" color="primary" @click="checkPasswordAndViewKeys" v-close-popup />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
@@ -98,18 +94,12 @@
     </q-dialog>
 
     <q-dialog v-model="viewKeysDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center q-pa-md">
-          <q-list>
-            <q-item>
-              <q-item-label header>{{ viewKeysHeader }}</q-item-label>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-input type="textarea" v-model="viewKeysValue" ref="viewKeysInput" outlined rows="100" style="width: 500px; height: 300px;" />
-              </q-item-section>
-            </q-item>
-          </q-list>
+      <q-card class="q-px-sm">
+        <q-card-section>
+          <div class="text-h6">{{ viewKeysHeader }}</div>
+        </q-card-section>
+        <q-card-section>
+          <q-input outlined type="textarea" v-model="viewKeysValue" ref="viewKeysInput" rows="100" style="width: 500px; height: 300px;" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Send" color="primary" @click="sendKeys" v-close-popup />
@@ -121,35 +111,26 @@
     </q-dialog>
 
     <q-dialog v-model="importKeyDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center q-pa-md">
-          <q-list>
-            <q-item>
-              <q-item-label header>Import key</q-item-label>
-            </q-item>
-            <q-item v-if="keysToImport.length > 0">
-              <q-item-label>Text includes OpenPGP keys</q-item-label>
-            </q-item>
-            <q-item v-for="oKey in keysToImport" :key="oKey.sId" :disable="oKey.bDisabled">
-              <q-item-section side top>
-                <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ oKey.sEmail }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-item-label>{{ oKey.sAddInfo }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="keysToImport.length > 0 && importHasExistingKeys">
-              <q-item-label caption>Keys which are already in the system are greyed out.</q-item-label>
-            </q-item>
-            <q-item v-if="keysToImport.length === 0">
-              <q-item-section>
-                <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 500px; height: 300px;" />
-              </q-item-section>
-            </q-item>
-          </q-list>
+      <q-card class="q-px-sm">
+        <q-card-section>
+          <div class="text-h6">Import key</div>
+        </q-card-section>
+
+        <q-item-label header v-if="keysToImport.length > 0">Text includes OpenPGP keys</q-item-label>
+        <q-item v-for="oKey in keysToImport" :key="oKey.sId" :disable="oKey.bDisabled">
+          <q-item-section side top>
+            <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ oKey.sEmail }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-item-label>{{ oKey.sAddInfo }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item-label caption v-if="keysToImport.length > 0 && importHasExistingKeys">Keys which are already in the system are greyed out.</q-item-label>
+        <q-card-section v-if="keysToImport.length === 0">
+          <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 500px; height: 300px;" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />
@@ -160,38 +141,34 @@
     </q-dialog>
 
     <q-dialog v-model="generateNewKeyDialog" persistent>
-      <q-card>
-        <q-card-section class="row items-center q-pa-md">
-          <q-list>
-            <q-item>
-              <q-item-label header>Generate new key</q-item-label>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Email</q-item-label>
-              </q-item-section>
-              <q-item-section side >
-                <q-item-label>{{ newKeyEmail }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Password</q-item-label>
-              </q-item-section>
-              <q-item-section side >
-                <q-input type="password" v-model="newKeyPassword" outlined />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Key length</q-item-label>
-              </q-item-section>
-              <q-item-section side >
-                <q-select v-model="newKeyLength" :options="newKeyLengthList" outlined dense style="width: 100%;" />
-              </q-item-section>
-            </q-item>
-          </q-list>
+      <q-card class="q-px-sm">
+        <q-card-section>
+          <div class="text-h6">Generate new key</div>
         </q-card-section>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Email</q-item-label>
+          </q-item-section>
+          <q-item-section side >
+            <q-item-label>{{ newKeyEmail }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Password</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense type="password" v-model="newKeyPassword" />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Key length</q-item-label>
+          </q-item-section>
+          <q-item-section side >
+            <q-select outlined dense v-model="newKeyLength" :options="newKeyLengthList" />
+          </q-item-section>
+        </q-item>
         <q-card-actions align="right">
           <q-btn flat label="Generate" color="primary" @click="generateNewKey" v-close-popup />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
@@ -199,7 +176,6 @@
       </q-card>
     </q-dialog>
   </div>
-
 </template>
 
 <style></style>

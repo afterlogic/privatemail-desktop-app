@@ -86,7 +86,7 @@ import GroupView from './GroupView.vue'
 import GroupEditView from './GroupEditView.vue'
 
 import Pagination from '../Pagination.vue'
-// import ContactCreateView from './ContactCreateView.vue'
+// import ContactCreateView from './__oldContactCreateView.vue'
 import GroupCreateView from './GroupCreateView.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'

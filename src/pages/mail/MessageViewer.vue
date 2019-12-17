@@ -89,12 +89,7 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <q-chip class="asd" v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" icon-right="add">
-            {{ oFromAddr.Full }}
-            <q-popup-proxy>
-              <ContactCard :contact="getEmailContact(oFromAddr.Email)" />
-            </q-popup-proxy>
-          </q-chip>
+          <ContactCard v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" :contact="getEmailContact(oFromAddr.Email)" :fullAddr="oFromAddr.Full" />
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -171,6 +166,7 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
 import contactsCache from 'src/modules/contacts/Cache.js'
+
 import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
 export default {
@@ -277,6 +273,7 @@ export default {
 
   methods: {
     getEmailContact: function (sEmail) {
+      console.log('getEmailContact', sEmail)
       return this.emailContacts[sEmail]
     },
     download: function (sDownloadUrl, sFileName) {

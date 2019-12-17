@@ -16,37 +16,37 @@
                   <label class="label-size">Display name:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.FullName"/>
                 </div>
-                <div class="input-line" v-if="oContact.PrimaryEmail === 0">
+                <div class="input-line" v-if="oContact.PrimaryEmail === contactsEnums.PrimaryEmail.Personal">
                   <label class="label-size">Email:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalEmail"/>
                 </div>
-                <div class="input-line" v-if="oContact.PrimaryEmail === 1">
+                <div class="input-line" v-if="oContact.PrimaryEmail === contactsEnums.PrimaryEmail.Business">
                   <label class="label-size">Email:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.BusinessEmail"/>
                 </div>
-                <div class="input-line" v-if="oContact.PrimaryEmail === 2">
+                <div class="input-line" v-if="oContact.PrimaryEmail === contactsEnums.PrimaryEmail.Other">
                   <label class="label-size">Email:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.OtherEmail"/>
                 </div>
 
-                <div class="input-line" v-if="oContact.PrimaryPhone === 0">
+                <div class="input-line" v-if="oContact.PrimaryPhone === contactsEnums.PrimaryPhone.Mobile">
                   <label class="label-size">Phone:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalMobile"/>
                 </div>
-                <div class="input-line" v-if="oContact.PrimaryPhone === 1">
+                <div class="input-line" v-if="oContact.PrimaryPhone === contactsEnums.PrimaryPhone.Personal">
                   <label class="label-size">Phone:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalPhone"/>
                 </div>
-                <div class="input-line" v-if="oContact.PrimaryPhone === 2">
+                <div class="input-line" v-if="oContact.PrimaryPhone === contactsEnums.PrimaryPhone.Business">
                   <label class="label-size">Phone:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.BusinessPhone"/>
                 </div>
 
-                <div class="input-line" v-if="oContact.PrimaryAddress === 0">
+                <div class="input-line" v-if="oContact.PrimaryAddress === contactsEnums.PrimaryAddress.Personal">
                   <label class="label-size">Address:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalAddress"/>
                 </div>
-                <div class="input-line" v-if="oContact.PrimaryAddress === 1">
+                <div class="input-line" v-if="oContact.PrimaryAddress === contactsEnums.PrimaryAddress.Business">
                   <label class="label-size">Address:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.BusinessAddress"/>
                 </div>
@@ -366,6 +366,7 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
+import contactsEnums from 'src/modules/contacts/enums.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
@@ -381,13 +382,15 @@ export default {
       editMode: false,
       oContact: null,
       bSmallEditView: true,
-      oPrimaryEmail: null,
-      oPrimaryPhone: null,
-      oPrimaryAddress: null,
+      oPrimaryEmail: contactsEnums.PrimaryEmail.Personal,
+      oPrimaryPhone: contactsEnums.PrimaryPhone.Personal,
+      oPrimaryAddress: contactsEnums.PrimaryAddress.Personal,
       sBirthDate: '',
       sBirthDatePrev: '',
       groupFilteredList: [],
       bSaving: false,
+
+      contactsEnums: contactsEnums,
     }
   },
 
@@ -444,13 +447,13 @@ export default {
       let aOptions = []
       if (this.oContact !== null) {
         if (this.oContact.PersonalEmail !== '') {
-          aOptions.push({ label: 'Personal: ' + this.oContact.PersonalEmail, value: 0 })
+          aOptions.push({ label: 'Personal: ' + this.oContact.PersonalEmail, value: contactsEnums.PrimaryEmail.Personal })
         }
         if (this.oContact.BusinessEmail !== '') {
-          aOptions.push({ label: 'Business: ' + this.oContact.BusinessEmail, value: 1 })
+          aOptions.push({ label: 'Business: ' + this.oContact.BusinessEmail, value: contactsEnums.PrimaryEmail.Business })
         }
         if (this.oContact.OtherEmail !== '') {
-          aOptions.push({ label: 'Other: ' + this.oContact.OtherEmail, value: 2 })
+          aOptions.push({ label: 'Other: ' + this.oContact.OtherEmail, value: contactsEnums.PrimaryEmail.Other })
         }
       }
 
@@ -460,13 +463,13 @@ export default {
       let aOptions = []
       if (this.oContact !== null) {
         if (this.oContact.PersonalMobile !== '') {
-          aOptions.push({ label: 'Mobile: ' + this.oContact.PersonalMobile, value: 0 })
+          aOptions.push({ label: 'Mobile: ' + this.oContact.PersonalMobile, value: contactsEnums.PrimaryPhone.Mobile })
         }
         if (this.oContact.PersonalPhone !== '') {
-          aOptions.push({ label: 'Personal: ' + this.oContact.PersonalPhone, value: 1 })
+          aOptions.push({ label: 'Personal: ' + this.oContact.PersonalPhone, value: contactsEnums.PrimaryPhone.Personal })
         }
         if (this.oContact.BusinessPhone !== '') {
-          aOptions.push({ label: 'Business: ' + this.oContact.BusinessPhone, value: 2 })
+          aOptions.push({ label: 'Business: ' + this.oContact.BusinessPhone, value: contactsEnums.PrimaryPhone.Business })
         }
       }
 
@@ -476,10 +479,10 @@ export default {
       let aOptions = []
       if (this.oContact !== null) {
         if (this.oContact.PersonalAddress !== '') {
-          aOptions.push({ label: 'Personal: ' + this.oContact.PersonalAddress, value: 0 })
+          aOptions.push({ label: 'Personal: ' + this.oContact.PersonalAddress, value: contactsEnums.PrimaryAddress.Personal })
         }
         if (this.oContact.BusinessAddress !== '') {
-          aOptions.push({ label: 'Business: ' + this.oContact.BusinessAddress, value: 1 })
+          aOptions.push({ label: 'Business: ' + this.oContact.BusinessAddress, value: contactsEnums.PrimaryAddress.Business })
         }
       }
 

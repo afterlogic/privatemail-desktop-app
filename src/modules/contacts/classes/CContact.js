@@ -1,5 +1,7 @@
-import addressUtils from '../../../utils/address.js'
-import typesUtils from '../../../utils/types'
+import addressUtils from 'src/utils/address.js'
+import typesUtils from 'src/utils/types'
+
+import contactsEnums from 'src/modules/contacts/enums.js'
 
 function CContact(data) {
   this.EntityId = null
@@ -8,9 +10,9 @@ function CContact(data) {
   this.Storage = ''
   this.FullName = ''
   this.UseFriendlyName = null
-  this.PrimaryEmail = null
-  this.PrimaryPhone = null
-  this.PrimaryAddress = null
+  this.PrimaryEmail = contactsEnums.PrimaryEmail.Personal
+  this.PrimaryPhone = contactsEnums.PrimaryPhone.Personal
+  this.PrimaryAddress = contactsEnums.PrimaryAddress.Personal
   this.ViewEmail = ''
   this.Title = ''
   this.FirstName = ''
@@ -114,13 +116,13 @@ CContact.prototype.parse = function (data) {
 
 CContact.prototype.setViewEmail = function () {
   switch (this.PrimaryEmail) {
-    case 0:
+    case contactsEnums.PrimaryEmail.Personal:
       this.ViewEmail = this.PersonalEmail
       break
-    case 1:
+    case contactsEnums.PrimaryEmail.Business:
       this.ViewEmail = this.BusinessEmail
       break
-    case 2:
+    case contactsEnums.PrimaryEmail.Other:
       this.ViewEmail = this.OtherEmail
       break
   }

@@ -186,38 +186,38 @@
                   }"
                 >
                   <template v-slot:image>
-                    <q-btn-dropdown flat
-                      dropdown-icon="none"
+                    <q-btn-dropdown
+                      flat
+                      dense
+                      size="sm"
+                      class="arrowless"
+                      icon="image"
                       ref="insertImageDropdown"
                       @hide="imageUrl=''"
                     >
                       <template v-slot:label>
-                        <q-btn flat icon="image" />
                         <q-tooltip>
                           Insert Image
                         </q-tooltip>
                       </template>
-                      <div style="padding: 10px;">
-                        <div>
-                          <div>
-                            Please select an image file to upload
-                          </div>
-                          <div clickable @click="insertImage">
-                            <q-btn flat label="Choose File" />
-                          </div>
-                        </div>
-                        <div>
-                          <div>
-                            or enter an URL:
-                          </div>
-                          <div>
-                            <input type="text" v-model="imageUrl" />
-                          </div>
-                          <div clickable>
-                            <q-btn flat label="Insert" @click="insertImageByUrl" />
-                            <q-btn flat label="Cancel" @click="cancelInsertImage" />
-                          </div>
-                        </div>
+
+                      <q-card class="">
+                          <q-item-label header>Please select an image file to upload</q-item-label>
+                          <q-item>
+                            <q-btn outline class="full-width" color="primary" @click="insertImage" label="Choose File" />
+                          </q-item>
+
+                          <q-item-label header>or enter an URL:</q-item-label>
+                          <q-item>
+                            <q-input outlined dense type="text" class="full-width" v-model="imageUrl" />
+                          </q-item>
+                  
+                        <q-card-actions align="right">
+                          <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
+                          <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
+                        </q-card-actions>
+                      </q-card>
+                      <div>
                       </div>
                     </q-btn-dropdown>
                   </template>
@@ -392,6 +392,13 @@
     border-radius: 0 !important;
   }
 } 
+
+.arrowless {
+  .q-btn-dropdown__arrow {
+    display: none;
+  }
+
+}
 </style>
 
 <script>

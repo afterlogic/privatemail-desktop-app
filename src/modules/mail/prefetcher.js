@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import store from 'src/store'
 import _ from 'lodash'
 
+
 import typesUtils from 'src/utils/types.js'
 
 import foldersUtils from 'src/store/mail/utils/folders.js'

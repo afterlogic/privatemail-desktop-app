@@ -101,7 +101,7 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <ContactCard v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" :contact="getEmailContact(oFromAddr.Email)" :fullAddr="oFromAddr.Full" />
+          <ContactCard v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" :contact="emailContacts[oFromAddr.Email]" :fullAddr="oFromAddr.Full" />
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -191,7 +191,7 @@ import mailEnums from 'src/modules/mail/enums.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
-import contactsCache from 'src/modules/contacts/Cache.js'
+import contactsCache from 'src/modules/contacts/contactsCache.js'
 
 import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
@@ -292,8 +292,18 @@ export default {
         return oFromAddr.Email
       })
       contactsCache.getContactsByEmails(aFromEmails, (oContacts) => {
-        this.emailContacts = _.extend(this.emailContacts, oContacts)
+        _each(aFromEmails, function (sEmail) {
+          if (oContacts[sEmail]) {
+            this.emailContacts[sEmail] = oContacts[sEmail]
+          } else {
+            this.emailContacts[sEmail] = false
+          }
+        })
+        console.log('this.emailContacts', this.emailContacts)
       })
+    },
+    emailContacts: function () {
+      console.log('watch emailContacts', this.emailContacts)
     },
   },
 

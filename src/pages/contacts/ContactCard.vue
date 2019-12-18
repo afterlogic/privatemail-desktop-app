@@ -73,11 +73,11 @@
     </q-popup-proxy>
     <q-dialog v-model="bNewContactDialog" persistent>
       <q-card>
-        <q-card-section class="row items-center q-pa-md">
+        <q-card-section>
+          <div class="text-h6">New Contact</div>
+        </q-card-section>
+        <q-card-section>
           <q-list style="width: 500px;">
-            <q-item>
-              <q-item-label header>New Contact</q-item-label>
-            </q-item>
             <q-item>
               <q-item-section>
                 <q-item-label>Display name:</q-item-label>
@@ -156,6 +156,7 @@ import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
 
 import contactsEnums from 'src/modules/contacts/enums.js'
+import contactsCache from 'src/modules/contacts/contactsCache.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
@@ -215,30 +216,41 @@ export default {
       this.dummyAction()
     },
     saveNewContact () {
-      let oContactToSave = new CContact({
-        FullName: this.sNewContactDisplayName,
-        BusinessEmail: this.sNewContactEmail,
-        PrimaryEmail: contactsEnums.PrimaryEmail.Business,
-        BusinessPhone: this.sNewContactPhone,
-        PrimaryPhone: contactsEnums.PrimaryPhone.Business,
-        BusinessAddress: this.sNewContactAddress,
-        PrimaryAddress: contactsEnums.PrimaryAddress.Business,
-        Skype: this.sNewContactSkype,
-        Facebook: this.sNewContactFacebook,
-      })
-      oContactToSave.setViewEmail()
-      this.bSaving = true
-      ipcRenderer.send('contacts-save-contact', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        oContactToSave,
-      })
+      let bAllFieldsEmpty = _.trim(this.sNewContactDisplayName) === ''
+                          && _.trim(this.sNewContactEmail) === ''
+                          && _.trim(this.sNewContactPhone) === ''
+                          && _.trim(this.sNewContactAddress) === ''
+                          && _.trim(this.sNewContactSkype) === ''
+                          && _.trim(this.sNewContactFacebook) === ''
+      if (bAllFieldsEmpty) {
+        notification.showError('Please fill in at least one field')
+      } else {
+        let oContactToSave = new CContact({
+          FullName: this.sNewContactDisplayName,
+          BusinessEmail: this.sNewContactEmail,
+          PrimaryEmail: contactsEnums.PrimaryEmail.Business,
+          BusinessPhone: this.sNewContactPhone,
+          PrimaryPhone: contactsEnums.PrimaryPhone.Business,
+          BusinessAddress: this.sNewContactAddress,
+          PrimaryAddress: contactsEnums.PrimaryAddress.Business,
+          Skype: this.sNewContactSkype,
+          Facebook: this.sNewContactFacebook,
+        })
+        oContactToSave.setViewEmail()
+        this.bSaving = true
+        ipcRenderer.send('contacts-save-contact', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          oContactToSave,
+        })
+      }
     },
     onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been created.')
         this.$store.commit('contacts/setHasChanges', true)
+        contactsCache.clearCache()
         this.bNewContactDialog = false
       } else {
         notification.showError(errors.getText(oError, 'Error creating contact.'))

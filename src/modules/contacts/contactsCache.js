@@ -18,10 +18,10 @@ function CContactsCache() {
 }
 
 /**
- * @param {string} sEmail
+ * Clears contacts cache.
  */
-CContactsCache.prototype.clearInfoAboutEmail = function (sEmail) {
-  this.oContacts[sEmail] = undefined
+CContactsCache.prototype.clearCache = function () {
+  this.oContacts = {}
 }
 
 /**

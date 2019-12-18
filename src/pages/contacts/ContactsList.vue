@@ -41,6 +41,8 @@
 <script>
 import typesUtils from 'src/utils/types.js'
 
+import contactsCache from 'src/modules/contacts/contactsCache.js'
+
 export default {
   name: 'ContactsList',
 
@@ -75,6 +77,7 @@ export default {
     'hasChanges': function () {
       if (this.hasChanges) {
         this.startAsyncGetContacts(false)
+        contactsCache.clearCache()
       }
     },
     allChecked: function () {

@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import CStorages from '../../modules/contacts/classes/CStorages'
 
 export function setStorages(state, aStorages) {
@@ -15,6 +16,9 @@ export function setCurrentStorage(state, sStorage) {
 
 export function setHasChanges(state, bHasChanges) {
   state.hasChanges = bHasChanges
+  if (bHasChanges) {
+    state.contactsByEmail = {}
+  }
 }
 
 export function setSyncing(state, bSyncing) {
@@ -55,6 +59,11 @@ export function changeEditContact(state, editable) {
 
 export function saveChangesCurrentContact(state, savedContact, index) {
   state.contacts.list[index] = savedContact
+}
+
+export function addContactByEmail(state, { sEmail, mContact }) {
+  Vue.set(state.contactsByEmail, sEmail, mContact)
+  console.log('addContactByEmail', state.contactsByEmail)
 }
 
 export function setGroups(state, aGroups) {

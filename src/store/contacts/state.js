@@ -16,6 +16,8 @@ export default {
     count: 0, // total count of contacts in the current storage or group
   },
 
+  contactsByEmail: {},
+
   contactByUUID: {
     UUID: null,
     editable: false,

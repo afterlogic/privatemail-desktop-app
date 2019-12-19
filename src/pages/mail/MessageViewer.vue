@@ -101,7 +101,7 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <ContactCard v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" :contact="emailContacts[oFromAddr.Email]" :fullAddr="oFromAddr.Full" />
+          <ContactCard v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" :addr="oFromAddr" />
           <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
@@ -211,7 +211,6 @@ export default {
       verifyReport: '',
       isDecrypted: false,
       decryptReport: '',
-      emailContacts: {},
     }
   },
 
@@ -291,27 +290,11 @@ export default {
       let aFromEmails = _.map(this.from, function (oFromAddr) {
         return oFromAddr.Email
       })
-      contactsCache.getContactsByEmails(aFromEmails, (oContacts) => {
-        _each(aFromEmails, function (sEmail) {
-          if (oContacts[sEmail]) {
-            this.emailContacts[sEmail] = oContacts[sEmail]
-          } else {
-            this.emailContacts[sEmail] = false
-          }
-        })
-        console.log('this.emailContacts', this.emailContacts)
-      })
-    },
-    emailContacts: function () {
-      console.log('watch emailContacts', this.emailContacts)
+      contactsCache.getContactsByEmails(aFromEmails)
     },
   },
 
   methods: {
-    getEmailContact: function (sEmail) {
-      console.log('getEmailContact', sEmail)
-      return this.emailContacts[sEmail]
-    },
     download: function (sDownloadUrl, sFileName) {
       webApi.downloadByUrl(sDownloadUrl, sFileName)
     },

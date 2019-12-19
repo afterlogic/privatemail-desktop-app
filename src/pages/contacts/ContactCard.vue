@@ -1,7 +1,7 @@
 <template>
   <q-chip :clickable="!!contact" :class="{'found_contact': !!contact}">
-    {{ fullAddr }}
-    <q-btn size="xs" unelevated dense rounded color="grey-5" v-if="!contact" @click="openCreateContactPopup(fullAddr)" style="margin-left: 10px; margin-right: -10px;" >
+    {{ addr.Full }}
+    <q-btn size="xs" unelevated dense rounded color="grey-5" v-if="contact === false" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -10px;" >
       <q-icon size="xs" name="add" color="black" />
     </q-btn>
     <q-popup-proxy>
@@ -163,13 +163,12 @@ import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
 
 import contactsEnums from 'src/modules/contacts/enums.js'
-import contactsCache from 'src/modules/contacts/contactsCache.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'ContactFields',
 
-  props: ['contact', 'fullAddr'],
+  props: ['addr'],
 
   data() {
     return {
@@ -184,6 +183,14 @@ export default {
       sNewContactFacebook: '',
       bSaving: false,
     }
+  },
+
+  computed: {
+    contact: function () {
+      let oContacts = this.$store.getters['contacts/getContactsByEmail']
+      let oContact = oContacts[this.addr.Email]
+      return oContact
+    },
   },
 
   mounted: function() {
@@ -212,8 +219,8 @@ export default {
     dummyAction () {
       notification.showReport('There is no action here yet')
     },
-    openCreateContactPopup (sFullAddr) {
-      let oEmailParts = addressUtils.getEmailParts(sFullAddr)
+    openCreateContactPopup () {
+      let oEmailParts = addressUtils.getEmailParts(this.addr.Full)
       this.bSaving = false
       this.sNewContactDisplayName = oEmailParts.name
       this.sNewContactEmail = oEmailParts.email
@@ -257,7 +264,6 @@ export default {
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been created.')
         this.$store.commit('contacts/setHasChanges', true)
-        contactsCache.clearCache()
         this.bNewContactDialog = false
       } else {
         notification.showError(errors.getText(oError, 'Error creating contact.'))

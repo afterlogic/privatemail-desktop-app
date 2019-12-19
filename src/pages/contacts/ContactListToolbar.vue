@@ -91,12 +91,6 @@
 </template>
 
 <style>
-  .q-chip {
-    min-width: 2em;
-    justify-content: center;
-    background: var(--q-color-primary);
-    color: #fff;
-  }
 </style>
 
 <script>

@@ -1,7 +1,9 @@
 <template>
-  <q-chip :clickable="!!contact">
+  <q-chip :clickable="!!contact" :class="{'found_contact': !!contact}">
     {{ fullAddr }}
-    <q-icon name="add" v-if="!contact" @click="openCreateContactPopup(fullAddr)" style="font-size: 1.5em; margin-left: 10px;" />
+    <q-btn size="xs" unelevated dense rounded color="grey-5" v-if="!contact" @click="openCreateContactPopup(fullAddr)" style="margin-left: 10px; margin-right: -10px;" >
+      <q-icon size="xs" name="add" color="black" />
+    </q-btn>
     <q-popup-proxy>
       <q-card flat bordered class="my-card bg-grey-1" v-if="contact">
         <q-card-section>
@@ -66,8 +68,8 @@
         <q-separator />
 
         <q-card-actions>
-          <q-btn @click="sendContact" flat>Send this contact</q-btn>
-          <q-btn @click="emailToContact" flat>Email to this contact</q-btn>
+          <q-btn flat @click="sendContact">Send this contact</q-btn>
+          <q-btn flat @click="emailToContact">Email to this contact</q-btn>
         </q-card-actions>
       </q-card>
     </q-popup-proxy>
@@ -76,58 +78,56 @@
         <q-card-section>
           <div class="text-h6">New Contact</div>
         </q-card-section>
-        <q-card-section>
-          <q-list style="width: 500px;">
-            <q-item>
-              <q-item-section>
-                <q-item-label>Display name:</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-input type="text" v-model="sNewContactDisplayName" outlined dense class="input-size" />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Email:</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-input type="text" v-model="sNewContactEmail" outlined dense class="input-size" />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Phone:</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-input type="text" v-model="sNewContactPhone" outlined dense class="input-size" />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Address:</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-input type="text" v-model="sNewContactAddress" outlined dense class="input-size" />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Skype:</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-input type="text" v-model="sNewContactSkype" outlined dense class="input-size" />
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Facebook:</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-input type="text" v-model="sNewContactFacebook" outlined dense class="input-size" />
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
+        <q-list>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Display name:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="text" v-model="sNewContactDisplayName" outlined dense class="input-size" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Email:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="text" v-model="sNewContactEmail" outlined dense class="input-size" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Phone:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="text" v-model="sNewContactPhone" outlined dense class="input-size" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Address:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="text" v-model="sNewContactAddress" outlined dense class="input-size" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Skype:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="text" v-model="sNewContactSkype" outlined dense class="input-size" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Facebook:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input type="text" v-model="sNewContactFacebook" outlined dense class="input-size" />
+            </q-item-section>
+          </q-item>
+        </q-list>
         <q-card-section align="right">
           <a href="javascript:void(0)" @click="showAdditionalFields">Show additional fields</a>
         </q-card-section>
@@ -145,6 +145,13 @@
 .input-size {
   width: 300px;
 }
+.q-chip.found_contact {
+    min-width: 2em;
+    justify-content: center;
+    background: var(--q-color-primary);
+    color: #fff;
+  }
+
 </style>
 
 <script>

@@ -53,6 +53,28 @@ export default {
       )
     })
 
+    ipcMain.on('contacts-get-contacts-by-emails', (oEvent, { aEmails }) => {
+      // contactsDbManager.getStorages({}).then(
+      //   (aStoragesFromDb) => {
+      //     if (typesUtils.isNonEmptyArray(aStoragesFromDb)) {
+            contactsDbManager.getContactsByEmails({ aEmails }).then(
+              ({ aContacts }) => {
+                oEvent.sender.send('contacts-get-contacts-by-emails', { aEmails, aContacts })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-get-contacts-by-emails', { oError })
+              }
+            )
+      //     } else {
+      //       oEvent.sender.send('contacts-get-contacts-by-emails', { bNoStorages })
+      //     }
+      //   },
+      //   (oError) => {
+      //     oEvent.sender.send('contacts-get-contacts-by-emails', { bNoStorages, oError })
+      //   }
+      // )
+    })
+
     function _refreshContacts (oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew }) {
       webApi.sendRequest({
         sApiHost,

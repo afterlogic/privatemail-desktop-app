@@ -101,8 +101,11 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <ContactCard v-for="oFromAddr in from" :key="'from_' + oFromAddr.Full" :addr="oFromAddr" />
-          <q-chip v-for="toAddr in to" :key="'to_' + toAddr">{{toAddr}}</q-chip>
+            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" />
+            →
+            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" />
+            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" />
+            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" />
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
             <div class="col-auto date">{{message.MiddleDate}}</div>
@@ -191,8 +194,6 @@ import mailEnums from 'src/modules/mail/enums.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 
-import contactsCache from 'src/modules/contacts/contactsCache.js'
-
 import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
 export default {
@@ -204,6 +205,10 @@ export default {
       draftUid: '',
       isSendingOrSaving: false,
       privateKeyPass: '',
+      from: [],
+      to: [],
+      cc: [],
+      bcc: [],
       text: '',
       isEcryptedMessage: false,
       isSignedMessage: false,
@@ -221,29 +226,6 @@ export default {
   computed: {
     message () {
       return this.$store.getters['mail/getСurrentMessage']
-    },
-    from () {
-      let aFrom = []
-      if (this.message) {
-        let oFrom = this.message.From
-        _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
-          aFrom.push({
-            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-            Email: oAddress.Email,
-          })
-        })
-      }
-      return aFrom
-    },
-    to () {
-      let aTo = []
-      if (this.message) {
-        let aAddresses = _.union(this.message.To ? this.message.To['@Collection'] : [], this.message.Cc ? this.message.Cc['@Collection'] : [], this.message.Bcc ? this.message.Bcc['@Collection'] : [])
-        _.each(aAddresses, function (oAddress) {
-          aTo.push(addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email))
-        })
-      }
-      return aTo
     },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
@@ -285,12 +267,6 @@ export default {
           oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
         })
       }
-    },
-    from: function () {
-      let aFromEmails = _.map(this.from, function (oFromAddr) {
-        return oFromAddr.Email
-      })
-      contactsCache.getContactsByEmails(aFromEmails)
     },
   },
 
@@ -363,6 +339,69 @@ export default {
       this.text = sText
       this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
       this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
+
+      let aFrom = []
+      if (this.message) {
+        let oFrom = this.message.From
+        _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
+          aFrom.push({
+            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+            Email: oAddress.Email,
+          })
+        })
+      }
+      this.from = aFrom
+
+      let aTo = []
+      if (this.message) {
+        let aAddresses = this.message.To ? this.message.To['@Collection'] : []
+        _.each(aAddresses, function (oAddress) {
+          aTo.push({
+            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+            Email: oAddress.Email,
+          })
+        })
+      }
+      this.to = aTo
+
+      let aCc = []
+      if (this.message) {
+        let aAddresses = this.message.Cc ? this.message.Cc['@Collection'] : []
+        _.each(aAddresses, function (oAddress) {
+          aCc.push({
+            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+            Email: oAddress.Email,
+          })
+        })
+      }
+      this.cc = aCc
+
+      let aBcc = []
+      if (this.message) {
+        let aAddresses = this.message.Bcc ? this.message.Bcc['@Collection'] : []
+        _.each(aAddresses, function (oAddress) {
+          aBcc.push({
+            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+            Email: oAddress.Email,
+          })
+        })
+      }
+      this.bcc = aBcc
+
+      let aFromEmails = _.map(this.from, function (oFromAddr) {
+        return oFromAddr.Email
+      })
+      let aToEmails = _.map(this.to, function (oToAddr) {
+        return oToAddr.Email
+      })
+      let aCcEmails = _.map(this.cc, function (oCcAddr) {
+        return oCcAddr.Email
+      })
+      let aBccEmails = _.map(this.bcc, function (oBccAddr) {
+        return oBccAddr.Email
+      })
+      let aEmails = _.uniq(_.union(aFromEmails, aToEmails))
+      this.$store.dispatch('contacts/asyncGetContactsByEmails', aEmails)
     },
     onEditorEnter: function (oEvent) {
       if (oEvent.ctrlKey) {

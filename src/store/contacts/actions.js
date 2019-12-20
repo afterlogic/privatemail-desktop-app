@@ -7,6 +7,45 @@ import notification from 'src/utils/notification.js'
 import CContact from '../../modules/contacts/classes/CContact'
 import CGroup from '../../modules/contacts/classes/CGroup'
 
+let aRequestedEmails = []
+
+ipcRenderer.on('contacts-get-contacts-by-emails', (oEvent, { aEmails, aContacts, bNoStorages, oError }) => {
+  if (aContacts) {
+    _.each(aContacts, function (oContactData) {
+      let oContact = new CContact(oContactData)
+      if (oContact) {
+        store.commit('contacts/addContactByEmail', { sEmail: oContact.ViewEmail, mContact: oContact })
+      }
+    })
+  }
+
+  if (!bNoStorages) {
+    _.each(aEmails, function (sEmail) {
+      if (!store.state.contacts.contactsByEmail[sEmail]) {
+        store.commit('contacts/addContactByEmail', { sEmail, mContact: false })
+      }
+    })
+  }
+
+  aRequestedEmails = _.difference(aRequestedEmails, aEmails)
+})
+
+export function asyncGetContactsByEmails({ state, commit, dispatch, getters }, aEmails) {
+  let aEmailsForRequest = []
+
+  _.each(aEmails, (sEmail) => {
+    let oContact = state.contactsByEmail[sEmail]
+    if (oContact === undefined && _.indexOf(aRequestedEmails, sEmail) === -1) {
+      aEmailsForRequest.push(sEmail)
+    }
+  })
+
+  if (aEmailsForRequest.length > 0) {
+    aRequestedEmails = _.union(aRequestedEmails, aEmailsForRequest)
+    ipcRenderer.send('contacts-get-contacts-by-emails', { aEmails: aEmailsForRequest })
+  }
+}
+
 ipcRenderer.on('contacts-get-storages', (event, { aStorages, oError }) => {
   if (_.isArray(aStorages)) {
     store.commit('contacts/setStorages', aStorages)

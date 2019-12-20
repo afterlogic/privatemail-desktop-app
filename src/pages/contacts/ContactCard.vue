@@ -159,6 +159,7 @@ import { ipcRenderer } from 'electron'
 import moment from 'moment'
 
 import addressUtils from 'src/utils/address.js'
+import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
 
@@ -195,11 +196,10 @@ export default {
 
   mounted: function() {
     this.setBirthDate()
-    this.initSubscriptions()
   },
 
   beforeDestroy: function () {
-    this.destroySubscriptions()
+    ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
   },
 
   methods: {
@@ -252,6 +252,7 @@ export default {
         })
         oContactToSave.setViewEmail()
         this.bSaving = true
+        ipcRenderer.on('contacts-save-contact', this.onSaveContact)
         ipcRenderer.send('contacts-save-contact', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],
@@ -260,20 +261,16 @@ export default {
       }
     },
     onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
+      ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
       this.bSaving = false
       if (oContactWithUpdatedETag) {
         notification.showReport('The contact has been created.')
-        this.$store.commit('contacts/setHasChanges', true)
+        this.$store.commit('contacts/addContactByEmail', { sEmail: oContactWithUpdatedETag.ViewEmail, mContact: undefined })
+        this.$store.dispatch('contacts/asyncGetContactsByEmails', [oContactWithUpdatedETag.ViewEmail])
         this.bNewContactDialog = false
       } else {
         notification.showError(errors.getText(oError, 'Error creating contact.'))
       }
-    },
-    initSubscriptions () {
-      ipcRenderer.on('contacts-save-contact', this.onSaveContact)
-    },
-    destroySubscriptions () {
-      ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
     },
   },
 }

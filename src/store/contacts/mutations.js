@@ -63,7 +63,6 @@ export function saveChangesCurrentContact(state, savedContact, index) {
 
 export function addContactByEmail(state, { sEmail, mContact }) {
   Vue.set(state.contactsByEmail, sEmail, mContact)
-  console.log('addContactByEmail', state.contactsByEmail)
 }
 
 export function setGroups(state, aGroups) {

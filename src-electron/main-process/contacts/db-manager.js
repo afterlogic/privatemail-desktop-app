@@ -525,6 +525,32 @@ export default {
     })
   },
 
+  getContactsByEmails: function ({ aEmails }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        let sSql = 'SELECT * FROM contacts'
+        let aWhere = _.map(aEmails, function () { return 'view_email = ?' })
+        if (aWhere.length > 0) {
+          sSql += ' WHERE ' + aWhere.join(' AND ')
+        }
+        oDb.all(
+          sSql,
+          aEmails,
+          function(oError, aRows) {
+            if (oError) {
+              reject({ sMethod: 'getContactsByEmails', oError })
+            } else {
+              let aContacts = dbHelper.prepareDataFromDb(aRows, aContactDbMap)
+              resolve({ aContacts })
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getContactsByEmails', sError: 'No DB connection' })
+      }
+    })
+  },
+
   deleteContacts: function ({ sStorage, aContactsUUIDs }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

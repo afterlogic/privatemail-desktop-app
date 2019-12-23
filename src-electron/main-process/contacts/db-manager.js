@@ -531,7 +531,7 @@ export default {
         let sSql = 'SELECT * FROM contacts'
         let aWhere = _.map(aEmails, function () { return 'view_email = ?' })
         if (aWhere.length > 0) {
-          sSql += ' WHERE ' + aWhere.join(' AND ')
+          sSql += ' WHERE ' + aWhere.join(' OR ')
         }
         oDb.all(
           sSql,

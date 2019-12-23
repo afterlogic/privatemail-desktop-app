@@ -61,6 +61,14 @@ export function saveChangesCurrentContact(state, savedContact, index) {
   state.contacts.list[index] = savedContact
 }
 
+export function setNewContactToEdit(state, oNewContactToEdit) {
+  state.newContactToEdit = oNewContactToEdit
+}
+
+export function clearContactsByEmail(state) {
+  state.contactsByEmail = {}
+}
+
 export function addContactByEmail(state, { sEmail, mContact }) {
   Vue.set(state.contactsByEmail, sEmail, mContact)
 }

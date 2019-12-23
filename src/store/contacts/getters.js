@@ -51,6 +51,10 @@ export function getCurrentContactUUID(state) {
   return (state.contactByUUID.contact && state.contactByUUID.contact instanceof CContact) ? state.contactByUUID.UUID : ''
 }
 
+export function getNewContactToEdit (state) {
+  return state.newContactToEdit
+}
+
 export function getContactsByEmail (state) {
   return state.contactsByEmail
 }

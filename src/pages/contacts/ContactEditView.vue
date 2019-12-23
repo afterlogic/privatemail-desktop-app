@@ -397,7 +397,13 @@ export default {
   mounted () {
     this.editMode = !!(this.contact && this.contact instanceof CContact)
 
-    let oContact = (this.contact && this.contact instanceof CContact) ? _.cloneDeep(this.contact) : new CContact({})
+    let oContact = this.$store.getters['contacts/getNewContactToEdit']
+    if (oContact) {
+      this.bSmallEditView = false
+      this.$store.commit('contacts/setNewContactToEdit', null)
+    } else {
+      oContact = (this.contact && this.contact instanceof CContact) ? _.cloneDeep(this.contact) : new CContact({})
+    }
     this.oContact = oContact
 
     this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})

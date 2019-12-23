@@ -17,6 +17,7 @@ export default {
   },
 
   contactsByEmail: {},
+  newContactToEdit: null,
 
   contactByUUID: {
     UUID: null,

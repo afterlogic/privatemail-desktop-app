@@ -53,10 +53,10 @@ export default {
       )
     })
 
-    ipcMain.on('contacts-get-contacts-by-emails', (oEvent, { aEmails }) => {
-      // contactsDbManager.getStorages({}).then(
-      //   (aStoragesFromDb) => {
-      //     if (typesUtils.isNonEmptyArray(aStoragesFromDb)) {
+    ipcMain.on('contacts-get-contacts-by-emails', (oEvent, { aEmails, sApiHost, sAuthToken }) => {
+      contactsDbManager.getStorages({}).then(
+        (aStoragesFromDb) => {
+          if (typesUtils.isNonEmptyArray(aStoragesFromDb)) {
             contactsDbManager.getContactsByEmails({ aEmails }).then(
               ({ aContacts }) => {
                 oEvent.sender.send('contacts-get-contacts-by-emails', { aEmails, aContacts })
@@ -65,14 +65,28 @@ export default {
                 oEvent.sender.send('contacts-get-contacts-by-emails', { oError })
               }
             )
-      //     } else {
-      //       oEvent.sender.send('contacts-get-contacts-by-emails', { bNoStorages })
-      //     }
-      //   },
-      //   (oError) => {
-      //     oEvent.sender.send('contacts-get-contacts-by-emails', { bNoStorages, oError })
-      //   }
-      // )
+          } else {
+            webApi.sendRequest({
+              sApiHost,
+              sAuthToken,
+              sModule: 'Contacts',
+              sMethod: 'GetContactsByEmails',
+              oParameters: { 'Storage': 'all', 'Emails': aEmails },
+              fCallback: (aContacts, oError) => {
+                if (typesUtils.isNonEmptyArray(aContacts)) {
+                  oEvent.sender.send('contacts-get-contacts-by-emails', { aEmails, aContacts })
+                } else {
+                  oEvent.sender.send('contacts-get-contacts-by-emails', { bNoInformation: true, oError })
+                }
+              },
+            })
+
+          }
+        },
+        (oError) => {
+          oEvent.sender.send('contacts-get-contacts-by-emails', { bNoInformation: true, oError })
+        }
+      )
     })
 
     function _refreshContacts (oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew }) {

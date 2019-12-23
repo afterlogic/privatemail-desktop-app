@@ -227,7 +227,21 @@ export default {
       this.bNewContactDialog = true
     },
     showAdditionalFields () {
-      this.dummyAction()
+      let oContactToSave = new CContact({
+        FullName: this.sNewContactDisplayName,
+        BusinessEmail: this.sNewContactEmail,
+        PrimaryEmail: contactsEnums.PrimaryEmail.Business,
+        BusinessPhone: this.sNewContactPhone,
+        PrimaryPhone: contactsEnums.PrimaryPhone.Business,
+        BusinessAddress: this.sNewContactAddress,
+        PrimaryAddress: contactsEnums.PrimaryAddress.Business,
+        Skype: this.sNewContactSkype,
+        Facebook: this.sNewContactFacebook,
+      })
+      oContactToSave.setViewEmail()
+      this.$router.push({ path: '/contacts' })
+      this.$store.commit('contacts/setNewContactToEdit', oContactToSave)
+      this.$store.commit('contacts/changeStateForCreatingContact', true)
     },
     saveNewContact () {
       let bAllFieldsEmpty = _.trim(this.sNewContactDisplayName) === ''

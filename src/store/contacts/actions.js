@@ -9,7 +9,7 @@ import CGroup from '../../modules/contacts/classes/CGroup'
 
 let aRequestedEmails = []
 
-ipcRenderer.on('contacts-get-contacts-by-emails', (oEvent, { aEmails, aContacts, bNoStorages, oError }) => {
+ipcRenderer.on('contacts-get-contacts-by-emails', (oEvent, { aEmails, aContacts, bNoInformation, oError }) => {
   if (aContacts) {
     _.each(aContacts, function (oContactData) {
       let oContact = new CContact(oContactData)
@@ -19,7 +19,7 @@ ipcRenderer.on('contacts-get-contacts-by-emails', (oEvent, { aEmails, aContacts,
     })
   }
 
-  if (!bNoStorages) {
+  if (!bNoInformation) {
     _.each(aEmails, function (sEmail) {
       if (!store.state.contacts.contactsByEmail[sEmail]) {
         store.commit('contacts/addContactByEmail', { sEmail, mContact: false })
@@ -31,8 +31,11 @@ ipcRenderer.on('contacts-get-contacts-by-emails', (oEvent, { aEmails, aContacts,
 })
 
 export function asyncGetContactsByEmails({ state, commit, dispatch, getters }, aEmails) {
-  let aEmailsForRequest = []
+  if (_.isEmpty(state.contactsByEmail)) {
+    aRequestedEmails = []
+  }
 
+  let aEmailsForRequest = []
   _.each(aEmails, (sEmail) => {
     let oContact = state.contactsByEmail[sEmail]
     if (oContact === undefined && _.indexOf(aRequestedEmails, sEmail) === -1) {
@@ -42,7 +45,11 @@ export function asyncGetContactsByEmails({ state, commit, dispatch, getters }, a
 
   if (aEmailsForRequest.length > 0) {
     aRequestedEmails = _.union(aRequestedEmails, aEmailsForRequest)
-    ipcRenderer.send('contacts-get-contacts-by-emails', { aEmails: aEmailsForRequest })
+    ipcRenderer.send('contacts-get-contacts-by-emails', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      aEmails: aEmailsForRequest,
+    })
   }
 }
 
@@ -154,6 +161,8 @@ export function logout ({ commit, dispatch }) {
   commit('setContactsPerPage', 20)
   commit('setSearchText', '')
   dispatch('setCurrentContactByUUID', null)
+  commit('setNewContactToEdit', null)
+  commit('clearContactsByEmail')
 }
 
 export function openEditGroup({ state, commit, dispatch, getters }) {

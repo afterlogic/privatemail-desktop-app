@@ -391,6 +391,32 @@ export default {
         },
       })
     })
+
+    ipcMain.on('contacts-update-shared-contacts', (oEvent, { sApiHost, sAuthToken, sStorage, aContactsUUIDs }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Contacts',
+        sMethod: 'UpdateSharedContacts',
+        oParameters: { UUIDs: aContactsUUIDs },
+        fCallback: (mResult, oError) => {
+          console.log('mResult', mResult)
+          if (mResult) {
+            contactsDbManager.updateSharedContacts({ sStorage, aContactsUUIDs })
+            .then(
+              () => {
+                oEvent.sender.send('contacts-update-shared-contacts', { bUpdateSharedContacts: true })
+              },
+              (oError) => {
+                oEvent.sender.send('contacts-update-shared-contacts', { oError })
+              }
+            )
+          } else {
+            oEvent.sender.send('contacts-update-shared-contacts', { oError })
+          }
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

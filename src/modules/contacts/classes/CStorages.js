@@ -15,7 +15,7 @@ const aStoragesData = [
   },
   {
     name: 'shared',
-    text: 'Shared',
+    text: 'Shared with all',
   },
 ]
 

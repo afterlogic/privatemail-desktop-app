@@ -620,4 +620,27 @@ export default {
       }
     })
   },
+
+  updateSharedContacts: function ({ sStorage, aContactsUUIDs }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function () {
+          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
+          let oStatement = oDb.prepare('UPDATE contacts SET storage=? WHERE uuid IN (' + sQuestions + ')')
+          let sNewStorage = sStorage === 'personal' ? 'shared' : 'personal'
+          let aParams = _.union([sNewStorage], aContactsUUIDs)
+          oStatement.run.apply(oStatement, aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'removeContactsFromGroup', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'removeContactsFromGroup', sError: 'No DB connection' })
+      }
+    })
+  },
 }

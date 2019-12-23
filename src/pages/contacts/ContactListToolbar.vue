@@ -1,6 +1,6 @@
 <template>
   <div class="row q-pa-sm items-center">
-    <q-btn v-if="currentStorage !== 'team' || currentGroupUUID !== ''" @click="createGroup" flat color="primary" icon="group_add">
+    <q-btn v-if="currentStorage === 'personal' || currentStorage === 'all' || currentGroupUUID !== ''" @click="createGroup" flat color="primary" icon="group_add">
       <q-tooltip>
         New Group
       </q-tooltip>
@@ -39,6 +39,24 @@
         :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" icon="delete_outline" @click="askDeleteContacts">
       <q-tooltip>
         Delete
+      </q-tooltip>
+    </q-btn>
+
+    <q-btn  v-if="currentStorage === 'personal' && currentGroupUUID === ''"
+            :disable="checkedContactsCount === 0"
+            flat color="primary" icon="adjust"
+            @click="updateSharedContacts">
+      <q-tooltip>
+        Share
+      </q-tooltip>
+    </q-btn>
+
+    <q-btn  v-if="currentStorage === 'shared' && currentGroupUUID === ''"
+            :disable="checkedContactsCount === 0"
+            flat color="primary" icon="remove_circle_outline"
+            @click="updateSharedContacts">
+      <q-tooltip>
+        Unshare
       </q-tooltip>
     </q-btn>
 
@@ -185,12 +203,14 @@ export default {
       ipcRenderer.on('contacts-delete-contacts', this.onDeleteContacts)
       ipcRenderer.on('contacts-add-contacts-to-group', this.onAddContactsToGroup)
       ipcRenderer.on('contacts-remove-contacts-from-group', this.onRemoveContactsFromGroup)
+      ipcRenderer.on('contacts-update-shared-contacts', this.onUpdateSharedContacts)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('contacts-refresh', this.onContactsRefresh)
       ipcRenderer.removeListener('contacts-delete-contacts', this.onDeleteContacts)
       ipcRenderer.removeListener('contacts-add-contacts-to-group', this.onAddContactsToGroup)
       ipcRenderer.removeListener('contacts-remove-contacts-from-group', this.onRemoveContactsFromGroup)
+      ipcRenderer.removeListener('contacts-update-shared-contacts', this.onUpdateSharedContacts)
     },
     addContactsToGroup (sGroupUUID) {
       let aAllContacts = this.$store.getters['contacts/getContacts'].list
@@ -281,9 +301,34 @@ export default {
       })
       this.openCompose({ sToAddr: aToAddr.join(', ') })
     },
-    dummyAction() {
+    onUpdateSharedContacts (oEvent, { bUpdateSharedContacts, oError }) {
+      if (bUpdateSharedContacts) {
+        this.$store.commit('contacts/setCheckedContacts', [])
+        this.$store.commit('contacts/setHasChanges', true)
+        if (this.currentStorage === 'personal') {
+          notification.showReport('Contact(s) have been shared successfully')
+        } else {
+          notification.showReport('Contact(s) have been unshared successfully')
+        }
+      } else {
+        if (this.currentStorage === 'personal') {
+          notification.showError(errors.getText(oError, 'Error occurred while sharing contact(s)'))
+        } else {
+          notification.showError(errors.getText(oError, 'Error occurred while unsharing contact(s)'))
+        }
+      }
+    },
+    updateSharedContacts () {
+      ipcRenderer.send('contacts-update-shared-contacts', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        sStorage: this.currentStorage,
+        aContactsUUIDs: this.checkedContacts,
+      })
+    },
+    dummyAction () {
       notification.showReport('There is no action here yet')
-    }
+    },
   },
 
   beforeDestroy () {

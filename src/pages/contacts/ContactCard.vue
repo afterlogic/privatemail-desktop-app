@@ -1,8 +1,8 @@
 <template>
-  <q-chip :clickable="!!contact" :class="{'found_contact': !!contact}">
+  <q-chip :clickable="!!contact" :class="{'found_contact': !!contact, 'no_contact': !contact}">
     {{ addr.Full }}
-    <q-btn size="xs" unelevated dense rounded color="grey-5" v-if="contact === false" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -10px;" >
-      <q-icon size="xs" name="add" color="black" />
+    <q-btn size="xs" unelevated dense rounded color="primary" v-if="contact === false" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -10px;" >
+      <q-icon size="xs" color="white" name="add" />
     </q-btn>
     <q-popup-proxy>
       <q-card flat bordered class="my-card bg-grey-1" v-if="contact">
@@ -146,11 +146,18 @@
   width: 300px;
 }
 .q-chip.found_contact {
-    min-width: 2em;
-    justify-content: center;
-    background: var(--q-color-primary);
-    color: #fff;
-  }
+  min-width: 2em;
+  justify-content: center;
+  background: var(--q-color-primary);
+  color: #fff;
+}
+.q-chip.no_contact {
+  min-width: 2em;
+  justify-content: center;
+  background: #fff;
+  color: var(--q-color-primary);
+  border: solid 1px var(--q-color-primary);
+}
 
 </style>
 

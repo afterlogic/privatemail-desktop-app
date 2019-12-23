@@ -68,7 +68,7 @@
         <q-separator />
 
         <q-card-actions>
-          <q-btn flat @click="sendContact">Send this contact</q-btn>
+          <q-btn flat @click="sendThisContact">Send this contact</q-btn>
           <q-btn flat @click="emailToContact">Email to this contact</q-btn>
         </q-card-actions>
       </q-card>
@@ -220,11 +220,10 @@ export default {
       let sToAddr = this.contact.getFull()
       this.openCompose({ sToAddr })
     },
-    sendContact () {
-      this.dummyAction()
-    },
-    dummyAction () {
-      notification.showReport('There is no action here yet')
+    sendThisContact () {
+      let aFull = _.compact([this.contact.FullName, this.contact.ViewEmail])
+      let sFileName = 'contact-' + aFull.join(' ') + '.vcf'
+      this.openCompose({ aAttachments: [{ FileName: sFileName, ContactUUID: this.contact.UUID }] })
     },
     openCreateContactPopup () {
       let oEmailParts = addressUtils.getEmailParts(this.addr.Full)

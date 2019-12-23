@@ -299,7 +299,7 @@
                               Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
                             </q-item-label>
                             <q-item-label caption>
-                              {{ attach.getFriendlySize() }} / {{ attach.getProgressPercent() }}%
+                              <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }} / </span>{{ attach.getProgressPercent() }}%
                             </q-item-label>
                           </q-item-section>
                           <q-item-section
@@ -765,6 +765,24 @@ export default {
                   if (oResult.Size === 0) {
                     oResult.Size = aAttachments[0].Content.length
                   }
+                  oAttach.parseDataFromServer(oResult, sApiHost)
+                  oAttach.onUploadComplete()
+                }
+              } else {
+                notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
+              }
+            },
+          })
+        } else if (typesUtils.isNonEmptyString(aAttachments[0].ContactUUID)) {
+          webApi.sendRequest({
+            sApiHost,
+            sModule: 'Contacts',
+            sMethod: 'SaveContactAsTempFile',
+            oParameters: { 'UUID': aAttachments[0].ContactUUID, 'FileName': aAttachments[0].FileName },
+            fCallback: (oResult, oError) => {
+              if (oResult) {
+                let oAttach = this.attachments[0]
+                if (oAttach) {
                   oAttach.parseDataFromServer(oResult, sApiHost)
                   oAttach.onUploadComplete()
                 }

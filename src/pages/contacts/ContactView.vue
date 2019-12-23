@@ -7,7 +7,7 @@
             <q-item-label class="head--labels-email">{{ contact.ViewEmail }}</q-item-label>
           </div>
           <div class="buttons">
-            <q-btn no-wrap no-caps unelevated color="primary" label="Send this contact" @click="dummyAction" />
+            <q-btn no-wrap no-caps unelevated color="primary" label="Send this contact" @click="sendThisContact" />
             <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" @click="emailToContact" />
           </div>
         </div>
@@ -246,8 +246,10 @@ export default {
       let sToAddr = this.contact.getFull()
       this.openCompose({ sToAddr })
     },
-    dummyAction() {
-      notification.showReport('There is no action here yet')
+    sendThisContact () {
+      let aFull = _.compact([this.contact.FullName, this.contact.ViewEmail])
+      let sFileName = 'contact-' + aFull.join(' ') + '.vcf'
+      this.openCompose({ aAttachments: [{ FileName: sFileName, ContactUUID: this.contact.UUID }] })
     },
   },
 }

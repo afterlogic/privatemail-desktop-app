@@ -1,3 +1,5 @@
+import store from 'src/store'
+
 export default {
   getUidsToRetrieve: function (aMessageList, aRequestedUids, oStateMessagesCache, iAccountId, sFolderFullName) {
     var aUids = []
@@ -72,10 +74,16 @@ export default {
   },
 
   getMessagesInfoParameters: function (iAccountId, sFolderFullName, sSearch, sFilter) {
+    let oDrafts = store.state.mail.currentFolderList.Drafts
+    let bDrafts = oDrafts && oDrafts.FullName === sFolderFullName
+    let oSpam = store.state.mail.currentFolderList.Spam
+    let bSpam = oSpam && oSpam.FullName === sFolderFullName
+    let oTrash = store.state.mail.currentFolderList.Trash
+    let bTrash = oTrash && oTrash.FullName === sFolderFullName
     return {
       AccountID: iAccountId,
       Folder: sFolderFullName,
-      UseThreading: (sFilter || sSearch) ? false : true,
+      UseThreading: (bDrafts || bSpam || bTrash || sFilter || sSearch) ? false : true,
       SortBy: 'arrival',
       SortOrder: 1,
       Search: sSearch,

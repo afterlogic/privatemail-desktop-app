@@ -134,48 +134,17 @@
                   </q-item>
                 </q-list>
                 <!-- :definitions="{
-                      image: {
-                        tip: 'Insert image',
-                        icon: 'image',
-                        handler: insertImage
-                      },
-                    colors: {
-                      tip: 'Font & background colors',
-                      icon: 'text_format',
-                      handler: changeColors
-                    },
-                  }" -->
+                  colors: {
+                    tip: 'Font & background colors',
+                    icon: 'text_format',
+                    handler: changeColors
+                  },
+                }" -->
               </div>
               <div class="col q-pa-md full-width"> 
                 <q-editor v-model="editortext" ref="editor" height="400px" class="full-height"
                   :disable="disableEditor"
-                  :toolbar="[
-                    ['undo', 'redo'],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{
-                      list: 'no-icons',
-                      options: [
-                        'default_font',
-                        'arial',
-                        'arial_black',
-                        'courier_new',
-                        'tahoma',
-                        'times_new_roman',
-                        'verdana'
-                      ]
-                    }, {
-                      list: 'no-icons',
-                      options: [
-                        'size-2',
-                        'size-3',
-                        'size-5',
-                        'size-7'
-                      ],
-                    },
-                    'colors'],
-                    ['unordered', 'ordered'],
-                    ['link', 'image', 'removeFormat']
-                  ]"
+                  :toolbar="editorToolbar"
                   :fonts="{
                     arial: 'Arial',
                     arial_black: 'Arial Black',
@@ -502,6 +471,38 @@ export default {
       })
 
       return aEmails
+    },
+    editorToolbar () {
+      if (this.disableEditor) {
+        return []
+      }
+      return [
+        ['undo', 'redo'],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{
+          list: 'no-icons',
+          options: [
+            'default_font',
+            'arial',
+            'arial_black',
+            'courier_new',
+            'tahoma',
+            'times_new_roman',
+            'verdana'
+          ],
+        }, {
+          list: 'no-icons',
+          options: [
+            'size-2',
+            'size-3',
+            'size-5',
+            'size-7'
+          ],
+        },
+        'colors'],
+        ['unordered', 'ordered'],
+        ['link', 'image', 'removeFormat']
+      ]
     },
   },
 

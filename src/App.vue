@@ -49,6 +49,9 @@ export default {
       let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
       return oCurrentAccount ? oCurrentAccount.AccountID : 0
     },
+    dataToSave () {
+      return this.$store.getters['main/getDataToSave']
+    },
   },
 
   watch: {
@@ -58,12 +61,19 @@ export default {
     'currentAccountId': function (iAccountId, iPrevAccountId) {
       prefetcher.currentAccountChanged()
     },
+    dataToSave: function () {
+      ipcRenderer.send('main-save-user-data', this.dataToSave)
+    },
   },
 
   mounted () {
     ipcRenderer.on('notification', (event, mNotification) => {
       console.log('mNotification', mNotification)
     })
+    ipcRenderer.once('main-get-user-data', (event, oUserData) => {
+      this.$store.commit('main/setDataFromServer', oUserData)
+    })
+    ipcRenderer.send('main-get-user-data')
     this.setThemeColors(this.$store.state.main.theme)
   },
 

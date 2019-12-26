@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import typesUtils from 'src/utils/types.js'
+
 export default {
   namespaced: true,
   state: {
@@ -26,12 +28,24 @@ export default {
     setTheme (state, v) {
       state.theme = v
     },
+    setDataFromServer (state, oDataFromServer) {
+      if (typesUtils.isNonEmptyObject(oDataFromServer)) {
+        state.apiHost = typesUtils.pString(oDataFromServer.apiHost, state.apiHost)
+        state.lastLogin = typesUtils.pString(oDataFromServer.lastLogin, state.lastLogin)
+        state.openPgpKeys = typesUtils.pArray(oDataFromServer.openPgpKeys, state.openPgpKeys)
+        state.theme = typesUtils.pString(oDataFromServer.theme, state.theme)
+      }
+    },
+    setNewUserData (state, { sApiHost, sLogin }) {
+      state.apiHost = typesUtils.pString(sApiHost)
+      state.lastLogin = typesUtils.pString(sLogin)
+      state.openPgpKeys = []
+      state.theme = 'dark'
+    },
   },
   actions: {
     clearAll ({ commit }) {
-      commit('setApiHost', '')
-      commit('setLastLogin', '')
-      commit('setTheme', 'dark')
+      commit('setNewUserData', { sApiHost: '', sLogin: '' })
     },
     toggleTheme ({ commit, state }) {
       if (state.theme === 'light') {
@@ -50,6 +64,14 @@ export default {
     },
     getOpenPgpKeys (state) {
       return state.openPgpKeys
+    },
+    getDataToSave (state) {
+      return {
+        apiHost: state.apiHost,
+        lastLogin: state.lastLogin,
+        openPgpKeys: state.openPgpKeys,
+        theme: state.theme,
+      }
     },
   },
 }

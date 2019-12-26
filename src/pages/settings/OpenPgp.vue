@@ -247,8 +247,8 @@ export default {
   computed: {
     newKeyEmail () {
       let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
-      let sEmail = oCurrentAccount.Email
-      let sFriendlyName = oCurrentAccount.FriendlyName
+      let sEmail = oCurrentAccount ? oCurrentAccount.Email : ''
+      let sFriendlyName = oCurrentAccount ? oCurrentAccount.FriendlyName : ''
       if (sFriendlyName) {
         return sFriendlyName + '<' + sEmail + '>'
       }

@@ -1,6 +1,9 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron'
 import _ from 'lodash'
 
+import mainManager from './main/manager.js'
+import mainDbManager from './main/db-manager.js'
+
 import foldersManager from './mail/folders-manager.js'
 import foldersDbManager from './mail/folders-db-manager.js'
 import messagesDbManager from './mail/messages-db-manager.js'
@@ -38,6 +41,7 @@ function createWindow () {
 
   oDbConnect = new sqlite3.Database('privatemail.db', (oError) => {
     if (oError === null) {
+      mainDbManager.init(oDbConnect)
       foldersDbManager.init(oDbConnect)
       messagesDbManager.init(oDbConnect)
       contactsDbManager.init(oDbConnect)
@@ -75,11 +79,12 @@ ipcMain.on('logout', (oEvent, { sApiHost }) => {
   session.defaultSession.cookies.remove(sApiHost, 'AuthToken')
 })
 
-ipcMain.on('db-remove-all', () => {
+ipcMain.on('db-remove-all', (oEvent) => {
   if (oDbConnect) {
     oDbConnect.close(function (oDbCloseError) {
       if (oDbCloseError === null) {
         oDbConnect = null
+        mainDbManager.init(oDbConnect)
         foldersDbManager.init(oDbConnect)
         messagesDbManager.init(oDbConnect)
         contactsDbManager.init(oDbConnect)
@@ -90,15 +95,25 @@ ipcMain.on('db-remove-all', () => {
           if (!oUnlinkError) {
             oDbConnect = new sqlite3.Database('privatemail.db', (oDbCOnnectError) => {
               if (oDbCOnnectError === null) {
+                mainDbManager.init(oDbConnect)
                 foldersDbManager.init(oDbConnect)
                 messagesDbManager.init(oDbConnect)
                 contactsDbManager.init(oDbConnect)
+                oEvent.sender.send('db-remove-all', { bRemoved: true })
+              } else {
+                oEvent.sender.send('db-remove-all', { sError: 'DB error' })
               }
             })
+          } else {
+            oEvent.sender.send('db-remove-all', { sError: 'DB error' })
           }
         })
+      } else {
+        oEvent.sender.send('db-remove-all', { sError: 'DB error' })
       }
     })
+  } else {
+    oEvent.sender.send('db-remove-all', { sError: 'DB error' })
   }
 })
 
@@ -191,4 +206,5 @@ ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
   )
 })
 
+mainManager.initSubscriptions()
 contactsManager.initSubscriptions()

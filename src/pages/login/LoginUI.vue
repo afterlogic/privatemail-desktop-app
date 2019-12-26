@@ -124,13 +124,23 @@ export default {
             this.loading = false
             if (oResult && oResult.AuthToken) {
               if (sApiHost !== this.$store.getters['main/getApiHost'] || this.login !== this.$store.getters['main/getLastLogin']) {
+                ipcRenderer.once('db-remove-all', (oEvent, { bRemoved, sError }) => {
+                  if (bRemoved) {
+                    this.$store.commit('main/setNewUserData', { sApiHost, sLogin: this.login })
+
+                    this.$store.dispatch('user/login', oResult.AuthToken)
+                    ipcRenderer.send('init', { sApiHost, sAuthToken: oResult.AuthToken })
+                    this.$router.push({ path: '/mail' })
+                  } else {
+                    notification.showError(sError || 'DB was not removed')
+                  }
+                })
                 ipcRenderer.send('db-remove-all')
-                this.$store.commit('main/setApiHost', sApiHost)
-                this.$store.commit('main/setLastLogin', this.login)
+              } else {
+                this.$store.dispatch('user/login', oResult.AuthToken)
+                ipcRenderer.send('init', { sApiHost, sAuthToken: oResult.AuthToken })
+                this.$router.push({ path: '/mail' })
               }
-              this.$store.dispatch('user/login', oResult.AuthToken)
-              ipcRenderer.send('init', { sApiHost, sAuthToken: oResult.AuthToken })
-              this.$router.push({ path: '/mail' })
             } else {
               _catchSignInError(oError)
             }

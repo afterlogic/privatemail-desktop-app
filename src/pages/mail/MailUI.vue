@@ -186,7 +186,7 @@ export default {
       ipcRenderer.send('db-remove-all')
       ipcRenderer.send('logout', { sApiHost })
       this.$store.dispatch('main/clearAll')
-      this.$router.push({ path: '/' })
+      this.$router.push({ path: '/login' })
     },
   },
 
@@ -194,7 +194,7 @@ export default {
     this.initSubscriptions()
     let bAuthorized = this.$store.getters['user/isAuthorized']
     if (!this.currentAccount && bAuthorized) {
-      this.$store.dispatch('mail/asyncGetSettings')
+      this.$store.dispatch('mail/asyncGetSettings', true)
     }
   },
 

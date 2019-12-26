@@ -5,14 +5,14 @@
         <q-btn dense flat round icon="menu" @click="left = !left" />
         <q-btn dense flat round icon="menu" @click="showRight = !showRight" />
       </q-toolbar> -->
-      <q-tabs align="left" class="q-pa-md main-tabs" v-if="isAuthorized">
+      <q-tabs align="left" class="q-pa-md main-tabs" v-if="showTabsbar">
         <q-route-tab to="/mail" :label="mailHeader" />
         <q-route-tab to="/contacts" label="Contacts" />
         <!-- <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" /> -->
         <q-space />
         <q-route-tab to="/settings" label="Settings" />
-        <q-route-tab to="/" label="Log out" />
+        <q-route-tab to="/login" label="Log out" />
       </q-tabs>
     </q-header>
     <router-view />
@@ -21,35 +21,36 @@
 
 <script>
 export default {
-  name: "MainLayout",
-  data() {
-    return {
+  name: 'MainLayout',
 
-    };
-  },
   mounted () {
     if (!this.isAuthorized) {
       let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
-      if (sCurrentPath !== '') {
+      if (sCurrentPath !== '/' && sCurrentPath !== '/login') {
         this.$router.push({ path: '/' })
       }
     }
   },
+
   computed: {
-    isAuthorized: function () {
+    isAuthorized () {
       return this.$store.getters['user/isAuthorized']
     },
     mailHeader () {
       var oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
       return oCurrentAccount ? oCurrentAccount.Email : 'Mail'
     },
+    showTabsbar () {
+      return this.isAuthorized && this.mailHeader !== 'Mail'
+    },
   },
+
   methods: {
     logIn () {
       this.$store.dispatch('login')
     }
-  }
-};
+  },
+}
 </script >
 
 <style lang="scss">

@@ -50,7 +50,10 @@ export default {
       return oCurrentAccount ? oCurrentAccount.AccountID : 0
     },
     dataToSave () {
-      return this.$store.getters['main/getDataToSave']
+      return {
+        main: this.$store.getters['main/getDataToSave'],
+        user: this.$store.getters['user/getDataToSave'],
+      }
     },
   },
 
@@ -70,10 +73,6 @@ export default {
     ipcRenderer.on('notification', (event, mNotification) => {
       console.log('mNotification', mNotification)
     })
-    ipcRenderer.once('main-get-user-data', (event, oUserData) => {
-      this.$store.commit('main/setDataFromServer', oUserData)
-    })
-    ipcRenderer.send('main-get-user-data')
     this.setThemeColors(this.$store.state.main.theme)
   },
 

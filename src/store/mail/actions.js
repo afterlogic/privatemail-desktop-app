@@ -10,7 +10,7 @@ import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/modules/mail/prefetcher.js'
 import settings from 'src/modules/mail/objects/settings.js'
 
-export function asyncGetSettings ({ commit }) {
+export function asyncGetSettings ({ commit }, bAllowError) {
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'GetSettings',
@@ -20,7 +20,7 @@ export function asyncGetSettings ({ commit }) {
         commit('setCurrentAccount', oResult.Accounts[0])
         commit('resetCurrentFolderList')
         settings.parse(oResult)
-      } else {
+      } else if (bAllowError) {
         notification.showError(errors.getText(oError, 'Error occurred while getting mail settings'))
       }
     },
@@ -64,7 +64,7 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
       fCallback: (oResult, oError) => {
         commit('setSyncing', false)
         if (oResult && oResult.Counts) {
-          if (iAccountId === state.currentAccount.AccountID && state.currentFolderList && iAccountId === state.currentFolderList.AccountId) {
+          if (state.currentAccount && iAccountId === state.currentAccount.AccountID && state.currentFolderList && iAccountId === state.currentFolderList.AccountId) {
             commit('setFoldersRelevantInformation', {
               AccountId: iAccountId,
               Counts: oResult.Counts,

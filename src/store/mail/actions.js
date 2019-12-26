@@ -5,12 +5,13 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
+import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/modules/mail/prefetcher.js'
 import settings from 'src/modules/mail/objects/settings.js'
 
-export function asyncGetSettings ({ commit }, bAllowError) {
+export function asyncGetSettings ({ commit, dispatch }, bAllowError) {
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'GetSettings',
@@ -20,9 +21,42 @@ export function asyncGetSettings ({ commit }, bAllowError) {
         commit('setCurrentAccount', oResult.Accounts[0])
         commit('resetCurrentFolderList')
         settings.parse(oResult)
+        dispatch('asyncGetIdentities')
       } else if (bAllowError) {
         notification.showError(errors.getText(oError, 'Error occurred while getting mail settings'))
       }
+    },
+  })
+}
+
+export function asyncGetIdentities ({ state, commit, dispatch }) {
+  webApi.sendRequest({
+    sModule: 'Mail',
+    sMethod: 'GetIdentities',
+    oParameters: {},
+    fCallback: (aResult, oError) => {
+      let aIdentitiesData = _.isArray(aResult) ? aResult : []
+      let aIdentities = []
+      let oAccount = state.currentAccount
+      let iAccountId = oAccount.AccountID
+      _.each(aIdentitiesData, function (oData) {
+        let oIdentity = new cIdentity(oData)
+        if (oIdentity.iIdAccount === iAccountId) {
+          aIdentities.push(oIdentity)
+        }
+      })
+      let oIdentity = new cIdentity({
+        Default: false,
+        Email: oAccount.Email,
+        EntityId: 0,
+        FriendlyName: oAccount.FriendlyName,
+        IdAccount: oAccount.AccountID,
+        IdUser: oAccount.IdUser,
+        Signature: oAccount.Signature,
+        UUID: '',
+        UseSignature: oAccount.UseSignature,
+      })
+      aIdentities.unshift(oIdentity)
     },
   })
 }

@@ -2,6 +2,7 @@ export default {
   syncing: false,
 
   currentAccount: null,
+  currentIdentities: [],
 
   currentFolderList: {
     AccountId: 0,

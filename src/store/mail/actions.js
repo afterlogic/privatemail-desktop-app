@@ -38,15 +38,17 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
       let aIdentitiesData = _.isArray(aResult) ? aResult : []
       let aIdentities = []
       let oAccount = state.currentAccount
+      let bHasDefault = false
       let iAccountId = oAccount.AccountID
       _.each(aIdentitiesData, function (oData) {
         let oIdentity = new cIdentity(oData)
         if (oIdentity.iIdAccount === iAccountId) {
           aIdentities.push(oIdentity)
+          bHasDefault = bHasDefault || oIdentity.bDefault
         }
       })
       let oIdentity = new cIdentity({
-        Default: false,
+        Default: !bHasDefault,
         Email: oAccount.Email,
         EntityId: 0,
         FriendlyName: oAccount.FriendlyName,
@@ -57,6 +59,7 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
         UseSignature: oAccount.UseSignature,
       })
       aIdentities.unshift(oIdentity)
+      commit('setCurrentIdentities', aIdentities)
     },
   })
 }

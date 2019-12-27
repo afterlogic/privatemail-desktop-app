@@ -15,6 +15,25 @@ export function getCurrentAccountEmail (state) {
   return state.currentAccount ? state.currentAccount.Email : ''
 }
 
+export function getCurrentIdentities (state) {
+  return state.currentIdentities
+}
+
+export function getCurrentDefaultIdentity (state) {
+  if (state.currentIdentities.length > 0) {
+    let oIdentity = _.find(state.currentIdentities, function (oIdentity) {
+      return oIdentity.bDefault
+    })
+    if (!oIdentity) {
+      oIdentity = state.currentIdentities[0]
+    }
+    if (oIdentity) {
+      return oIdentity
+    }
+  }
+  return null
+}
+
 export function getCurrentFolderList (state) {
   return state.currentFolderList
 }

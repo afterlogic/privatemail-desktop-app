@@ -96,6 +96,14 @@
             <div class="col column">
               <div class="col-auto">
                 <q-list>
+                  <q-item v-if="identities.length > 1">
+                    <q-item-section side center style="min-width: 100px;">
+                      From
+                    </q-item-section>
+                    <q-item-section>
+                      <q-select dense outlined v-model="selectedIdentity" :options="identitiesOptions" />
+                    </q-item-section>
+                  </q-item>
                   <q-item>
                     <q-item-section side center style="min-width: 100px;">
                       To
@@ -400,6 +408,8 @@ export default {
       sending: false, // indicates if sending is happening right now
       allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
 
+      selectedIdentity: null,
+
       plainText: false,
       disableEditor: false,
       pgpApplied: false,
@@ -439,6 +449,17 @@ export default {
     },
     currentAccount () {
       return this.$store.getters['mail/getCurrentAccount']
+    },
+    identities () {
+      return this.$store.getters['mail/getCurrentIdentities']
+    },
+    identitiesOptions () {
+      return _.map(this.identities, function (oIdentity) {
+        return {
+          label: textUtils.encodeHtml(oIdentity.getFull()),
+          value: oIdentity,
+        }
+      })
     },
     /**
      * Determines if sending a message is allowed.
@@ -503,6 +524,24 @@ export default {
         ['unordered', 'ordered'],
         ['link', 'image', 'removeFormat']
       ]
+    },
+  },
+
+  watch: {
+    identities () {
+      this.setSelectedIdentity()
+    },
+    selectedIdentity () {
+      let re = /<div data-anchor=\"signature\">.*?<\/div>/
+      let bSignatureFound = !!this.editortext.match(re)
+      if (bSignatureFound) {
+        let oIdentity = this.selectedIdentity && this.selectedIdentity.value
+        if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
+          this.editortext = this.editortext.replace(re, '<div data-anchor="signature">' + oIdentity.sSignature + '</div>')
+        } else {
+          this.editortext = this.editortext.replace(re, '<div data-anchor="signature"></div>')
+        }
+      }
     },
   },
 
@@ -652,6 +691,7 @@ export default {
         composeUtils.sendMessage({
           oCurrentAccount: this.currentAccount,
           oCurrentFolderList: this.currentFolderList,
+          iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
           sToAddr: this.toAddr,
           sCcAddr: this.ccAddr,
           sBccAddr: this.bccAddr,
@@ -680,6 +720,7 @@ export default {
       composeUtils.saveMessage({
         oCurrentAccount: this.currentAccount,
         oCurrentFolderList: this.currentFolderList,
+        iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
         sToAddr: this.toAddr,
         sCcAddr: this.ccAddr,
         sBccAddr: this.bccAddr,
@@ -705,16 +746,50 @@ export default {
         }
       })
     },
+    setSelectedIdentity () {
+      if (this.identities.length === 0) {
+        this.selectedIdentity = null
+      } else {
+        let mSelectedIdentityId = this.selectedIdentity ? this.selectedIdentity.value.iEntityId : false
+        let oSelectedIdentity = _.find(this.identities, function (oIdentity) {
+          return oIdentity.iEntityId === mSelectedIdentityId
+        })
+        if (!oSelectedIdentity) {
+          let oIdentity = _.find(this.identities, function (oIdentity) {
+            return oIdentity.bDefault
+          })
+          if (!oIdentity) {
+            oIdentity = this.identities[0]
+          }
+          this.selectedIdentity = {
+            label: textUtils.encodeHtml(oIdentity.getFull()),
+            value: oIdentity,
+          }
+        }
+      }
+    },
     openCompose ({ aDraftInfo, sDraftUid, sToAddr, sCcAddr, sBccAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+      this.setSelectedIdentity()
+
       this.toAddr = typesUtils.pString(sToAddr)
       this.ccAddr = typesUtils.pString(sCcAddr)
       this.bccAddr = typesUtils.pString(sBccAddr)
       this.subjectText = typesUtils.pString(sSubject)
-      this.editortext = typesUtils.pString(sText)
       this.plainText = false
       this.disableEditor = false
       this.disableRecipients = false
       this.pgpApplied = false
+
+      if (typesUtils.isNonEmptyString(sText)) {
+        this.editortext = sText
+      } else {
+        let oIdentity = this.selectedIdentity && this.selectedIdentity.value
+        if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
+          this.editortext = '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
+        } else {
+          this.editortext = ''
+        }
+      }
 
       this.attachments = []
       if (typesUtils.isNonEmptyArray(aAttachments)) {

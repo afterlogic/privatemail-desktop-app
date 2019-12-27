@@ -276,9 +276,17 @@ export default {
     },
     sendQuickReply: function () {
       if (this.isEnableSending) {
-        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        let oIdentity = this.$store.getters['mail/getCurrentDefaultIdentity']
+        let sReplyText = this.replyText
+        if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
+          sReplyText += '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
+        }
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, sReplyText, this.draftUid)
         oComposeReplyParams.oCurrentAccount = this.currentAccount
         oComposeReplyParams.oCurrentFolderList = this.currentFolderList
+        if (oIdentity) {
+          oComposeReplyParams.iIdentityId = oIdentity.iEntityId
+        }
         this.isSendingOrSaving = true
         composeUtils.sendMessage(oComposeReplyParams, (oResult, oError) => {
           if (oResult) {
@@ -294,9 +302,17 @@ export default {
     },
     saveQuickReply: function () {
       if (this.isEnableSaving) {
-        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, this.replyText, this.draftUid)
+        let oIdentity = this.$store.getters['mail/getCurrentDefaultIdentity']
+        let sReplyText = this.replyText
+        if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
+          sReplyText += '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
+        }
+        let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, sReplyText, this.draftUid)
         oComposeReplyParams.oCurrentAccount = this.currentAccount
         oComposeReplyParams.oCurrentFolderList = this.currentFolderList
+        if (oIdentity) {
+          oComposeReplyParams.iIdentityId = oIdentity.iEntityId
+        }
         this.isSendingOrSaving = true
         composeUtils.saveMessage(oComposeReplyParams, (oResult, oError) => {
           if (oResult) {
@@ -421,8 +437,12 @@ export default {
       this.openFullReplyForm(mailEnums.ReplyType.Resend)
     },
     openFullReplyForm: function (iReplyType) {
-      let
-        oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, this.replyText, this.draftUid)
+      let oIdentity = this.$store.getters['mail/getCurrentDefaultIdentity']
+      let sReplyText = this.replyText
+      if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
+        sReplyText += '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
+      }
+      let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, sReplyText, this.draftUid)
       this.openCompose(oComposeReplyParams)
       this.clearQuickReplyData()
     },

@@ -26,6 +26,10 @@ export function setCurrentAccount (state, payload) {
   state.currentAccount = payload
 }
 
+export function setCurrentIdentities (state, aIdentities) {
+  state.currentIdentities = aIdentities
+}
+
 /**
  * Resets current folder list. The method is used when user changes account or logs out.
  * @param {object} state 

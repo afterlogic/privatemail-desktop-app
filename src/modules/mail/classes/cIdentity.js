@@ -28,4 +28,20 @@ cIdentity.prototype.parse = function (oData) {
   this.bUseSignature = typesUtils.pBool(oData.UseSignature)
 }
 
+cIdentity.prototype.getFull = function (oData) {
+  let sFull = ''
+  let sEmail = _.trim(this.sEmail)
+  let sFriendlyName = _.trim(this.sFriendlyName)
+  if (typesUtils.isNonEmptyString(sEmail)) {
+    if (typesUtils.isNonEmptyString(sFriendlyName)) {
+      sFull = '"' + sFriendlyName + '" <' + sEmail + '>'
+    } else {
+      sFull = sEmail
+    }
+  } else {
+    sFull = sFriendlyName
+  }
+  return sFull
+}
+
 export default cIdentity

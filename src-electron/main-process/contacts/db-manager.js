@@ -551,6 +551,31 @@ export default {
     })
   },
 
+  getFrequentlyUsedContacts: function ({ sSearch }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        let sSql = `SELECT *, frequency/((CAST(JULIANDAY('now', '+1 day') AS INT) - CAST(JULIANDAY(date_modified) AS INT))/30 + 1) AS age_score FROM contacts
+                    WHERE view_email <> '' AND (view_email LIKE ? OR full_name LIKE ?)
+                    ORDER BY age_score COLLATE NOCASE DESC
+                    LIMIT 20 OFFSET 0`
+        oDb.all(
+          sSql,
+          ['%' + sSearch + '%', '%' + sSearch + '%'],
+          function(oError, aRows) {
+            if (oError) {
+              reject({ sMethod: 'getFrequentlyUsedContacts', oError })
+            } else {
+              let aContacts = dbHelper.prepareDataFromDb(aRows, aContactDbMap)
+              resolve({ aContacts })
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getFrequentlyUsedContacts', sError: 'No DB connection' })
+      }
+    })
+  },
+
   deleteContacts: function ({ sStorage, aContactsUUIDs }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

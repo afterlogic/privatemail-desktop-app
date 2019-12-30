@@ -89,6 +89,17 @@ export default {
       )
     })
 
+    ipcMain.on('contacts-get-frequently-used-contacts', (oEvent, { sSearch }) => {
+      contactsDbManager.getFrequentlyUsedContacts({ sSearch }).then(
+        ({ aContacts }) => {
+          oEvent.sender.send('contacts-get-frequently-used-contacts', { aContacts })
+        },
+        (oError) => {
+          oEvent.sender.send('contacts-get-frequently-used-contacts', { oError })
+        }
+      )
+    })
+
     function _refreshContacts (oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew }) {
       webApi.sendRequest({
         sApiHost,

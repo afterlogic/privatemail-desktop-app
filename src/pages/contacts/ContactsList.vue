@@ -115,6 +115,7 @@ export default {
       return this.$store.getters['contacts/getHasChanges']
     },
     contacts () {
+      console.log('contacts', this.$store.getters['contacts/getContacts'])
       return this.$store.getters['contacts/getContacts']
     },
     aCheckedList: {

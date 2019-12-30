@@ -109,7 +109,26 @@
                       To
                     </q-item-section>
                     <q-item-section>
-                      <q-input dense outlined v-model="toAddr" :disable="disableRecipients" style="width: 100%;" />
+                      <q-select
+                        dense outlined
+                        v-model="selectedToAddr"
+                        use-input
+                        use-chips
+                        multiple
+                        input-debounce="0"
+                        :options="toAddrOptions"
+                        @filter="getToAddrOptions"
+                        style="width: 100%;"
+                      >
+                        <template v-slot:no-option>
+                          <q-item>
+                            <q-item-section class="text-grey">
+                              No results
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
+                      <!-- <q-input dense outlined v-model="toAddr" :disable="disableRecipients" style="width: 100%;" /> -->
                     </q-item-section>
                     <q-item-section style="max-width: 100px;" v-show="!isCcShowed || !isBccShowed">
                       <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
@@ -379,6 +398,8 @@
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
+
 import prefetcher from 'src/modules/mail/prefetcher.js'
 
 import addressUtils from 'src/utils/address.js'
@@ -393,6 +414,8 @@ import composeUtils from 'src/modules/mail/utils/compose.js'
 import settings from 'src/modules/mail/objects/settings.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+
+import cContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'MailCompose',
@@ -440,6 +463,9 @@ export default {
       signCheckbox: true,
       encryptCheckbox: true,
       signPassword: '',
+
+      selectedToAddr: null,
+      toAddrOptions: [],
     }
   },
 
@@ -461,12 +487,18 @@ export default {
         }
       })
     },
+    toAddrComputed () {
+      let aToAddr = _.map(this.selectedToAddr, function (oToAddr) {
+        return oToAddr.full
+      })
+      return aToAddr.join(',')
+    },
     /**
      * Determines if sending a message is allowed.
      */
     isEnableSending () {
       let
-        bRecipientIsEmpty = this.toAddr.length === 0 && this.ccAddr.length === 0 && this.bccAddr.length === 0,
+        bRecipientIsEmpty = this.toAddrComputed.length === 0 && this.ccAddr.length === 0 && this.bccAddr.length === 0,
         bCurrentFolderListLoaded = !!this.currentFolderList && this.currentFolderList.AccountId !== 0
 
       return bCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
@@ -478,7 +510,7 @@ export default {
     },
     recipientEmails () {
       let
-        aRecip = [this.toAddr, this.ccAddr, this.bccAddr].join(',').split(','),
+        aRecip = [this.toAddrComputed, this.ccAddr, this.bccAddr].join(',').split(','),
         aEmails = []
 
       _.each(aRecip, function (sRecip) {
@@ -550,6 +582,36 @@ export default {
   },
 
   methods: {
+    getToAddrOptions (sSearch, update, abort) {
+      ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
+        let sEncodedSearch = textUtils.encodeHtml(sSearch)
+        let bHasExactlySearch = false
+        let aOptions = []
+        _.each(aContacts, function (oContactData) {
+          let oContact = new cContact(oContactData)
+          let sEncodedFull = textUtils.encodeHtml(oContact.getFull())
+          if (sEncodedSearch === sEncodedFull) {
+            bHasExactlySearch = true
+          }
+          aOptions.push({
+            label: sEncodedFull,
+            value: 'id_' + oContact.EntityId,
+            full: oContact.getFull(),
+          })
+        })
+        if (sEncodedSearch !== '' && !bHasExactlySearch) {
+          aOptions.push({
+            label: sEncodedSearch,
+            value: 'rand_' + Math.round(Math.random() * 10000),
+            full: sSearch,
+          })
+        }
+        update(() => {
+          this.toAddrOptions = aOptions
+        })
+      })
+      ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch })
+    },
     confirmOpenPgp () {
       if (this.recipientEmails.length === 0) {
         notification.showError('To encrypt your message you need to specify at least one recipient.')
@@ -692,7 +754,7 @@ export default {
           oCurrentAccount: this.currentAccount,
           oCurrentFolderList: this.currentFolderList,
           iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
-          sToAddr: this.toAddr,
+          sToAddr: this.toAddrComputed,
           sCcAddr: this.ccAddr,
           sBccAddr: this.bccAddr,
           sSubject: this.subjectText,
@@ -721,7 +783,7 @@ export default {
         oCurrentAccount: this.currentAccount,
         oCurrentFolderList: this.currentFolderList,
         iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
-        sToAddr: this.toAddr,
+        sToAddr: this.toAddrComputed,
         sCcAddr: this.ccAddr,
         sBccAddr: this.bccAddr,
         sSubject: this.subjectText,

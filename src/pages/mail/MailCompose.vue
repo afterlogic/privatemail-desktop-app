@@ -600,7 +600,7 @@ export default {
           })
         })
         if (sEncodedSearch !== '' && !bHasExactlySearch) {
-          aOptions.push({
+          aOptions.unshift({
             label: sEncodedSearch,
             value: 'rand_' + Math.round(Math.random() * 10000),
             full: sSearch,

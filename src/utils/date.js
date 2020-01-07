@@ -92,7 +92,7 @@ export default {
   /**
    * @return {string}
    */
-  getFullDate: function () {
-    return this.getDate() + ' ' + this.getTime()
+  getFullDate: function (iTimeStampInUTC) {
+    return this.getDate(iTimeStampInUTC) + ' ' + this.getTime(iTimeStampInUTC)
   },
 }

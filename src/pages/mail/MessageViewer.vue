@@ -101,15 +101,50 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" />
+          <div v-if="!showDetails">
+            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" :min="true" />
             →
-            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" />
-            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" />
-            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" />
+            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" :min="true" />
+          </div>
+          <div v-if="showDetails">
+            <div style="clear: both;">
+              <span>From: </span>
+              <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" :min="false" />
+            </div>
+            <div v-if="to.length > 0">
+              <span>To: </span>
+              <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" :min="false" />
+            </div>
+            <div v-if="cc.length > 0">
+              <span>Cc: </span>
+              <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" :min="false" />
+            </div>
+            <div v-if="bcc.length > 0">
+              <span>Bcc: </span>
+              <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" :min="false" />
+            </div>
+            <div>
+              <span>Date: </span>
+              <span>{{fullDate}}</span>
+            </div>
+          </div>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
-            <div class="col-auto date">{{message.MiddleDate}}</div>
+            <div class="col-auto date" v-if="!showDetails">{{message.MiddleDate}}</div>
           </div>
+        </div>
+        <div :style="(showDetails? 'margin-bottom: -14px;' : 'margin-bottom: -19px;') + ' text-align: center;'">
+          <q-btn
+            :icon="showDetails ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+            flat dense
+            color="grey-5"
+            @click="showDetails = !showDetails"
+          >
+            <q-tooltip v-if="!showDetails">Show details</q-tooltip>
+            <q-tooltip v-if="showDetails">Hide details</q-tooltip>
+          </q-btn>
         </div>
         <q-separator />
       </div>
@@ -185,9 +220,11 @@
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 
 import addressUtils from 'src/utils/address'
+import dateUtils from 'src/utils/date'
 import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
+
 import composeUtils from 'src/modules/mail/utils/compose.js'
 import messageUtils from 'src/modules/mail/utils/message.js'
 import mailEnums from 'src/modules/mail/enums.js'
@@ -216,6 +253,7 @@ export default {
       verifyReport: '',
       isDecrypted: false,
       decryptReport: '',
+      showDetails: false,
     }
   },
 
@@ -226,6 +264,9 @@ export default {
   computed: {
     message () {
       return this.$store.getters['mail/getСurrentMessage']
+    },
+    fullDate () {
+      return dateUtils.getFullDate(this.message.TimeStampInUTC)
     },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
@@ -363,6 +404,7 @@ export default {
           aFrom.push({
             Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
             Email: oAddress.Email,
+            Name: oAddress.DisplayName,
           })
         })
       }
@@ -375,6 +417,7 @@ export default {
           aTo.push({
             Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
             Email: oAddress.Email,
+            Name: oAddress.DisplayName,
           })
         })
       }
@@ -387,6 +430,7 @@ export default {
           aCc.push({
             Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
             Email: oAddress.Email,
+            Name: oAddress.DisplayName,
           })
         })
       }
@@ -399,6 +443,7 @@ export default {
           aBcc.push({
             Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
             Email: oAddress.Email,
+            Name: oAddress.DisplayName,
           })
         })
       }
@@ -416,7 +461,7 @@ export default {
       let aBccEmails = _.map(this.bcc, function (oBccAddr) {
         return oBccAddr.Email
       })
-      let aEmails = _.uniq(_.union(aFromEmails, aToEmails))
+      let aEmails = _.uniq(_.union(aFromEmails, aToEmails, aCcEmails, aBccEmails))
       this.$store.dispatch('contacts/asyncGetContactsByEmails', aEmails)
     },
     onEditorEnter: function (oEvent) {

@@ -1,6 +1,7 @@
 <template>
   <q-chip :clickable="!!contact" :class="{'found_contact': !!contact, 'no_contact': !contact}">
-    {{ addr.Full }}
+    <span v-if="!min">{{ addr.Full }}</span>
+    <span v-if="min">{{ (currentAccountEmail === addr.Email) ? 'me' : (addr.Name || addr.Email) }}</span>
     <q-btn size="xs" unelevated dense rounded color="primary" v-if="contact === false" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -10px;" >
       <q-icon size="xs" color="white" name="add" />
     </q-btn>
@@ -176,7 +177,7 @@ import CContact from 'src/modules/contacts/classes/CContact.js'
 export default {
   name: 'ContactFields',
 
-  props: ['addr'],
+  props: ['addr', 'min'],
 
   data() {
     return {
@@ -198,6 +199,9 @@ export default {
       let oContacts = this.$store.getters['contacts/getContactsByEmail']
       let oContact = oContacts[this.addr.Email]
       return oContact
+    },
+    currentAccountEmail: function () {
+      return this.$store.getters['mail/getCurrentAccountEmail']
     },
   },
 

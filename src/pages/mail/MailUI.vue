@@ -25,11 +25,13 @@
               <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
                   <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" />
-                  <q-expansion-item 
+                  <q-expansion-item
                     expand-separator
                     icon="mail"
                     label="Inbox"
-                    style="width: 100%; background: #eee;">
+                    style="width: 100%; background: #eee;"
+                    ref="advSearchExpansion"
+                  >
                     <template v-slot:header>
                       <q-checkbox v-model="checkboxAll" />
                       <q-input outlined rounded dense bg-color="white"
@@ -47,15 +49,36 @@
                     </template>
                     <div class="row q-gutter-md" style="padding: 0px 20px;">
                       <div class="col q-gutter-md">
-                        <q-input outlined dense bg-color="white" label="From" />
-                        <q-input outlined dense bg-color="white" label="Subject" />
-                        <q-input outlined dense bg-color="white" label="Since" />
-                        <q-input outlined dense bg-color="white" label="Has" />
+                        <q-input outlined dense bg-color="white" label="From" v-model="advSearchFrom" />
+                        <q-input outlined dense bg-color="white" label="Subject" v-model="advSearchSubject" />
+                        <q-input outlined dense bg-color="white" hide-bottom-space class="input-size" label="Since" v-model="advSearchSinceDate" mask="####.##.##">
+                          <template v-slot:append>
+                            <q-icon name="event" class="cursor-pointer">
+                              <q-popup-proxy ref="qSearchSinceDate" transition-show="scale" transition-hide="scale">
+                                <q-date v-model="advSearchSinceDate" @input="() => $refs.qSearchSinceDate.hide()" mask="YYYY.MM.DD" today-btn minimal/>
+                              </q-popup-proxy>
+                            </q-icon>
+                          </template>
+                        </q-input>
+                        <q-checkbox v-model="advSearchHasAttachments" label="Has attachments" />
                       </div>
                       <div class="col q-gutter-md">
-                        <q-input outlined dense bg-color="white" label="To"/>
-                        <q-input outlined dense bg-color="white" label="Text"/>
-                        <q-input outlined dense bg-color="white" label="Till"/>
+                        <q-input outlined dense bg-color="white" label="To" v-model="advSearchTo" />
+                        <q-input outlined dense bg-color="white" label="Text" v-model="advSearchText" />
+                        <q-input outlined dense bg-color="white" hide-bottom-space class="input-size" label="Till" v-model="advSearchTillDate" mask="####.##.##">
+                          <template v-slot:append>
+                            <q-icon name="event" class="cursor-pointer">
+                              <q-popup-proxy ref="qSearchTillDate" transition-show="scale" transition-hide="scale">
+                                <q-date v-model="advSearchTillDate" @input="() => $refs.qSearchTillDate.hide()" mask="YYYY.MM.DD" today-btn minimal/>
+                              </q-popup-proxy>
+                            </q-icon>
+                          </template>
+                        </q-input>
+                      </div>
+                    </div>
+                    <div class="row q-gutter-md" style="padding: 0px 20px 10px;">
+                      <div class="col q-gutter-md">
+                        <q-btn unelevated label="Search" color="primary" @click="advancedSearch"></q-btn>
                       </div>
                     </div>
                   </q-expansion-item>
@@ -84,6 +107,9 @@
 
 <script>
 import { ipcRenderer } from 'electron'
+
+import typesUtils from 'src/utils/types.js'
+
 import FolderList from "./FolderList.vue"
 import MessageList from "./MessageList.vue"
 import MailListToolbar from "./MailListToolbar.vue"
@@ -108,6 +134,14 @@ export default {
       checkboxAll: false,
       checkedUids: [],
       searchInputText: '',
+
+      advSearchFrom: '',
+      advSearchSubject: '',
+      advSearchTo: '',
+      advSearchText: '',
+      advSearchSinceDate: '',
+      advSearchTillDate: '',
+      advSearchHasAttachments: false,
     }
   },
 
@@ -155,6 +189,32 @@ export default {
   },
 
   methods: {
+    advancedSearch: function () {
+      let aSearch = []
+      if (typesUtils.isNonEmptyString(this.advSearchFrom)) {
+        aSearch.push('from:' + this.advSearchFrom)
+      }
+      if (typesUtils.isNonEmptyString(this.advSearchSubject)) {
+        aSearch.push('subject:' + this.advSearchSubject)
+      }
+      if (typesUtils.isNonEmptyString(this.advSearchTo)) {
+        aSearch.push('to:' + this.advSearchTo)
+      }
+      if (typesUtils.isNonEmptyString(this.advSearchText)) {
+        aSearch.push('text:' + this.advSearchText)
+      }
+      if (typesUtils.isNonEmptyString(this.advSearchSinceDate) || typesUtils.isNonEmptyString(this.advSearchTillDate)) {
+        aSearch.push('date:' + this.advSearchSinceDate + '/' + this.advSearchTillDate)
+      }
+      if (this.advSearchHasAttachments) {
+        aSearch.push('has:attachments')
+      }
+      this.searchInputText = aSearch.join(' ')
+
+      this.$refs.advSearchExpansion.hide()
+
+      this.search()
+    },
     search: function () {
       let iAccountId = this.$store.getters['mail/getCurrentAccountId']
       let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']

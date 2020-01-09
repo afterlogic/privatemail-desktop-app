@@ -1,4 +1,4 @@
-import typesUtils from 'src/utils/types'
+import typesUtils from './types.js'
 
 export default {
   getFriendlySize: function (iSizeInBytes) {
@@ -28,5 +28,21 @@ export default {
     return (sText) ? sText.toString()
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;') : ''
+  },
+
+  htmlToPlain: function (sHtml) {
+    return sHtml
+      .replace(/([^>]{1})<div>/gi, '$1\n')
+      .replace(/<style[^>]*>[^<]*<\/style>/gi, '\n')
+      .replace(/<br *\/{0,1}>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<a [^>]*href="([^"]*?)"[^>]*>(.*?)<\/a>/gi, '$2 ($1)')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
   },
 }

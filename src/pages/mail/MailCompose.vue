@@ -628,19 +628,7 @@ export default {
       this.pgpSignEncryptDialog = true
     },
     getPlainEditorText () {
-      return this.editortext
-        .replace(/([^>]{1})<div>/gi, '$1\n')
-        .replace(/<style[^>]*>[^<]*<\/style>/gi, '\n')
-        .replace(/<br *\/{0,1}>/gi, '\n')
-        .replace(/<\/p>/gi, '\n')
-        .replace(/<\/div>/gi, '\n')
-        .replace(/<a [^>]*href="([^"]*?)"[^>]*>(.*?)<\/a>/gi, '$2 ($1)')
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
+      return textUtils.htmlToPlain(this.editortext)
     },
     getPrivateCurrentKey () {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']

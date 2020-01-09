@@ -1,7 +1,9 @@
 import _ from 'lodash'
+import moment from 'moment'
 
 import dbHelper from '../utils/db-helper.js'
 
+import textUtils from '../../../src/utils/text.js'
 import typesUtils from '../../../src/utils/types.js'
 
 let oDb = null
@@ -87,10 +89,65 @@ export default {
         }
 
         if (typesUtils.isNonEmptyString(sSearch)) {
-          aWhere.push('(subject LIKE ? OR to_addr LIKE ?)')
-          aParams.push('%' + sSearch + '%')
-          aParams.push('%' + sSearch + '%')
-          sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
+          let aWords = ['from:', 'subject:', 'to:', 'text:', 'date:', 'has:']
+          let aPatterns = _.map(aWords, function (sWord) {
+            return '\\b' + sWord
+          })
+          let rPattern = new RegExp('(' + aPatterns.join('|') + ')', 'g')
+          let aContent = sSearch.split(rPattern)
+          if (aContent.length > 2) {
+            _.each(aContent, function (sItem, iIndex) {
+              let bOdd = !!(iIndex % 2)
+              if (bOdd && aContent.length > iIndex + 1) {
+                let sValue = _.trim(aContent[iIndex + 1])
+                switch (sItem) {
+                  case 'from:':
+                    aWhere.push('from_addr LIKE ?')
+                    aParams.push('%' + sValue + '%')
+                    break
+                  case 'subject:':
+                    aWhere.push('subject LIKE ?')
+                    aParams.push('%' + sValue + '%')
+                    break
+                  case 'to:':
+                    aWhere.push('to_addr LIKE ?')
+                    aParams.push('%' + sValue + '%')
+                    break
+                  case 'text:':
+                    aWhere.push('plain_raw LIKE ?')
+                    aParams.push('%' + sValue + '%')
+                    break
+                  case 'date:':
+                    let aDate = sValue.split('/')
+                    if (aDate.length === 2) {
+                      let sSinceDate = aDate[0]
+                      if (typesUtils.isNonEmptyString(sSinceDate)) {
+                        let oSinceDate = moment(sSinceDate, 'YYYY.MM.DD').hour(0).minute(0).second(0)
+                        aWhere.push('timestamp_in_utc > ?')
+                        aParams.push(oSinceDate.unix())
+                      }
+                      let sTillDate = aDate[1]
+                      if (typesUtils.isNonEmptyString(sTillDate)) {
+                        let oTillDate = moment(sTillDate, 'YYYY.MM.DD').hour(23).minute(59).second(59)
+                        aWhere.push('timestamp_in_utc < ?')
+                        aParams.push(oTillDate.unix())
+                      }
+                    }
+                    break
+                  case 'has:':
+                    if (sValue === 'attachments') {
+                      aWhere.push('has_attachments = true')
+                    }
+                    break
+                }
+              }
+            })
+          } else {
+            aWhere.push('(subject LIKE ? OR to_addr LIKE ?)')
+            aParams.push('%' + sSearch + '%')
+            aParams.push('%' + sSearch + '%')
+            sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
+          }
         }
 
         if (typesUtils.isNonEmptyString(sFilter)) {
@@ -163,6 +220,9 @@ export default {
               let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
               _.each(aMessages, function (oMessage) {
                 oMessage.AccountId = iAccountId
+                if (!typesUtils.isNonEmptyString(oMessage.PlainRaw) && typesUtils.isNonEmptyString(oMessage.Html)) {
+                  oMessage.PlainRaw = textUtils.htmlToPlain(oMessage.Html)
+                }
                 let aParams = dbHelper.prepareInsertParams(oMessage, aMessageDbMap)
                 oStatement.run.apply(oStatement, aParams)
               })

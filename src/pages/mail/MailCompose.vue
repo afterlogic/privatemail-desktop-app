@@ -110,18 +110,21 @@
                     </q-item-section>
                     <q-item-section>
                       <q-select
-                        dense outlined
-                        v-model="selectedToAddr"
-                        use-input
-                        use-chips
-                        multiple
-                        input-debounce="0"
-                        :options="toAddrOptions"
-                        :disable="disableRecipients"
-                        @filter="getToAddrOptions"
-                        style="width: 100%;"
+                        dense outlined class="recipients-select"
+                        use-input use-chips multiple input-debounce="0"
                         ref="toAddrSelect"
+                        v-model="selectedToAddr" :options="toAddrOptions" :disable="disableRecipients"
+                        @filter="getToAddrOptions"
                       >
+                        <template v-slot:selected>
+                          <span v-if="selectedToAddr">
+                            <q-chip flat dense v-for="oAddr in selectedToAddr" :key="oAddr.value">
+                              {{ oAddr.short }}
+                              <q-icon name="clear" class="remove-recipient-icon" @click.stop.prevent="removeSelectedToAddr(oAddr.value)" />
+                              <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                            </q-chip>
+                          </span>
+                        </template>
                         <template v-slot:no-option>
                           <q-item>
                             <q-item-section class="text-grey">
@@ -141,7 +144,31 @@
                       CC
                     </q-item-section>
                     <q-item-section>
-                      <q-input dense outlined v-model="ccAddr" :disable="disableRecipients" style="width: 100%;" />
+                      <q-select
+                        dense outlined class="recipients-select"
+                        use-input use-chips multiple input-debounce="0"
+                        ref="ccAddrSelect"
+                        v-model="selectedCcAddr" :options="ccAddrOptions" :disable="disableRecipients"
+                        @filter="getCcAddrOptions"
+                      >
+                        <template v-slot:selected>
+                          <span v-if="selectedCcAddr">
+                            <q-chip flat dense v-for="oAddr in selectedCcAddr" :key="oAddr.value">
+                              {{ oAddr.short }}
+                              <q-icon name="clear" class="remove-recipient-icon" @click.stop.prevent="removeSelectedCcAddr(oAddr.value)" />
+                              <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                            </q-chip>
+                          </span>
+                        </template>
+                        <template v-slot:no-option>
+                          <q-item>
+                            <q-item-section class="text-grey">
+                              No results
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
+                      <!-- <q-input dense outlined v-model="ccAddr" :disable="disableRecipients" style="width: 100%;" /> -->
                     </q-item-section>
                   </q-item>
                   <q-item v-show="isBccShowed">
@@ -149,7 +176,31 @@
                       BCC
                     </q-item-section>
                     <q-item-section>
-                      <q-input dense outlined v-model="bccAddr" :disable="disableRecipients" style="width: 100%;" />
+                      <q-select
+                        dense outlined class="recipients-select"
+                        use-input use-chips multiple input-debounce="0"
+                        ref="bccAddrSelect"
+                        v-model="selectedBccAddr" :options="bccAddrOptions" :disable="disableRecipients"
+                        @filter="getBccAddrOptions"
+                      >
+                        <template v-slot:selected>
+                          <span v-if="selectedBccAddr">
+                            <q-chip flat dense v-for="oAddr in selectedBccAddr" :key="oAddr.value">
+                              {{ oAddr.short }}
+                              <q-icon name="clear" class="remove-recipient-icon" @click.stop.prevent="removeSelectedBccAddr(oAddr.value)" />
+                              <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                            </q-chip>
+                          </span>
+                        </template>
+                        <template v-slot:no-option>
+                          <q-item>
+                            <q-item-section class="text-grey">
+                              No results
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
+                      <!-- <q-input dense outlined v-model="bccAddr" :disable="disableRecipients" style="width: 100%;" /> -->
                     </q-item-section>
                   </q-item>
                   <q-item>
@@ -396,6 +447,15 @@
   }
 
 }
+
+.recipients-select {
+  width: 100%;
+
+  .remove-recipient-icon {
+    cursor: pointer;
+    margin-left: 4px;
+  }
+}
 </style>
 
 <script>
@@ -466,6 +526,10 @@ export default {
 
       selectedToAddr: null,
       toAddrOptions: [],
+      selectedCcAddr: null,
+      ccAddrOptions: [],
+      selectedBccAddr: null,
+      bccAddrOptions: [],
     }
   },
 
@@ -488,10 +552,19 @@ export default {
       })
     },
     toAddrComputed () {
-      let aToAddr = _.map(this.selectedToAddr, function (oToAddr) {
-        return oToAddr.full
-      })
-      return aToAddr.join(',')
+      return _.map(this.selectedToAddr, function (oAddr) {
+        return oAddr.full
+      }).join(',')
+    },
+    ccAddrComputed () {
+      return _.map(this.selectedCcAddr, function (oAddr) {
+        return oAddr.full
+      }).join(',')
+    },
+    bccAddrComputed () {
+      return _.map(this.selectedBccAddr, function (oAddr) {
+        return oAddr.full
+      }).join(',')
     },
     /**
      * Determines if sending a message is allowed.
@@ -575,15 +648,25 @@ export default {
         }
       }
     },
-    selectedToAddr (aToAddr, aPrevToAddr) {
-      if (!typesUtils.isNonEmptyArray(aToAddr)) {
-        aToAddr = []
-      }
-      if (!typesUtils.isNonEmptyArray(aPrevToAddr)) {
-        aPrevToAddr = []
-      }
-      if (aToAddr.length > aPrevToAddr.length && this.$refs.toAddrSelect) {
+    selectedToAddr (aAddr, aPrevAddr) {
+      aAddr = typesUtils.pArray(aAddr)
+      aPrevAddr = typesUtils.pArray(aPrevAddr)
+      if (aAddr.length > aPrevAddr.length && this.$refs.toAddrSelect) {
         this.$refs.toAddrSelect.updateInputValue('')
+      }
+    },
+    selectedCcAddr (aAddr, aPrevAddr) {
+      aAddr = typesUtils.pArray(aAddr)
+      aPrevAddr = typesUtils.pArray(aPrevAddr)
+      if (aAddr.length > aPrevAddr.length && this.$refs.ccAddrSelect) {
+        this.$refs.ccAddrSelect.updateInputValue('')
+      }
+    },
+    selectedBccAddr (aAddr, aPrevAddr) {
+      aAddr = typesUtils.pArray(aAddr)
+      aPrevAddr = typesUtils.pArray(aPrevAddr)
+      if (aAddr.length > aPrevAddr.length && this.$refs.bccAddrSelect) {
+        this.$refs.bccAddrSelect.updateInputValue('')
       }
     },
   },
@@ -595,6 +678,12 @@ export default {
   methods: {
     getToAddrOptions (sSearch, update, abort) {
       this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions', 'toAddrSelect')
+    },
+    getCcAddrOptions (sSearch, update, abort) {
+      this.getRecipientOptions(sSearch, update, abort, 'ccAddrOptions', 'ccAddrSelect')
+    },
+    getBccAddrOptions (sSearch, update, abort) {
+      this.getRecipientOptions(sSearch, update, abort, 'bccAddrOptions', 'bccAddrSelect')
     },
     getRecipientOptions (sSearch, update, abort, sOptionsName, sSelectName) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
@@ -611,6 +700,7 @@ export default {
             label: sEncodedFull,
             value: 'id_' + oContact.EntityId,
             full: oContact.getFull(),
+            short: oContact.FullName || oContact.ViewEmail,
           })
         })
         let bAddFirstOption = sEncodedSearch !== '' && !bHasExactlySearch
@@ -619,6 +709,7 @@ export default {
             label: sEncodedSearch,
             value: 'rand_' + Math.round(Math.random() * 10000),
             full: sSearch,
+            short: sSearch,
           })
         }
         update(async () => {
@@ -630,6 +721,21 @@ export default {
         })
       })
       ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch })
+    },
+    removeSelectedToAddr (sValue) {
+      this.selectedToAddr = _.filter(this.selectedToAddr, function (oAddr) {
+        return oAddr.value !== sValue
+      })
+    },
+    removeSelectedCcAddr (sValue) {
+      this.selectedCcAddr = _.filter(this.selectedCcAddr, function (oAddr) {
+        return oAddr.value !== sValue
+      })
+    },
+    removeSelectedBccAddr (sValue) {
+      this.selectedBccAddr = _.filter(this.selectedBccAddr, function (oAddr) {
+        return oAddr.value !== sValue
+      })
     },
     confirmOpenPgp () {
       if (this.recipientEmails.length === 0) {
@@ -837,7 +943,7 @@ export default {
         }
       }
     },
-    openCompose ({ aDraftInfo, sDraftUid, aToContacts, sToAddr, sCcAddr, sBccAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+    openCompose ({ aDraftInfo, sDraftUid, aToContacts, sToAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
       this.setSelectedIdentity()
 
       if (typesUtils.isNonEmptyString(sToAddr)) {
@@ -845,6 +951,7 @@ export default {
           full: sToAddr,
           label: textUtils.encodeHtml(sToAddr),
           value: 'rand_' + Math.round(Math.random() * 10000),
+          short: textUtils.encodeHtml(sToAddr),
         }]
       } else if (typesUtils.isNonEmptyArray(aToContacts)) {
         this.selectedToAddr = _.map(aToContacts, function (oContactData) {
@@ -852,13 +959,14 @@ export default {
             full: oContactData.full,
             label: textUtils.encodeHtml(oContactData.full),
             value: 'id_' + oContactData.id,
+            short: oContactData.name || oContactData.email,
           }
         })
       } else {
         this.selectedToAddr = []
       }
-      this.ccAddr = typesUtils.pString(sCcAddr)
-      this.bccAddr = typesUtils.pString(sBccAddr)
+      this.selectedCcAddr = []
+      this.selectedBccAddr = []
       this.subjectText = typesUtils.pString(sSubject)
       this.plainText = false
       this.disableEditor = false

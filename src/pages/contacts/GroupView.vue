@@ -173,6 +173,7 @@ export default {
             aToContacts.push({
               full: oContact.getFull(),
               email: oContact.ViewEmail,
+              name: oContact.FullName,
               id: oContact.EntityId,
             })
           }

@@ -246,6 +246,7 @@ export default {
       let aToContacts = [{
         full: this.contact.getFull(),
         email: this.contact.ViewEmail,
+        name: this.contact.FullName,
         id: this.contact.EntityId,
       }]
       this.openCompose({ aToContacts })

@@ -243,8 +243,12 @@ export default {
       }
     },
     emailToContact () {
-      let sToAddr = this.contact.getFull()
-      this.openCompose({ sToAddr })
+      let aToContacts = [{
+        full: this.contact.getFull(),
+        email: this.contact.ViewEmail,
+        id: this.contact.EntityId,
+      }]
+      this.openCompose({ aToContacts })
     },
     sendThisContact () {
       let aFull = _.compact([this.contact.FullName, this.contact.ViewEmail])

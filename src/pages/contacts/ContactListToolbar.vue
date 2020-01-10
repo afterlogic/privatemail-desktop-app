@@ -292,14 +292,17 @@ export default {
       let aCheckedContacts = _.filter(aAllContacts, (oContact) => {
         return _.indexOf(aCheckedContactsUUIDs, oContact.UUID) !== -1
       })
-      let aToAddr = []
+      let aToContacts = []
       _.each(aCheckedContacts, function (oContact) {
-        let sToAddr = oContact.getFull()
-        if (typesUtils.isNonEmptyString(sToAddr)) {
-          aToAddr.push(sToAddr)
+        if (typesUtils.isNonEmptyString(oContact.ViewEmail)) {
+          aToContacts.push({
+            full: oContact.getFull(),
+            email: oContact.ViewEmail,
+            id: oContact.EntityId,
+          })
         }
       })
-      this.openCompose({ sToAddr: aToAddr.join(', ') })
+      this.openCompose({ aToContacts })
     },
     onUpdateSharedContacts (oEvent, { bUpdateSharedContacts, oError }) {
       if (bUpdateSharedContacts) {

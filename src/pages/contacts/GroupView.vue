@@ -166,16 +166,19 @@ export default {
       }
     },
     onGetGroupEmails (oEvent, { aContacts, oRequestParams, oError }) {
-      let aToAddr = []
+      let aToContacts = []
       if (typesUtils.isNonEmptyArray(aContacts)) {
         _.each(aContacts, function (oContact) {
-          let sToAddr = oContact.getFull()
-          if (typesUtils.isNonEmptyString(sToAddr)) {
-            aToAddr.push(sToAddr)
+          if (typesUtils.isNonEmptyString(oContact.ViewEmail)) {
+            aToContacts.push({
+              full: oContact.getFull(),
+              email: oContact.ViewEmail,
+              id: oContact.EntityId,
+            })
           }
         })
       }
-      this.openCompose({ sToAddr: aToAddr.join(', ') })
+      this.openCompose({ aToContacts })
     },
     askDeleteGroup () {
       this.deleteConfirm = true

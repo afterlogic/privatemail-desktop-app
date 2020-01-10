@@ -117,8 +117,10 @@
                         multiple
                         input-debounce="0"
                         :options="toAddrOptions"
+                        :disable="disableRecipients"
                         @filter="getToAddrOptions"
                         style="width: 100%;"
+                        ref="toAddrSelect"
                       >
                         <template v-slot:no-option>
                           <q-item>
@@ -128,7 +130,6 @@
                           </q-item>
                         </template>
                       </q-select>
-                      <!-- <q-input dense outlined v-model="toAddr" :disable="disableRecipients" style="width: 100%;" /> -->
                     </q-item-section>
                     <q-item-section style="max-width: 100px;" v-show="!isCcShowed || !isBccShowed">
                       <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
@@ -438,7 +439,6 @@ export default {
       pgpApplied: false,
       editortext: '',
       editortextBeforePgp: '',
-      toAddr: '',
       ccAddr: '',
       bccAddr: '',
       disableRecipients: false,
@@ -575,6 +575,17 @@ export default {
         }
       }
     },
+    selectedToAddr (aToAddr, aPrevToAddr) {
+      if (!typesUtils.isNonEmptyArray(aToAddr)) {
+        aToAddr = []
+      }
+      if (!typesUtils.isNonEmptyArray(aPrevToAddr)) {
+        aPrevToAddr = []
+      }
+      if (aToAddr.length > aPrevToAddr.length && this.$refs.toAddrSelect) {
+        this.$refs.toAddrSelect.updateInputValue('')
+      }
+    },
   },
 
   beforeDestroy: function () {
@@ -583,6 +594,9 @@ export default {
 
   methods: {
     getToAddrOptions (sSearch, update, abort) {
+      this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions', 'toAddrSelect')
+    },
+    getRecipientOptions (sSearch, update, abort, sOptionsName, sSelectName) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let sEncodedSearch = textUtils.encodeHtml(sSearch)
         let bHasExactlySearch = false
@@ -599,15 +613,20 @@ export default {
             full: oContact.getFull(),
           })
         })
-        if (sEncodedSearch !== '' && !bHasExactlySearch) {
+        let bAddFirstOption = sEncodedSearch !== '' && !bHasExactlySearch
+        if (bAddFirstOption) {
           aOptions.unshift({
             label: sEncodedSearch,
             value: 'rand_' + Math.round(Math.random() * 10000),
             full: sSearch,
           })
         }
-        update(() => {
-          this.toAddrOptions = aOptions
+        update(async () => {
+          this[sOptionsName] = aOptions
+          if (bAddFirstOption) {
+            await this.$nextTick()
+            this.$refs[sSelectName].setOptionIndex(0)
+          }
         })
       })
       ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch })
@@ -818,10 +837,26 @@ export default {
         }
       }
     },
-    openCompose ({ aDraftInfo, sDraftUid, sToAddr, sCcAddr, sBccAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+    openCompose ({ aDraftInfo, sDraftUid, aToContacts, sToAddr, sCcAddr, sBccAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
       this.setSelectedIdentity()
 
-      this.toAddr = typesUtils.pString(sToAddr)
+      if (typesUtils.isNonEmptyString(sToAddr)) {
+        this.selectedToAddr = [{
+          full: sToAddr,
+          label: textUtils.encodeHtml(sToAddr),
+          value: 'rand_' + Math.round(Math.random() * 10000),
+        }]
+      } else if (typesUtils.isNonEmptyArray(aToContacts)) {
+        this.selectedToAddr = _.map(aToContacts, function (oContactData) {
+          return {
+            full: oContactData.full,
+            label: textUtils.encodeHtml(oContactData.full),
+            value: 'id_' + oContactData.id,
+          }
+        })
+      } else {
+        this.selectedToAddr = []
+      }
       this.ccAddr = typesUtils.pString(sCcAddr)
       this.bccAddr = typesUtils.pString(sBccAddr)
       this.subjectText = typesUtils.pString(sSubject)

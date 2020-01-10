@@ -28,6 +28,7 @@ export default {
   currentPage: 1,
   currentFilter: '',
   currentSearch: '',
+  currentAdvancedSearch: null,
   messagesPerPage: 20,
 
   messagesCache: {},

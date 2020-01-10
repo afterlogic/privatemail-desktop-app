@@ -191,7 +191,7 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, {iAccoun
 
 export function setCurrentFolder ({ state, commit, getters }, sFolderFullName) {
   commit('setCurrentFilter', '')
-  commit('setCurrentSearch', '')
+  commit('setCurrentSearch', { sSearch: '', oAdvancedSearch: null })
   commit('setCurrentFolder', sFolderFullName)
   commit('setCurrentFolderChanged')
   commit('setMessagesInfo', {

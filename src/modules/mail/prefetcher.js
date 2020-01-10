@@ -74,7 +74,8 @@ ipcRenderer.on('db-get-messagesinfo', (event, { iAccountId, sFolderFullName, oMe
   }
 })
 
-ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, sSearch, sFilter, aMessages }) => {
+ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, sSearch, oAdvancedSearch, sFilter, aMessages }) => {
+  console.log('aMessages', aMessages)
   if (store.state.mail.currentAccount && store.state.mail.currentAccount.AccountID === iAccountId) {
     if (typesUtils.isNonEmptyArray(aUids)) {
       if (aMessages.length > 0) {
@@ -103,7 +104,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
     } else {
       store.commit('mail/updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
       store.commit('mail/setCurrentFilter', sFilter)
-      store.commit('mail/setCurrentSearch', sSearch)
+      store.commit('mail/setCurrentSearch', { sSearch, oAdvancedSearch })
       store.commit('mail/setCurrentFolder', sFolderFullName)
       store.commit('mail/setCurrentFolderChanged')
       store.commit('mail/setСurrentPage', 1)

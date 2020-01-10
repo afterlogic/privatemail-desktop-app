@@ -49,9 +49,9 @@
                     </template>
                     <div class="row q-gutter-md" style="padding: 0px 20px;">
                       <div class="col q-gutter-md">
-                        <q-input outlined dense bg-color="white" label="From" v-model="advSearchFrom" />
-                        <q-input outlined dense bg-color="white" label="Subject" v-model="advSearchSubject" />
-                        <q-input outlined dense bg-color="white" hide-bottom-space class="input-size" label="Since" v-model="advSearchSinceDate" mask="####.##.##">
+                        <q-input outlined dense bg-color="white" label="From" v-model="advSearchFrom" @keyup.enter.stop.prevent="advancedSearch" />
+                        <q-input outlined dense bg-color="white" label="Subject" v-model="advSearchSubject" @keyup.enter.stop.prevent="advancedSearch" />
+                        <q-input outlined dense bg-color="white" class="input-size" label="Since" v-model="advSearchSinceDate" mask="####.##.##" @keyup.enter.stop.prevent="advancedSearch">
                           <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qSearchSinceDate" transition-show="scale" transition-hide="scale">
@@ -63,9 +63,9 @@
                         <q-checkbox v-model="advSearchHasAttachments" label="Has attachments" />
                       </div>
                       <div class="col q-gutter-md">
-                        <q-input outlined dense bg-color="white" label="To" v-model="advSearchTo" />
-                        <q-input outlined dense bg-color="white" label="Text" v-model="advSearchText" />
-                        <q-input outlined dense bg-color="white" hide-bottom-space class="input-size" label="Till" v-model="advSearchTillDate" mask="####.##.##">
+                        <q-input outlined dense bg-color="white" label="To" v-model="advSearchTo" @keyup.enter.stop.prevent="advancedSearch" />
+                        <q-input outlined dense bg-color="white" label="Text" v-model="advSearchText" @keyup.enter.stop.prevent="advancedSearch" />
+                        <q-input outlined dense bg-color="white" class="input-size" label="Till" v-model="advSearchTillDate" mask="####.##.##" @keyup.enter.stop.prevent="advancedSearch">
                           <template v-slot:append>
                             <q-icon name="event" class="cursor-pointer">
                               <q-popup-proxy ref="qSearchTillDate" transition-show="scale" transition-hide="scale">
@@ -171,11 +171,23 @@ export default {
     searchText () {
       return this.$store.getters['mail/getCurrentSearch']
     },
+    advancedSearchData () {
+      return this.$store.getters['mail/getCurrentAdvancedSearch']
+    },
   },
 
   watch: {
     searchText: function () {
       this.searchInputText = this.searchText
+    },
+    advancedSearchData: function () {
+      this.advSearchFrom = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.From)
+      this.advSearchSubject = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Subject)
+      this.advSearchTo = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.To)
+      this.advSearchText = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Text)
+      this.advSearchSinceDate = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Since)
+      this.advSearchTillDate = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Till)
+      this.advSearchHasAttachments = typesUtils.pBool(this.advancedSearchData && this.advancedSearchData.HasAttachments)
     },
     checkboxAll: function (val, oldval) {
       this.$root.$emit('check-all-messages', val)

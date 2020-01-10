@@ -58,6 +58,10 @@ export function getCurrentSearch (state) {
   return state.currentSearch
 }
 
+export function getCurrentAdvancedSearch (state) {
+  return state.currentAdvancedSearch
+}
+
 export function getMessagesPerPage (state) {
   return state.messagesPerPage
 }

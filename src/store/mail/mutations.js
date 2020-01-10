@@ -276,8 +276,9 @@ export function setCurrentFilter (state, sFilter) {
   state.currentFilter = typesUtils.pString(sFilter)
 }
 
-export function setCurrentSearch (state, sSearch) {
+export function setCurrentSearch (state, { sSearch, oAdvancedSearch }) {
   state.currentSearch = typesUtils.pString(sSearch)
+  state.currentAdvancedSearch = oAdvancedSearch
 }
 
 export function setMessagesRead (state, payload) {

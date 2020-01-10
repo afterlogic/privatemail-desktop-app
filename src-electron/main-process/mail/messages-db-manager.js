@@ -81,6 +81,7 @@ export default {
         let aWhere = ['account_id = ?', 'folder = ?']
         let aParams = [iAccountId, sFolderFullName]
         let sOrder = ''
+        let oAdvancedSearch = {}
 
         if (typesUtils.isNonEmptyArray(aUids)) {
           let sQuestions = aUids.map(function(){ return '?' }).join(',')
@@ -104,18 +105,22 @@ export default {
                   case 'from:':
                     aWhere.push('from_addr LIKE ?')
                     aParams.push('%' + sValue + '%')
+                    oAdvancedSearch.From = sValue
                     break
                   case 'subject:':
                     aWhere.push('subject LIKE ?')
                     aParams.push('%' + sValue + '%')
+                    oAdvancedSearch.Subject = sValue
                     break
                   case 'to:':
                     aWhere.push('to_addr LIKE ?')
                     aParams.push('%' + sValue + '%')
+                    oAdvancedSearch.To = sValue
                     break
                   case 'text:':
                     aWhere.push('plain_raw LIKE ?')
                     aParams.push('%' + sValue + '%')
+                    oAdvancedSearch.Text = sValue
                     break
                   case 'date:':
                     let aDate = sValue.split('/')
@@ -125,18 +130,21 @@ export default {
                         let oSinceDate = moment(sSinceDate, 'YYYY.MM.DD').hour(0).minute(0).second(0)
                         aWhere.push('timestamp_in_utc > ?')
                         aParams.push(oSinceDate.unix())
+                        oAdvancedSearch.Since = sValue
                       }
                       let sTillDate = aDate[1]
                       if (typesUtils.isNonEmptyString(sTillDate)) {
                         let oTillDate = moment(sTillDate, 'YYYY.MM.DD').hour(23).minute(59).second(59)
                         aWhere.push('timestamp_in_utc < ?')
                         aParams.push(oTillDate.unix())
+                        oAdvancedSearch.Till = sValue
                       }
                     }
                     break
                   case 'has:':
                     if (sValue === 'attachments') {
                       aWhere.push('has_attachments = true')
+                      oAdvancedSearch.HasAttachments = true
                     }
                     break
                 }
@@ -146,8 +154,8 @@ export default {
             aWhere.push('(subject LIKE ? OR to_addr LIKE ?)')
             aParams.push('%' + sSearch + '%')
             aParams.push('%' + sSearch + '%')
-            sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
           }
+          sOrder = ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC'
         }
 
         if (typesUtils.isNonEmptyString(sFilter)) {
@@ -171,7 +179,7 @@ export default {
               reject({ sMethod: 'getMessages', oError })
             } else {
               let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
-              resolve(aMessages)
+              resolve({ aMessages, oAdvancedSearch })
             }
           }
         )

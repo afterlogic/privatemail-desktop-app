@@ -75,7 +75,6 @@ ipcRenderer.on('db-get-messagesinfo', (event, { iAccountId, sFolderFullName, oMe
 })
 
 ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, sSearch, oAdvancedSearch, sFilter, aMessages }) => {
-  console.log('aMessages', aMessages)
   if (store.state.mail.currentAccount && store.state.mail.currentAccount.AccountID === iAccountId) {
     if (typesUtils.isNonEmptyArray(aUids)) {
       if (aMessages.length > 0) {

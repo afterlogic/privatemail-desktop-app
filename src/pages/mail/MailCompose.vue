@@ -705,11 +705,12 @@ export default {
         })
         let bAddFirstOption = sEncodedSearch !== '' && !bHasExactlySearch
         if (bAddFirstOption) {
+          let oEmailParts = addressUtils.getEmailParts(sSearch)
           aOptions.unshift({
             label: sEncodedSearch,
             value: 'rand_' + Math.round(Math.random() * 10000),
             full: sSearch,
-            short: sSearch,
+            short: oEmailParts.name || oEmailParts.email,
           })
         }
         update(async () => {

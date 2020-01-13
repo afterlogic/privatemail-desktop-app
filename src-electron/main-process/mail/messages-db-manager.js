@@ -90,7 +90,7 @@ export default {
         }
 
         if (typesUtils.isNonEmptyString(sSearch)) {
-          let aWords = ['from:', 'subject:', 'to:', 'text:', 'date:', 'has:']
+          let aWords = ['from:', 'subject:', 'to:', 'email:', 'text:', 'body:', 'date:', 'has:']
           let aPatterns = _.map(aWords, function (sWord) {
             return '\\b' + sWord
           })
@@ -113,11 +113,20 @@ export default {
                     oAdvancedSearch.Subject = sValue
                     break
                   case 'to:':
-                    aWhere.push('to_addr LIKE ?')
+                    aWhere.push('(to_addr LIKE ? OR cc_addr LIKE ?)')
                     aParams.push('%' + sValue + '%')
                     oAdvancedSearch.To = sValue
                     break
+                  case 'email:':
+                    aWhere.push('(from_addr LIKE ? OR to_addr LIKE ? OR cc_addr LIKE ? OR bcc_addr LIKE ?)')
+                    aParams.push('%' + sValue + '%')
+                    aParams.push('%' + sValue + '%')
+                    aParams.push('%' + sValue + '%')
+                    aParams.push('%' + sValue + '%')
+                    oAdvancedSearch.Email = sValue
+                    break
                   case 'text:':
+                  case 'body:':
                     aWhere.push('plain_raw LIKE ?')
                     aParams.push('%' + sValue + '%')
                     oAdvancedSearch.Text = sValue
@@ -151,7 +160,9 @@ export default {
               }
             })
           } else {
-            aWhere.push('(subject LIKE ? OR to_addr LIKE ?)')
+            aWhere.push('(from_addr LIKE ? OR to_addr LIKE ? OR cc_addr LIKE ? OR subject LIKE ?)')
+            aParams.push('%' + sSearch + '%')
+            aParams.push('%' + sSearch + '%')
             aParams.push('%' + sSearch + '%')
             aParams.push('%' + sSearch + '%')
           }

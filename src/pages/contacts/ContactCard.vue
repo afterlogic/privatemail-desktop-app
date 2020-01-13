@@ -5,7 +5,7 @@
     <q-btn size="xs" unelevated dense rounded color="primary" v-if="contact === false" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -10px;" >
       <q-icon size="xs" color="white" name="add" />
     </q-btn>
-    <q-popup-proxy>
+    <q-popup-proxy ref="cardPopup">
       <q-card flat bordered class="my-card bg-grey-1" v-if="contact">
         <q-card-section>
           <div class="row items-center no-wrap">
@@ -69,8 +69,8 @@
         <q-separator />
 
         <q-card-actions>
-          <q-btn flat @click="sendThisContact">Send this contact</q-btn>
-          <q-btn flat @click="emailToContact">Email to this contact</q-btn>
+          <q-btn flat @click="emailToContact">Send mail</q-btn>
+          <q-btn flat @click="viewAllMailsWithContact">View all mails with this contact</q-btn>
         </q-card-actions>
       </q-card>
     </q-popup-proxy>
@@ -228,11 +228,25 @@ export default {
         id: this.contact.EntityId,
       }]
       this.openCompose({ aToContacts })
+      if (this.$refs.cardPopup) {
+        this.$refs.cardPopup.hide()
+      }
+    },
+    viewAllMailsWithContact () {
+      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
+      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: 'email:' + this.contact.ViewEmail })
+      if (this.$refs.cardPopup) {
+        this.$refs.cardPopup.hide()
+      }
     },
     sendThisContact () {
       let aFull = _.compact([this.contact.FullName, this.contact.ViewEmail])
       let sFileName = 'contact-' + aFull.join(' ') + '.vcf'
       this.openCompose({ aAttachments: [{ FileName: sFileName, ContactUUID: this.contact.UUID }] })
+      if (this.$refs.cardPopup) {
+        this.$refs.cardPopup.hide()
+      }
     },
     openCreateContactPopup () {
       let oEmailParts = addressUtils.getEmailParts(this.addr.Full)

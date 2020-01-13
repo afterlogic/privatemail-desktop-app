@@ -8,7 +8,7 @@
           </div>
           <div class="buttons">
             <q-btn no-wrap no-caps unelevated color="primary" label="Send this contact" @click="sendThisContact" />
-            <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" @click="emailToContact" />
+            <q-btn no-wrap no-caps unelevated color="primary" label="Email to this contact" @click="emailToContact" v-if="contact.ViewEmail" />
           </div>
         </div>
       </div>
@@ -75,6 +75,9 @@
                 <div v-if="groupFilteredList" class="groups">
                   <a v-for="(group,index) in groupFilteredList" :key="group.id" class="group" @click="setCurrentGroup(group)">{{group}}<span v-if="index+1 < groupFilteredList.length">,</span></a>
                 </div>
+              </div>
+              <div class="after-links" v-if="contact.ViewEmail">
+                <a class="group" @click="showEmailsWithThisContact">Show emails with this contact</a>
               </div>
             </q-scroll-area>
           </div>
@@ -169,9 +172,15 @@
   text-decoration-line: #98387b;
   cursor: pointer;
 }
+
+.after-links {
+  text-align: right;
+  margin-right: 10px;
+}
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
 import moment from 'moment'
 
 import notification from 'src/utils/notification.js'
@@ -255,6 +264,12 @@ export default {
       let aFull = _.compact([this.contact.FullName, this.contact.ViewEmail])
       let sFileName = 'contact-' + aFull.join(' ') + '.vcf'
       this.openCompose({ aAttachments: [{ FileName: sFileName, ContactUUID: this.contact.UUID }] })
+    },
+    showEmailsWithThisContact () {
+      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
+      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: 'email:' + this.contact.ViewEmail })
+      this.$router.push({ path: '/mail' })
     },
   },
 }

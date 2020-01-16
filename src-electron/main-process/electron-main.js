@@ -20,6 +20,8 @@ if (process.env.PROD) {
 }
 
 const sqlite3 = require('sqlite3').verbose()
+const dbFullPath = app.getPath('userData') + '/privatemail.db'
+import { version } from '../../package.json'
 
 let mainWindow
 let oDbConnect = null
@@ -39,12 +41,13 @@ function createWindow () {
 
   mainWindow.loadURL(process.env.APP_URL)
 
-  oDbConnect = new sqlite3.Database('privatemail.db', (oError) => {
+  oDbConnect = new sqlite3.Database(dbFullPath, (oError) => {
     if (oError === null) {
-      mainDbManager.init(oDbConnect)
-      foldersDbManager.init(oDbConnect)
-      messagesDbManager.init(oDbConnect)
-      contactsDbManager.init(oDbConnect)
+      mainDbManager.init(oDbConnect, version).then(function () {
+        foldersDbManager.init(oDbConnect)
+        messagesDbManager.init(oDbConnect)
+        contactsDbManager.init(oDbConnect)
+      })
     }
   })
 
@@ -89,11 +92,10 @@ ipcMain.on('db-remove-all', (oEvent) => {
         messagesDbManager.init(oDbConnect)
         contactsDbManager.init(oDbConnect)
         const fs = require('fs')
-        const sPath = './privatemail.db'
 
-        fs.unlink(sPath, (oUnlinkError) => {
+        fs.unlink(dbFullPath, (oUnlinkError) => {
           if (!oUnlinkError) {
-            oDbConnect = new sqlite3.Database('privatemail.db', (oDbCOnnectError) => {
+            oDbConnect = new sqlite3.Database(dbFullPath, (oDbCOnnectError) => {
               if (oDbCOnnectError === null) {
                 mainDbManager.init(oDbConnect)
                 foldersDbManager.init(oDbConnect)

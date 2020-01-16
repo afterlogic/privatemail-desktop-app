@@ -1,6 +1,7 @@
 {
   "name": "privatemail-desktop",
   "version": "0.0.1",
+  "version comments": "!Attention! Add new item to aVersionChangesData array in src-electron/main-process/main/db-manager.js file every time when you change app version.",
   "description": "Collaboration multiplatform desktop app",
   "productName": "privatemail-desktop",
   "cordovaId": "org.cordova.quasar.app",

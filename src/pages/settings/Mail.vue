@@ -3,27 +3,18 @@
     <div class="text-h4 q-mb-md">Mail</div>
     <q-separator spaced />
     <q-list style="max-width: 500px;">
-      <!-- <q-item>
-        <q-item-section side center style="min-width: 140px;">
-          Layout
-        </q-item-section>
-        <q-item-section>
-          <q-select outlined v-model="layoutValue" :options="layoutList" :dense=true style="width: 100%;"/>
-        </q-item-section>
-      </q-item> -->
-
       <q-item>
-        <q-item-section side center style="min-width: 140px;">
+        <q-item-section side top style="min-width: 140px;">
           Messages per page
         </q-item-section>
         <q-item-section>
-          <q-select outlined v-model="perPageValue" :options="perPageList" :dense=true style="width: 100%;"/>
+          <q-select outlined v-model="iMailsPerPage" :options="aMailsPerPageList" dense style="width: 100%;"/>
         </q-item-section>
       </q-item>
 
       <q-item tag="label" v-ripple>
-        <q-item-section side top>
-          <q-checkbox v-model="draftAutosave" />
+        <q-item-section side center>
+          <q-checkbox v-model="bAllowAutosaveInDrafts" />
         </q-item-section>
         <q-item-section>
           <q-item-label>Allow autosave in Drafts</q-item-label>
@@ -46,7 +37,8 @@
       </q-item> -->
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" label="Save" align="right" />
+    <q-btn v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
+    <q-btn v-if="bSaving" color="primary" label="Saving..." align="right" />
   </div>
 
 </template>
@@ -54,26 +46,50 @@
 <style></style>
 
 <script>
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+import webApi from 'src/utils/webApi.js'
+
+// import settings from 'src/modules/mail/objects/settings.js'
+
 export default {
   name: 'MailSettings',
 
   data () {
     return {
-      draftAutosave: false,
-      layoutValue: 'Vertical split',
-      layoutList: [
-        {
-          label: 'Vertical split',
-          value: 0
-        },
-        {
-          label: 'Horizontal split',
-          value: 1
-        },
-      ],
-      perPageValue: 20,
-      perPageList: [10,20,30,50,100,200],
+      iMailsPerPage: 20,
+      aMailsPerPageList: [10, 20, 30, 50, 75, 100, 150, 200],
+      bAllowAutosaveInDrafts: false,
+
+      bSaving: false,
     }
+  },
+
+  mounted () {
+    // this.iMailsPerPage = settings.MailsPerPage
+    // this.bAllowAutosaveInDrafts = settings.AllowAutosaveInDrafts
+  },
+
+  methods: {
+    save () {
+      this.bSaving = true
+      webApi.sendRequest({
+        sModule: 'Mail',
+        sMethod: 'UpdateSettings',
+        oParameters: {
+          MailsPerPage: this.iMailsPerPage,
+          AllowAutosaveInDrafts: this.bAllowAutosaveInDrafts,
+        },
+        fCallback: (bResult, oError) => {
+          this.bSaving = false
+          if (bResult) {
+            notification.showReport('Settings have been updated successfully.')
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+          }
+        },
+      })
+    },
   },
 }
 </script>

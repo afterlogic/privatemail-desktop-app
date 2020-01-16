@@ -21,7 +21,7 @@
           Language
         </q-item-section>
         <q-item-section>
-          <q-select outlined v-model="languageValue" :options="languagesList" :dense=true style="width: 100%;"/>
+          <q-select outlined v-model="languageValue" :options="languagesList" dense style="width: 100%;"/>
         </q-item-section>
       </q-item> -->
 
@@ -30,7 +30,11 @@
           Refresh every
         </q-item-section>
         <q-item-section>
-          <q-select outlined v-model="refreshIntervalValue" :options="refreshIntervalList" :dense=true style="width: 100%;" />
+          <q-select
+            outlined dense style="width: 100%;"
+            emit-value
+            v-model="iAutoRefreshIntervalMinutes"
+            :options="aAutoRefreshIntervalMinutesList" />
         </q-item-section>
       </q-item>
 
@@ -41,7 +45,7 @@
         </q-item-section>
         <q-item-section>
           <q-btn-toggle
-              v-model="timeFormatValue"
+              v-model="iTimeFormat"
               spread
               no-caps
               rounded
@@ -49,17 +53,14 @@
               toggle-color="primary"
               color="white"
               text-color="primary"
-              :options="[
-                {label: '1PM', value: 0},
-                {label: '13:00', value: 1}
-              ]"
+              :options="aTimeFormatList"
             />
         </q-item-section>
       </q-item>
 
       <!-- <q-item tag="label" v-ripple>
         <q-item-section side top>
-          <q-checkbox v-model="checkDesktopNotifications" />
+          <q-checkbox v-model="bAllowDesktopNotifications" />
         </q-item-section>
 
         <q-item-section>
@@ -68,7 +69,8 @@
       </q-item> -->
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" label="Save" @click="save()"/>
+    <q-btn v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
+    <q-btn v-if="bSaving" color="primary" label="Saving..." align="right" />
   </div>
 
 </template>
@@ -77,17 +79,15 @@
 </style>
 
 <script>
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+import webApi from 'src/utils/webApi.js'
+
 export default {
   name: 'CommonSettings',
 
   data () {
     return {
-      checkDesktopNotifications: false,
-      check2: true,
-      check3: false,
-      notif1: false,
-      notif2: true,
-      notif3: true,
       themeValue: '',
       themesList: [
         'light',
@@ -106,22 +106,55 @@ export default {
           description: 'Русский язык'
         },
       ],
-      refreshIntervalValue: 1,
-      refreshIntervalList: [
+      iAutoRefreshIntervalMinutes: 1,
+      aAutoRefreshIntervalMinutesList: [
+        {
+          label: 'Off',
+          value: 0,
+        },
         {
           label: '1 minute',
-          value: '1'
+          value: 1,
+        },
+        {
+          label: '3 minutes',
+          value: 3,
         },
         {
           label: '5 minutes',
-          value: '5'
+          value: 5,
         },
         {
-          label: 'Never',
-          value: '0'
+          label: '10 minutes',
+          value: 10,
+        },
+        {
+          label: '15 minutes',
+          value: 15,
+        },
+        {
+          label: '20 minutes',
+          value: 20,
+        },
+        {
+          label: '30 minutes',
+          value: 30,
         },
       ],
-      timeFormatValue: 1,
+      iTimeFormat: 1,
+      aTimeFormatList: [
+        {
+          label: '1PM',
+          value: 1,
+        },
+        {
+          label: '13:00',
+          value: 0,
+        },
+      ],
+      bAllowDesktopNotifications: false,
+
+      bSaving: false,
     }
   },
 
@@ -137,7 +170,26 @@ export default {
 
   methods: {
     save () {
-      this.$store.commit('main/setTheme', this.themeValue)
+      // this.$store.commit('main/setTheme', this.themeValue)
+
+      this.bSaving = true
+      webApi.sendRequest({
+        sModule: 'Core',
+        sMethod: 'UpdateSettings',
+        oParameters: {
+          TimeFormat: this.iTimeFormat,
+          AutoRefreshIntervalMinutes: this.iAutoRefreshIntervalMinutes,
+          // AllowDesktopNotifications: this.bAllowDesktopNotifications,
+        },
+        fCallback: (bResult, oError) => {
+          this.bSaving = false
+          if (bResult) {
+            notification.showReport('Settings have been updated successfully.')
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+          }
+        },
+      })
     },
   },
 }

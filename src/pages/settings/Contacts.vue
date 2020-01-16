@@ -8,12 +8,13 @@
           Contacts per page
         </q-item-section>
         <q-item-section>
-          <q-select outlined v-model="perPageValue" :options="perPageList" :dense=true style="width: 100%;"/>
+          <q-select outlined dense v-model="iContactsPerPage" :options="aContactsPerPageList" style="width: 100%;"/>
         </q-item-section>
       </q-item>
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" label="Save" align="right" />
+    <q-btn v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
+    <q-btn v-if="bSaving" color="primary" label="Saving..." align="right" />
   </div>
 
 </template>
@@ -21,14 +22,41 @@
 <style></style>
 
 <script>
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+import webApi from 'src/utils/webApi.js'
+
 export default {
   name: 'ContactsSettings',
 
   data () {
     return {
-      perPageValue: 20,
-      perPageList: [10,20,30,50,100,200],
+      iContactsPerPage: 20,
+      aContactsPerPageList: [10, 20, 30, 50, 75, 100, 150, 200],
+
+      bSaving: false,
     }
+  },
+
+  methods: {
+    save () {
+      this.bSaving = true
+      webApi.sendRequest({
+        sModule: 'Contacts',
+        sMethod: 'UpdateSettings',
+        oParameters: {
+          ContactsPerPage: this.iContactsPerPage,
+        },
+        fCallback: (bResult, oError) => {
+          this.bSaving = false
+          if (bResult) {
+            notification.showReport('Settings have been updated successfully.')
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+          }
+        },
+      })
+    },
   },
 }
 </script>

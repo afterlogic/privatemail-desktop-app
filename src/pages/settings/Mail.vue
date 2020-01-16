@@ -2,15 +2,16 @@
   <div>
     <div class="text-h4 q-mb-md">Mail</div>
     <q-separator spaced />
-    <q-list>
-      <q-item>
+    <q-list style="max-width: 500px;">
+      <!-- <q-item>
         <q-item-section side center style="min-width: 140px;">
           Layout
         </q-item-section>
         <q-item-section>
           <q-select outlined v-model="layoutValue" :options="layoutList" :dense=true style="width: 100%;"/>
         </q-item-section>
-      </q-item>
+      </q-item> -->
+
       <q-item>
         <q-item-section side center style="min-width: 140px;">
           Messages per page
@@ -24,30 +25,28 @@
         <q-item-section side top>
           <q-checkbox v-model="draftAutosave" />
         </q-item-section>
-
         <q-item-section>
           <q-item-label>Allow autosave in Drafts</q-item-label>
-          <q-item-label caption>
+          <!-- <q-item-label caption>
             Some feature description
-          </q-item-label>
+          </q-item-label> -->
         </q-item-section>
       </q-item>
 
-      <q-item tag="label" v-ripple>
+      <!-- <q-item tag="label" v-ripple>
         <q-item-section side top>
-          <!-- <q-checkbox v-model="check3" /> -->
         </q-item-section>
-
         <q-item-section>
           <q-item-label>Allow handling email links</q-item-label>
           <q-item-label caption>
-            Automatically add home screen widgets
+            Open Compose screen on clicking mailto link on any web site.
+            The link above may do nothing if you already set mailto association before.
           </q-item-label>
         </q-item-section>
-      </q-item>
+      </q-item> -->
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" icon="done" label="Save" align="right" />
+    <q-btn color="primary" label="Save" align="right" />
   </div>
 
 </template>
@@ -55,12 +54,9 @@
 <style></style>
 
 <script>
-// import FolderList from "components/FolderList.vue"
-
 export default {
-  name: "MailSettings",
-  components: {
-  },
+  name: 'MailSettings',
+
   data () {
     return {
       draftAutosave: false,
@@ -76,8 +72,8 @@ export default {
         },
       ],
       perPageValue: 20,
-      perPageList: [10,20,30,50,100,200]
+      perPageList: [10,20,30,50,100,200],
     }
-  }
-};
+  },
+}
 </script>

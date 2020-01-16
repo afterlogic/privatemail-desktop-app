@@ -2,21 +2,11 @@
   <div>
     <div class="text-h4 q-mb-md">Common settings</div>
     <q-separator spaced />
-    <div class="theme-text theme-bg" style="widht: 100px; height: 100px;">
+    <!-- <div class="theme-text theme-bg" style="widht: 100px; height: 100px;">
       Some text
-    </div>
+    </div> -->
     <q-list style="max-width: 500px;">
-      <q-item tag="label" v-ripple>
-        <q-item-section side top>
-          <q-checkbox v-model="checkDesktopNotifications" />
-        </q-item-section>
-
-        <q-item-section>
-          <q-item-label>Enable desktop notifications</q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item>
+      <!-- <q-item>
         <q-item-section side center style="min-width: 100px;">
           Theme
         </q-item-section>
@@ -25,7 +15,7 @@
           <q-radio v-model="themeValue" val="dark" label="Dark" />
         </q-item-section>
       </q-item>
-        
+
       <q-item>
         <q-item-section side center style="min-width: 100px;">
           Language
@@ -33,7 +23,8 @@
         <q-item-section>
           <q-select outlined v-model="languageValue" :options="languagesList" :dense=true style="width: 100%;"/>
         </q-item-section>
-      </q-item>
+      </q-item> -->
+
       <q-item>
         <q-item-section side center style="min-width: 100px;">
           Refresh every
@@ -48,7 +39,6 @@
         <q-item-section side center>
           Time format
         </q-item-section>
-
         <q-item-section>
           <q-btn-toggle
               v-model="timeFormatValue"
@@ -66,9 +56,19 @@
             />
         </q-item-section>
       </q-item>
+
+      <!-- <q-item tag="label" v-ripple>
+        <q-item-section side top>
+          <q-checkbox v-model="checkDesktopNotifications" />
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>Enable desktop notifications</q-item-label>
+        </q-item-section>
+      </q-item> -->
     </q-list>
     <q-separator spaced />
-    <q-btn color="primary" icon="done" label="Save" @click="save()"/>
+    <q-btn color="primary" label="Save" @click="save()"/>
   </div>
 
 </template>
@@ -78,7 +78,8 @@
 
 <script>
 export default {
-  name: "CommonSettings",
+  name: 'CommonSettings',
+
   data () {
     return {
       checkDesktopNotifications: false,
@@ -123,20 +124,21 @@ export default {
       timeFormatValue: 1,
     }
   },
+
   mounted () {
     this.themeValue = this.$store.state.main.theme
   },
+
   watch: {
     '$store.state.main.theme': function (v) {
-      console.log('watch1');
-      this.themeValue = v;
+      this.themeValue = v
     },
   },
+
   methods: {
     save () {
-      console.log('save');
       this.$store.commit('main/setTheme', this.themeValue)
     },
-  }
-};
+  },
+}
 </script>

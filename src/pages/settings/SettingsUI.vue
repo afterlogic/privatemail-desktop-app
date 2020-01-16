@@ -13,11 +13,11 @@
           >
             <q-tab name="common" icon="settings" label="Common" style="justify-content: start;"/>
             <q-tab name="mail" icon="mail" label="Mail" style="justify-content: start;" />
-            <q-tab name="accounts" icon="mail" label="Mail accounts" style="justify-content: start;" />
+            <!-- <q-tab name="accounts" icon="mail" label="Mail accounts" style="justify-content: start;" /> -->
             <q-tab name="contacts" icon="contacts" label="Contacts" style="justify-content: start;" />
-            <q-tab name="calendar" icon="calendar" label="Calendar" style="justify-content: start;" />
+            <!-- <q-tab name="calendar" icon="calendar" label="Calendar" style="justify-content: start;" />
             <q-tab name="files" icon="folder" label="Files" style="justify-content: start;" />
-            <q-tab name="mobile-sync" icon="sync" label="Mobile Sync" style="justify-content: start;" />
+            <q-tab name="mobile-sync" icon="sync" label="Mobile Sync" style="justify-content: start;" /> -->
             <q-tab name="open-pgp" icon="vpn_key" label="Open PGP" style="justify-content: start;" />
           </q-tabs>
         </template>

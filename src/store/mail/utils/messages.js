@@ -25,11 +25,10 @@ export default {
     return aUids
   },
 
-  getMessages: function (aStateMessageList, iPage, oStateMessagesCache, sStateCurrentFolderFullName, iCurrentAccountId) {
+  getMessages: function (aStateMessageList, iMailsPerPage, iPage, oStateMessagesCache, sStateCurrentFolderFullName, iCurrentAccountId) {
     console.time('getMessages')
-    let iPageSize = 20
-    let iOffset = (iPage - 1) * iPageSize
-    let aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iPageSize)
+    let iOffset = (iPage - 1) * iMailsPerPage
+    let aPagedList = _.drop(aStateMessageList, iOffset).slice(0, iMailsPerPage)
     let aCurrentMessages = []
     let aNotFounUids = []
 

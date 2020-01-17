@@ -108,6 +108,8 @@
 <script>
 import { ipcRenderer } from 'electron'
 
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
 import FolderList from "./FolderList.vue"
@@ -266,7 +268,19 @@ export default {
     this.initSubscriptions()
     let bAuthorized = this.$store.getters['user/isAuthorized']
     if (!this.currentAccount && bAuthorized) {
-      this.$store.dispatch('mail/asyncGetSettings', true)
+      this.$store.dispatch('mail/asyncGetSettings', (oError) => {
+        let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
+        if (this.currentAccount) {
+          if (sCurrentPath !== '/mail') {
+            this.$router.push({ path: '/mail' })
+          }
+        } else {
+          notification.showError(errors.getText(oError, 'Error occurred while getting settings'))
+          if (sCurrentPath !== '/login') {
+            this.$router.push({ path: '/login' })
+          }
+        }
+      })
     }
   },
 

@@ -50,7 +50,7 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
-// import settings from 'src/modules/mail/objects/settings.js'
+import mailSettings from 'src/modules/mail/objects/settings.js'
 
 export default {
   name: 'MailSettings',
@@ -66,8 +66,8 @@ export default {
   },
 
   mounted () {
-    // this.iMailsPerPage = settings.MailsPerPage
-    // this.bAllowAutosaveInDrafts = settings.AllowAutosaveInDrafts
+    this.iMailsPerPage = mailSettings.iMailsPerPage
+    this.bAllowAutosaveInDrafts = mailSettings.bAllowAutosaveInDrafts
   },
 
   methods: {
@@ -83,6 +83,8 @@ export default {
         fCallback: (bResult, oError) => {
           this.bSaving = false
           if (bResult) {
+            mailSettings.setMailsPerPage(this.iMailsPerPage)
+            mailSettings.setAllowAutosaveInDrafts(this.bAllowAutosaveInDrafts)
             notification.showReport('Settings have been updated successfully.')
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))

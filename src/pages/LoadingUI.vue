@@ -31,15 +31,6 @@ export default {
     },
   },
 
-  watch: {
-    currentAccount: function () {
-      let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
-      if (this.currentAccount && sCurrentPath !== '/mail') {
-        this.$router.push({ path: '/mail' })
-      }
-    },
-  },
-
   mounted () {
     ipcRenderer.once('main-get-user-data', (event, oUserData) => {
       if (oUserData) {
@@ -48,7 +39,18 @@ export default {
         let bAuthorized = this.$store.getters['user/isAuthorized']
         if (bAuthorized) {
           if (!this.currentAccount) {
-            this.$store.dispatch('mail/asyncGetSettings', false)
+            this.$store.dispatch('mail/asyncGetSettings', () => {
+              let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
+              if (this.currentAccount) {
+                if (sCurrentPath !== '/mail') {
+                  this.$router.push({ path: '/mail' })
+                }
+              } else {
+                if (sCurrentPath !== '/login') {
+                  this.$router.push({ path: '/login' })
+                }
+              }
+            })
           } else {
             this.$router.push({ path: '/mail' })
           }

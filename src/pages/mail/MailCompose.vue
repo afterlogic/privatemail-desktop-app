@@ -472,7 +472,7 @@ import webApi from 'src/utils/webApi'
 
 import CAttachment from 'src/modules/mail/classes/CAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
-import settings from 'src/modules/mail/objects/settings.js'
+import mailSettings from 'src/modules/mail/objects/settings.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 
@@ -534,6 +534,9 @@ export default {
   },
 
   computed: {
+    allowInsertImage () {
+      return mailSettings.bAllowInsertImage
+    },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
     },
@@ -602,6 +605,7 @@ export default {
       if (this.disableEditor) {
         return []
       }
+      let aLastSection = this.allowInsertImage ? ['link', 'image', 'removeFormat'] : ['link', 'removeFormat']
       return [
         ['undo', 'redo'],
         ['bold', 'italic', 'underline', 'strike'],
@@ -627,7 +631,7 @@ export default {
         },
         'colors'],
         ['unordered', 'ordered'],
-        ['link', 'image', 'removeFormat']
+        aLastSection
       ]
     },
   },
@@ -1080,10 +1084,10 @@ export default {
     },
     setAutosaveTimer () {
       this.clearAutosaveTimer()
-      if (this.dialog && settings.bAllowAutosaveInDrafts && settings.iAutoSaveIntervalSeconds > 0) {
+      if (this.dialog && mailSettings.bAllowAutosaveInDrafts && mailSettings.iAutoSaveIntervalSeconds > 0) {
         this.iAutosaveTimer = setTimeout(() => {
           this.save()
-        }, settings.iAutoSaveIntervalSeconds * 1000)
+        }, mailSettings.iAutoSaveIntervalSeconds * 1000)
       }
     },
     clearAutosaveTimer () {

@@ -9,21 +9,24 @@ import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/modules/mail/prefetcher.js'
-import settings from 'src/modules/mail/objects/settings.js'
+import mailSettings from 'src/modules/mail/objects/settings.js'
 
-export function asyncGetSettings ({ commit, dispatch }, bAllowError) {
+export function asyncGetSettings ({ commit, dispatch }, fCallback) {
   webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'GetSettings',
+    sModule: 'Core',
+    sMethod: 'GetAppData',
     oParameters: {},
     fCallback: (oResult, oError) => {
-      if (oResult && oResult.Accounts && oResult.Accounts[0]) {
-        commit('setCurrentAccount', oResult.Accounts[0])
+      if (oResult && oResult['Mail'] && oResult['Mail'].Accounts && oResult['Mail'].Accounts[0]) {
+        commit('setCurrentAccount', oResult['Mail'].Accounts[0])
         commit('resetCurrentFolderList')
-        settings.parse(oResult)
-        dispatch('asyncGetIdentities')
-      } else if (bAllowError) {
-        notification.showError(errors.getText(oError, 'Error occurred while getting mail settings'))
+        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
+        if (mailSettings.bAllowIdentities) {
+          dispatch('asyncGetIdentities')
+        }
+      }
+      if (_.isFunction(fCallback)) {
+        fCallback(oError)
       }
     },
   })

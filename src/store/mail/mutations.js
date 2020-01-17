@@ -18,12 +18,15 @@ export function setCurrentAccount (state, payload) {
   state.messageList = null
   state.currentMessages = []
   state.currentPage = 1
-  state.messagesPerPage = 20
 
   state.messagesCache = {}
   state.currentMessage = null
 
   state.currentAccount = payload
+}
+
+export function setMailsPerPage (state, iMailsPerPage) {
+  state.messagesPerPage = iMailsPerPage
 }
 
 export function setCurrentIdentities (state, aIdentities) {
@@ -249,7 +252,7 @@ export function setCurrentMessages (state, aMessages) {
     } else {
       let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
       let iAccountId = state.currentAccount.AccountID
-      let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
+      let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.messagesPerPage, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
 
       state.currentMessages = aCurrentMessages
 

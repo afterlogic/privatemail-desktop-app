@@ -16,6 +16,23 @@
           </div>
         </div>
       </div>
+      <q-dialog v-model="enterPinDialog" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <span class="text-h6">Enter PIN</span>
+          </q-card-section>
+          <q-card-section class="row items-center">
+            <span class="q-ml-sm">To protect your security, you need to type a PIN code.</span>
+          </q-card-section>
+          <q-card-section class="row items-center">
+            <q-input v-model="twoFactorPin" label="PIN" v-on:keyup.enter="verifyPin" />
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Verify PIN" color="primary" @click="verifyPin" />
+            <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-page>
   </q-page-container>
 </template>
@@ -50,6 +67,13 @@ export default {
       loading: false,
       showHost: false,
       hosts: {},
+
+      bNeedSecondAttempt: false,
+      sApiHostAttempt: '',
+
+      enterPinDialog: false,
+      twoFactorPin: '',
+      twoFactorData: {},
     }
   },
 
@@ -66,7 +90,7 @@ export default {
       if (!this.loading) {
         let sEmail = this.login
         if (this.showHost) {
-          if (typesUtils.isNonEmptyString(sUrl)) {
+          if (typesUtils.isNonEmptyString(this.host)) {
             this.continueLogIn()
           } else {
             notification.showReport('Please fill up host field.')
@@ -97,64 +121,86 @@ export default {
         }
       }
     },
-    continueLogIn() {
-      function _catchSignInError (oError) {
-        if (bNeedSecondAttempt) {
-          bNeedSecondAttempt = false
-          _trySignIn('http://' + sApiHost)
-        } else {
-          notification.showError(errors.getText(oError, 'Error occurred while trying to sign in.'))
-        }
+    trySignIn () {
+      ipcRenderer.send('logout', { sApiHost: this.sApiHostAttempt })
+
+      let oParameters = {
+        Login: this.login,
+        Password: this.password,
       }
-
-      let _trySignIn = (sApiHost) => {
-        ipcRenderer.send('logout', { sApiHost })
-
-        let oParameters = {
-          Login: this.login,
-          Password: this.password,
-        }
-        this.loading = true
-        webApi.sendRequest({
-          sApiHost,
-          sModule: 'Core',
-          sMethod: 'Login',
-          oParameters,
-          fCallback: (oResult, oError) => {
-            this.loading = false
-            if (oResult && oResult.AuthToken) {
-              if (sApiHost !== this.$store.getters['main/getApiHost'] || this.login !== this.$store.getters['main/getLastLogin']) {
-                ipcRenderer.once('db-remove-all', (oEvent, { bRemoved, sError }) => {
-                  if (bRemoved) {
-                    this.$store.commit('main/setNewUserData', { sApiHost, sLogin: this.login })
-
-                    this.$store.dispatch('user/login', oResult.AuthToken)
-                    ipcRenderer.send('init', { sApiHost, sAuthToken: oResult.AuthToken })
-                    this.$router.push({ path: '/mail' })
-                  } else {
-                    notification.showError(sError || 'DB was not removed')
-                  }
-                })
-                ipcRenderer.send('db-remove-all')
-              } else {
-                this.$store.dispatch('user/login', oResult.AuthToken)
-                ipcRenderer.send('init', { sApiHost, sAuthToken: oResult.AuthToken })
-                this.$router.push({ path: '/mail' })
-              }
-            } else {
-              _catchSignInError(oError)
-            }
-          },
-        })
-      }
-
-      let bNeedSecondAttempt = false
-      let sApiHost = this.host
-      if (0 === sApiHost.indexOf('https://') || 0 === sApiHost.indexOf('http://')) {
-        _trySignIn(sApiHost)
+      this.loading = true
+      webApi.sendRequest({
+        sApiHost: this.sApiHostAttempt,
+        sModule: 'Core',
+        sMethod: 'Login',
+        oParameters,
+        fCallback: (oResult, oError) => {
+          this.loading = false
+          if (oResult && oResult.AuthToken) {
+            this.handleAuthToken(oResult.AuthToken)
+          } else if (oResult && oResult.TwoFactorAuth) {
+            this.twoFactorData = typesUtils.pObject(oResult.TwoFactorAuth)
+            this.twoFactorPin = ''
+            this.enterPinDialog = true
+          } else {
+            this.catchSignInError(oError)
+          }
+        },
+      })
+    },
+    catchSignInError (oError) {
+      if (this.bNeedSecondAttempt) {
+        this.bNeedSecondAttempt = false
+        this.sApiHostAttempt = 'http://' + this.host
+        this.trySignIn(this.sApiHostAttempt)
       } else {
-        bNeedSecondAttempt = true
-        _trySignIn('https://' + sApiHost)
+        notification.showError(errors.getText(oError, 'Error occurred while trying to sign in.'))
+      }
+    },
+    continueLogIn() {
+      this.bNeedSecondAttempt = false
+      if (0 === this.host.indexOf('https://') || 0 === this.host.indexOf('http://')) {
+        this.sApiHostAttempt = this.host
+        this.trySignIn()
+      } else {
+        this.bNeedSecondAttempt = true
+        this.sApiHostAttempt = 'https://' + this.host
+        this.trySignIn()
+      }
+    },
+    verifyPin () {
+      webApi.sendRequest({
+        sApiHost: this.sApiHostAttempt,
+        sModule: 'TwoFactorAuth',
+        sMethod: 'VerifyPin',
+        oParameters: _.assign({ 'Pin': this.twoFactorPin }, this.twoFactorData),
+        fCallback: (oResult, oError) => {
+          if (oResult && oResult.AuthToken) {
+            this.handleAuthToken(oResult.AuthToken)
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while trying to sign in.'))
+          }
+        },
+      })
+    },
+    handleAuthToken (sAuthToken) {
+      if (this.sApiHostAttempt !== this.$store.getters['main/getApiHost'] || this.login !== this.$store.getters['main/getLastLogin']) {
+        ipcRenderer.once('db-remove-all', (oEvent, { bRemoved, sError }) => {
+          if (bRemoved) {
+            this.$store.commit('main/setNewUserData', { sApiHost: this.sApiHostAttempt, sLogin: this.login })
+
+            this.$store.dispatch('user/login', sAuthToken)
+            ipcRenderer.send('init', { sApiHost: this.sApiHostAttempt, sAuthToken })
+            this.$router.push({ path: '/mail' })
+          } else {
+            notification.showError(sError || 'DB was not removed')
+          }
+        })
+        ipcRenderer.send('db-remove-all')
+      } else {
+        this.$store.dispatch('user/login', sAuthToken)
+        ipcRenderer.send('init', { sApiHost: this.sApiHostAttempt, sAuthToken })
+        this.$router.push({ path: '/mail' })
       }
     },
   },

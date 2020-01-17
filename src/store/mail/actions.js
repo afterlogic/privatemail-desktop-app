@@ -38,31 +38,33 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
     sMethod: 'GetIdentities',
     oParameters: {},
     fCallback: (aResult, oError) => {
-      let aIdentitiesData = _.isArray(aResult) ? aResult : []
-      let aIdentities = []
-      let oAccount = state.currentAccount
-      let bHasDefault = false
-      let iAccountId = oAccount.AccountID
-      _.each(aIdentitiesData, function (oData) {
-        let oIdentity = new cIdentity(oData)
-        if (oIdentity.iIdAccount === iAccountId) {
-          aIdentities.push(oIdentity)
-          bHasDefault = bHasDefault || oIdentity.bDefault
-        }
-      })
-      let oIdentity = new cIdentity({
-        Default: !bHasDefault,
-        Email: oAccount.Email,
-        EntityId: 0,
-        FriendlyName: oAccount.FriendlyName,
-        IdAccount: oAccount.AccountID,
-        IdUser: oAccount.IdUser,
-        Signature: oAccount.Signature,
-        UUID: '',
-        UseSignature: oAccount.UseSignature,
-      })
-      aIdentities.unshift(oIdentity)
-      commit('setCurrentIdentities', aIdentities)
+      if (state.currentAccount) {
+        let aIdentitiesData = _.isArray(aResult) ? aResult : []
+        let aIdentities = []
+        let oAccount = state.currentAccount
+        let bHasDefault = false
+        let iAccountId = oAccount.AccountID
+        _.each(aIdentitiesData, function (oData) {
+          let oIdentity = new cIdentity(oData)
+          if (oIdentity.iIdAccount === iAccountId) {
+            aIdentities.push(oIdentity)
+            bHasDefault = bHasDefault || oIdentity.bDefault
+          }
+        })
+        let oIdentity = new cIdentity({
+          Default: !bHasDefault,
+          Email: oAccount.Email,
+          EntityId: 0,
+          FriendlyName: oAccount.FriendlyName,
+          IdAccount: oAccount.AccountID,
+          IdUser: oAccount.IdUser,
+          Signature: oAccount.Signature,
+          UUID: '',
+          UseSignature: oAccount.UseSignature,
+        })
+        aIdentities.unshift(oIdentity)
+        commit('setCurrentIdentities', aIdentities)
+      }
     },
   })
 }

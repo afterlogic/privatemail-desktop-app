@@ -83,6 +83,8 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
+import coreSettings from 'src/modules/core/settings.js'
+
 export default {
   name: 'CommonSettings',
 
@@ -160,6 +162,8 @@ export default {
 
   mounted () {
     this.themeValue = this.$store.state.main.theme
+    this.iTimeFormat = coreSettings.iTimeFormat
+    this.iAutoRefreshIntervalMinutes = coreSettings.iAutoRefreshIntervalMinutes
   },
 
   watch: {
@@ -184,6 +188,8 @@ export default {
         fCallback: (bResult, oError) => {
           this.bSaving = false
           if (bResult) {
+            coreSettings.setTimeFormat(this.iTimeFormat)
+            coreSettings.setAutoRefreshIntervalMinutes(this.iAutoRefreshIntervalMinutes)
             notification.showReport('Settings have been updated successfully.')
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))

@@ -218,8 +218,6 @@ export function updateMessagesCache (state, payload) {
   _.each(payload.Messages, function (oMessageFromServer) {
     oMessageFromServer.Threads = null
     oMessageFromServer.Deleted = false
-    oMessageFromServer.ShortDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, false)
-    oMessageFromServer.MiddleDate = dateUtils.getShortDate(oMessageFromServer.TimeStampInUTC, true)
     let sMessageKey = messagesUtils.getMessageCacheKey(payload.AccountId, oMessageFromServer.Folder, oMessageFromServer.Uid)
     if (state.messagesCache[sMessageKey]) {
       _.assign(state.messagesCache[sMessageKey], oMessageFromServer)

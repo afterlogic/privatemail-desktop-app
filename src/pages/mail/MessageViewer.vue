@@ -132,7 +132,7 @@
           </div>
           <div class="row items-center q-pa-xs" style="clear: both;">
             <div class="col subject text-h5">{{message.Subject}}</div>
-            <div class="col-auto date" v-if="!showDetails">{{message.MiddleDate}}</div>
+            <div class="col-auto date" v-if="!showDetails">{{ middleDate }}</div>
           </div>
         </div>
         <div :style="(showDetails? 'margin-bottom: -14px;' : 'margin-bottom: -19px;') + ' text-align: center;'">
@@ -267,6 +267,9 @@ export default {
     },
     fullDate () {
       return dateUtils.getFullDate(this.message.TimeStampInUTC)
+    },
+    middleDate () {
+      return dateUtils.getShortDate(this.message.TimeStampInUTC, true)
     },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']

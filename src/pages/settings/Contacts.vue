@@ -26,6 +26,8 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
+import contactsSettings from 'src/modules/contacts/settings.js'
+
 export default {
   name: 'ContactsSettings',
 
@@ -36,6 +38,10 @@ export default {
 
       bSaving: false,
     }
+  },
+
+  mounted () {
+    this.iContactsPerPage = contactsSettings.iContactsPerPage
   },
 
   methods: {
@@ -50,6 +56,7 @@ export default {
         fCallback: (bResult, oError) => {
           this.bSaving = false
           if (bResult) {
+            contactsSettings.setContactsPerPage(this.iContactsPerPage)
             notification.showReport('Settings have been updated successfully.')
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))

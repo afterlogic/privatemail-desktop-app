@@ -9,7 +9,9 @@ import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
 import prefetcher from 'src/modules/mail/prefetcher.js'
-import mailSettings from 'src/modules/mail/objects/settings.js'
+import coreSettings from 'src/modules/core/settings.js'
+import mailSettings from 'src/modules/mail/settings.js'
+import contactsSettings from 'src/modules/contacts/settings.js'
 
 export function asyncGetSettings ({ commit, dispatch }, fCallback) {
   webApi.sendRequest({
@@ -21,6 +23,8 @@ export function asyncGetSettings ({ commit, dispatch }, fCallback) {
         commit('setCurrentAccount', oResult['Mail'].Accounts[0])
         commit('resetCurrentFolderList')
         mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
+        contactsSettings.parse(oResult['Contacts'])
+        coreSettings.parse(oResult['Core'], oResult['CoreWebclient'])
         if (mailSettings.bAllowIdentities) {
           dispatch('asyncGetIdentities')
         }

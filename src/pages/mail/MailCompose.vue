@@ -472,7 +472,7 @@ import webApi from 'src/utils/webApi'
 
 import CAttachment from 'src/modules/mail/classes/CAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
-import mailSettings from 'src/modules/mail/objects/settings.js'
+import mailSettings from 'src/modules/mail/settings.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 

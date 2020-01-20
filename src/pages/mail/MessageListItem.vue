@@ -21,7 +21,7 @@
         </q-item-label>
         <q-item-label>
           <q-icon flat name="attachment" style="font-size: 1.5em;" v-if="message.HasAttachments" />
-          {{message.ShortDate}}
+          {{ shortDate }}
         </q-item-label>
 
         <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" text-color="white" size="sm" :color="message.ThreadHasUnread ? 'primary-dark': 'primary'">
@@ -57,6 +57,7 @@ hr.unread {
 
 <script>
 import addressUtils from 'src/utils/address'
+import dateUtils from 'src/utils/date'
 
 import messageUtils from 'src/modules/mail/utils/message.js'
 
@@ -100,6 +101,9 @@ export default {
     },
     selected () {
       return !!this.message && this.message.Uid === this.$store.getters['mail/getСurrentMessageUid']
+    },
+    shortDate () {
+      return dateUtils.getShortDate(this.message.TimeStampInUTC, false)
     },
   },
   mounted: function () {

@@ -1,10 +1,6 @@
 import moment from 'moment'
 
-let UserSettings = {
-  UserSelectsDateFormat: false,
-  DateFormat: 'DD Month YYYY',
-  TimeFormat: '0' // 24 hours
-}
+import coreSettings from 'src/modules/core/settings.js'
 
 function _getDateFormatForMoment(sDateFormat) {
   let sMomentDateFormat = 'MM/DD/YYYY'
@@ -25,7 +21,7 @@ function _getDateFormatForMoment(sDateFormat) {
 }
 
 function _getTimeFormat () {
-  return (UserSettings.TimeFormat === '0') ? 'HH:mm' : 'hh:mm A'
+  return (coreSettings.iTimeFormat === 0) ? 'HH:mm' : 'hh:mm A'
 }
 
 export default {
@@ -46,8 +42,8 @@ export default {
           sResult = 'Yesterday'
           bTime = true
         } else {
-          if (UserSettings.UserSelectsDateFormat) {
-            sResult = oMoment.format(_getDateFormatForMoment(UserSettings.DateFormat))
+          if (coreSettings.bUserSelectsDateFormat) {
+            sResult = oMoment.format(_getDateFormatForMoment(coreSettings.sDateFormat))
           } else {
             if (oMomentNow.year() === oMoment.year()) {
               sResult = oMoment.format('MMM D')
@@ -74,8 +70,8 @@ export default {
       oMoment = moment(iTimeStampInUTC * 1000),
       sFormat = 'ddd, MMM D, YYYY'
 
-    if (UserSettings.UserSelectsDateFormat) {
-      sFormat = 'ddd, ' + _getDateFormatForMoment(UserSettings.DateFormat)
+    if (coreSettings.bUserSelectsDateFormat) {
+      sFormat = 'ddd, ' + _getDateFormatForMoment(coreSettings.sDateFormat)
     }
 
     return oMoment.format(sFormat)

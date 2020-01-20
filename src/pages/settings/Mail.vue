@@ -50,7 +50,7 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
-import mailSettings from 'src/modules/mail/objects/settings.js'
+import mailSettings from 'src/modules/mail/settings.js'
 
 export default {
   name: 'MailSettings',

@@ -32,8 +32,7 @@
         <q-item-section>
           <q-select
             outlined dense style="width: 100%;"
-            emit-value
-            v-model="iAutoRefreshIntervalMinutes"
+            v-model="oAutoRefreshIntervalMinutes"
             :options="aAutoRefreshIntervalMinutesList" />
         </q-item-section>
       </q-item>
@@ -108,7 +107,7 @@ export default {
           description: 'Русский язык'
         },
       ],
-      iAutoRefreshIntervalMinutes: 1,
+      oAutoRefreshIntervalMinutes: null,
       aAutoRefreshIntervalMinutesList: [
         {
           label: 'Off',
@@ -163,7 +162,9 @@ export default {
   mounted () {
     this.themeValue = this.$store.state.main.theme
     this.iTimeFormat = coreSettings.iTimeFormat
-    this.iAutoRefreshIntervalMinutes = coreSettings.iAutoRefreshIntervalMinutes
+    this.oAutoRefreshIntervalMinutes = _.find(this.aAutoRefreshIntervalMinutesList, function (oAutoRefreshIntervalMinutes) {
+      return coreSettings.iAutoRefreshIntervalMinutes === oAutoRefreshIntervalMinutes.value
+    }) || null
   },
 
   watch: {
@@ -182,14 +183,14 @@ export default {
         sMethod: 'UpdateSettings',
         oParameters: {
           TimeFormat: this.iTimeFormat,
-          AutoRefreshIntervalMinutes: this.iAutoRefreshIntervalMinutes,
+          AutoRefreshIntervalMinutes: this.oAutoRefreshIntervalMinutes ? this.oAutoRefreshIntervalMinutes.value : 0,
           // AllowDesktopNotifications: this.bAllowDesktopNotifications,
         },
         fCallback: (bResult, oError) => {
           this.bSaving = false
           if (bResult) {
             coreSettings.setTimeFormat(this.iTimeFormat)
-            coreSettings.setAutoRefreshIntervalMinutes(this.iAutoRefreshIntervalMinutes)
+            coreSettings.setAutoRefreshIntervalMinutes(this.oAutoRefreshIntervalMinutes ? this.oAutoRefreshIntervalMinutes.value : 0)
             notification.showReport('Settings have been updated successfully.')
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))

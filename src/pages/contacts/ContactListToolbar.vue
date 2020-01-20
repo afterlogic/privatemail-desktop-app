@@ -118,12 +118,15 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
+import coreSettings from 'src/modules/core/settings.js'
+
 export default {
   name: 'ContactsListToolbar',
 
   data () {
     return {
       deleteConfirm: false,
+      iRefreshTimer: 0,
     }
   },
 
@@ -169,6 +172,7 @@ export default {
 
   methods: {
     sync () {
+      clearTimeout(this.iRefreshTimer)
       this.$store.commit('contacts/setSyncing', true)
       ipcRenderer.send('contacts-refresh', {
         sApiHost: this.$store.getters['main/getApiHost'],
@@ -187,6 +191,10 @@ export default {
       } else {
         this.$store.commit('contacts/setSyncing', false)
         notification.showError(errors.getText(oError, 'Error occurred while refreshing contacts'))
+      }
+      if (coreSettings.iAutoRefreshIntervalMinutes > 0) {
+        clearTimeout(this.iRefreshTimer)
+        this.iRefreshTimer = setTimeout(this.sync, coreSettings.iAutoRefreshIntervalMinutes * 60000)
       }
     },
     onDeleteContacts (oEvent, { bDeleted, oError }) {

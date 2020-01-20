@@ -71,16 +71,9 @@ import { colors } from 'quasar'
 import mailEnums from 'src/modules/mail/enums.js'
 import prefetcher from 'src/modules/mail/prefetcher.js'
 
-import MoveToFolderItem from './MoveToFolderItem.vue'
+import coreSettings from 'src/modules/core/settings.js'
 
-const alerts = [
-  { color: 'negative', message: 'Woah! Danger! You are getting good at this!', icon: 'report_problem' },
-  { message: 'You need to know about this!', icon: 'warning' },
-  { message: 'Wow! Nice job!', icon: 'thumb_up' },
-  { color: 'teal', message: 'Quasar is cool! Right?', icon: 'tag_faces' },
-  { color: 'purple', message: 'Jim just pinged you', avatar: 'https://cdn.quasar.dev/img/boy-avatar.png' },
-  { multiLine: true, message: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Hic quisquam non ad sit assumenda consequuntur esse inventore officia. Corrupti reiciendis impedit vel, fugit odit quisquam quae porro exercitationem eveniet quasi.' }
-]
+import MoveToFolderItem from './MoveToFolderItem.vue'
 
 export default {
   name: 'MailListToolbar',
@@ -96,6 +89,7 @@ export default {
   data () {
     return {
       confirmDeletePermanently: false,
+      iRefreshTimer: 0,
     }
   },
 
@@ -111,6 +105,17 @@ export default {
     },
     currentFolder () {
       return this.$store.getters['mail/getCurrentFolder']
+    },
+  },
+
+  watch: {
+    mailSyncing () {
+      if (!this.mailSyncing) {
+        if (coreSettings.iAutoRefreshIntervalMinutes > 0) {
+          clearTimeout(this.iRefreshTimer)
+          this.iRefreshTimer = setTimeout(this.sync, coreSettings.iAutoRefreshIntervalMinutes * 60000)
+        }
+      }
     },
   },
 
@@ -157,41 +162,8 @@ export default {
       }
     },
     sync () {
+      clearTimeout(this.iRefreshTimer)
       prefetcher.checkMail()
-    },
-    swithTheme () {
-      colors.setBrand('primary', '#000')
-    },
-    swithTheme1 () {
-      colors.setBrand('primary', '#f00')
-    },
-    showNotif () {
-      const position = 'top-right'
-      const { color, textColor, multiLine, icon, message, avatar } = alerts[ Math.floor(Math.random(alerts.length) * 10) % alerts.length ]
-      const random = Math.random() * 100
-
-      const twoActions = random > 70
-      const buttonColor = color ? 'white' : void 0
-
-      this.$q.notify({
-        color,
-        textColor,
-        icon: random > 30 ? icon : null,
-        message,
-        position,
-        avatar,
-        multiLine,
-        actions: twoActions
-          ? [
-            { label: 'Reply', color: buttonColor, handler: () => console.log('wooow') },
-            { label: 'Dismiss', color: 'yellow', handler: () => console.log('wooow') }
-          ]
-          : (random > 40
-            ? [ { label: 'Reply', color: buttonColor, handler: () => console.log('wooow') } ]
-            : null
-          ),
-        timeout: Math.random() * 5000 + 3000
-      })
     },
   },
 }

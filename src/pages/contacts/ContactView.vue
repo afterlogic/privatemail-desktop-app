@@ -267,7 +267,7 @@ export default {
     },
     showEmailsWithThisContact () {
       let iAccountId = this.$store.getters['mail/getCurrentAccountId']
-      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
       ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: 'email:' + this.contact.ViewEmail })
       this.$router.push({ path: '/mail' })
     },

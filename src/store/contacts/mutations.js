@@ -94,5 +94,5 @@ export function changeStateForCreatingGroup(state, val) {
 }
 
 export function setCheckedContacts(state, val) {
-  state.сheckedContactsList = val
+  state.checkedContactsList = val
 }

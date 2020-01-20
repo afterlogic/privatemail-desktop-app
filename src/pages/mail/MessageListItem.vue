@@ -100,7 +100,7 @@ export default {
       return aFromTo.join(', ')
     },
     selected () {
-      return !!this.message && this.message.Uid === this.$store.getters['mail/getСurrentMessageUid']
+      return !!this.message && this.message.Uid === this.$store.getters['mail/getCurrentMessageUid']
     },
     shortDate () {
       return dateUtils.getShortDate(this.message.TimeStampInUTC, false)

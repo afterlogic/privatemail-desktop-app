@@ -263,7 +263,7 @@ export default {
 
   computed: {
     message () {
-      return this.$store.getters['mail/getСurrentMessage']
+      return this.$store.getters['mail/getCurrentMessage']
     },
     fullDate () {
       return dateUtils.getFullDate(this.message.TimeStampInUTC)

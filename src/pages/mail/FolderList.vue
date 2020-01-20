@@ -44,7 +44,7 @@ export default {
       return this.$store.getters['mail/getCurrentFoldersTree']
     },
     currentFolderFullName () {
-      return this.$store.getters['mail/getСurrentFolderFullName']
+      return this.$store.getters['mail/getCurrentFolderFullName']
     },
   },
   methods: {

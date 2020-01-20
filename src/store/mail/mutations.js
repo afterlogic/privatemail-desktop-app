@@ -248,7 +248,7 @@ export function setCurrentMessages (state, aMessages) {
     if (_.isArray(aMessages)) {
       state.currentMessages = aMessages
     } else {
-      let sStateCurrentFolderFullName = getters.getСurrentFolderFullName(state)
+      let sStateCurrentFolderFullName = getters.getCurrentFolderFullName(state)
       let iAccountId = state.currentAccount.AccountID
       let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.messagesPerPage, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
 
@@ -269,7 +269,7 @@ export function setCurrentMessages (state, aMessages) {
   }
 }
 
-export function setСurrentPage (state, payload) {
+export function setCurrentPage (state, payload) {
   state.currentPage = payload
 }
 
@@ -286,12 +286,12 @@ export function setMessagesRead (state, payload) {
   let aMessagesForDB = []
   let iAccountId = state.currentAccount.AccountID
   _.each(payload.Uids, function (sUid) {
-    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getСurrentFolderFullName(state), sUid)
+    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getCurrentFolderFullName(state), sUid)
     let oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.IsSeen = payload.IsSeen
       if (oMessage.ThreadParentUid) {
-        let sThreadMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getСurrentFolderFullName(state), oMessage.ThreadParentUid)
+        let sThreadMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getCurrentFolderFullName(state), oMessage.ThreadParentUid)
         let oParentMessage = state.messagesCache[sThreadMessageKey]
         if (oParentMessage) {
           let bHasUnseenMessages = false
@@ -333,7 +333,7 @@ export function setAllMessagesRead (state, sFolderFullName) {
 export function setMessagesDeleted (state, payload) {
   let aMessagesForDB = []
   _.each(payload.Uids, function (sUid) {
-    let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getСurrentFolderFullName(state), sUid)
+    let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getCurrentFolderFullName(state), sUid)
     let oMessage = state.messagesCache[sMessageKey]
     if (oMessage) {
       oMessage.Deleted = payload.Deleted

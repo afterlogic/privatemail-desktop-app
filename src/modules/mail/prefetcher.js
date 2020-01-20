@@ -63,7 +63,7 @@ ipcRenderer.on('db-get-messagesinfo', (event, { iAccountId, sFolderFullName, oMe
         MessagesInfo: oMessagesInfo,
       })
 
-      let bCurrentFolder = sFolderFullName === store.getters['mail/getСurrentFolderFullName']
+      let bCurrentFolder = sFolderFullName === store.getters['mail/getCurrentFolderFullName']
       if (bCurrentFolder) {
         store.commit('mail/setCurrentMessages')
       }
@@ -79,7 +79,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
     if (typesUtils.isNonEmptyArray(aUids)) {
       if (aMessages.length > 0) {
         store.commit('mail/updateMessagesCacheFromDb', { iAccountId, sFolderFullName, aMessages })
-        let bCurrentFolder = sFolderFullName === store.getters['mail/getСurrentFolderFullName']
+        let bCurrentFolder = sFolderFullName === store.getters['mail/getCurrentFolderFullName']
         if (bCurrentFolder) {
           store.commit('mail/setCurrentMessages')
         }
@@ -106,7 +106,7 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
       store.commit('mail/setCurrentSearch', { sSearch, oAdvancedSearch })
       store.commit('mail/setCurrentFolder', sFolderFullName)
       store.commit('mail/setCurrentFolderChanged')
-      store.commit('mail/setСurrentPage', 1)
+      store.commit('mail/setCurrentPage', 1)
       let aMessagesInfo = _.map(aMessages, function (oMessage) {
         let aFlags = []
         if (oMessage.IsAnswered) {
@@ -134,8 +134,8 @@ ipcRenderer.on('db-get-messages', (event, { iAccountId, sFolderFullName, aUids, 
         MessagesInfo: aMessagesInfo,
       })
       store.commit('mail/setCurrentMessages')
-      let oСurrentMessage = store.getters['mail/getСurrentMessage']
-      if (oСurrentMessage && oСurrentMessage.Folder !== sFolderFullName) {
+      let oCurrentMessage = store.getters['mail/getCurrentMessage']
+      if (oCurrentMessage && oCurrentMessage.Folder !== sFolderFullName) {
         store.commit('mail/setCurrentMessage', null)
       }
     }

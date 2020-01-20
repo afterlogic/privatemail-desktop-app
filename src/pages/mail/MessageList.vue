@@ -33,15 +33,15 @@ export default {
 
   computed: {
     folderSelected () {
-      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
       return sFolderFullName !== ''
     },
     folderName () {
-      let oFolder = this.$store.getters['mail/getСurrentFolder']
+      let oFolder = this.$store.getters['mail/getCurrentFolder']
       return oFolder ? oFolder.Name : ''
     },
     messages () {
-      return this.$store.getters['mail/getСurrentMessages']
+      return this.$store.getters['mail/getCurrentMessages']
     },
     syncing () {
       return this.$store.getters['mail/getSyncing']
@@ -56,7 +56,7 @@ export default {
 
   methods: {
     showAllMessages: function () {
-      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
       this.$store.dispatch('mail/setCurrentFolder', sFolderFullName)
     },
   },

@@ -82,7 +82,7 @@ function _getContactsParams () {
     sStorage,
     sGroupUUID,
     iPerPage: store.getters['contacts/getContactsPerPage'],
-    iPage: store.getters['contacts/getСurrentPage'],
+    iPage: store.getters['contacts/getCurrentPage'],
     sSearch: store.getters['contacts/getSearchText'],
   }
 }

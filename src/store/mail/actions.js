@@ -129,7 +129,7 @@ export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch },
 export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
   let iAccountId = state.currentAccount.AccountID
   let sFolderFullName = payload
-  let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
+  let bCurrentFolder = sFolderFullName === getters.getCurrentFolderFullName
   let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, getters.getCurrentSearch, getters.getCurrentFilter)
 
   if (bCurrentFolder) {
@@ -164,7 +164,7 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
 }
 
 export function asyncGetMessages ({ state, commit, getters, dispatch }, {iAccountId, sFolderFullName, aUids}) {
-  let bCurrentFolder = sFolderFullName === getters.getСurrentFolderFullName
+  let bCurrentFolder = sFolderFullName === getters.getCurrentFolderFullName
   if (bCurrentFolder) {
     commit('setSyncing', true)
   }
@@ -207,16 +207,16 @@ export function setCurrentFolder ({ state, commit, getters }, sFolderFullName) {
     AccountId: state.currentAccount.AccountID,
     FolderFullName: sFolderFullName,
   })
-  commit('setСurrentPage', 1)
+  commit('setCurrentPage', 1)
   commit('setCurrentMessages')
-  let oСurrentMessage = getters.getСurrentMessage
-  if (oСurrentMessage && oСurrentMessage.Folder !== sFolderFullName) {
+  let oCurrentMessage = getters.getCurrentMessage
+  if (oCurrentMessage && oCurrentMessage.Folder !== sFolderFullName) {
     commit('setCurrentMessage', null)
   }
 }
 
-export function setСurrentPage ({ commit }, payload) {
-  commit('setСurrentPage', payload)
+export function setCurrentPage ({ commit }, payload) {
+  commit('setCurrentPage', payload)
   commit('setCurrentMessages')
 }
 
@@ -235,7 +235,7 @@ export function setMessagesRead ({ state, commit, dispatch, getters }, payload) 
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'SetMessagesSeen',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, Uids: payload.Uids.join(','), SetAction: payload.IsSeen},
+    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uids.join(','), SetAction: payload.IsSeen},
     fCallback: (oResult, oError) => {
       dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
     },
@@ -243,11 +243,11 @@ export function setMessagesRead ({ state, commit, dispatch, getters }, payload) 
 }
 
 export function setAllMessagesRead ({ state, commit, dispatch, getters }) {
-  commit('setAllMessagesRead', getters.getСurrentFolderFullName)
+  commit('setAllMessagesRead', getters.getCurrentFolderFullName)
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'SetAllMessagesSeen',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, SetAction: true},
+    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, SetAction: true},
     fCallback: (oResult, oError) => {
       dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
     },
@@ -262,12 +262,12 @@ export function deleteMessages ({ state, commit, dispatch, getters }, payload) {
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'DeleteMessages',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, Uids: payload.Uids.join(',')},
+    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uids.join(',')},
     fCallback: (oResult, oError) => {
       if (oResult) {
         // remove current message from preview pane if it was deleted
-        let oСurrentMessage = getters.getСurrentMessage
-        if (oСurrentMessage && _.indexOf(payload.Uids, oСurrentMessage.Uid) !== -1) {
+        let oCurrentMessage = getters.getCurrentMessage
+        if (oCurrentMessage && _.indexOf(payload.Uids, oCurrentMessage.Uid) !== -1) {
           commit('setCurrentMessage', null)
         }
       } else {
@@ -290,12 +290,12 @@ export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payl
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'MoveMessages',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, ToFolder: payload.ToFolder, Uids: payload.Uids.join(',')},
+    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, ToFolder: payload.ToFolder, Uids: payload.Uids.join(',')},
     fCallback: (oResult, oError) => {
       if (oResult) {
         // remove current message from preview pane if it was moved
-        let oСurrentMessage = getters.getСurrentMessage
-        if (oСurrentMessage && _.indexOf(payload.Uids, oСurrentMessage.Uid) !== -1) {
+        let oCurrentMessage = getters.getCurrentMessage
+        if (oCurrentMessage && _.indexOf(payload.Uids, oCurrentMessage.Uid) !== -1) {
           commit('setCurrentMessage', null)
         }
       } else {
@@ -315,7 +315,7 @@ export function setMessageFlagged ({ state, commit, dispatch, getters }, payload
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'SetMessageFlagged',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getСurrentFolderFullName, Uids: payload.Uid, SetAction: payload.Flagged},
+    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uid, SetAction: payload.Flagged},
     fCallback: (oResult, oError) => {
       dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
     },

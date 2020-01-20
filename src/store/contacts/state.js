@@ -27,7 +27,7 @@ export default {
   stateForCreatingContact: false,
   stateForCreatingGroup: false,
   selectedContact: null,
-  сheckedContactsList: [],
+  checkedContactsList: [],
   contactsToDowload: {
     chunk: [],
     amount: 2,

@@ -152,10 +152,10 @@ export default {
       return this.$store.getters['mail/getCurrentAccount']
     },
     messages () {
-      return this.$store.getters['mail/getСurrentMessages']
+      return this.$store.getters['mail/getCurrentMessages']
     },
     currentPage () {
-      return this.$store.getters['mail/getСurrentPage']
+      return this.$store.getters['mail/getCurrentPage']
     },
     messagesPerPage () {
       return this.$store.getters['mail/getMessagesPerPage']
@@ -164,7 +164,7 @@ export default {
       return this.$store.getters['mail/getMessagesCount']
     },
     checkedUidsForToolbar () {
-      let oCurrentMessage = this.$store.getters['mail/getСurrentMessage']
+      let oCurrentMessage = this.$store.getters['mail/getCurrentMessage']
       if (this.checkedUids.length === 0 && oCurrentMessage) {
         return [oCurrentMessage.Uid]
       }
@@ -231,12 +231,12 @@ export default {
     },
     search: function () {
       let iAccountId = this.$store.getters['mail/getCurrentAccountId']
-      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
       ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: this.searchInputText })
     },
     changePage (iPage) {
       if (iPage !== this.currentPage) {
-        this.$store.dispatch('mail/setСurrentPage', iPage)
+        this.$store.dispatch('mail/setCurrentPage', iPage)
       }
     },
     openNewMessageCompose () {

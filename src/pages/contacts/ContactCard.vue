@@ -234,7 +234,7 @@ export default {
     },
     viewAllMailsWithContact () {
       let iAccountId = this.$store.getters['mail/getCurrentAccountId']
-      let sFolderFullName = this.$store.getters['mail/getСurrentFolderFullName']
+      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
       ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: 'email:' + this.contact.ViewEmail })
       if (this.$refs.cardPopup) {
         this.$refs.cardPopup.hide()

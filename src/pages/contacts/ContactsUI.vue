@@ -151,7 +151,7 @@ export default {
       return this.$store.getters['contacts/getStateForCreatingGroup']
     },
     currentPage () {
-      return this.$store.getters['contacts/getСurrentPage']
+      return this.$store.getters['contacts/getCurrentPage']
     },
     contactsPerPage () {
       return this.$store.getters['contacts/getContactsPerPage']

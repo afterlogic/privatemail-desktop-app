@@ -42,11 +42,11 @@ export function getCurrentFoldersTree (state) {
   return state.currentFolderList.Tree
 }
 
-export function getСurrentMessages (state) {
+export function getCurrentMessages (state) {
   return state.currentMessages
 }
 
-export function getСurrentPage (state) {
+export function getCurrentPage (state) {
   return state.currentPage
 }
 
@@ -70,19 +70,19 @@ export function getMessagesCount (state) {
   return _.isArray(state.messageList) ? state.messageList.length : 0
 }
 
-export function getСurrentMessage (state) {
+export function getCurrentMessage (state) {
   return state.currentMessage
 }
 
-export function getСurrentMessageUid (state) {
+export function getCurrentMessageUid (state) {
   return state.currentMessage ? state.currentMessage.Uid : ''
 }
 
-export function getСurrentFolder (state) {
+export function getCurrentFolder (state) {
   return state.currentFolderList.Current
 }
 
-export function getСurrentFolderFullName (state) {
+export function getCurrentFolderFullName (state) {
   return state.currentFolderList.Current ? state.currentFolderList.Current.FullName : ''
 }
 

@@ -23,7 +23,7 @@ export function getContacts(state) {
   return state.contacts
 }
 
-export function getСurrentPage(state) {
+export function getCurrentPage(state) {
   return state.currentPage
 }
 
@@ -80,5 +80,5 @@ export function getStateForCreatingGroup(state) {
 }
 
 export function getCheckedContacts(state) {
-  return state.сheckedContactsList
+  return state.checkedContactsList
 }

@@ -110,7 +110,7 @@ export default {
       return this.$store.getters['mail/getCurrentFoldersTree']
     },
     currentFolder () {
-      return this.$store.getters['mail/getСurrentFolder']
+      return this.$store.getters['mail/getCurrentFolder']
     },
   },
 

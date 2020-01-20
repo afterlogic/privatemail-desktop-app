@@ -126,7 +126,7 @@ export default {
       },
     },
     currentPage () {
-      return this.$store.getters['contacts/getСurrentPage']
+      return this.$store.getters['contacts/getCurrentPage']
     },
     searchText () {
       return this.$store.getters['contacts/getSearchText']

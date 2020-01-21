@@ -28,7 +28,7 @@
       </q-item-section>
     </q-item>
     <template v-if="folder.SubFolders">
-      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="level + 1" :currentFolderFullName="currentFolderFullName"></FolderListItem>
+      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></FolderListItem>
     </template>
   </div>
 </template>

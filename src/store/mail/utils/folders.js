@@ -47,6 +47,8 @@ export default {
           FullName: oFolderFromServer.FullName,
           Name: oFolderFromServer.Name,
           Type: oFolderFromServer.Type,
+          Delimiter: oFolderFromServer.Delimiter,
+          Namespaced: oFolderFromServer.FullName + oFolderFromServer.Delimiter === sNamespace,
           IconName: _getIconName(oFolderFromServer.Type, oFolderFromServer.FullName),
           IsSubscribed: oFolderFromServer.IsSubscribed,
           IsSelectable: oFolderFromServer.IsSelectable,

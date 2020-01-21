@@ -1,6 +1,8 @@
 // import { app } from 'electron'
 import _ from 'lodash'
 
+import cryptoHelper from '../utils/crypto-helper.js'
+
 let oDb = null
 
 // !Attention! Add new item to aVersionChangesData array in src-electron/main-process/main/db-manager.js file every time when you change app version.
@@ -109,6 +111,7 @@ export default {
             } else {
               let sData = typeof(oRow && oRow.data) === 'string' ? oRow.data : ''
               let oUserData = sData !== '' ? JSON.parse(sData) : {}
+              oUserData.user.authToken = cryptoHelper.decrypt(oUserData.user.authToken)
               resolve(oUserData)
             }
           })
@@ -120,6 +123,7 @@ export default {
   },
 
   saveUserData: function (oUserData) {
+    oUserData.user.authToken = cryptoHelper.encrypt(oUserData.user.authToken)
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function() {

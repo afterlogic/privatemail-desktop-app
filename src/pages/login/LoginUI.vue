@@ -8,7 +8,7 @@
         <div class="col">
           <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black" style="min-width: 400px">
             <q-input outlined v-if="showHost" v-model="host" label="Host" v-on:keyup.enter="logIn" />
-            <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" />
+            <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" ref="login" />
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
             <span class="pannel-hint--link" v-if="showHost" @click="showHost=false">Less options</span>
             <q-btn color="primary" v-if="loading" size="20px" label="Signing In ..." no-caps disable />
@@ -25,10 +25,11 @@
             <span class="q-ml-sm">To protect your security, you need to type a PIN code.</span>
           </q-card-section>
           <q-card-section class="row items-center">
-            <q-input v-model="twoFactorPin" label="PIN" v-on:keyup.enter="verifyPin" />
+            <q-input v-model="twoFactorPin" label="PIN" v-on:keyup.enter="verifyPin" class="verify-pin-input" ref="verifyPinInput" />
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat label="Verify PIN" color="primary" @click="verifyPin" />
+            <q-btn flat label="Verify PIN" color="primary" @click="verifyPin" v-if="!verifying" />
+            <q-btn flat label="Verifying PIN..." color="primary" v-if="verifying" />
             <q-btn flat label="Cancel" color="grey-6" v-close-popup />
           </q-card-actions>
         </q-card>
@@ -44,6 +45,10 @@
 .logo {
   max-width: 300px;
   margin-top: -200px;
+}
+.verify-pin-input {
+  width: 100%;
+  margin-left: 10px;
 }
 </style>
 
@@ -74,6 +79,7 @@ export default {
       enterPinDialog: false,
       twoFactorPin: '',
       twoFactorData: {},
+      verifying: false,
     }
   },
 
@@ -134,14 +140,19 @@ export default {
         sModule: 'Core',
         sMethod: 'Login',
         oParameters,
-        fCallback: (oResult, oError) => {
+        fCallback: async (oResult, oError) => {
           this.loading = false
           if (oResult && oResult.AuthToken) {
             this.handleAuthToken(oResult.AuthToken)
           } else if (oResult && oResult.TwoFactorAuth) {
-            this.twoFactorData = typesUtils.pObject(oResult.TwoFactorAuth)
+            this.twoFactorData = oParameters
             this.twoFactorPin = ''
             this.enterPinDialog = true
+
+            await this.$nextTick()
+            if (this.$refs.verifyPinInput) {
+              this.$refs.verifyPinInput.focus()
+            }
           } else {
             this.catchSignInError(oError)
           }
@@ -169,12 +180,14 @@ export default {
       }
     },
     verifyPin () {
+      this.verifying = true
       webApi.sendRequest({
         sApiHost: this.sApiHostAttempt,
         sModule: 'TwoFactorAuth',
         sMethod: 'VerifyPin',
         oParameters: _.assign({ 'Pin': this.twoFactorPin }, this.twoFactorData),
         fCallback: (oResult, oError) => {
+          this.verifying = false
           if (oResult && oResult.AuthToken) {
             this.handleAuthToken(oResult.AuthToken)
           } else {

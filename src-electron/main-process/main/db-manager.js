@@ -5,11 +5,7 @@ import cryptoHelper from '../utils/crypto-helper.js'
 
 let oDb = null
 
-// !Attention! Add new item to aVersionChangesData array in src-electron/main-process/main/db-manager.js file every time when you change app version.
 let aVersionChangesData = [
-  { Version: '0.0.1' },
-  // { Version: '0.0.2' },
-  // { Version: '0.0.3' },
   // {
   //   Version: '0.0.4',
   //   Handler: function () {
@@ -40,8 +36,6 @@ let aVersionChangesData = [
   //     // })
   //   },
   // },
-  // { Version: '0.0.6' },
-  // { Version: '0.0.7' },
   // {
   //   Version: '0.1.0',
   //   Handler: function () {
@@ -51,8 +45,6 @@ let aVersionChangesData = [
   //     //   .run()
   //   },
   // },
-  // { Version: '0.1.1' },
-  // { Version: '0.1.2' },
 ]
 
 export default {
@@ -66,23 +58,23 @@ export default {
           oDb
           .prepare('SELECT version FROM app_data')
           .get(function(oError, oRow) {
-            let sPrevAppVersion = ''
+            const semver = require('semver')
+            let sPrevAppVersion = '0.0.0'
             if (typeof(oRow && oRow.version) === 'string') {
-              sPrevAppVersion = oRow.version
+              sPrevAppVersion = semver.valid(oRow.version) || '0.0.0'
             }
             if (sPrevAppVersion !== sAppVersion) {
               // apply db changes
-              let iPrevChangesIndex = _.findIndex(aVersionChangesData, function (oVersionData) {
-                return oVersionData.Version === sPrevAppVersion
-              })
-              for (let i = iPrevChangesIndex + 1; i < aVersionChangesData.length; i++) {
-                if (_.isFunction(aVersionChangesData[i].Handler)) {
-                  aVersionChangesData[i].Handler()
+              for (let i = 0; i < aVersionChangesData.length; i++) {
+                let oData = aVersionChangesData[i]
+                let sVersion = semver.valid(oData.Version)
+                if (sVersion && semver.gt(sVersion, sPrevAppVersion) && _.isFunction(oData.Handler)) {
+                  oData.Handler()
                 }
               }
 
               // save new version to db
-              if (typeof(oRow && oRow.version) !== 'string') {
+              if (!oRow) {
                 oDb
                   .prepare('INSERT INTO app_data (version) VALUES (?)', sAppVersion)
                   .run()

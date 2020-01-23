@@ -118,8 +118,10 @@ function createWindow () {
   })
 
   mainWindow.on('closed', () => {
-    if (oDbConnect) {
-      oDbConnect.close()
+    if (oDbConnect && oDbConnect.open) {
+      oDbConnect.close(function (oError) {
+        // callback is needed to prevent SQLITE_BUSY error being displayed
+      })
     }
     mainWindow = null
   })
@@ -149,7 +151,7 @@ ipcMain.on('logout', (oEvent, { sApiHost }) => {
 })
 
 ipcMain.on('db-remove-all', (oEvent) => {
-  if (oDbConnect) {
+  if (oDbConnect && oDbConnect.open) {
     oDbConnect.close(function (oDbCloseError) {
       if (oDbCloseError === null) {
         oDbConnect = null

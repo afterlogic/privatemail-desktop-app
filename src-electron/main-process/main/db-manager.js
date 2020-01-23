@@ -103,7 +103,9 @@ export default {
             } else {
               let sData = typeof(oRow && oRow.data) === 'string' ? oRow.data : ''
               let oUserData = sData !== '' ? JSON.parse(sData) : {}
-              oUserData.user.authToken = cryptoHelper.decrypt(oUserData.user.authToken)
+              if (typeof(oUserData && oUserData.user && oUserData.user.authToken) === 'string') {
+                oUserData.user.authToken = cryptoHelper.decrypt(oUserData.user.authToken)
+              }
               resolve(oUserData)
             }
           })
@@ -115,7 +117,9 @@ export default {
   },
 
   saveUserData: function (oUserData) {
-    oUserData.user.authToken = cryptoHelper.encrypt(oUserData.user.authToken)
+    if (typeof(oUserData && oUserData.user && oUserData.user.authToken) === 'string') {
+      oUserData.user.authToken = cryptoHelper.encrypt(oUserData.user.authToken)
+    }
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function() {

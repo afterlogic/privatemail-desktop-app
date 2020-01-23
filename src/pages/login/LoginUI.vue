@@ -7,7 +7,7 @@
         </div>
         <div class="col">
           <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black" style="min-width: 400px">
-            <q-input outlined v-if="showHost" v-model="host" label="Host" v-on:keyup.enter="logIn" />
+            <q-input outlined v-if="showHost" v-model="host" label="Server" v-on:keyup.enter="logIn" />
             <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" ref="login" />
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
             <span class="pannel-hint--link" v-if="showHost" @click="showHost=false">Less options</span>
@@ -66,8 +66,8 @@ export default {
 
   data () {
     return {
-      host: '', // 'https://test.afterlogic.com',
-      login: 'test@afterlogic.com',
+      host: '',
+      login: '',
       password: '',
       loading: false,
       showHost: false,
@@ -87,7 +87,6 @@ export default {
     this.$store.dispatch('user/logout')
     this.$store.dispatch('mail/logout')
     this.$store.dispatch('contacts/logout')
-    this.host = this.$store.getters['main/getApiHost'] ? this.$store.getters['main/getApiHost'] : this.host
     this.login = this.$store.getters['main/getLastLogin'] ? this.$store.getters['main/getLastLogin'] : this.login
   },
 

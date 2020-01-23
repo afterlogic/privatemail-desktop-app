@@ -1,8 +1,8 @@
 {
-  "name": "privatemail-desktop",
+  "name": "privatemail_desktop",
   "version": "0.0.1",
   "description": "Collaboration multiplatform desktop app",
-  "productName": "privatemail-desktop",
+  "productName": "Private Mail Desktop",
   "cordovaId": "org.cordova.quasar.app",
   "author": "Afterlogic Dev Team <support@afterlogic.com>",
   "private": true,

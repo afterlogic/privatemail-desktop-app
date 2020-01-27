@@ -43,6 +43,7 @@ let aVersionChangesData = [
   //     // oDb
   //     //   .prepare('UPDATE contacts SET notes = ?', '')
   //     //   .run()
+  //     //   .finalize()
   //   },
   // },
 ]
@@ -56,37 +57,39 @@ export default {
           oDb.run('CREATE TABLE IF NOT EXISTS user_data (data TEXT)')
           oDb.run('CREATE TABLE IF NOT EXISTS app_data (version TEXT)')
           oDb
-          .prepare('SELECT version FROM app_data')
-          .get(function(oError, oRow) {
-            const semver = require('semver')
-            let sPrevAppVersion = '0.0.0'
-            if (typeof(oRow && oRow.version) === 'string') {
-              sPrevAppVersion = semver.valid(oRow.version) || '0.0.0'
-            }
-            if (sPrevAppVersion !== sAppVersion) {
-              // apply db changes
-              for (let i = 0; i < aVersionChangesData.length; i++) {
-                let oData = aVersionChangesData[i]
-                let sVersion = semver.valid(oData.Version)
-                if (sVersion && semver.gt(sVersion, sPrevAppVersion) && _.isFunction(oData.Handler)) {
-                  oData.Handler()
+            .prepare('SELECT version FROM app_data')
+            .get(function(oError, oRow) {
+              const semver = require('semver')
+              let sPrevAppVersion = '0.0.0'
+              if (typeof(oRow && oRow.version) === 'string') {
+                sPrevAppVersion = semver.valid(oRow.version) || '0.0.0'
+              }
+              if (sPrevAppVersion !== sAppVersion) {
+                // apply db changes
+                for (let i = 0; i < aVersionChangesData.length; i++) {
+                  let oData = aVersionChangesData[i]
+                  let sVersion = semver.valid(oData.Version)
+                  if (sVersion && semver.gt(sVersion, sPrevAppVersion) && _.isFunction(oData.Handler)) {
+                    oData.Handler()
+                  }
+                }
+
+                // save new version to db
+                if (!oRow) {
+                  oDb
+                    .prepare('INSERT INTO app_data (version) VALUES (?)', sAppVersion)
+                    .run()
+                    .finalize()
+                } else {
+                  oDb
+                    .prepare('UPDATE app_data SET version = ?', sAppVersion)
+                    .run()
+                    .finalize()
                 }
               }
-
-              // save new version to db
-              if (!oRow) {
-                oDb
-                  .prepare('INSERT INTO app_data (version) VALUES (?)', sAppVersion)
-                  .run()
-              } else {
-                oDb
-                  .prepare('UPDATE app_data SET version = ?', sAppVersion)
-                  .run()
-              }
-            }
-            resolve()
-          })
-          .finalize()
+              resolve()
+            })
+            .finalize()
         })
       }
     })

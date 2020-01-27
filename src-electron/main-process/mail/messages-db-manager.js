@@ -68,9 +68,7 @@ export default {
           return oMessageDbFieldData.DbName + ' ' + oMessageDbFieldData.Type
         })
         let sMessageDbFields = aMessageDbFields.join(', ')
-        oDb
-          .run('CREATE TABLE IF NOT EXISTS messages (' + sMessageDbFields + ')')
-          .finalize()
+        oDb.run('CREATE TABLE IF NOT EXISTS messages (' + sMessageDbFields + ')')
       })
     }
   },

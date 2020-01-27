@@ -119,23 +119,20 @@ export default {
     oDb = oDbConnect
     if (oDb) {
       oDb.serialize(function() {
+        oDb.run('CREATE TABLE IF NOT EXISTS contacts_storages (storage TEXT, ctag INTEGER)')
+        oDb.run('CREATE TABLE IF NOT EXISTS contacts_info (storage TEXT, uuid TEXT, etag TEXT)')
 
         let aContactsFields = _.map(aContactDbMap, function (oContactDbFields) {
           return oContactDbFields.DbName + ' ' + oContactDbFields.Type
         })
         let sContactsFields = aContactsFields.join(', ')
+        oDb.run('CREATE TABLE IF NOT EXISTS contacts (' + sContactsFields + ')')
 
         let aGroupsFields = _.map(aGroupDbMap, function (oGroupDbFields) {
           return oGroupDbFields.DbName + ' ' + oGroupDbFields.Type
         })
         let sGroupsFields = aGroupsFields.join(', ')
-
-        oDb
-          .run('CREATE TABLE IF NOT EXISTS contacts_storages (storage TEXT, ctag INTEGER)')
-          .run('CREATE TABLE IF NOT EXISTS contacts_info (storage TEXT, uuid TEXT, etag TEXT)')
-          .run('CREATE TABLE IF NOT EXISTS contacts (' + sContactsFields + ')')
-          .run('CREATE TABLE IF NOT EXISTS contacts_groups (' + sGroupsFields + ')')
-          .finalize()
+        oDb.run('CREATE TABLE IF NOT EXISTS contacts_groups (' + sGroupsFields + ')')
       })
     }
   },
@@ -494,6 +491,7 @@ export default {
               resolve()
             }
           })
+          oInfoStatement.finalize()
         })
       } else {
         reject({ sMethod: 'setContacts', sError: 'No DB connection' })

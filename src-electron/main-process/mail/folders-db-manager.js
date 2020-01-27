@@ -5,10 +5,8 @@ export default {
     db = oDbConnect
     if (db) {
       db.serialize(function() {
-        db
-          .run('CREATE TABLE IF NOT EXISTS folders (acct_id INTEGER, list TEXT)')
-          .run('CREATE TABLE IF NOT EXISTS messages_info (acct_id INTEGER, folder_full_name TEXT, messages_info TEXT)')
-          .finalize()
+        db.run('CREATE TABLE IF NOT EXISTS folders (acct_id INTEGER, list TEXT)')
+        db.run('CREATE TABLE IF NOT EXISTS messages_info (acct_id INTEGER, folder_full_name TEXT, messages_info TEXT)')
       })
     }
   },
@@ -31,8 +29,8 @@ export default {
             } else {
               resolve(oFolderList)
             }
-            stmt.finalize()
           })
+          stmt.finalize()
         })
       } else {
         reject({event: 'db-get-folders', err})
@@ -76,8 +74,8 @@ export default {
             } else {
               resolve(oMessagesInfo)
             }
-            stmt.finalize()
           })
+          stmt.finalize()
         })
       } else {
         reject({ event: 'db-get-messagesinfo', err })

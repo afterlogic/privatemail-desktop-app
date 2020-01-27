@@ -21,3 +21,6 @@ yarn-error.log*
 privatemail.db
 *.db
 *.db-journal
+
+installers/mac/node_modules
+installers/mac/*.dmg

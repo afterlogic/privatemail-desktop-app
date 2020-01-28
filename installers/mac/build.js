@@ -6,7 +6,7 @@ let oOptions = {
   appPath: '../../dist/electron/Private Mail-darwin-x64/Private Mail.app',
   name: 'Private Mail-' + pjson.version + '-installer',
   title: 'Private Mail',
-  icon: 'icon.icns',
+  icon: '../../src-electron/icons/icon.icns',
   background: 'background.png',
   overwrite: true,
   debug: true,

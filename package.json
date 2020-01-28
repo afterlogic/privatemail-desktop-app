@@ -20,7 +20,6 @@
     "dist": "electron-builder"
   },
   "scripts comments": "postinstall should be run right after npm install (because of sqlite3)",
-  "scripts build:app comment": "-T all is necessary to build for all platforms; for mac: bash/cmd should be run as administrator and dist folder should have all rights to write to it",
   "build": {
     "appId": "com.afterlogic.privatemail",
     "productName": "Private Mail",

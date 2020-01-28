@@ -26,3 +26,5 @@ installers/mac/node_modules
 installers/mac/*.dmg
 installers/win/node_modules
 installers/win/dist
+installers/linux/node_modules
+installers/linux/dist

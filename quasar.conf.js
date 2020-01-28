@@ -187,7 +187,7 @@ module.exports = function (ctx) {
 
         // OS X / Mac App Store
         appBundleId: 'com.afterlogic.privatemail',
-        executableName: 'privatemail',
+        executableName: 'privatemail_desktop',
         productName: 'Private Mail',
         name: 'Private Mail'
 

@@ -20,3 +20,4 @@ npm run build:app
 npm install
 node build.js
 ```
+DMG installer is created using windows-installer. See documentation at https://github.com/electron/windows-installer.

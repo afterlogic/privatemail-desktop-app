@@ -16,3 +16,4 @@ npm run build:app
 npm install
 node build.js
 ```
+DMG installer is created using electron-installer-dmg. See documentation at https://github.com/electron-userland/electron-installer-dmg.

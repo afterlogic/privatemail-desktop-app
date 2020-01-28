@@ -11,7 +11,7 @@ const oSettings = {
     owners: 'Private Mail LLC',
     exe: './privatemail_desktop.exe',
     title: 'Private Mail Desktop', // title is used in the list of programs in "Add or Remove Programs" in the Windows Control Panel
-    setupIcon: '../../src-electron/icons/icon2.ico',
+    setupIcon: '../../src-electron/icons/icon.ico',
     setupExe: 'privatemail-' + sVersion + '-installer.exe',
     noMsi: true,
 }

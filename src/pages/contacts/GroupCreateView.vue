@@ -2,7 +2,7 @@
   <q-item-section v-if="oGroup" class="column full-height">
     <div class="col-auto">
       <div class="head">
-        <q-item-label class="head--labels-name">Edit Group</q-item-label>
+        <q-item-label class="head--labels-name">Create Group</q-item-label>
       </div>
     </div>
     <div class="frame-top q-mx-md"></div>
@@ -195,19 +195,24 @@ export default {
 
   methods: {
     onSave () {
-      this.bSaving = true
       let oGroupToSave = _.cloneDeep(this.oGroup)
-      oGroupToSave.Contacts = this.checkedContacts
-      let aAllContacts = this.$store.getters['contacts/getContacts'].list
-      let aContacts = _.filter(aAllContacts, (oContact) => {
-        return _.indexOf(this.checkedContacts, oContact.UUID) !== -1
-      })
-      ipcRenderer.send('contacts-save-group', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        oGroupToSave,
-        aContacts,
-      })
+      console.log('oGroupToSave.Name', oGroupToSave.Name, typesUtils.isNonEmptyString(oGroupToSave.Name))
+      if (typesUtils.isNonEmptyString(oGroupToSave.Name)) {
+        oGroupToSave.Contacts = this.checkedContacts
+        let aAllContacts = this.$store.getters['contacts/getContacts'].list
+        let aContacts = _.filter(aAllContacts, (oContact) => {
+          return _.indexOf(this.checkedContacts, oContact.UUID) !== -1
+        })
+        this.bSaving = true
+        ipcRenderer.send('contacts-save-group', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          oGroupToSave,
+          aContacts,
+        })
+      } else {
+        notification.showError('You cannot leave the group name blank.')
+      }
     },
     closeCreatingGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', false)

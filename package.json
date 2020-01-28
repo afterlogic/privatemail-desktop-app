@@ -14,7 +14,7 @@
     "dev:app": "quasar dev -m electron",
     "postinstall": "electron-builder install-app-deps",
     "build:web": "quasar build",
-    "build:app": "quasar build -m electron -T all",
+    "build:app": "quasar build -m electron",
     "build:pwa": "quasar build -m pwa",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"

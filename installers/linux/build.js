@@ -12,7 +12,7 @@ console.log('options', oOptions)
 
 console.log('Creating package (this may take a while)')
 createInstaller(oOptions).then(function () {
-  console.log('The installer of your application was succesfully created!')
+  console.log('The installer was succesfully created!')
 }, function (oError) {
-  console.log(`Well, sometimes you are not so lucky: ${oError.message}`)
+  console.error(oError)
 })

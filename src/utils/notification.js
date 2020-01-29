@@ -38,7 +38,7 @@ export default {
       textColor: 'white',
       icon: null,
       message,
-      position: 'top',
+      position: 'top-right',
       avatar: null,
       multiLine: false,
       timeout: 0,

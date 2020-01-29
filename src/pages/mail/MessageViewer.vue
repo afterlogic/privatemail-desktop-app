@@ -550,7 +550,7 @@ export default {
       }
     },
     dummyAction() {
-      notification.showReport('There is no action here yet')
+      notification.showReport('Coming soon')
     },
   },
   mounted: function () {

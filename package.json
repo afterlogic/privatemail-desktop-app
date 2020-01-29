@@ -2,7 +2,7 @@
   "name": "privatemail_desktop",
   "version": "0.0.1",
   "description": "Collaboration multiplatform desktop app",
-  "productName": "Private Mail Desktop",
+  "productName": "PrivateMail Desktop",
   "cordovaId": "org.cordova.quasar.app",
   "author": "Afterlogic Dev Team <support@afterlogic.com>",
   "private": true,
@@ -22,7 +22,7 @@
   "scripts comments": "postinstall should be run right after npm install (because of sqlite3)",
   "build": {
     "appId": "com.afterlogic.privatemail",
-    "productName": "Private Mail",
+    "productName": "PrivateMail",
     "mac": {
       "category": "public.app-category.social-networking"
     },

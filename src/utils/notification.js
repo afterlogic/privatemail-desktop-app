@@ -13,7 +13,7 @@ export default {
       message,
       position: 'top-right',
       avatar: null,
-      multiLine: true,
+      multiLine: false, // if multiLine=true then close button is displayed at the bottom
       timeout: 10000,
       actions: [{ icon: 'close', color: 'white' }],
     })
@@ -26,7 +26,7 @@ export default {
       message,
       position: 'top-right',
       avatar: null,
-      multiLine: true,
+      multiLine: false, // if multiLine=true then close button is displayed at the bottom
       timeout: 10000,
       actions: [{ icon: 'close', color: 'white' }],
     })
@@ -40,7 +40,7 @@ export default {
       message,
       position: 'top',
       avatar: null,
-      multiLine: true,
+      multiLine: false,
       timeout: 0,
       actions: [],
     })

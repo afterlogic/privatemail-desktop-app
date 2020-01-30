@@ -1,102 +1,102 @@
-let db = null
+let oDb = null
 
 export default {
   init: function (oDbConnect) {
-    db = oDbConnect
-    if (db) {
-      db.serialize(function() {
-        db.run('CREATE TABLE IF NOT EXISTS folders (acct_id INTEGER, list TEXT)')
-        db.run('CREATE TABLE IF NOT EXISTS messages_info (acct_id INTEGER, folder_full_name TEXT, messages_info TEXT)')
+    oDb = oDbConnect
+    if (oDb && oDb.open) {
+      oDb.serialize(function() {
+        oDb.run('CREATE TABLE IF NOT EXISTS folders (acct_id INTEGER, list TEXT)')
+        oDb.run('CREATE TABLE IF NOT EXISTS messages_info (acct_id INTEGER, folder_full_name TEXT, messages_info TEXT)')
       })
     }
   },
 
   getFolders: function (iAccountId) {
     return new Promise((resolve, reject) => {
-      if (db) {
-        db.serialize(function() {
-          let stmt = db.prepare('SELECT list FROM folders WHERE acct_id = ?')
+      if (oDb && oDb.open) {
+        oDb.serialize(function() {
+          let oStatement = oDb.prepare('SELECT list FROM folders WHERE acct_id = ?')
           let oFolderList = null
-          stmt.each(iAccountId, function(err, row) {
-            if (err) {
-              reject({event: 'db-get-folders', err, row})
-            } else if (row && typeof row.list === 'string' && row.list !== '') {
-              oFolderList = JSON.parse(row.list)
+          oStatement.each(iAccountId, function(oError, oRow) {
+            if (oError) {
+              reject({ sMethod: 'getFolders', oError })
+            } else if (oRow && typeof oRow.list === 'string' && oRow.list !== '') {
+              oFolderList = JSON.parse(oRow.list)
             }
-          }, function(err, count) {
-            if (err) {
-              reject({event: 'db-get-folders', err, count})
+          }, function(oError) {
+            if (oError) {
+              reject({ sMethod: 'getFolders', oError })
             } else {
               resolve(oFolderList)
             }
           })
-          stmt.finalize()
+          oStatement.finalize()
         })
       } else {
-        reject({event: 'db-get-folders', err})
+        reject({ sMethod: 'getFolders', sError: 'No DB connection' })
       }
     })
   },
 
   setFolders: function ({iAccountId, oFolderList}) {
     return new Promise((resolve, reject) => {
-      if (db) {
-        db.serialize(function() {
-          let stmt = db.prepare('DELETE FROM folders WHERE acct_id = ?', iAccountId)
-          stmt.run()
-          stmt.finalize()
-          stmt = db.prepare('INSERT INTO folders (acct_id, list) VALUES (?, ?)', iAccountId, JSON.stringify(oFolderList))
-          stmt.run()
-          stmt.finalize()
+      if (oDb && oDb.open) {
+        oDb.serialize(function() {
+          let oStatement = oDb.prepare('DELETE FROM folders WHERE acct_id = ?', iAccountId)
+          oStatement.run()
+          oStatement.finalize()
+          oStatement = oDb.prepare('INSERT INTO folders (acct_id, list) VALUES (?, ?)', iAccountId, JSON.stringify(oFolderList))
+          oStatement.run()
+          oStatement.finalize()
           resolve()
         })
       } else {
-        reject({event: 'db-set-folders', err})
+        reject({ sMethod: 'setFolders', sError: 'No DB connection' })
       }
     })
   },
 
   getMessagesInfo: function ({ iAccountId, sFolderFullName }) {
     return new Promise((resolve, reject) => {
-      if (db) {
-        db.serialize(function() {
-          let oMessagesInfo = null
-          let stmt = db.prepare('SELECT messages_info FROM messages_info WHERE acct_id = ? AND folder_full_name = ?');
-          stmt.each(iAccountId, sFolderFullName, function(err, row) {
-            if (err) {
-              reject({ event: 'db-get-messagesinfo', err, row })
-            } else if (row && typeof row.messages_info === 'string' && row.messages_info !== '') {
-              oMessagesInfo = JSON.parse(row.messages_info)
+      if (oDb && oDb.open) {
+        oDb.serialize(function() {
+          let aMessagesInfo = null
+          let oStatement = oDb.prepare('SELECT messages_info FROM messages_info WHERE acct_id = ? AND folder_full_name = ?')
+          oStatement.each(iAccountId, sFolderFullName, function(oError, oRow) {
+            if (oError) {
+              reject({ sMethod: 'getMessagesInfo', oError })
+            } else if (oRow && typeof oRow.messages_info === 'string' && oRow.messages_info !== '') {
+              aMessagesInfo = JSON.parse(oRow.messages_info)
             }
-          }, function(err, count) {
-            if (err) {
-              reject({event: 'db-get-messagesinfo', err, count})
+          }, function(oError) {
+            if (oError) {
+              reject({ sMethod: 'getMessagesInfo', oError })
             } else {
-              resolve(oMessagesInfo)
+              resolve(aMessagesInfo)
             }
           })
-          stmt.finalize()
+          oStatement.finalize()
         })
       } else {
-        reject({ event: 'db-get-messagesinfo', err })
+        reject({ sMethod: 'getMessagesInfo', sError: 'No DB connection' })
       }
     })
   },
 
   setMessagesInfo: function ({ iAccountId, sFolderFullName, oMessagesInfo }) {
     return new Promise((resolve, reject) => {
-      if (db) {
-        db.serialize(function() {
-          let stmt = db.prepare('DELETE FROM messages_info WHERE acct_id = ? AND folder_full_name = ?', iAccountId, sFolderFullName)
-          stmt.run()
-          stmt.finalize()
-          stmt = db.prepare('INSERT INTO messages_info (acct_id, folder_full_name, messages_info) VALUES (?, ?, ?)', iAccountId, sFolderFullName, JSON.stringify(oMessagesInfo))
-          stmt.run()
-          stmt.finalize()
+      if (oDb && oDb.open) {
+        oDb.serialize(function() {
+          let oStatement = oDb.prepare('DELETE FROM messages_info WHERE acct_id = ? AND folder_full_name = ?', iAccountId, sFolderFullName)
+          oStatement.run()
+          oStatement.finalize()
+          oStatement = oDb.prepare('INSERT INTO messages_info (acct_id, folder_full_name, messages_info) VALUES (?, ?, ?)', iAccountId, sFolderFullName, JSON.stringify(oMessagesInfo))
+          oStatement.run()
+          oStatement.finalize()
           resolve()
         })
       } else {
-        reject({ event: 'db-set-messagesinfo', err })
+        reject({ sMethod: 'setMessagesInfo', sError: 'No DB connection' })
       }
     })
   },

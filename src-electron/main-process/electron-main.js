@@ -4,6 +4,7 @@ import _ from 'lodash'
 import mainManager from './main/manager.js'
 import mainDbManager from './main/db-manager.js'
 
+import mailManager from './mail/manager.js'
 import foldersManager from './mail/folders-manager.js'
 import foldersDbManager from './mail/folders-db-manager.js'
 import messagesDbManager from './mail/messages-db-manager.js'
@@ -187,94 +188,72 @@ ipcMain.on('db-remove-all', (oEvent) => {
   }
 })
 
-ipcMain.on('db-get-folders', (oEvent, iAccountId) => {
-  foldersDbManager.getFolders(iAccountId).then(
-    (oFolderList) => {
-      oEvent.sender.send('db-get-folders', oFolderList)
-    },
-    (oResult) => {
-      oEvent.sender.send('db-get-folders', null)
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
+// ipcMain.on('db-set-folders', (oEvent, oFolderList) => {
+//   foldersDbManager.setFolders({
+//     iAccountId: oFolderList.AccountId,
+//     oFolderList: {
+//       AccountId: oFolderList.AccountId,
+//       Namespace: oFolderList.Namespace,
+//       Count: oFolderList.Count,
+//       Tree: oFolderList.Tree,
+//     },
+//   }).then(
+//     () => {},
+//     (oResult) => {
+//       oEvent.sender.send('notification', oResult)
+//     }
+//   )
+// })
 
-ipcMain.on('db-set-folders', (oEvent, oFolderList) => {
-  foldersDbManager.setFolders({
-    iAccountId: oFolderList.AccountId,
-    oFolderList: {
-      AccountId: oFolderList.AccountId,
-      Namespace: oFolderList.Namespace,
-      Count: oFolderList.Count,
-      Tree: oFolderList.Tree,
-    },
-  }).then(
-    () => {},
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
+// ipcMain.on('db-get-messagesinfo', (oEvent, { iAccountId, sFolderFullName }) => {
+//   foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
+//     (oMessagesInfo) => {
+//       oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo })
+//     },
+//     (oResult) => {
+//       oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo: null })
+//       oEvent.sender.send('notification', oResult)
+//     }
+//   )
+// })
 
-ipcMain.on('db-get-messagesinfo', (oEvent, { iAccountId, sFolderFullName }) => {
-  foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
-    (oMessagesInfo) => {
-      oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo })
-    },
-    (oResult) => {
-      oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo: null })
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
+// ipcMain.on('db-set-messagesinfo', (oEvent, { iAccountId, sFolderFullName, oMessagesInfo }) => {
+//   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, oMessagesInfo }).then(
+//     () => {
+//       foldersDbManager.getFolders(iAccountId).then(
+//         (oFolderList) => {
+//           let oFolder = foldersManager.getFolder(oFolderList, sFolderFullName)
+//           if (oFolder) {
+//             delete oFolder.HasChanges
+//           }
+//           foldersDbManager.setFolders({iAccountId, oFolderList}).then(
+//             () => {},
+//             (oResult) => {
+//               oEvent.sender.send('notification', oResult)
+//             }
+//           )
+//         },
+//         (oResult) => {
+//           oEvent.sender.send('notification', oResult)
+//         }
+//       )
+//     },
+//     (oResult) => {
+//       oEvent.sender.send('notification', oResult)
+//     }
+//   )
+// })
 
-ipcMain.on('db-set-messagesinfo', (oEvent, { iAccountId, sFolderFullName, oMessagesInfo }) => {
-  foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, oMessagesInfo }).then(
-    () => {
-      foldersDbManager.getFolders(iAccountId).then(
-        (oFolderList) => {
-          let oFolder = foldersManager.getFolder(oFolderList, sFolderFullName)
-          if (oFolder) {
-            delete oFolder.HasChanges
-          }
-          foldersDbManager.setFolders({iAccountId, oFolderList}).then(
-            () => {},
-            (oResult) => {
-              oEvent.sender.send('notification', oResult)
-            }
-          )
-        },
-        (oResult) => {
-          oEvent.sender.send('notification', oResult)
-        }
-      )
-    },
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
-
-ipcMain.on('db-get-messages', (oEvent, { iAccountId, sFolderFullName, aUids, sSearch, sFilter }) => {
-  messagesDbManager.getMessages({ iAccountId, sFolderFullName, aUids, sSearch, sFilter }).then(
-    ({ aMessages, oAdvancedSearch }) => {
-      oEvent.sender.send('db-get-messages', { iAccountId, sFolderFullName, aUids, sSearch, oAdvancedSearch, sFilter, aMessages })
-    },
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
-
-ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
-  messagesDbManager.setMessages({ iAccountId, aMessages }).then(
-    () => {
-    },
-    (oResult) => {
-      oEvent.sender.send('notification', oResult)
-    }
-  )
-})
+// ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
+//   messagesDbManager.setMessages({ iAccountId, aMessages }).then(
+//     () => {
+//     },
+//     (oResult) => {
+//       oEvent.sender.send('notification', oResult)
+//     }
+//   )
+// })
 
 mainManager.initSubscriptions()
+mailManager.initSubscriptions()
 contactsManager.initSubscriptions()

@@ -230,9 +230,16 @@ export default {
       this.search()
     },
     search: function () {
-      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
-      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
-      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: this.searchInputText })
+      ipcRenderer.send('mail-get-messages', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sFolderFullName: this.$store.getters['mail/getCurrentFolderFullName'],
+        iPage: 1,
+        iMessagesPerPage: this.$store.getters['mail/getMessagesPerPage'],
+        sSearch: this.searchInputText,
+        sFilter: '',
+      })
     },
     changePage (iPage) {
       if (iPage !== this.currentPage) {

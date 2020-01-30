@@ -77,9 +77,16 @@ export default {
       }
     },
     showUnreadMessages: function () {
-      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
-      let sFolderFullName = this.folder.FullName
-      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sFilter: 'unseen' })
+      ipcRenderer.send('mail-get-messages', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sFolderFullName: this.folder.FullName,
+        iPage: 1,
+        iMessagesPerPage: this.$store.getters['mail/getMessagesPerPage'],
+        sSearch: '',
+        sFilter: 'unseen',
+      })
     },
   },
 }

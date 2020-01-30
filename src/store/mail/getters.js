@@ -67,7 +67,7 @@ export function getMessagesPerPage (state) {
 }
 
 export function getMessagesCount (state) {
-  return _.isArray(state.messageList) ? state.messageList.length : 0
+  return state.totalMessagesCount
 }
 
 export function getCurrentMessage (state) {

@@ -55,9 +55,9 @@ export default {
         if (_.isFunction(fCallback)) {
           fCallback(oResult, oError)
         }
-        if (aRequestsNumbers.length === 0) {
-          mainPrefetcher.start()
-        }
+        // if (aRequestsNumbers.length === 0) {
+        //   mainPrefetcher.start()
+        // }
       })
       .catch((oError) => {
         aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)

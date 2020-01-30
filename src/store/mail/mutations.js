@@ -6,7 +6,7 @@ import dateUtils from 'src/utils/date'
 import typesUtils from 'src/utils/types'
 
 import messagesUtils from './utils/messages.js'
-import prefetcher from 'src/modules/mail/prefetcher.js';
+// import prefetcher from 'src/modules/mail/prefetcher.js';
 
 export function setSyncing (state, payload) {
   state.syncing = payload
@@ -17,6 +17,7 @@ export function setCurrentAccount (state, payload) {
 
   state.messageList = null
   state.currentMessages = []
+  state.totalMessagesCount = 0
   state.currentPage = 1
 
   state.messagesCache = {}
@@ -243,29 +244,13 @@ export function updateMessagesCacheFromDb (state, { iAccountId, sFolderFullName,
   })
 }
 
+export function setCurrentMessagesTotalCount (state, iTotalCount) {
+  state.totalMessagesCount = iTotalCount
+}
+
 export function setCurrentMessages (state, aMessages) {
-  if (state.currentAccount) {
-    if (_.isArray(aMessages)) {
-      state.currentMessages = aMessages
-    } else {
-      let sStateCurrentFolderFullName = getters.getCurrentFolderFullName(state)
-      let iAccountId = state.currentAccount.AccountID
-      let { aCurrentMessages, aNotFounUids } = messagesUtils.getMessages(state.messageList, state.messagesPerPage, state.currentPage, state.messagesCache, sStateCurrentFolderFullName, iAccountId)
-
-      state.currentMessages = aCurrentMessages
-
-      if (aCurrentMessages.length > 0 && aNotFounUids.length > 0) {
-        state.syncing = true
-        ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName: sStateCurrentFolderFullName, aUids: aNotFounUids })
-      } else {
-        if (state.currentMessages.length === 0 && state.currentFolderList.Current && state.currentFolderList.Current.Count > 0 && state.currentPage === 1 && state.currentFilter === '' && state.currentSearch === '' ) {
-          state.syncing = true
-          prefetcher.start()
-        } else {
-          state.syncing = false
-        }
-      }
-    }
+  if (state.currentAccount && _.isArray(aMessages)) {
+    state.currentMessages = aMessages
   }
 }
 

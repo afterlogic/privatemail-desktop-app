@@ -461,7 +461,7 @@
 <script>
 import { ipcRenderer } from 'electron'
 
-import prefetcher from 'src/modules/mail/prefetcher.js'
+// import prefetcher from 'src/modules/mail/prefetcher.js'
 
 import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
@@ -888,7 +888,7 @@ export default {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
             notification.showReport('Your message has been sent.')
             this.closeCompose()
-            prefetcher.checkMail()
+            // prefetcher.checkMail()
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
@@ -919,7 +919,7 @@ export default {
           if (oParameters && oParameters.DraftUid === this.draftUid) {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }
-          prefetcher.checkMail()
+          // prefetcher.checkMail()
           this.setAutosaveTimer()
         } else {
           notification.showError(errors.getText(oError, 'Error occurred while saving message'))

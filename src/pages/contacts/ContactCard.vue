@@ -233,9 +233,16 @@ export default {
       }
     },
     viewAllMailsWithContact () {
-      let iAccountId = this.$store.getters['mail/getCurrentAccountId']
-      let sFolderFullName = this.$store.getters['mail/getCurrentFolderFullName']
-      ipcRenderer.send('db-get-messages', { iAccountId, sFolderFullName, sSearch: 'email:' + this.contact.ViewEmail })
+      ipcRenderer.send('mail-get-messages', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sFolderFullName: this.$store.getters['mail/getCurrentFolderFullName'],
+        iPage: 1,
+        iMessagesPerPage: this.$store.getters['mail/getMessagesPerPage'],
+        sSearch: 'email:' + this.contact.ViewEmail,
+        sFilter: '',
+      })
       if (this.$refs.cardPopup) {
         this.$refs.cardPopup.hide()
       }

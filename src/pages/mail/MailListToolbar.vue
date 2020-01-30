@@ -69,7 +69,7 @@
 import { colors } from 'quasar'
 
 import mailEnums from 'src/modules/mail/enums.js'
-import prefetcher from 'src/modules/mail/prefetcher.js'
+// import prefetcher from 'src/modules/mail/prefetcher.js'
 
 import coreSettings from 'src/modules/core/settings.js'
 
@@ -163,7 +163,7 @@ export default {
     },
     sync () {
       clearTimeout(this.iRefreshTimer)
-      prefetcher.checkMail()
+      // prefetcher.checkMail()
     },
   },
 }

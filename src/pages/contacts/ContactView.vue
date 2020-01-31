@@ -266,13 +266,8 @@ export default {
       this.openCompose({ aAttachments: [{ FileName: sFileName, ContactUUID: this.contact.UUID }] })
     },
     showEmailsWithThisContact () {
-      ipcRenderer.send('mail-get-messages', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
-        sFolderFullName: this.$store.getters['mail/getCurrentFolderFullName'],
+      this.$store.dispatch('mail/asyncGetMessages', {
         iPage: 1,
-        iMessagesPerPage: this.$store.getters['mail/getMessagesPerPage'],
         sSearch: 'email:' + this.contact.ViewEmail,
         sFilter: '',
       })

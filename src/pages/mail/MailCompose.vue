@@ -888,7 +888,7 @@ export default {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))
             notification.showReport('Your message has been sent.')
             this.closeCompose()
-            // prefetcher.checkMail()
+            this.$store.dispatch('mail/asyncRefresh')
           } else {
             notification.showError(errors.getText(oError, 'Error occurred while sending message'))
           }
@@ -919,7 +919,7 @@ export default {
           if (oParameters && oParameters.DraftUid === this.draftUid) {
             this.draftUid = typesUtils.pString(oResult.NewUid)
           }
-          // prefetcher.checkMail()
+          this.$store.dispatch('mail/asyncRefresh')
           this.setAutosaveTimer()
         } else {
           notification.showError(errors.getText(oError, 'Error occurred while saving message'))

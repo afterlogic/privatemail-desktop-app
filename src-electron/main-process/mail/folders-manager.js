@@ -6,6 +6,40 @@ import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
 
 export default {
+  refreshFoldersInformation: function (oFolderList, aCountsFromServer) {
+    let aChangedFolders = []
+
+    function _recursive(oFoldersTree) {
+      _.each(oFoldersTree, function (oFolder) {
+        let aFolderCounts = aCountsFromServer[oFolder.FullName]
+        if (aFolderCounts) {
+          let iNewCount = aFolderCounts[0]
+          let iUnseenCount = aFolderCounts[1]
+          let sNextUid = aFolderCounts[2]
+          let sHash = aFolderCounts[3]
+          oFolder.HasChanges = false
+          if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
+            oFolder.HasChanges = true
+          }
+          oFolder.Count = iNewCount
+          oFolder.UnseenCount = iUnseenCount
+          oFolder.NextUid = sNextUid
+          oFolder.Hash = sHash
+        }
+        if (oFolder.SubFolders) {
+          _recursive(oFolder.SubFolders)
+        }
+        if (oFolder.HasChanges) {
+          aChangedFolders.push(oFolder)
+        }
+      })
+    }
+
+    _recursive(oFolderList.Tree)
+
+    return aChangedFolders
+  },
+
   getFolder: function (oFolderList, sFolderFullName) {
     function _recursive(oFoldersTree) {
       let oFoundFolder = null
@@ -26,7 +60,7 @@ export default {
     return new Promise((resolve, reject) => {
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfo) => {
-          if (typesUtils.isNonEmptyArray(aMessagesInfo)) {
+          if (_.isArray(aMessagesInfo)) {
             resolve(aMessagesInfo)
           } else {
             let bDrafts = sFolderFullName.toLowerCase() === 'drafts'
@@ -47,11 +81,9 @@ export default {
                 Filter: '',
               },
               fCallback: (aMessagesInfo, oError) => {
-                console.log('aMessagesInfo', aMessagesInfo)
-                console.log('oError', oError)
                 if (_.isArray(aMessagesInfo)) {
                   resolve(aMessagesInfo)
-                  foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, oMessagesInfo }).then(
+                  foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo }).then(
                     () => {
                       foldersDbManager.getFolders(iAccountId).then(
                         (oFolderList) => {

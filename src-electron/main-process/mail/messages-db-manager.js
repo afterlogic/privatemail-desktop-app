@@ -199,65 +199,32 @@ export default {
     })
   },
 
-  getMessages: function ({ iAccountId, sFolderFullName, iPage, iMessagesPerPage, aMessagesInfo }) {
+  getMessagesByUids: function ({ iAccountId, sFolderFullName, aUids }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        let aWhere = ['account_id = ?', 'folder = ?']
-        let aParams = [iAccountId, sFolderFullName]
-
-        let iTotalCount = aMessagesInfo.length
-        let aMessagesInfoSliced = []
-        let iOffset = iMessagesPerPage * (iPage - 1)
-        if (iTotalCount > iOffset) {
-          aMessagesInfoSliced = aMessagesInfo.slice(iOffset, iOffset + iMessagesPerPage)
-        }
-
-        let aUids = []
-        _.each(aMessagesInfoSliced, (oMessageInfo) => {
-          aUids.push(oMessageInfo.uid)
-          if (typesUtils.isNonEmptyArray(oMessageInfo.thread)) {
-            _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
-              aUids.push(oThreadMessageInfo.uid)
-            })
-          }
-        })
-
         if (typesUtils.isNonEmptyArray(aUids)) {
+          let aWhere = ['account_id = ?', 'folder = ?']
+          let aParams = [iAccountId, sFolderFullName]
+  
           let sQuestions = aUids.map(() => { return '?' }).join(',')
           aWhere.push('uid IN (' + sQuestions + ')')
           aParams = _.union(aParams, aUids)
-        }
 
-        oDb.all(
-          'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
-          aParams,
-          (oError, aRows) => {
-            if (oError) {
-              reject({ sMethod: 'getMessages', oError })
-            } else {
-              let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
-              let aMessagesWithThreads = messagesManager.getMessagesWithThreads(aMessages, aMessagesInfoSliced)
-              console.log('aUids.length', aUids.length)
-              console.log('aMessages.length', aMessages.length)
-              if (aMessages.length < aUids.length) {
-                // let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, store.getters['mail/getCurrentSearch'], store.getters['mail/getCurrentFilter'])
-                // let sKey = JSON.stringify(oParameters)
-                // let aMessageList = store.state.mail.allMessageLists[sKey] || null
-                // let aRequestedUids = aAllRequestedUids[sKey] || []
-                // let aUidsToRetrieve = aMessageList === null ? aUids : messagesUtils.getUidsToRetrieve(aMessageList, aRequestedUids, store.state.mail.messagesCache, iAccountId, sFolderFullName)
-                // aAllRequestedUids[sKey] = _.union(aRequestedUids, aUidsToRetrieve)
-                // if (aUidsToRetrieve.length > 0) {
-                //   store.dispatch('mail/asyncGetMessages', {
-                //     iAccountId,
-                //     sFolderFullName,
-                //     aUids: aUidsToRetrieve,
-                //   })
-                // }
+          oDb.all(
+            'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
+            aParams,
+            (oError, aRows) => {
+              if (oError) {
+                reject({ sMethod: 'getMessages', oError })
+              } else {
+                let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
+                resolve(aMessages)
               }
-              resolve({ aMessages: aMessagesWithThreads, iTotalCount })
             }
-          }
-        )
+          )
+        } else {
+          reject({ sMethod: 'getMessages', sError: 'No UIDs to retrieve' })
+        }
       } else {
         reject({ sMethod: 'getMessages', sError: 'No DB connection' })
       }

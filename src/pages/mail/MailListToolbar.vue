@@ -163,7 +163,7 @@ export default {
     },
     sync () {
       clearTimeout(this.iRefreshTimer)
-      // prefetcher.checkMail()
+      this.$store.dispatch('mail/asyncRefresh')
     },
   },
 }

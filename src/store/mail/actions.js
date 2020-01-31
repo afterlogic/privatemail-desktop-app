@@ -4,6 +4,7 @@ import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi.js'
 
 import cIdentity from 'src/modules/mail/classes/cIdentity.js'
@@ -74,21 +75,21 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
   })
 }
 
-ipcRenderer.on('mail-get-messages', (event, oResult) => {
-  console.log('oResult',oResult)
-  let { iAccountId, sFolderFullName, aUids, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount, sError, oError } = oResult
-  console.log('iAccountId, sFolderFullName, aUids, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount', iAccountId, sFolderFullName, aUids, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount)
-  console.log('sError, oError', sError, oError)
-  store.commit('mail/setCurrentFilter', sFilter)
-  store.commit('mail/setCurrentSearch', { sSearch, oAdvancedSearch })
-  store.commit('mail/setCurrentFolder', sFolderFullName)
-  store.commit('mail/setCurrentFolderChanged')
-  store.commit('mail/setCurrentPage', 1)
-  store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
-  store.commit('mail/setCurrentMessages', aMessages)
-  let oCurrentMessage = store.getters['mail/getCurrentMessage']
-  if (oCurrentMessage && oCurrentMessage.Folder !== sFolderFullName) {
-    store.commit('mail/setCurrentMessage', null)
+ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount, sError, oError } ) => {
+  if (sError || oError) {
+    notification.showError(errors.getText(oError || null, typesUtils.pString(sError)))
+  } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
+    store.commit('mail/setCurrentFilter', sFilter)
+    store.commit('mail/setCurrentSearch', { sSearch, oAdvancedSearch })
+    store.commit('mail/setCurrentFolder', sFolderFullName)
+    store.commit('mail/setCurrentFolderChanged')
+    store.commit('mail/setCurrentPage', 1)
+    store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
+    store.commit('mail/setCurrentMessages', aMessages)
+    let oCurrentMessage = store.getters['mail/getCurrentMessage']
+    if (oCurrentMessage && oCurrentMessage.Folder !== sFolderFullName) {
+      store.commit('mail/setCurrentMessage', null)
+    }
   }
 })
 
@@ -129,6 +130,16 @@ export function asyncGetFolderList ({ state, commit, dispatch }) {
     //   },
     // })
   }
+}
+
+export function asyncRefresh ({ state, commit, dispatch, getters }) {
+  ipcRenderer.send('mail-refresh', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sCurrentFolderFullName: getters.getCurrentFolderFullName,
+    aFoldersToRefresh: getters.getDisplayedFolders,
+  })
 }
 
 export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch }, payload) {
@@ -195,16 +206,16 @@ export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
   })
 }
 
-export function asyncGetMessages ({ state, commit, getters, dispatch }, {iAccountId_, sFolderFullName_, aUids}) {
+export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolderFullName, iPage, sSearch, sFilter }) {
   ipcRenderer.send('mail-get-messages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
-    iPage: getters.getCurrentPage,
+    sFolderFullName: (typeof sFolderFullName === 'string') ? sFolderFullName : getters.getCurrentFolderFullName,
+    iPage: (typeof iPage === 'string') ? iPage : getters.getCurrentPage,
     iMessagesPerPage: getters.getMessagesPerPage,
-    sSearch: getters.getCurrentSearch,
-    sFilter: getters.getCurrentFilter,
+    sSearch: (typeof sSearch === 'string') ? sSearch : getters.getCurrentSearch,
+    sFilter: (typeof sFilter === 'string') ? sFilter : getters.getCurrentFilter,
   })
 
   // let bCurrentFolder = sFolderFullName === getters.getCurrentFolderFullName

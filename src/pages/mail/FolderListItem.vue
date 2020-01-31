@@ -77,13 +77,9 @@ export default {
       }
     },
     showUnreadMessages: function () {
-      ipcRenderer.send('mail-get-messages', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+      this.$store.dispatch('mail/asyncGetMessages', {
         sFolderFullName: this.folder.FullName,
         iPage: 1,
-        iMessagesPerPage: this.$store.getters['mail/getMessagesPerPage'],
         sSearch: '',
         sFilter: 'unseen',
       })

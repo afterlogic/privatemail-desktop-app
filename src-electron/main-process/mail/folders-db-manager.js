@@ -83,14 +83,14 @@ export default {
     })
   },
 
-  setMessagesInfo: function ({ iAccountId, sFolderFullName, oMessagesInfo }) {
+  setMessagesInfo: function ({ iAccountId, sFolderFullName, aMessagesInfo }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function() {
           let oStatement = oDb.prepare('DELETE FROM messages_info WHERE acct_id = ? AND folder_full_name = ?', iAccountId, sFolderFullName)
           oStatement.run()
           oStatement.finalize()
-          oStatement = oDb.prepare('INSERT INTO messages_info (acct_id, folder_full_name, messages_info) VALUES (?, ?, ?)', iAccountId, sFolderFullName, JSON.stringify(oMessagesInfo))
+          oStatement = oDb.prepare('INSERT INTO messages_info (acct_id, folder_full_name, messages_info) VALUES (?, ?, ?)', iAccountId, sFolderFullName, JSON.stringify(aMessagesInfo))
           oStatement.run()
           oStatement.finalize()
           resolve()

@@ -10,12 +10,12 @@ import messagesManager from './messages-manager.js'
 import messagesDbManager from './messages-db-manager.js'
 
 export default {
-  refreshMessagesInFolders: function (aChangedFolders, sCurrentFolderFullName) {
-    let iCurrentFolderIndex = _.findIndex(aChangedFolders, function (oTmpFolder) {
+  refreshMessagesInFolders: function (iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+    let oCurrentFolder = _.find(aChangedFolders, function (oTmpFolder) {
       return oTmpFolder.FullName === sCurrentFolderFullName
     })
-    if (iCurrentFolderIndex > 0) {
-
+    if (oCurrentFolder) {
+      foldersManager.refreshMessagesInfo(iAccountId, sCurrentFolderFullName, sApiHost, sAuthToken)
     }
   },
 
@@ -38,7 +38,7 @@ export default {
                 let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
                 if (aChangedFolders.length > 0) {
                   // foldersDbManager.setFolders({ iAccountId, oFolderList })
-                  this.refreshMessagesInFolders(aChangedFolders, sCurrentFolderFullName)
+                  this.refreshMessagesInFolders(iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
                 }
               }
             )

@@ -109,4 +109,56 @@ export default {
       )
     })
   },
+
+  refreshMessagesInfo: function (iAccountId, sFolderFullName, sApiHost, sAuthToken) {
+    return new Promise((resolve, reject) => {
+      foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
+        (aMessagesInfoFromDb) => {
+            let bDrafts = sFolderFullName.toLowerCase() === 'drafts'
+            let bSpam = sFolderFullName.toLowerCase() === 'spam'
+            let bTrash = sFolderFullName.toLowerCase() === 'trash'
+            webApi.sendRequest({
+              sApiHost,
+              sAuthToken,
+              sModule: 'Mail',
+              sMethod: 'GetMessagesInfo',
+              oParameters: {
+                AccountID: iAccountId,
+                Folder: sFolderFullName,
+                UseThreading: (bDrafts || bSpam || bTrash) ? false : true,
+                SortBy: 'arrival',
+                SortOrder: 1,
+                Search: '',
+                Filter: '',
+              },
+              fCallback: (aMessagesInfoFromServer, oError) => {
+                console.log('aMessagesInfoFromDb', aMessagesInfoFromDb)
+                console.log('aMessagesInfoFromServer', aMessagesInfoFromServer)
+                // if (_.isArray(aMessagesInfo)) {
+                //   resolve(aMessagesInfo)
+                //   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo }).then(
+                //     () => {
+                //       foldersDbManager.getFolders(iAccountId).then(
+                //         (oFolderList) => {
+                //           let oFolder = this.getFolder(oFolderList, sFolderFullName)
+                //           if (oFolder) {
+                //             delete oFolder.HasChanges
+                //           }
+                //           foldersDbManager.setFolders({iAccountId, oFolderList})
+                //         }
+                //       )
+                //     }
+                //   )
+                // } else {
+                //   reject({ sMethod: 'getMessagesInfo', oError })
+                // }
+              },
+            })
+        },
+        (oResult) => {
+          reject(oResult)
+        }
+      )
+    })
+  },
 }

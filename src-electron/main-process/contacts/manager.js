@@ -411,7 +411,6 @@ export default {
         sMethod: 'UpdateSharedContacts',
         oParameters: { UUIDs: aContactsUUIDs },
         fCallback: (mResult, oError) => {
-          console.log('mResult', mResult)
           if (mResult) {
             contactsDbManager.updateSharedContacts({ sStorage, aContactsUUIDs })
             .then(

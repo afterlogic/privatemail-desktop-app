@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import axios from 'axios'
 import store from 'src/store'
-import mainPrefetcher from 'src/mainPrefetcher.js'
 import typesUtils from 'src/utils/types.js'
 import { saveAs } from 'file-saver'
 
@@ -56,7 +55,6 @@ export default {
           fCallback(oResult, oError)
         }
         // if (aRequestsNumbers.length === 0) {
-        //   mainPrefetcher.start()
         // }
       })
       .catch((oError) => {

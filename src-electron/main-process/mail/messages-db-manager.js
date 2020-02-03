@@ -291,4 +291,58 @@ export default {
       }
     })
   },
+
+  setMessagesFlags: function ({ aMessages }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('UPDATE messages SET is_answered = ?, is_flagged = ?, is_forwarded = ?, is_seen = ? WHERE account_id = ? AND folder = ? AND uid = ?')
+          _.each(aMessages, function (oMessage) {
+            let aParams = [
+              oMessage.IsAnswered,
+              oMessage.IsFlagged,
+              oMessage.IsForwarded,
+              oMessage.IsSeen,
+              oMessage.AccountId,
+              oMessage.Folder,
+              oMessage.Uid,
+            ]
+            oStatement.run.apply(oStatement, aParams)
+          })
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'setMessagesFlags', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setMessages', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+    return new Promise((resolve, reject) => {
+      if (aUids.length === 0) {
+        resolve()
+      }
+      else if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let sQuestions = aUids.map(function () { return '(?)' }).join(',')
+          let aParams = _.union([iAccountId, sFolderFullName], aUids)
+          oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
+            if (oError) {
+              reject({ sMethod: 'deleteMessages', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'deleteMessages', sError: 'No DB connection' })
+      }
+    })
+  },
 }

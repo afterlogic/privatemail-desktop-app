@@ -196,7 +196,6 @@ export default {
   methods: {
     onSave () {
       let oGroupToSave = _.cloneDeep(this.oGroup)
-      console.log('oGroupToSave.Name', oGroupToSave.Name, typesUtils.isNonEmptyString(oGroupToSave.Name))
       if (typesUtils.isNonEmptyString(oGroupToSave.Name)) {
         oGroupToSave.Contacts = this.checkedContacts
         let aAllContacts = this.$store.getters['contacts/getContacts'].list

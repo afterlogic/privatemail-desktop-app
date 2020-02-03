@@ -1,23 +1,144 @@
 import _ from 'lodash'
 
 import foldersDbManager from './folders-db-manager.js'
+import messagesDbManager from './messages-db-manager.js'
 
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
 
+import mailEnums from '../../../src/modules/mail/enums.js'
+
+function _getIconName (sType, sFolderFullName) {
+  let sIconName = ''
+  switch (sType) {
+    case mailEnums.FolderType.Inbox:
+      sIconName = 'mail'
+      break
+    case mailEnums.FolderType.Sent:
+      sIconName = 'send'
+      break
+    case mailEnums.FolderType.Drafts:
+      sIconName = 'insert_drive_file'
+      break
+    case mailEnums.FolderType.Spam:
+      sIconName = 'error'
+      break
+    case mailEnums.FolderType.Trash:
+      sIconName = 'delete'
+      break
+    case mailEnums.FolderType.Starred:
+      sIconName = 'star'
+      break
+  }
+  if (sFolderFullName === 'Notes') {
+    sIconName = 'edit'
+  }
+  return sIconName
+}
+
 export default {
+  prepareFolderListFromServer: function (iAccountId, sNamespace, oFolderListFromServer, oOldFoldersByNames) {
+    let oNewFoldersFlat = {}
+    let aNewFoldersNames = []
+    let oInbox = null
+    let oSent = null
+    let oDrafts = null
+    let oSpam = null
+    let oTrash = null
+
+    function _recursive(aFoldersTree) {
+      let aNewFoldersTree = []
+      let bHasSubscribed = false
+      _.each(aFoldersTree, function (oFolderFromServer) {
+        let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullName]
+        let oNewFolder = {
+          FullName: oFolderFromServer.FullName,
+          Name: oFolderFromServer.Name,
+          Type: oFolderFromServer.Type,
+          Delimiter: oFolderFromServer.Delimiter,
+          Namespaced: oFolderFromServer.FullName + oFolderFromServer.Delimiter === sNamespace,
+          IconName: _getIconName(oFolderFromServer.Type, oFolderFromServer.FullName),
+          IsSubscribed: oFolderFromServer.IsSubscribed,
+          IsSelectable: oFolderFromServer.IsSelectable,
+          Exists: oFolderFromServer.Exists,
+          HasChanges: oOldFolder ? oOldFolder.HasChanges : false,
+          Count: oOldFolder ? oOldFolder.Count : 0,
+          UnseenCount: oOldFolder ? oOldFolder.UnseenCount : 0,
+          NextUid: oOldFolder ? oOldFolder.NextUid : '',
+          Hash: oOldFolder ? oOldFolder.Hash : oFolderFromServer.FullName,
+        }
+
+        oNewFolder.SubFolders = []
+        oNewFolder.HasSubscribed = false
+        if (oFolderFromServer.SubFolders && oFolderFromServer.SubFolders['@Collection']) {
+          let oSubFoldersData = _recursive(oFolderFromServer.SubFolders['@Collection'])
+          oNewFolder.SubFolders = oSubFoldersData.Tree
+          oNewFolder.HasSubscribed = oSubFoldersData.HasSubscribed
+        }
+        bHasSubscribed = bHasSubscribed || oNewFolder.Exists && oNewFolder.IsSubscribed || oNewFolder.HasSubscribed
+
+        switch (oNewFolder.Type) {
+          case mailEnums.FolderType.Inbox:
+            oInbox = oNewFolder
+            break
+          case mailEnums.FolderType.Sent:
+            oSent = oNewFolder
+            break
+          case mailEnums.FolderType.Drafts:
+            oDrafts = oNewFolder
+            break
+          case mailEnums.FolderType.Spam:
+            oSpam = oNewFolder
+            break
+          case mailEnums.FolderType.Trash:
+            oTrash = oNewFolder
+            break
+        }
+      
+        aNewFoldersTree.push(oNewFolder)
+        oNewFoldersFlat[oNewFolder.FullName] = oNewFolder
+        aNewFoldersNames.push(oNewFolder.FullName)
+      })
+
+      return {
+        Tree: aNewFoldersTree,
+        HasSubscribed: bHasSubscribed,
+      }
+    }
+
+    let aResultNewFoldersData = _recursive(oFolderListFromServer['@Collection'])
+
+    oInbox.HasChanges = true
+
+    return {
+      AccountId: iAccountId,
+      Namespace: sNamespace,
+      Count: oFolderListFromServer['@Count'] || 0,
+      Tree: aResultNewFoldersData.Tree,
+      Flat: oNewFoldersFlat,
+      Names: aNewFoldersNames,
+
+      Inbox: oInbox,
+      Sent: oSent,
+      Drafts: oDrafts,
+      Spam: oSpam,
+      Trash: oTrash,
+
+      Current: oInbox,
+    }
+  },
+
   refreshFoldersInformation: function (oFolderList, aCountsFromServer) {
     let aChangedFolders = []
 
     function _recursive(oFoldersTree) {
-      _.each(oFoldersTree, function (oFolder) {
+      _.each(oFoldersTree, (oFolder) => {
         let aFolderCounts = aCountsFromServer[oFolder.FullName]
         if (aFolderCounts) {
           let iNewCount = aFolderCounts[0]
           let iUnseenCount = aFolderCounts[1]
           let sNextUid = aFolderCounts[2]
           let sHash = aFolderCounts[3]
-          oFolder.HasChanges = false
           if (iNewCount !== oFolder.Count || iUnseenCount !== oFolder.UnseenCount || sNextUid !== oFolder.NextUid || sHash !== oFolder.Hash) {
             oFolder.HasChanges = true
           }
@@ -43,7 +164,7 @@ export default {
   getFolder: function (oFolderList, sFolderFullName) {
     function _recursive(oFoldersTree) {
       let oFoundFolder = null
-      _.each(oFoldersTree, function (oFolder) {
+      _.each(oFoldersTree, (oFolder) => {
         if (oFolder.FullName === sFolderFullName) {
           oFoundFolder = oFolder
           return false // break each
@@ -85,15 +206,7 @@ export default {
                   resolve(aMessagesInfo)
                   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo }).then(
                     () => {
-                      foldersDbManager.getFolders(iAccountId).then(
-                        (oFolderList) => {
-                          let oFolder = this.getFolder(oFolderList, sFolderFullName)
-                          if (oFolder) {
-                            delete oFolder.HasChanges
-                          }
-                          foldersDbManager.setFolders({iAccountId, oFolderList})
-                        }
-                      )
+                      this._markFolderWithoutChanges({ iAccountId, sFolderFullName })
                     }
                   )
                 } else {
@@ -132,26 +245,34 @@ export default {
                 Filter: '',
               },
               fCallback: (aMessagesInfoFromServer, oError) => {
-                console.log('aMessagesInfoFromDb', aMessagesInfoFromDb)
-                console.log('aMessagesInfoFromServer', aMessagesInfoFromServer)
-                // if (_.isArray(aMessagesInfo)) {
-                //   resolve(aMessagesInfo)
-                //   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo }).then(
-                //     () => {
-                //       foldersDbManager.getFolders(iAccountId).then(
-                //         (oFolderList) => {
-                //           let oFolder = this.getFolder(oFolderList, sFolderFullName)
-                //           if (oFolder) {
-                //             delete oFolder.HasChanges
-                //           }
-                //           foldersDbManager.setFolders({iAccountId, oFolderList})
-                //         }
-                //       )
-                //     }
-                //   )
-                // } else {
-                //   reject({ sMethod: 'getMessagesInfo', oError })
-                // }
+                let { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve } = this._updateMessagesInfo(aMessagesInfoFromDb, aMessagesInfoFromServer)
+                this._deleteMessages({ iAccountId, sFolderFullName, aUids: aUidsToDelete }).then(
+                  () => {
+                    this._syncMessages({ iAccountId, sFolderFullName, aMessagesInfoToSync }).then(
+                      () => {
+                        this._retrieveMessages({ iAccountId, sFolderFullName, aUids: aUidsToRetrieve, sApiHost, sAuthToken }).then(
+                          () => {
+                            foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: aMessagesInfoFromServer }).then(
+                              () => {
+                                let bHasChanges = typesUtils.isNonEmptyArray(aUidsToDelete) || typesUtils.isNonEmptyArray(aMessagesInfoToSync) || typesUtils.isNonEmptyArray(aUidsToRetrieve)
+                                this._markFolderWithoutChanges({ iAccountId, sFolderFullName }).then(
+                                  () => {
+                                    resolve(bHasChanges)
+                                  },
+                                  reject
+                                )
+                              },
+                              reject
+                            )
+                          },
+                          reject
+                        )
+                      },
+                      reject
+                    )
+                  },
+                  reject
+                )
               },
             })
         },
@@ -161,4 +282,166 @@ export default {
       )
     })
   },
+
+  _deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+    return new Promise((resolve, reject) => {
+      if (!_.isArray(aUids)) {
+        reject({ sMethod: '_deleteMessages', sError: 'aUids is not an Array' })
+      }
+      else if (aUids.length === 0) {
+        resolve()
+      }
+      else {
+        messagesDbManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(resolve, reject)
+      }
+    })
+  },
+
+  _syncMessages: function ({ iAccountId, sFolderFullName, aMessagesInfoToSync }) {
+    return new Promise((resolve, reject) => {
+      if (!_.isArray(aMessagesInfoToSync)) {
+        reject({ sMethod: '_syncMessages', sError: 'aMessagesInfoToSync is not an Array' })
+      }
+      else if (aMessagesInfoToSync.length === 0) {
+        resolve()
+      }
+      else {
+        let aUids = _.map(aMessagesInfoToSync, function (oMessageInfo) {
+          return oMessageInfo.uid
+        })
+        messagesDbManager.getMessagesByUids({ iAccountId, sFolderFullName, aUids }).then(
+          (aMessages) => {
+            _.each(aMessages, (oMessage) => {
+              let oMessageInfo = _.find(aMessagesInfoToSync, (oTmpMessageInfo) => {
+                return oTmpMessageInfo.uid === oMessage.Uid
+              })
+              if (oMessageInfo) {
+                oMessage.IsSeen = (oMessageInfo.flags.indexOf('\\seen') >= 0)
+                oMessage.IsFlagged = (oMessageInfo.flags.indexOf('\\flagged') >= 0)
+                oMessage.IsAnswered = (oMessageInfo.flags.indexOf('\\answered') >= 0)
+                oMessage.IsForwarded = (oMessageInfo.flags.indexOf('$forwarded') >= 0)
+              }
+            })
+            messagesDbManager.setMessagesFlags({ aMessages }).then(resolve, reject)
+          },
+          reject
+        )
+      }
+    })
+  },
+
+  _retrieveMessages: function ({ iAccountId, sFolderFullName, aUids, sApiHost, sAuthToken }) {
+    return new Promise(async (resolve, reject) => {
+      if (!_.isArray(aUids)) {
+        reject({ sMethod: '_retrieveMessages', sError: 'aUids is not an Array' })
+      }
+      else if (aUids.length === 0) {
+        resolve()
+      }
+      else {
+        let chunk = 50
+        for (let i = 0, j = aUids.length; i < j; i += chunk) {
+          let temp = aUids.slice(i, i + chunk)
+          console.log('temp', temp)
+          await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: temp, sApiHost, sAuthToken })
+        }
+        console.log('resolve()')
+        resolve()
+      }
+    })
+  },
+
+  _retrievePartOfMessages: function ({ iAccountId, sFolderFullName, aUids, sApiHost, sAuthToken }) {
+    return new Promise((resolve, reject) => {
+      if (!_.isArray(aUids)) {
+        reject({ sMethod: '_retrieveMessages', sError: 'aUids is not an Array' })
+      }
+      else if (aUids.length === 0) {
+        resolve()
+      }
+      else {
+        let oParameters = {
+          AccountID: iAccountId,
+          Folder: sFolderFullName,
+          Uids: aUids,
+        }
+        webApi.sendRequest({
+          sApiHost,
+          sAuthToken,
+          sModule: 'Mail',
+          sMethod: 'GetMessagesBodies',
+          oParameters,
+          fCallback: (aMessagesFromServer, oError) => {
+            if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
+              messagesDbManager.setMessages({ iAccountId, aMessages: aMessagesFromServer }).then(resolve, reject)
+            } else {
+              reject({ sMethod: '_retrieveMessages', oError })
+            }
+          },
+        })
+      }
+    })
+  },
+
+  _markFolderWithoutChanges: function ({ iAccountId, sFolderFullName }) {
+    return new Promise((resolve, reject) => {
+      foldersDbManager.getFolders(iAccountId).then(
+        (oFolderList) => {
+          let oFolder = this.getFolder(oFolderList, sFolderFullName)
+          if (oFolder) {
+            oFolder.HasChanges = false
+          }
+          foldersDbManager.setFolders({iAccountId, oFolderList}).then(resolve, reject)
+        },
+        reject
+      )
+    })
+  },
+
+  _getAllMessagesInfo: function (aMessagesInfo) {
+    let aAllThreadsInfo = []
+    _.each(aMessagesInfo, (oMessageInfo) => {
+      if (_.isArray(oMessageInfo.thread)) {
+        aAllThreadsInfo = _.union(aAllThreadsInfo, oMessageInfo.thread)
+      }
+    })
+    return _.union(aMessagesInfo, aAllThreadsInfo)
+  },
+  
+  _updateMessagesInfo: function (aOldMessagesInfo, aNewMessagesInfo) {
+    let aAllNewMessagesInfo = this._getAllMessagesInfo(aNewMessagesInfo)
+    let aUidsToRetrieve = []
+    let aMessagesInfoToSync = []
+    let aUidsToDelete = []
+    if (!_.isArray(aOldMessagesInfo)) {
+      aUidsToRetrieve = _.map(aAllNewMessagesInfo, (oMessageInfo) => {
+        return oMessageInfo.uid
+      })
+    } else {
+      let aAllOldMessagesInfo = this._getAllMessagesInfo(aOldMessagesInfo)
+      _.each(aAllNewMessagesInfo, (oNewInfo) => {
+        let iOldInfoIndex = _.findIndex(aAllOldMessagesInfo, (oOldInfo) => {
+          return oNewInfo.uid === oOldInfo.uid
+        })
+        if (iOldInfoIndex === -1) {
+          aUidsToRetrieve.push(oNewInfo.uid)
+        } else {
+          let oOldInfo = aAllOldMessagesInfo[iOldInfoIndex]
+          console.log('oNewInfo', oNewInfo, 'oOldInfo', oOldInfo, _.isEqual(oNewInfo.flags, oOldInfo.flags))
+          if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
+            aMessagesInfoToSync.push(oNewInfo)
+          }
+          aAllOldMessagesInfo.splice(iOldInfoIndex, 1);
+        }
+      })
+  
+      aUidsToDelete = _.map(aAllOldMessagesInfo, (oMessageInfo) => {
+        return oMessageInfo.uid
+      })
+    }
+    console.log('aUidsToDelete', aUidsToDelete)
+    console.log('aMessagesInfoToSync', aMessagesInfoToSync)
+    console.log('aUidsToRetrieve', aUidsToRetrieve)
+    return { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve }
+  }
 }

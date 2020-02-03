@@ -23,9 +23,9 @@ export default {
     })
 
     let oOptions = {
-      hostname: sApiHost.replace('https://', '').replace('http://', ''),
+      hostname: 'test.afterlogic.com', // sApiHost.replace('https://', '').replace('http://', ''),
       port: iPort,
-      path: '/?/Api/',
+      path: '/1/?/Api/',
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -63,9 +63,8 @@ export default {
         if (_.isFunction(fCallback)) {
           fCallback(oResult, oError)
         }
-        if (aRequestsNumbers.length === 0) {
-          // mainPrefetcher.start()
-        }
+        // if (aRequestsNumbers.length === 0) {
+        // }
       })
     })
 

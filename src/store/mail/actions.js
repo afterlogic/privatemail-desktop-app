@@ -10,7 +10,6 @@ import webApi from 'src/utils/webApi.js'
 import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
 import messagesUtils from './utils/messages.js'
-// import prefetcher from 'src/modules/mail/prefetcher.js'
 import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
@@ -75,15 +74,14 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
   })
 }
 
-ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount, sError, oError } ) => {
+ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
   if (sError || oError) {
     notification.showError(errors.getText(oError || null, typesUtils.pString(sError)))
   } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
     store.commit('mail/setCurrentFilter', sFilter)
     store.commit('mail/setCurrentSearch', { sSearch, oAdvancedSearch })
     store.commit('mail/setCurrentFolder', sFolderFullName)
-    store.commit('mail/setCurrentFolderChanged')
-    store.commit('mail/setCurrentPage', 1)
+    store.commit('mail/setCurrentPage', iPage)
     store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
     store.commit('mail/setCurrentMessages', aMessages)
     let oCurrentMessage = store.getters['mail/getCurrentMessage']
@@ -96,113 +94,50 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
 ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {
   if (store.state.mail.currentAccount) {
     if (oDbFolderList && oDbFolderList.Tree) {
+      let bFirstTime = typesUtils.pInt(store.getters['mail/getCurrentFolderList'] && store.getters['mail/getCurrentFolderList'].AccountId) === 0
       let oFolderList = foldersUtils.prepareFolderListFromDb(oDbFolderList)
       store.commit('mail/setCurrentFolderList', oFolderList)
       store.dispatch('mail/asyncGetMessages', {})
-      // prefetcher.foldersRelevantInfoReceived()
-    } else {
-      // store.dispatch('mail/asyncGetFolderList')
+      if (bFirstTime) {
+        store.dispatch('mail/asyncRefresh', true)
+      }
     }
   }
 })
 
-export function asyncGetFolderList ({ state, commit, dispatch }) {
+export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
   if (state.currentAccount) {
-    let iAccountId = state.currentAccount.AccountID
-    ipcRenderer.send('mail-get-folders', iAccountId)
-    // commit('setSyncing', true)
-    // webApi.sendRequest({
-    //   sModule: 'Mail',
-    //   sMethod: 'GetFolders',
-    //   oParameters: {AccountID: iAccountId},
-    //   fCallback: (oResult, oError) => {
-    //     commit('setSyncing', false)
-    //     if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
-    //       let oFlatFolders = state.currentFolderList && iAccountId === state.currentFolderList.AccountId ? _.cloneDeep(state.currentFolderList.Flat) : {}
-    //       let oFolderList = foldersUtils.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFolders)
-    //       ipcRenderer.send('db-set-folders', oFolderList)
-    //       commit('setCurrentFolderList', oFolderList)
-    //       dispatch('asyncGetFoldersRelevantInformation', state.currentFolderList.Names)
-    //       // prefetcher.foldersReceived()
-    //     } else {
-    //       notification.showError(errors.getText(oError, 'Error occurred while getting folder list'))
-    //     }
-    //   },
-    // })
+    ipcRenderer.send('mail-get-folders', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      iAccountId: getters.getCurrentAccountId,
+    })
   }
 }
 
-export function asyncRefresh ({ state, commit, dispatch, getters }) {
+ipcRenderer.on('mail-refresh', (event, oResult) => {
+  store.commit('mail/setSyncing', false)
+  let { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError } = oResult
+  if (oError || sError) {
+    notification.showError(errors.getText(oError, sError))
+  } else {
+    if (bHasChangesInCurrentFolder && sFolderFullName === store.getters['mail/getCurrentFolderFullName']) {
+      store.dispatch('mail/asyncGetMessages', {})
+    }
+    if (bHasChanges) {
+      store.dispatch('mail/asyncGetFolderList', {})
+    }
+  }
+})
+
+export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders) {
+  commit('setSyncing', true)
   ipcRenderer.send('mail-refresh', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,
     sCurrentFolderFullName: getters.getCurrentFolderFullName,
-    aFoldersToRefresh: getters.getDisplayedFolders,
-  })
-}
-
-export function asyncGetFoldersRelevantInformation ({ state, commit, dispatch }, payload) {
-  if (state.currentAccount) {
-    commit('setSyncing', true)
-    let iAccountId = state.currentAccount.AccountID
-    webApi.sendRequest({
-      sModule: 'Mail',
-      sMethod: 'GetRelevantFoldersInformation',
-      oParameters: {AccountID: iAccountId, Folders: payload, UseListStatusIfPossible: true},
-      fCallback: (oResult, oError) => {
-        commit('setSyncing', false)
-        if (oResult && oResult.Counts) {
-          if (state.currentAccount && iAccountId === state.currentAccount.AccountID && state.currentFolderList && iAccountId === state.currentFolderList.AccountId) {
-            commit('setFoldersRelevantInformation', {
-              AccountId: iAccountId,
-              Counts: oResult.Counts,
-            })
-            ipcRenderer.send('db-set-folders', state.currentFolderList)
-            // prefetcher.foldersRelevantInfoReceived()
-          }
-        } else {
-          notification.showError(errors.getText(oError, 'Error occurred while getting folders relevant information'))
-        }
-      },
-    })
-  }
-}
-
-export function asyncGetMessagesInfo ({ state, commit, getters }, payload) {
-  let iAccountId = state.currentAccount.AccountID
-  let sFolderFullName = payload
-  let bCurrentFolder = sFolderFullName === getters.getCurrentFolderFullName
-  let oParameters = messagesUtils.getMessagesInfoParameters(iAccountId, sFolderFullName, getters.getCurrentSearch, getters.getCurrentFilter)
-
-  if (bCurrentFolder) {
-    commit('setSyncing', true)
-  }
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'GetMessagesInfo',
-    oParameters,
-    fCallback: (aMessagesInfo, oError) => {
-      if (bCurrentFolder) {
-        commit('setSyncing', false)
-      }
-      if (_.isArray(aMessagesInfo)) {
-        commit('setMessagesInfo', {
-          Parameters: oParameters,
-          MessagesInfo: aMessagesInfo,
-        })
-        ipcRenderer.send('db-set-messagesinfo', {
-          iAccountId,
-          sFolderFullName,
-          oMessagesInfo: aMessagesInfo,
-        })
-        if (bCurrentFolder && state.currentFilter === '' && state.currentSearch === '') {
-          commit('setCurrentMessages')
-        }
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while getting messages info'))
-      }
-    },
+    aFoldersToRefresh: bAllFolders ? state.currentFolderList.Names : getters.getDisplayedFolders,
   })
 }
 
@@ -212,51 +147,17 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,
     sFolderFullName: (typeof sFolderFullName === 'string') ? sFolderFullName : getters.getCurrentFolderFullName,
-    iPage: (typeof iPage === 'string') ? iPage : getters.getCurrentPage,
+    iPage: (typeof iPage === 'number') ? iPage : getters.getCurrentPage,
     iMessagesPerPage: getters.getMessagesPerPage,
     sSearch: (typeof sSearch === 'string') ? sSearch : getters.getCurrentSearch,
     sFilter: (typeof sFilter === 'string') ? sFilter : getters.getCurrentFilter,
   })
-
-  // let bCurrentFolder = sFolderFullName === getters.getCurrentFolderFullName
-  // if (bCurrentFolder) {
-  //   commit('setSyncing', true)
-  // }
-  // let oParameters = {
-  //   AccountID: iAccountId,
-  //   Folder: sFolderFullName,
-  //   Uids: aUids,
-  // }
-  // webApi.sendRequest({
-  //   sModule: 'Mail',
-  //   sMethod: 'GetMessagesBodies',
-  //   oParameters,
-  //   fCallback: (aMessagesFromServer, oError) => {
-  //     if (bCurrentFolder) {
-  //       commit('setSyncing', false)
-  //     }
-  //     if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
-  //       console.time('GetMessagesBodies parse')
-  //       commit('updateMessagesCache', {
-  //         AccountId: iAccountId,
-  //         Messages: aMessagesFromServer,
-  //       })
-  //       console.timeEnd('GetMessagesBodies parse')
-  //       if (bCurrentFolder) {
-  //         commit('setCurrentMessages')
-  //       }
-  //     } else {
-  //       notification.showError(errors.getText(oError, 'Error occurred while getting messages'))
-  //     }
-  //   },
-  // })
 }
 
 export function setCurrentFolder ({ state, commit, dispatch, getters }, sFolderFullName) {
   commit('setCurrentFilter', '')
   commit('setCurrentSearch', { sSearch: '', oAdvancedSearch: null })
   commit('setCurrentFolder', sFolderFullName)
-  commit('setCurrentFolderChanged')
   commit('setCurrentPage', 1)
   dispatch('asyncGetMessages', {})
 }
@@ -283,7 +184,7 @@ export function setMessagesRead ({ state, commit, dispatch, getters }, payload) 
     sMethod: 'SetMessagesSeen',
     oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uids.join(','), SetAction: payload.IsSeen},
     fCallback: (oResult, oError) => {
-      dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
+      dispatch('asyncRefresh')
     },
   })
 }
@@ -295,7 +196,7 @@ export function setAllMessagesRead ({ state, commit, dispatch, getters }) {
     sMethod: 'SetAllMessagesSeen',
     oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, SetAction: true},
     fCallback: (oResult, oError) => {
-      dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
+      dispatch('asyncRefresh')
     },
   })
 }
@@ -323,7 +224,7 @@ export function deleteMessages ({ state, commit, dispatch, getters }, payload) {
           Deleted: false,
         })
       }
-      dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
+      dispatch('asyncRefresh')
     },
   })
 }
@@ -351,7 +252,7 @@ export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payl
           Deleted: false,
         })
       }
-      dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
+      dispatch('asyncRefresh')
     },
   })
 }
@@ -363,7 +264,7 @@ export function setMessageFlagged ({ state, commit, dispatch, getters }, payload
     sMethod: 'SetMessageFlagged',
     oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uid, SetAction: payload.Flagged},
     fCallback: (oResult, oError) => {
-      dispatch('asyncGetFoldersRelevantInformation', getters.getDisplayedFolders)
+      dispatch('asyncRefresh')
     },
   })
 }

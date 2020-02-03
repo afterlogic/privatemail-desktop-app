@@ -80,38 +80,44 @@ export default {
 
   getMessagesByUids: function ({ iAccountId, sFolderFullName, aUids, sApiHost, sAuthToken }) {
     return new Promise((resolve, reject) => {
-      messagesDbManager.getMessagesByUids({ iAccountId, sFolderFullName, aUids }).then(
-        (aMessages) => {
-          let aFoundUids = _.map(aMessages, (oTmpMessage) => { return oTmpMessage.Uid })
-          let aNotFoundUids = _.difference(aUids, aFoundUids)
-          if (aNotFoundUids.length > 0) {
-            webApi.sendRequest({
-              sApiHost,
-              sAuthToken,
-              sModule: 'Mail',
-              sMethod: 'GetMessagesBodies',
-              oParameters: {
-                AccountID: iAccountId,
-                Folder: sFolderFullName,
-                Uids: aNotFoundUids,
-              },
-              fCallback: (aMessagesFromServer, oError) => {
-                if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
-                  this.setMessages({ iAccountId, aMessages: aMessagesFromServer })
-                  resolve(_.union(aMessages, aMessagesFromServer))
-                } else {
-                  reject({ sMethod: 'getMessagesByUids', oError, aMessagesFromServer })
-                }
-              },
-            })
-          } else {
-            resolve(aMessages)
+      if (!_.isArray(aUids)) {
+        reject({ sMethod: 'getMessagesByUids', sError: 'aUids is not an Array' })
+      } else if (aUids.length === 0) {
+        resolve([])
+      } else {
+        messagesDbManager.getMessagesByUids({ iAccountId, sFolderFullName, aUids }).then(
+          (aMessages) => {
+            let aFoundUids = _.map(aMessages, (oTmpMessage) => { return oTmpMessage.Uid })
+            let aNotFoundUids = _.difference(aUids, aFoundUids)
+            if (aNotFoundUids.length > 0) {
+              webApi.sendRequest({
+                sApiHost,
+                sAuthToken,
+                sModule: 'Mail',
+                sMethod: 'GetMessagesBodies',
+                oParameters: {
+                  AccountID: iAccountId,
+                  Folder: sFolderFullName,
+                  Uids: aNotFoundUids,
+                },
+                fCallback: (aMessagesFromServer, oError) => {
+                  if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
+                    messagesDbManager.setMessages({ iAccountId, aMessages: aMessagesFromServer })
+                    resolve(_.union(aMessages, aMessagesFromServer))
+                  } else {
+                    reject({ sMethod: 'getMessagesByUids', oError, aMessagesFromServer })
+                  }
+                },
+              })
+            } else {
+              resolve(aMessages)
+            }
+          },
+          (oResult) => {
+            reject(oResult)
           }
-        },
-        (oResult) => {
-          reject(oResult)
-        }
-      )
+        )
+      }
     })
   },
 }

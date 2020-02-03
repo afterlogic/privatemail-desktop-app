@@ -10,12 +10,31 @@ import messagesManager from './messages-manager.js'
 import messagesDbManager from './messages-db-manager.js'
 
 export default {
-  refreshMessagesInFolders: function (iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+  refreshMessagesInNotCurrentFolders: async function (oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+    _.each(aChangedFolders, async function (oTmpFolder) {
+      if (oTmpFolder.FullName !== sCurrentFolderFullName) {
+        let bHasChanges = await foldersManager.refreshMessagesInfo(iAccountId, oTmpFolder.FullName, sApiHost, sAuthToken)
+        console.log('bHasChanges', bHasChanges, 'oTmpFolder.FullName', oTmpFolder.FullName)
+      }
+    })
+  },
+
+  refreshMessagesInFolders: function (oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
     let oCurrentFolder = _.find(aChangedFolders, function (oTmpFolder) {
       return oTmpFolder.FullName === sCurrentFolderFullName
     })
     if (oCurrentFolder) {
-      foldersManager.refreshMessagesInfo(iAccountId, sCurrentFolderFullName, sApiHost, sAuthToken)
+      foldersManager.refreshMessagesInfo(iAccountId, sCurrentFolderFullName, sApiHost, sAuthToken).then(
+        (bHasChangesInCurrentFolder) => {
+          oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder, sFolderFullName: sCurrentFolderFullName })
+          this.refreshMessagesInNotCurrentFolders(oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+        },
+        (oResult) => {
+          oEvent.sender.send('mail-refresh', oResult)
+        }
+      )
+    } else {
+      oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
     }
   },
 
@@ -36,9 +55,12 @@ export default {
             foldersDbManager.getFolders(iAccountId).then(
               (oFolderList) => {
                 let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
+                console.log('aChangedFolders', aChangedFolders)
                 if (aChangedFolders.length > 0) {
-                  // foldersDbManager.setFolders({ iAccountId, oFolderList })
-                  this.refreshMessagesInFolders(iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+                  foldersDbManager.setFolders({ iAccountId, oFolderList })
+                  this.refreshMessagesInFolders(oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+                } else {
+                  oEvent.sender.send('mail-refresh', { bHasChanges: false, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
                 }
               }
             )
@@ -49,14 +71,33 @@ export default {
       })
     })
 
-    ipcMain.on('mail-get-folders', (oEvent, iAccountId) => {
+    ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
-          oEvent.sender.send('mail-get-folders', oFolderList)
+          console.log('_.isEmpty(oFolderList)', _.isEmpty(oFolderList), _.isEmpty({}), _.isEmpty([]))
+          if (_.isEmpty(oFolderList)) {
+            webApi.sendRequest({
+              sApiHost,
+              sAuthToken,
+              sModule: 'Mail',
+              sMethod: 'GetFolders',
+              oParameters: { AccountID: iAccountId },
+              fCallback: (oResult, oError) => {
+                if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
+                  let oFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, {})
+                  foldersDbManager.setFolders({ iAccountId, oFolderList })
+                  oEvent.sender.send('mail-get-folders', oFolderList)
+                } else {
+                  oEvent.sender.send('mail-get-folders', { oError })
+                }
+              },
+            })
+          } else {
+            oEvent.sender.send('mail-get-folders', oFolderList)
+          }
         },
         (oResult) => {
-          oEvent.sender.send('mail-get-folders', null)
-          oEvent.sender.send('notification', oResult)
+          oEvent.sender.send('mail-get-folders', oResult)
         }
       )
     })

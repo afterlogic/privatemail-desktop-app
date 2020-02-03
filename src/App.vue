@@ -9,7 +9,6 @@
 import Vue from 'vue'
 import { ipcRenderer } from 'electron'
 import theming from './css/theming'
-// import prefetcher from 'src/modules/mail/prefetcher.js'
 import MessageCompose from "./pages/mail/MailCompose.vue"
 
 Vue.mixin({
@@ -63,7 +62,6 @@ export default {
     },
     'currentAccountId': function (iAccountId, iPrevAccountId) {
       this.$store.dispatch('mail/asyncGetFolderList')
-      // prefetcher.currentAccountChanged()
     },
     dataToSave: function () {
       ipcRenderer.send('main-save-user-data', this.dataToSave)

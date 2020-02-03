@@ -188,62 +188,6 @@ ipcMain.on('db-remove-all', (oEvent) => {
   }
 })
 
-// ipcMain.on('db-set-folders', (oEvent, oFolderList) => {
-//   foldersDbManager.setFolders({
-//     iAccountId: oFolderList.AccountId,
-//     oFolderList: {
-//       AccountId: oFolderList.AccountId,
-//       Namespace: oFolderList.Namespace,
-//       Count: oFolderList.Count,
-//       Tree: oFolderList.Tree,
-//     },
-//   }).then(
-//     () => {},
-//     (oResult) => {
-//       oEvent.sender.send('notification', oResult)
-//     }
-//   )
-// })
-
-// ipcMain.on('db-get-messagesinfo', (oEvent, { iAccountId, sFolderFullName }) => {
-//   foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
-//     (oMessagesInfo) => {
-//       oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo })
-//     },
-//     (oResult) => {
-//       oEvent.sender.send('db-get-messagesinfo', { iAccountId, sFolderFullName, oMessagesInfo: null })
-//       oEvent.sender.send('notification', oResult)
-//     }
-//   )
-// })
-
-// ipcMain.on('db-set-messagesinfo', (oEvent, { iAccountId, sFolderFullName, oMessagesInfo }) => {
-//   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, oMessagesInfo }).then(
-//     () => {
-//       foldersDbManager.getFolders(iAccountId).then(
-//         (oFolderList) => {
-//           let oFolder = foldersManager.getFolder(oFolderList, sFolderFullName)
-//           if (oFolder) {
-//             delete oFolder.HasChanges
-//           }
-//           foldersDbManager.setFolders({iAccountId, oFolderList}).then(
-//             () => {},
-//             (oResult) => {
-//               oEvent.sender.send('notification', oResult)
-//             }
-//           )
-//         },
-//         (oResult) => {
-//           oEvent.sender.send('notification', oResult)
-//         }
-//       )
-//     },
-//     (oResult) => {
-//       oEvent.sender.send('notification', oResult)
-//     }
-//   )
-// })
-
 // ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
 //   messagesDbManager.setMessages({ iAccountId, aMessages }).then(
 //     () => {

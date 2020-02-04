@@ -100,4 +100,18 @@ export default {
       }
     })
   },
+
+  setMessageFlagged: function ({ iAccountId, sFolderFullName, sUid, bFlagged }) {
+    this.getMessagesInfo({ iAccountId, sFolderFullName }).then(function (aMessagesInfo) {
+      console.log('aMessagesInfo', aMessagesInfo)
+      _.each(aMessagesInfo, function (oMessageInfo) {
+        if (oMessageInfo.uid === sUid) {
+          console.log('oMessageInfo', oMessageInfo)
+          return false // break each
+        } else {
+          // oThreadMessageInfo = _.find(oMessageInfo.)
+        }
+      })
+    })
+  },
 }

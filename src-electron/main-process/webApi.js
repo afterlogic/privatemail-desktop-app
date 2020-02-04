@@ -22,10 +22,20 @@ export default {
       'Parameters': typesUtils.isNonEmptyObject(oParameters) ? JSON.stringify(oParameters) : '{}',
     })
 
+    let sHostPath = sApiHost.replace('https://', '').replace('http://', '')
+    let aHostPath = sHostPath.split('/')
+    let sHostName = aHostPath.shift()
+    if (aHostPath.length > 0 && aHostPath[aHostPath.length - 1] === '') {
+      aHostPath.pop()
+    }
+    aHostPath.unshift('')
+    aHostPath.push('?')
+    aHostPath.push('Api')
+    aHostPath.push('')
     let oOptions = {
-      hostname: 'test.afterlogic.com', // sApiHost.replace('https://', '').replace('http://', ''),
+      hostname: sHostName,
       port: iPort,
-      path: '/1/?/Api/',
+      path: aHostPath.join('/'),
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

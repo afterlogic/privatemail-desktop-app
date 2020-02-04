@@ -85,52 +85,50 @@ export function setCurrentSearch (state, { sSearch, oAdvancedSearch }) {
   state.currentAdvancedSearch = oAdvancedSearch
 }
 
-export function setMessagesRead (state, payload) {
-  let aMessagesForDB = []
-  let iAccountId = state.currentAccount.AccountID
-  _.each(payload.Uids, function (sUid) {
-    let sMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getCurrentFolderFullName(state), sUid)
-    let oMessage = state.messagesCache[sMessageKey]
-    if (oMessage) {
-      oMessage.IsSeen = payload.IsSeen
-      if (oMessage.ThreadParentUid) {
-        let sThreadMessageKey = messagesUtils.getMessageCacheKey(iAccountId, getters.getCurrentFolderFullName(state), oMessage.ThreadParentUid)
-        let oParentMessage = state.messagesCache[sThreadMessageKey]
-        if (oParentMessage) {
-          let bHasUnseenMessages = false
-          _.each(oParentMessage.Threads, function (oThreadMessage) {
-            if (!oThreadMessage.IsSeen) {
-              bHasUnseenMessages = true
-            }
-          })
-          oParentMessage.ThreadHasUnread = bHasUnseenMessages
-          aMessagesForDB.push(oParentMessage)
-        }
+export function setMessagesRead (state, { aUids, bIsSeen }) {
+  let iAddUnseen = 0
+
+  function _setMessageSeenFlag (oMessage) {
+    if (oMessage.IsSeen !== bIsSeen) {
+      if (oMessage.IsSeen) {
+        iAddUnseen++
+      } else {
+        iAddUnseen--
       }
-      aMessagesForDB.push(oMessage)
     }
+    oMessage.IsSeen = bIsSeen
+  }
+
+  _.each(state.currentMessages, function (oMessage) {
+    if (aUids.indexOf(oMessage.Uid) >= 0) {
+      _setMessageSeenFlag(oMessage)
+    }
+    let bThreadHasUnread = false
+    _.each(oMessage.Threads, function (oThreadMessage) {
+      if (aUids.indexOf(oThreadMessage.Uid) >= 0) {
+        _setMessageSeenFlag(oThreadMessage)
+      }
+      bThreadHasUnread = bThreadHasUnread || !oThreadMessage.IsSeen
+    })
+    oMessage.ThreadHasUnread = bThreadHasUnread
   })
-  ipcRenderer.send('db-set-messages', {
-    iAccountId,
-    aMessages: aMessagesForDB,
-  })
+
+  let iUnseenCount = state.currentFolderList.Current.UnseenCount + iAddUnseen
+  if (iUnseenCount < 0) {
+    iUnseenCount = 0
+  }
+  state.currentFolderList.Current.UnseenCount = iUnseenCount
 }
 
-export function setAllMessagesRead (state, sFolderFullName) {
-  let aMessagesForDB = []
-  _.each(state.messagesCache, function (oMessage) {
-    if (oMessage.Folder === sFolderFullName && (!oMessage.IsSeen || oMessage.ThreadHasUnread)) {
-      oMessage.IsSeen = true
-      if (oMessage.ThreadHasUnread) {
-        oMessage.ThreadHasUnread = false
-      }
-      aMessagesForDB.push(oMessage)
-    }
+export function setAllMessagesRead (state) {
+  _.each(state.currentMessages, function (oMessage) {
+    oMessage.IsSeen = true
+    _.each(oMessage.Threads, function (oThreadMessage) {
+      oThreadMessage.IsSeen = true
+    })
+    oMessage.ThreadHasUnread = false
   })
-  ipcRenderer.send('db-set-messages', {
-    iAccountId,
-    aMessages: aMessagesForDB,
-  })
+  state.currentFolderList.Current.UnseenCount = 0
 }
 
 export function setMessagesDeleted (state, payload) {
@@ -149,24 +147,20 @@ export function setMessagesDeleted (state, payload) {
   })
 }
 
-export function setMessageFlagged (state, payload) {
-  let aMessagesForDB = []
+export function setMessageFlagged (state, { sUid, bFlagged }) {
   _.each(state.currentMessages, function (oMessage) {
-    if (payload.Uid === oMessage.Uid) {
-      oMessage.IsFlagged = payload.Flagged
-      aMessagesForDB.push(oMessage)
-    } else if (oMessage.Threads) {
+    if (sUid === oMessage.Uid) {
+      oMessage.IsFlagged = bFlagged
+    } else if (typesUtils.isNonEmptyArray(oMessage.Threads)) {
+      let bPartialFlagged = false
       _.each(oMessage.Threads, function (oThreadMessage) {
-        if (payload.Uid === oThreadMessage.Uid) {
-          oThreadMessage.IsFlagged = payload.Flagged
-          aMessagesForDB.push(oThreadMessage)
+        if (sUid === oThreadMessage.Uid) {
+          oThreadMessage.IsFlagged = bFlagged
         }
+        bPartialFlagged = bPartialFlagged || oThreadMessage.IsFlagged
       })
+      oMessage.PartialFlagged = bPartialFlagged
     }
-  })
-  ipcRenderer.send('db-set-messages', {
-    iAccountId: state.currentAccount.AccountID,
-    aMessages: aMessagesForDB,
   })
 }
 

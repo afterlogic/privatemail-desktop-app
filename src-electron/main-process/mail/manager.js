@@ -134,5 +134,51 @@ export default {
         )
       }
     })
+
+    ipcMain.on('db-set-messages-seen', (oEvent, { iAccountId, sFolderFullName, aUids, bIsSeen, sApiHost, sAuthToken }) => {
+      let bAllMessages = !typesUtils.isNonEmptyArray(aUids)
+      let sMethod = bAllMessages ? 'SetAllMessagesSeen' : 'SetMessagesSeen'
+      let oParameters = {
+        AccountID: iAccountId,
+        Folder: sFolderFullName,
+        SetAction: bIsSeen,
+      }
+      if (!bAllMessages) {
+        oParameters.Uids = aUids.join(',')
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod,
+        oParameters,
+        fCallback: (oResult, oError) => {
+          if (bAllMessages) {
+            messagesDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
+          } else {
+            messagesDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
+          }
+        },
+      })
+    })
+
+    ipcMain.on('db-set-messages-flagged', (oEvent, { iAccountId, sFolderFullName, sUid, bFlagged, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'SetMessageFlagged',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderFullName,
+          Uids: sUid,
+          SetAction: bFlagged,
+        },
+        fCallback: (oResult, oError) => {
+          messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+          foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+        },
+      })
+    })
   },
 }

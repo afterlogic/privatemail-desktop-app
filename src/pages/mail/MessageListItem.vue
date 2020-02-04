@@ -137,9 +137,9 @@ export default {
       }
     },
     toggleFlagged: function () {
-      this.$store.dispatch('mail/setMessageFlagged', {
-        Uid: this.message.Uid,
-        Flagged: !this.message.IsFlagged,
+      this.$store.dispatch('mail/asyncSetMessageFlagged', {
+        sUid: this.message.Uid,
+        bFlagged: !this.message.IsFlagged,
       })
     },
     toggleThread: function () {

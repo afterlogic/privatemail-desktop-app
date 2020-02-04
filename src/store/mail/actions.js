@@ -164,40 +164,38 @@ export function setCurrentFolder ({ state, commit, dispatch, getters }, sFolderF
 
 export function setCurrentPage ({ commit }, payload) {
   commit('setCurrentPage', payload)
-  commit('setCurrentMessages')
 }
 
 export function setCurrentMessage ({ commit, dispatch }, oMessage) {
   if (!oMessage.IsSeen) { // check here because setCurrentMessage method also sets message seen
-    dispatch('setMessagesRead', {
-      Uids: [oMessage.Uid],
-      IsSeen: true
+    dispatch('asyncSetMessagesRead', {
+      aUids: [oMessage.Uid],
+      bIsSeen: true
     })
   }
   commit('setCurrentMessage', oMessage)
 }
 
-export function setMessagesRead ({ state, commit, dispatch, getters }, payload) {
-  commit('setMessagesRead', payload)
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'SetMessagesSeen',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uids.join(','), SetAction: payload.IsSeen},
-    fCallback: (oResult, oError) => {
-      dispatch('asyncRefresh')
-    },
+export function asyncSetMessagesRead ({ state, commit, dispatch, getters }, { aUids, bIsSeen }) {
+  commit('setMessagesRead', { aUids, bIsSeen })
+  ipcRenderer.send('db-set-messages-seen', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sFolderFullName: getters.getCurrentFolderFullName,
+    aUids,
+    bIsSeen,
   })
 }
 
-export function setAllMessagesRead ({ state, commit, dispatch, getters }) {
-  commit('setAllMessagesRead', getters.getCurrentFolderFullName)
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'SetAllMessagesSeen',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, SetAction: true},
-    fCallback: (oResult, oError) => {
-      dispatch('asyncRefresh')
-    },
+export function asyncSetAllMessagesRead ({ state, commit, dispatch, getters }) {
+  commit('setAllMessagesRead')
+  ipcRenderer.send('db-set-messages-seen', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sFolderFullName: getters.getCurrentFolderFullName,
+    bIsSeen: true,
   })
 }
 
@@ -257,15 +255,15 @@ export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payl
   })
 }
 
-export function setMessageFlagged ({ state, commit, dispatch, getters }, payload) {
-  commit('setMessageFlagged', payload)
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'SetMessageFlagged',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uid, SetAction: payload.Flagged},
-    fCallback: (oResult, oError) => {
-      dispatch('asyncRefresh')
-    },
+export function asyncSetMessageFlagged ({ state, commit, dispatch, getters }, { sUid, bFlagged }) {
+  commit('setMessageFlagged', { sUid, bFlagged })
+  ipcRenderer.send('db-set-messages-flagged', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sFolderFullName: getters.getCurrentFolderFullName,
+    sUid,
+    bFlagged,
   })
 }
 

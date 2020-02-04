@@ -121,14 +121,14 @@ export default {
   methods: {
     setMessagesRead (bIsSeen) {
       if (this.checkedCount > 0) {
-        this.$store.dispatch('mail/setMessagesRead', {
-          Uids: this.checkedMessagesUids,
-          IsSeen: bIsSeen,
+        this.$store.dispatch('mail/asyncSetMessagesRead', {
+          aUids: this.checkedMessagesUids,
+          bIsSeen,
         })
       }
     },
     setAllMessagesRead () {
-      this.$store.dispatch('mail/setAllMessagesRead')
+      this.$store.dispatch('mail/asyncSetAllMessagesRead')
     },
     deleteMessagesPermanently () {
       if (this.checkedCount > 0) {

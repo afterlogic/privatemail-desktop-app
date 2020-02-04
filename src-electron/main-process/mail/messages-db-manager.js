@@ -318,7 +318,86 @@ export default {
           })
         })
       } else {
-        reject({ sMethod: 'setMessages', sError: 'No DB connection' })
+        reject({ sMethod: 'setMessagesFlags', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setMessagesSeen: function ({ iAccountId, sFolderFullName, aUids, bIsSeen }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('UPDATE messages SET is_seen = ? WHERE account_id = ? AND folder = ? AND uid = ?')
+          _.each(aUids, function (sUid) {
+            let aParams = [
+              bIsSeen,
+              iAccountId,
+              sFolderFullName,
+              sUid,
+            ]
+            oStatement.run(aParams)
+          })
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'setMessagesSeen', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setMessagesSeen', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setAllMessagesSeen: function ({ iAccountId, sFolderFullName, bIsSeen }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('UPDATE messages SET is_seen = ? WHERE account_id = ? AND folder = ?')
+          let aParams = [
+            bIsSeen,
+            iAccountId,
+            sFolderFullName,
+          ]
+          oStatement.run(aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'setAllMessagesSeen', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setAllMessagesSeen', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setMessageFlagged: function ({ iAccountId, sFolderFullName, sUid, bFlagged }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('UPDATE messages SET is_flagged = ? WHERE account_id = ? AND folder = ? AND uid = ?')
+          let aParams = [
+            bFlagged,
+            iAccountId,
+            sFolderFullName,
+            sUid,
+          ]
+          oStatement.run(aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'setMessageFlagged', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setMessageFlagged', sError: 'No DB connection' })
       }
     })
   },

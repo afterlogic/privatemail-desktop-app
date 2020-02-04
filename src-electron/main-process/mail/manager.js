@@ -14,7 +14,6 @@ export default {
     _.each(aChangedFolders, async function (oTmpFolder) {
       if (oTmpFolder.FullName !== sCurrentFolderFullName) {
         let bHasChanges = await foldersManager.refreshMessagesInfo(iAccountId, oTmpFolder.FullName, sApiHost, sAuthToken)
-        console.log('bHasChanges', bHasChanges, 'oTmpFolder.FullName', oTmpFolder.FullName)
       }
     })
   },
@@ -55,7 +54,6 @@ export default {
             foldersDbManager.getFolders(iAccountId).then(
               (oFolderList) => {
                 let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
-                console.log('aChangedFolders', aChangedFolders)
                 if (aChangedFolders.length > 0) {
                   foldersDbManager.setFolders({ iAccountId, oFolderList })
                   this.refreshMessagesInFolders(oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
@@ -74,7 +72,6 @@ export default {
     ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
-          console.log('_.isEmpty(oFolderList)', _.isEmpty(oFolderList), _.isEmpty({}), _.isEmpty([]))
           if (_.isEmpty(oFolderList)) {
             webApi.sendRequest({
               sApiHost,
@@ -135,7 +132,42 @@ export default {
       }
     })
 
-    ipcMain.on('db-set-messages-seen', (oEvent, { iAccountId, sFolderFullName, aUids, bIsSeen, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-delete-messages', (oEvent, { iAccountId, sFolderFullName, aUids, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'DeleteMessages',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderFullName,
+          Uids: aUids.join(','),
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-delete-messages', { bResult, oError })
+        },
+      })
+    })
+
+    ipcMain.on('mail-move-messages', (oEvent, { iAccountId, sFolderFullName, sToFolderFullName, aUids, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'MoveMessages',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderFullName,
+          ToFolder: sToFolderFullName,
+          Uids: aUids.join(','),
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-move-messages', { bResult, oError })
+        },
+      })
+    })
+
+    ipcMain.on('mail-set-messages-seen', (oEvent, { iAccountId, sFolderFullName, aUids, bIsSeen, sApiHost, sAuthToken }) => {
       let bAllMessages = !typesUtils.isNonEmptyArray(aUids)
       let sMethod = bAllMessages ? 'SetAllMessagesSeen' : 'SetMessagesSeen'
       let oParameters = {
@@ -152,17 +184,21 @@ export default {
         sModule: 'Mail',
         sMethod,
         oParameters,
-        fCallback: (oResult, oError) => {
-          if (bAllMessages) {
-            messagesDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
-          } else {
-            messagesDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
+        fCallback: (bResult, oError) => {
+          if (bResult) {
+            if (bAllMessages) {
+              messagesDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
+              foldersDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
+            } else {
+              messagesDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
+              foldersDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
+            }
           }
         },
       })
     })
 
-    ipcMain.on('db-set-messages-flagged', (oEvent, { iAccountId, sFolderFullName, sUid, bFlagged, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-set-messages-flagged', (oEvent, { iAccountId, sFolderFullName, sUid, bFlagged, sApiHost, sAuthToken }) => {
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -174,9 +210,11 @@ export default {
           Uids: sUid,
           SetAction: bFlagged,
         },
-        fCallback: (oResult, oError) => {
-          messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
-          foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+        fCallback: (bResult, oError) => {
+          if (bResult) {
+            messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+            foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+          }
         },
       })
     })

@@ -12,9 +12,6 @@ export function setSyncing (state, payload) {
 }
 
 export function setCurrentAccount (state, payload) {
-  state.allMessageLists = {}
-
-  state.messageList = null
   state.currentMessages = []
   state.totalMessagesCount = 0
   state.currentPage = 1
@@ -131,19 +128,16 @@ export function setAllMessagesRead (state) {
   state.currentFolderList.Current.UnseenCount = 0
 }
 
-export function setMessagesDeleted (state, payload) {
-  let aMessagesForDB = []
-  _.each(payload.Uids, function (sUid) {
-    let sMessageKey = messagesUtils.getMessageCacheKey(state.currentAccount.AccountID, getters.getCurrentFolderFullName(state), sUid)
-    let oMessage = state.messagesCache[sMessageKey]
-    if (oMessage) {
-      oMessage.Deleted = payload.Deleted
-      aMessagesForDB.push(oMessage)
+export function setMessagesDeleted (state, { aUids, bDeleted }) {
+  _.each(state.currentMessages, function (oMessage) {
+    if (aUids.indexOf(oMessage.Uid) >= 0) {
+      oMessage.Deleted = bDeleted
     }
-  })
-  ipcRenderer.send('db-set-messages', {
-    iAccountId: state.currentAccount.AccountID,
-    aMessages: aMessagesForDB,
+    _.each(oMessage.Threads, function (oThreadMessage) {
+      if (aUids.indexOf(oThreadMessage.Uid) >= 0) {
+        oThreadMessage.Deleted = bDeleted
+      }
+    })
   })
 }
 

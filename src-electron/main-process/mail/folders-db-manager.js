@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 let oDb = null
 
 export default {
@@ -101,17 +103,79 @@ export default {
     })
   },
 
-  setMessageFlagged: function ({ iAccountId, sFolderFullName, sUid, bFlagged }) {
-    this.getMessagesInfo({ iAccountId, sFolderFullName }).then(function (aMessagesInfo) {
-      console.log('aMessagesInfo', aMessagesInfo)
-      _.each(aMessagesInfo, function (oMessageInfo) {
-        if (oMessageInfo.uid === sUid) {
-          console.log('oMessageInfo', oMessageInfo)
-          return false // break each
-        } else {
-          // oThreadMessageInfo = _.find(oMessageInfo.)
+  setMessagesSeen: function ({ iAccountId, sFolderFullName, aUids, bIsSeen }) {
+    function _setMessageInfoSeen (oMessageInfo) {
+      if (bIsSeen) {
+        oMessageInfo.flags = _.uniq(_.union(oMessageInfo.flags, ['\\seen']))
+      } else {
+        oMessageInfo.flags = _.without(oMessageInfo.flags, '\\seen')
+      }
+    }
+
+    this.getMessagesInfo({ iAccountId, sFolderFullName }).then((aMessagesInfo) => {
+      _.each(aMessagesInfo, (oMessageInfo) => {
+        if (aUids.indexOf(oMessageInfo.uid) !== -1) {
+          _setMessageInfoSeen(oMessageInfo)
+        }
+        if (oMessageInfo.thread) {
+          _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
+            if (aUids.indexOf(oThreadMessageInfo.uid) !== -1) {
+              _setMessageInfoSeen(oThreadMessageInfo)
+            }
+          })
         }
       })
+      this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo })
+    })
+  },
+
+  setAllMessagesSeen: function ({ iAccountId, sFolderFullName, bIsSeen }) {
+    function _setMessageInfoSeen (oMessageInfo) {
+      if (bIsSeen) {
+        oMessageInfo.flags = _.uniq(_.union(oMessageInfo.flags, ['\\seen']))
+      } else {
+        oMessageInfo.flags = _.without(oMessageInfo.flags, '\\seen')
+      }
+    }
+
+    this.getMessagesInfo({ iAccountId, sFolderFullName }).then((aMessagesInfo) => {
+      _.each(aMessagesInfo, (oMessageInfo) => {
+        _setMessageInfoSeen(oMessageInfo)
+        if (oMessageInfo.thread) {
+          _.each(oMessageInfo.thread, (oThreadMessageInfo) => {
+            _setMessageInfoSeen(oThreadMessageInfo)
+          })
+        }
+      })
+      this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo })
+    })
+  },
+
+  setMessageFlagged: function ({ iAccountId, sFolderFullName, sUid, bFlagged }) {
+    function _setMessageInfoFlagged (oMessageInfo) {
+      if (bFlagged) {
+        oMessageInfo.flags = _.uniq(_.union(oMessageInfo.flags, ['\\flagged']))
+      } else {
+        oMessageInfo.flags = _.without(oMessageInfo.flags, '\\flagged')
+      }
+    }
+
+    this.getMessagesInfo({ iAccountId, sFolderFullName }).then((aMessagesInfo) => {
+      _.each(aMessagesInfo, (oMessageInfo) => {
+        if (oMessageInfo.uid === sUid) {
+          _setMessageInfoFlagged(oMessageInfo)
+          return false // break each
+        } else if (oMessageInfo.thread) {
+          let oThreadMessageInfo = _.find(oMessageInfo.thread, (oTmpThreadMessageInfo) => {
+            return oTmpThreadMessageInfo.uid === sUid
+          })
+          if (oThreadMessageInfo) {
+            _setMessageInfoFlagged(oThreadMessageInfo)
+            return false // break each
+          }
+        }
+      })
+      this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo })
     })
   },
 }

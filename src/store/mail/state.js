@@ -21,9 +21,6 @@ export default {
     Current: null,
   },
 
-  allMessageLists: {},
-  
-  messageList: null, // messages info
   currentMessages: [], // list of messages for current page
   totalMessagesCount: 0,
   currentPage: 1,

@@ -238,7 +238,9 @@ export default {
     },
     changePage (iPage) {
       if (iPage !== this.currentPage) {
-        this.$store.dispatch('mail/asyncGetMessages', { iPage })
+        this.$store.dispatch('mail/asyncGetMessages', {
+          iPage,
+        })
       }
     },
     openNewMessageCompose () {

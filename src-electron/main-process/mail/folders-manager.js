@@ -52,7 +52,7 @@ export default {
       _.each(aFoldersTree, function (oFolderFromServer) {
         let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullName]
         let oNewFolder = {
-          FullName: oFolderFromServer.FullName,
+          FullName: oFolderFromServer.FullNameRaw,
           Name: oFolderFromServer.Name,
           Type: oFolderFromServer.Type,
           Delimiter: oFolderFromServer.Delimiter,
@@ -339,13 +339,11 @@ export default {
         resolve()
       }
       else {
-        let chunk = 50
-        for (let i = 0, j = aUids.length; i < j; i += chunk) {
-          let temp = aUids.slice(i, i + chunk)
-          console.log('temp', temp)
-          await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: temp, sApiHost, sAuthToken })
+        let iChunkLen = 50
+        for (let iIndex = 0, iUidsCount = aUids.length; iIndex < iUidsCount; iIndex += iChunkLen) {
+          let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
+          await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: aUidsChunk, sApiHost, sAuthToken })
         }
-        console.log('resolve()')
         resolve()
       }
     })
@@ -427,7 +425,6 @@ export default {
           aUidsToRetrieve.push(oNewInfo.uid)
         } else {
           let oOldInfo = aAllOldMessagesInfo[iOldInfoIndex]
-          console.log('oNewInfo', oNewInfo, 'oOldInfo', oOldInfo, _.isEqual(oNewInfo.flags, oOldInfo.flags))
           if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
             aMessagesInfoToSync.push(oNewInfo)
           }
@@ -439,9 +436,6 @@ export default {
         return oMessageInfo.uid
       })
     }
-    console.log('aUidsToDelete', aUidsToDelete)
-    console.log('aMessagesInfoToSync', aMessagesInfoToSync)
-    console.log('aUidsToRetrieve', aUidsToRetrieve)
     return { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve }
   }
 }

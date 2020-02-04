@@ -132,8 +132,8 @@ export default {
     },
     deleteMessagesPermanently () {
       if (this.checkedCount > 0) {
-        this.$store.dispatch('mail/deleteMessages', {
-          'Uids': this.checkedMessagesUids,
+        this.$store.dispatch('mail/asyncDeleteMessages', {
+          aUids: this.checkedMessagesUids,
         })
       }
     },
@@ -154,9 +154,9 @@ export default {
     },
     moveMessagesToFolder (sFolder) {
       if (this.checkedCount > 0) {
-        this.$store.dispatch('mail/moveMessagesToFolder', {
-          'ToFolder': sFolder,
-          'Uids': this.checkedMessagesUids,
+        this.$store.dispatch('mail/asyncMoveMessagesToFolder', {
+          aUids: this.checkedMessagesUids,
+          sToFolderFullName: sFolder,
         })
       }
     },

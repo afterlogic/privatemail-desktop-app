@@ -188,16 +188,6 @@ ipcMain.on('db-remove-all', (oEvent) => {
   }
 })
 
-// ipcMain.on('db-set-messages', (oEvent, { iAccountId, aMessages }) => {
-//   messagesDbManager.setMessages({ iAccountId, aMessages }).then(
-//     () => {
-//     },
-//     (oResult) => {
-//       oEvent.sender.send('notification', oResult)
-//     }
-//   )
-// })
-
 mainManager.initSubscriptions()
 mailManager.initSubscriptions()
 contactsManager.initSubscriptions()

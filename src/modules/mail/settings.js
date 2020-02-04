@@ -88,7 +88,9 @@ CSettings.prototype.setMailsPerPage = function (iMailsPerPage) {
   if (iMailsPerPage !== this.iMailsPerPage) {
     this.iMailsPerPage = iMailsPerPage
     store.commit('mail/setMailsPerPage', this.iMailsPerPage)
-    store.dispatch('mail/asyncGetMessages', {})
+    store.dispatch('mail/asyncGetMessages', {
+      iPage: 1,
+    })
   }
 }
 

@@ -74,30 +74,18 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
   })
 }
 
-ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
-  if (sError || oError) {
-    notification.showError(errors.getText(oError || null, typesUtils.pString(sError)))
-  } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
-    store.commit('mail/setCurrentFilter', sFilter)
-    store.commit('mail/setCurrentSearch', { sSearch, oAdvancedSearch })
-    store.commit('mail/setCurrentFolder', sFolderFullName)
-    store.commit('mail/setCurrentPage', iPage)
-    store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
-    store.commit('mail/setCurrentMessages', aMessages)
-    let oCurrentMessage = store.getters['mail/getCurrentMessage']
-    if (oCurrentMessage && oCurrentMessage.Folder !== sFolderFullName) {
-      store.commit('mail/setCurrentMessage', null)
-    }
-  }
-})
-
 ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {
   if (store.state.mail.currentAccount) {
     if (oDbFolderList && oDbFolderList.Tree) {
       let bFirstTime = typesUtils.pInt(store.getters['mail/getCurrentFolderList'] && store.getters['mail/getCurrentFolderList'].AccountId) === 0
       let oFolderList = foldersUtils.prepareFolderListFromDb(oDbFolderList)
+      if (!bFirstTime) {
+        oFolderList.Current = oFolderList.Flat[store.state.mail.currentFolderList.Current.FullName]
+      }
       store.commit('mail/setCurrentFolderList', oFolderList)
-      store.dispatch('mail/asyncGetMessages', {})
+      store.dispatch('mail/asyncGetMessages', {
+        sFolderFullName: oFolderList.Current.FullName,
+      })
       if (bFirstTime) {
         store.dispatch('mail/asyncRefresh', true)
       }
@@ -115,15 +103,11 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
   }
 }
 
-ipcRenderer.on('mail-refresh', (event, oResult) => {
+ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError }) => {
   store.commit('mail/setSyncing', false)
-  let { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError } = oResult
   if (oError || sError) {
     notification.showError(errors.getText(oError, sError))
   } else {
-    if (bHasChangesInCurrentFolder && sFolderFullName === store.getters['mail/getCurrentFolderFullName']) {
-      store.dispatch('mail/asyncGetMessages', {})
-    }
     if (bHasChanges) {
       store.dispatch('mail/asyncGetFolderList', {})
     }
@@ -141,25 +125,72 @@ export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders)
   })
 }
 
+ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
+  if (sError || oError) {
+    store.commit('mail/setSyncing', false)
+    notification.showError(errors.getText(oError || null, typesUtils.pString(sError)))
+  } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
+    let bSameList = sFolderFullName === store.getters['mail/getCurrentFolderFullName'] &&
+                    iPage === store.getters['mail/getCurrentPage'] &&
+                    sSearch === store.getters['mail/getCurrentSearch'] &&
+                    sFilter === store.getters['mail/getCurrentFilter']
+    if (bSameList) {
+      store.commit('mail/setSyncing', false)
+      store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
+      store.commit('mail/setCurrentMessages', aMessages)
+    }
+  }
+})
+
 export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolderFullName, iPage, sSearch, sFilter }) {
+  if (typeof sFolderFullName !== 'string') {
+    sFolderFullName = getters.getCurrentFolderFullName
+  }
+  if (typeof iPage !== 'number') {
+    iPage = getters.getCurrentPage
+  }
+  if (typeof sSearch !== 'string') {
+    sSearch = getters.getCurrentSearch
+  }
+  if (typeof sFilter !== 'string') {
+    sFilter = getters.getCurrentFilter
+  }
+  let bListChanged =  sFolderFullName !== getters.getCurrentFolderFullName ||
+                      iPage !== getters.getCurrentPage ||
+                      sSearch !== getters.getCurrentSearch ||
+                      sFilter !== getters.getCurrentFilter
+  if (bListChanged) {
+    commit('setSyncing', true)
+    commit('setCurrentFilter', sFilter)
+    commit('setCurrentSearch', { sSearch, oAdvancedSearch: null })
+    commit('setCurrentFolder', sFolderFullName)
+    commit('setCurrentPage', iPage)
+    commit('setCurrentMessagesTotalCount', 0)
+    commit('setCurrentMessages', [])
+    let oCurrentMessage = getters.getCurrentMessage
+    if (oCurrentMessage) {
+      commit('setCurrentMessage', null)
+    }
+  }
   ipcRenderer.send('mail-get-messages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: (typeof sFolderFullName === 'string') ? sFolderFullName : getters.getCurrentFolderFullName,
-    iPage: (typeof iPage === 'number') ? iPage : getters.getCurrentPage,
+    sFolderFullName,
+    iPage,
     iMessagesPerPage: getters.getMessagesPerPage,
-    sSearch: (typeof sSearch === 'string') ? sSearch : getters.getCurrentSearch,
-    sFilter: (typeof sFilter === 'string') ? sFilter : getters.getCurrentFilter,
+    sSearch,
+    sFilter,
   })
 }
 
 export function setCurrentFolder ({ state, commit, dispatch, getters }, sFolderFullName) {
-  commit('setCurrentFilter', '')
-  commit('setCurrentSearch', { sSearch: '', oAdvancedSearch: null })
-  commit('setCurrentFolder', sFolderFullName)
-  commit('setCurrentPage', 1)
-  dispatch('asyncGetMessages', {})
+  dispatch('asyncGetMessages', {
+    sFolderFullName,
+    iPage: 1,
+    sSearch: '',
+    sFilter: '',
+  })
 }
 
 export function setCurrentPage ({ commit }, payload) {
@@ -178,7 +209,7 @@ export function setCurrentMessage ({ commit, dispatch }, oMessage) {
 
 export function asyncSetMessagesRead ({ state, commit, dispatch, getters }, { aUids, bIsSeen }) {
   commit('setMessagesRead', { aUids, bIsSeen })
-  ipcRenderer.send('db-set-messages-seen', {
+  ipcRenderer.send('mail-set-messages-seen', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,
@@ -190,7 +221,7 @@ export function asyncSetMessagesRead ({ state, commit, dispatch, getters }, { aU
 
 export function asyncSetAllMessagesRead ({ state, commit, dispatch, getters }) {
   commit('setAllMessagesRead')
-  ipcRenderer.send('db-set-messages-seen', {
+  ipcRenderer.send('mail-set-messages-seen', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,
@@ -199,65 +230,62 @@ export function asyncSetAllMessagesRead ({ state, commit, dispatch, getters }) {
   })
 }
 
-export function deleteMessages ({ state, commit, dispatch, getters }, payload) {
+ipcRenderer.on('mail-delete-messages', (event, { bResult, oError }) => {
+  if (bResult) {
+    store.dispatch('mail/asyncRefresh')
+  } else {
+    notification.showError(errors.getText(oError || null, 'Error occured while deleting of message(s).'))
+  }
+})
+
+export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUids }) {
   commit('setMessagesDeleted', {
-    Uids: payload.Uids,
-    Deleted: true,
+    aUids,
+    bDeleted: true,
   })
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'DeleteMessages',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, Uids: payload.Uids.join(',')},
-    fCallback: (oResult, oError) => {
-      if (oResult) {
-        // remove current message from preview pane if it was deleted
-        let oCurrentMessage = getters.getCurrentMessage
-        if (oCurrentMessage && _.indexOf(payload.Uids, oCurrentMessage.Uid) !== -1) {
-          commit('setCurrentMessage', null)
-        }
-      } else {
-        // restore deleted messages
-        commit('setMessagesDeleted', {
-          Uids: payload.Uids,
-          Deleted: false,
-        })
-      }
-      dispatch('asyncRefresh')
-    },
+  let oCurrentMessage = getters.getCurrentMessage
+  if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
+    commit('setCurrentMessage', null)
+  }
+  ipcRenderer.send('mail-delete-messages', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sFolderFullName: getters.getCurrentFolderFullName,
+    aUids,
   })
 }
 
-export function moveMessagesToFolder ({ state, commit, dispatch, getters }, payload) {
+ipcRenderer.on('mail-move-messages', (event, { bResult, oError }) => {
+  if (bResult) {
+    store.dispatch('mail/asyncRefresh')
+  } else {
+    notification.showError(errors.getText(oError || null, 'Error occured while moving of message(s).'))
+  }
+})
+
+export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters }, { aUids, sToFolderFullName }) {
   commit('setMessagesDeleted', {
-    Uids: payload.Uids,
-    Deleted: true,
+    aUids,
+    bDeleted: true,
   })
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'MoveMessages',
-    oParameters: {AccountID: state.currentAccount.AccountID, Folder: getters.getCurrentFolderFullName, ToFolder: payload.ToFolder, Uids: payload.Uids.join(',')},
-    fCallback: (oResult, oError) => {
-      if (oResult) {
-        // remove current message from preview pane if it was moved
-        let oCurrentMessage = getters.getCurrentMessage
-        if (oCurrentMessage && _.indexOf(payload.Uids, oCurrentMessage.Uid) !== -1) {
-          commit('setCurrentMessage', null)
-        }
-      } else {
-        // restore moved messages
-        commit('setMessagesDeleted', {
-          Uids: payload.Uids,
-          Deleted: false,
-        })
-      }
-      dispatch('asyncRefresh')
-    },
+  let oCurrentMessage = getters.getCurrentMessage
+  if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
+    commit('setCurrentMessage', null)
+  }
+  ipcRenderer.send('mail-move-messages', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sFolderFullName: getters.getCurrentFolderFullName,
+    sToFolderFullName,
+    aUids,
   })
 }
 
 export function asyncSetMessageFlagged ({ state, commit, dispatch, getters }, { sUid, bFlagged }) {
   commit('setMessageFlagged', { sUid, bFlagged })
-  ipcRenderer.send('db-set-messages-flagged', {
+  ipcRenderer.send('mail-set-messages-flagged', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
     iAccountId: getters.getCurrentAccountId,

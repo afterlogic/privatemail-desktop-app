@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Files</div>
+    <div class="text-h4 q-mb-md">Files settings</div>
     <q-separator spaced />
     <q-list>
       <q-item-label header>Files Table view</q-item-label>

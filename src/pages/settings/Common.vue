@@ -45,13 +45,13 @@
         <q-item-section>
           <q-btn-toggle
               v-model="iTimeFormat"
-              spread
               no-caps
               rounded
               unelevated
               toggle-color="primary"
               color="white"
               text-color="primary"
+              class="custom-toggle"
               :options="aTimeFormatList"
             />
         </q-item-section>
@@ -77,6 +77,10 @@
 </template>
 
 <style lang="scss">
+.custom-toggle {
+  border: 1px solid var(--q-color-primary);
+  align-self: flex-start;
+}
 </style>
 
 <script>

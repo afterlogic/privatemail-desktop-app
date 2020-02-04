@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Contacts</div>
+    <div class="text-h4 q-mb-md">Contacts settings</div>
     <q-separator spaced />
     <q-list style="max-width: 500px;">
       <q-item>
@@ -13,8 +13,10 @@
       </q-item>
     </q-list>
     <q-separator spaced />
-    <q-btn v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
-    <q-btn v-if="bSaving" color="primary" label="Saving..." align="right" />
+    <div class="q-pa-md">
+        <q-btn unelevated v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
+        <q-btn unelevated v-if="bSaving" color="primary" label="Saving..." align="right" />
+    </div>
   </div>
 
 </template>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Mobile sync</div>
+    <div class="text-h4 q-mb-md">Mobile sync settings</div>
     <q-separator spaced />
     <q-list>
       <q-item tag="label" v-ripple>

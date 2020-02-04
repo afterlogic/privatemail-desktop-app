@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Open PGP</div>
+    <div class="text-h4 q-mb-md">Open PGP settings</div>
     <q-separator spaced />
     <q-list>
       <q-item>

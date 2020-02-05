@@ -2,7 +2,7 @@ const electronInstaller = require('electron-winstaller')
 
 const oPackageJsonData = require('../../package.json')
 const sVersion = oPackageJsonData.version
-const sBuild = oPackageJsonData.build
+const sBuild = oPackageJsonData.buildNumber
 
 const oSettings = {
     appDirectory: '../../dist/electron/PrivateMail-win32-x64',

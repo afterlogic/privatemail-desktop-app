@@ -2,7 +2,7 @@ const createDMG = require('electron-installer-dmg')
 
 const oPackageJsonData = require('../../package.json')
 const sVersion = oPackageJsonData.version
-const sBuild = oPackageJsonData.build
+const sBuild = oPackageJsonData.buildNumber
 
 const oOptions = {
   appPath: '../../dist/electron/PrivateMail-darwin-x64/PrivateMail.app',

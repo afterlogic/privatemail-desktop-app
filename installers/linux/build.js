@@ -1,7 +1,7 @@
 const createInstaller = require('electron-installer-debian')
 
 const oOptions = {
-  src: '../../dist/electron/Private Mail-linux-x64',
+  src: '../../dist/electron/PrivateMail-linux-x64',
   dest: 'dist/',
   arch: 'amd64',
   name: 'privatemail_installer',

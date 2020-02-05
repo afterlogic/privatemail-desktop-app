@@ -2,10 +2,12 @@ const createDMG = require('electron-installer-dmg')
 
 const oPackageJsonData = require('../../package.json')
 const sVersion = oPackageJsonData.version
+const sBuild = oPackageJsonData.build
+
 const oOptions = {
-  appPath: '../../dist/electron/Private Mail-darwin-x64/Private Mail.app',
-  name: 'privatemail-' + sVersion + '-installer',
-  title: 'Private Mail',
+  appPath: '../../dist/electron/PrivateMail-darwin-x64/PrivateMail.app',
+  name: 'privatemail-' + sVersion + '(' + sBuild + ')' + '-installer',
+  title: 'PrivateMail',
   icon: '../../src-electron/icons/icon.icns',
   background: 'background.png',
   overwrite: true,

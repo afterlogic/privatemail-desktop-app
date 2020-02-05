@@ -34,19 +34,5 @@ export default {
         version: version
     }
   },
-
-  mounted () {
-    this.themeValue = this.$store.state.main.theme
-    console.log(version);
-  },
-
-  watch: {
-    '$store.state.main.theme': function (v) {
-      this.themeValue = v
-    },
-  },
-
-  methods: {
-  },
 }
 </script>

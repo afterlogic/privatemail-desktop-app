@@ -42,7 +42,7 @@
     <q-space/>
 
     <span>
-      <q-btn flat color="primary" icon="sync" :loading=mailSyncing @click="sync" />
+      <q-btn flat color="primary" icon="sync" :loading=mailSyncing @click="fullSync" />
       <q-tooltip>
         Check Mail
       </q-tooltip>
@@ -162,7 +162,13 @@ export default {
     },
     sync () {
       clearTimeout(this.iRefreshTimer)
-      this.$store.dispatch('mail/asyncRefresh')
+      if (!this.mailSyncing) {
+        this.$store.dispatch('mail/asyncRefresh')
+      }
+    },
+    fullSync () {
+      clearTimeout(this.iRefreshTimer)
+      this.$store.dispatch('mail/asyncRefresh', true)
     },
   },
 }

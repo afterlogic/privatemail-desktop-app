@@ -394,7 +394,7 @@ export default {
   setContactsInfo: function ({ sStorage, oContactsInfoFromDb, oContactsInfoFromApi }) {
     return new Promise((resolve, reject) => {
       function _deleteContactsByUuids (aUuids) {
-        let sQuestions = aUuids.map(function(){ return '(?)' }).join(',')
+        let sQuestions = aUuids.map(function(){ return '?' }).join(',')
         oDb.run('DELETE FROM contacts_info WHERE uuid IN (' + sQuestions + ')', aUuids)
         oDb.run('DELETE FROM contacts WHERE uuid IN (' + sQuestions + ')', aUuids)
       }
@@ -468,7 +468,7 @@ export default {
       if (oDb && oDb.open) {
         oDb.serialize(function() {
           let aUuids = aContacts.map(function(oContact){ return oContact.UUID })
-          let sQuestions = aUuids.map(function(){ return '(?)' }).join(',')
+          let sQuestions = aUuids.map(function(){ return '?' }).join(',')
           oDb.run('DELETE FROM contacts WHERE uuid IN (' + sQuestions + ')', aUuids)
 
           let sFieldsDbNames = _.map(aContactDbMap, function (oContactDbField) {
@@ -581,8 +581,8 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
-          let aParams = _.union([sStorage], aContactsUUIDs)
+          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
+          let aParams = ([sStorage]).concat(aContactsUUIDs)
           oDb.run('DELETE FROM contacts_info WHERE storage = ? AND uuid IN (' + sQuestions + ')', aParams)
           oDb.run('DELETE FROM contacts WHERE storage = ? AND uuid IN (' + sQuestions + ')', aParams)
           resolve()
@@ -597,13 +597,13 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
+          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
           _.each(aContacts, function (oContact) {
-            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.uniq(_.union(oContact.GroupUUIDs, [sGroupUUID]))}, _.filter(aContactDbMap, function (oContactDbMap) {
+            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.union(oContact.GroupUUIDs, [sGroupUUID])}, _.filter(aContactDbMap, function (oContactDbMap) {
               return oContactDbMap.DbName === 'group_uuids'
             }))
-            aParams = _.union(aParams, aContactsUUIDs)
+            aParams = aParams.concat(aContactsUUIDs)
             oStatement.run.apply(oStatement, aParams)
           })
           oStatement.finalize(function (oError) {
@@ -624,13 +624,13 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
+          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
           _.each(aContacts, function (oContact) {
             let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.without(oContact.GroupUUIDs, sGroupUUID)}, _.filter(aContactDbMap, function (oContactDbMap) {
               return oContactDbMap.DbName === 'group_uuids'
             }))
-            aParams = _.union(aParams, aContactsUUIDs)
+            aParams = aParams.concat(aContactsUUIDs)
             oStatement.run.apply(oStatement, aParams)
           })
           oStatement.finalize(function (oError) {
@@ -651,10 +651,10 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '(?)' }).join(',')
+          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
           let oStatement = oDb.prepare('UPDATE contacts SET storage=? WHERE uuid IN (' + sQuestions + ')')
           let sNewStorage = sStorage === 'personal' ? 'shared' : 'personal'
-          let aParams = _.union([sNewStorage], aContactsUUIDs)
+          let aParams = ([sNewStorage]).concat(aContactsUUIDs)
           oStatement.run.apply(oStatement, aParams)
           oStatement.finalize(function (oError) {
             if (oError) {

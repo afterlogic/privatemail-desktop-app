@@ -1,11 +1,6 @@
-import { ipcRenderer } from 'electron'
-import * as getters from './getters'
 import _ from 'lodash'
 
-import dateUtils from 'src/utils/date'
 import typesUtils from 'src/utils/types'
-
-import messagesUtils from './utils/messages.js'
 
 export function setSyncing (state, payload) {
   state.syncing = payload

@@ -40,7 +40,7 @@ export default {
     })
   },
 
-  setFolders: function ({iAccountId, oFolderList}) {
+  setFolders: function (iAccountId, oFolderList) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function() {
@@ -103,10 +103,25 @@ export default {
     })
   },
 
+  deleteMessagesInfo: function ({ iAccountId, sFolderFullName }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(function() {
+          let oStatement = oDb.prepare('DELETE FROM messages_info WHERE acct_id = ? AND folder_full_name = ?', iAccountId, sFolderFullName)
+          oStatement.run()
+          oStatement.finalize()
+          resolve()
+        })
+      } else {
+        reject({ sMethod: 'deleteMessagesInfo', sError: 'No DB connection' })
+      }
+    })
+  },
+
   setMessagesSeen: function ({ iAccountId, sFolderFullName, aUids, bIsSeen }) {
     function _setMessageInfoSeen (oMessageInfo) {
       if (bIsSeen) {
-        oMessageInfo.flags = _.uniq(_.union(oMessageInfo.flags, ['\\seen']))
+        oMessageInfo.flags = _.union(oMessageInfo.flags, ['\\seen'])
       } else {
         oMessageInfo.flags = _.without(oMessageInfo.flags, '\\seen')
       }
@@ -132,7 +147,7 @@ export default {
   setAllMessagesSeen: function ({ iAccountId, sFolderFullName, bIsSeen }) {
     function _setMessageInfoSeen (oMessageInfo) {
       if (bIsSeen) {
-        oMessageInfo.flags = _.uniq(_.union(oMessageInfo.flags, ['\\seen']))
+        oMessageInfo.flags = _.union(oMessageInfo.flags, ['\\seen'])
       } else {
         oMessageInfo.flags = _.without(oMessageInfo.flags, '\\seen')
       }
@@ -154,7 +169,7 @@ export default {
   setMessageFlagged: function ({ iAccountId, sFolderFullName, sUid, bFlagged }) {
     function _setMessageInfoFlagged (oMessageInfo) {
       if (bFlagged) {
-        oMessageInfo.flags = _.uniq(_.union(oMessageInfo.flags, ['\\flagged']))
+        oMessageInfo.flags = _.union(oMessageInfo.flags, ['\\flagged'])
       } else {
         oMessageInfo.flags = _.without(oMessageInfo.flags, '\\flagged')
       }

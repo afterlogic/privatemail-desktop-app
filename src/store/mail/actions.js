@@ -9,7 +9,6 @@ import webApi from 'src/utils/webApi.js'
 
 import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
-import messagesUtils from './utils/messages.js'
 import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
@@ -122,6 +121,7 @@ export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders)
     iAccountId: getters.getCurrentAccountId,
     sCurrentFolderFullName: getters.getCurrentFolderFullName,
     aFoldersToRefresh: bAllFolders ? state.currentFolderList.Names : getters.getDisplayedFolders,
+    bAllFolders,
   })
 }
 

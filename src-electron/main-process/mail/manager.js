@@ -10,11 +10,17 @@ import messagesManager from './messages-manager.js'
 import messagesDbManager from './messages-db-manager.js'
 
 export default {
-  refreshMessagesInNotCurrentFolders: async function (oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+  _refreshMessagesInNotCurrentFolders: async function (iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
     _.each(aChangedFolders, async function (oTmpFolder) {
       if (oTmpFolder.FullName !== sCurrentFolderFullName) {
-        let bHasChanges = await foldersManager.refreshMessagesInfo(iAccountId, oTmpFolder.FullName, sApiHost, sAuthToken)
+        await foldersManager.refreshMessagesInfo(iAccountId, oTmpFolder.FullName, sApiHost, sAuthToken)
       }
+    })
+  },
+
+  _deleteFoldersInformation: async function (iAccountId, aFoldersToDelete) {
+    _.each(aFoldersToDelete, async function (oTmpFolder) {
+      await foldersDbManager.deleteMessagesInfo({ iAccountId, sFolderFullName: oTmpFolder.FullName })
     })
   },
 
@@ -26,7 +32,7 @@ export default {
       foldersManager.refreshMessagesInfo(iAccountId, sCurrentFolderFullName, sApiHost, sAuthToken).then(
         (bHasChangesInCurrentFolder) => {
           oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder, sFolderFullName: sCurrentFolderFullName })
-          this.refreshMessagesInNotCurrentFolders(oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+          this._refreshMessagesInNotCurrentFolders(iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
         },
         (oResult) => {
           oEvent.sender.send('mail-refresh', oResult)
@@ -37,36 +43,84 @@ export default {
     }
   },
 
-  initSubscriptions: function () {
-    ipcMain.on('mail-refresh', (oEvent, { iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken }) => {
-      webApi.sendRequest({
-        sApiHost,
-        sAuthToken,
-        sModule: 'Mail',
-        sMethod: 'GetRelevantFoldersInformation',
-        oParameters: {
-          AccountID: iAccountId,
-          Folders: aFoldersToRefresh,
-          UseListStatusIfPossible: true,
-        },
-        fCallback: (oResult, oError) => {
-          if (oResult && oResult.Counts) {
-            foldersDbManager.getFolders(iAccountId).then(
-              (oFolderList) => {
-                let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
-                if (aChangedFolders.length > 0) {
-                  foldersDbManager.setFolders({ iAccountId, oFolderList })
-                  this.refreshMessagesInFolders(oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
-                } else {
-                  oEvent.sender.send('mail-refresh', { bHasChanges: false, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
-                }
+  _refreshFolderTreeFromServer: function (oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken) {
+    webApi.sendRequest({
+      sApiHost,
+      sAuthToken,
+      sModule: 'Mail',
+      sMethod: 'GetFolders',
+      oParameters: { AccountID: iAccountId },
+      fCallback: (oResult, oError) => {
+        if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
+          foldersDbManager.getFolders(iAccountId).then(
+            (oFolderListFromDb) => {
+              let aFoldersToRetrieve = []
+              let aFoldersToDelete = []
+              let oFlatFoldersFromDb = oFolderListFromDb && oFolderListFromDb.Tree ? foldersManager.getFlatFolders(oFolderListFromDb.Tree) : {}
+              let oNewFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFoldersFromDb, aFoldersToRetrieve, aFoldersToDelete)
+              foldersDbManager.setFolders(iAccountId, oNewFolderList).then(
+                () => {
+                  this._refreshMessagesInNotCurrentFolders(iAccountId, aFoldersToRetrieve, '', sApiHost, sAuthToken)
+                  this._deleteFoldersInformation(iAccountId, aFoldersToDelete)
+                  this._refreshFoldersInformationFromServer(oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
+                },
+                () => {
+                  this._refreshFoldersInformationFromServer(oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
+                },
+              )
+            },
+            (oResult) => {
+              this._refreshFoldersInformationFromServer(oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
+            }
+          )
+        } else {
+          this._refreshFoldersInformationFromServer(oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
+        }
+      },
+    })
+  },
+
+  _refreshFoldersInformationFromServer: function (oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken) {
+    webApi.sendRequest({
+      sApiHost,
+      sAuthToken,
+      sModule: 'Mail',
+      sMethod: 'GetRelevantFoldersInformation',
+      oParameters: {
+        AccountID: iAccountId,
+        Folders: aFoldersToRefresh,
+        UseListStatusIfPossible: true,
+      },
+      fCallback: (oResult, oError) => {
+        if (oResult && oResult.Counts) {
+          foldersDbManager.getFolders(iAccountId).then(
+            (oFolderList) => {
+              let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
+              if (aChangedFolders.length > 0) {
+                foldersDbManager.setFolders(iAccountId, oFolderList)
+                this.refreshMessagesInFolders(oEvent, iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+              } else {
+                oEvent.sender.send('mail-refresh', { bHasChanges: false, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
               }
-            )
-          } else {
-            oEvent.sender.send('mail-refresh', { oError })
-          }
-        },
-      })
+            },
+            (oResult) => {
+              oEvent.sender.send('mail-refresh', oResult)
+            }
+          )
+        } else {
+          oEvent.sender.send('mail-refresh', { oError })
+        }
+      },
+    })
+  },
+
+  initSubscriptions: function () {
+    ipcMain.on('mail-refresh', (oEvent, { iAccountId, aFoldersToRefresh, sCurrentFolderFullName, bAllFolders, sApiHost, sAuthToken }) => {
+      if (bAllFolders) {
+        this._refreshFolderTreeFromServer(oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
+      } else {
+        this._refreshFoldersInformationFromServer(oEvent, iAccountId, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
+      }
     })
 
     ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
@@ -81,8 +135,8 @@ export default {
               oParameters: { AccountID: iAccountId },
               fCallback: (oResult, oError) => {
                 if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
-                  let oFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, {})
-                  foldersDbManager.setFolders({ iAccountId, oFolderList })
+                  let oFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, {}, [], [])
+                  foldersDbManager.setFolders(iAccountId, oFolderList)
                   oEvent.sender.send('mail-get-folders', oFolderList)
                 } else {
                   oEvent.sender.send('mail-get-folders', { oError })

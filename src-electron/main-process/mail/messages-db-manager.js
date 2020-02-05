@@ -182,7 +182,7 @@ export default {
               aParams,
               function (oError, aRows) {
                 if (oError) {
-                  reject({ sMethod: 'getMessages', oError })
+                  reject({ sMethod: 'getFilteredMessages', oError })
                 } else {
                   let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
                   resolve({ aMessages, iTotalCount, oAdvancedSearch })
@@ -194,7 +194,7 @@ export default {
           }
         })
       } else {
-        reject({ sMethod: 'getMessages', sError: 'No DB connection' })
+        reject({ sMethod: 'getFilteredMessages', sError: 'No DB connection' })
       }
     })
   },
@@ -208,14 +208,14 @@ export default {
   
           let sQuestions = aUids.map(() => { return '?' }).join(',')
           aWhere.push('uid IN (' + sQuestions + ')')
-          aParams = _.union(aParams, aUids)
+          aParams = aParams.concat(aUids)
 
           oDb.all(
             'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
             aParams,
             (oError, aRows) => {
               if (oError) {
-                reject({ sMethod: 'getMessages', oError })
+                reject({ sMethod: 'getMessagesByUids', oError })
               } else {
                 let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
                 resolve(aMessages)
@@ -223,10 +223,10 @@ export default {
             }
           )
         } else {
-          reject({ sMethod: 'getMessages', sError: 'No UIDs to retrieve' })
+          reject({ sMethod: 'getMessagesByUids', sError: 'No UIDs to retrieve' })
         }
       } else {
-        reject({ sMethod: 'getMessages', sError: 'No DB connection' })
+        reject({ sMethod: 'getMessagesByUids', sError: 'No DB connection' })
       }
     })
   },
@@ -257,8 +257,8 @@ export default {
         oDb.serialize(() => {
           let sFolderFullName = typesUtils.isNonEmptyArray(aMessages) ? aMessages[0].Folder : ''
           let aUids = aMessages.map(function (oMessage) { return oMessage.Uid })
-          let sQuestions = aUids.map(function () { return '(?)' }).join(',')
-          let aParams = _.union([iAccountId, sFolderFullName], aUids)
+          let sQuestions = aUids.map(function () { return '?' }).join(',')
+          let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
           oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
             if (oError) {
               reject({ sMethod: 'setMessages', oError })
@@ -409,8 +409,8 @@ export default {
       }
       else if (oDb && oDb.open) {
         oDb.serialize(() => {
-          let sQuestions = aUids.map(function () { return '(?)' }).join(',')
-          let aParams = _.union([iAccountId, sFolderFullName], aUids)
+          let sQuestions = aUids.map(function () { return '?' }).join(',')
+          let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
           oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
             if (oError) {
               reject({ sMethod: 'deleteMessages', oError })

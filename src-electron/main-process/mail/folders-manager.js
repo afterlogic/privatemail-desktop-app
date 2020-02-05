@@ -37,27 +37,38 @@ function _getIconName (sType, sFolderFullName) {
 }
 
 export default {
-  prepareFolderListFromServer: function (iAccountId, sNamespace, oFolderListFromServer, oOldFoldersByNames) {
-    let oNewFoldersFlat = {}
-    let aNewFoldersNames = []
-    let oInbox = null
-    let oSent = null
-    let oDrafts = null
-    let oSpam = null
-    let oTrash = null
+  getFlatFolders: function (oFolderList) {
+    let oFlatFolders = {}
 
+    function _recursive(aFoldersTree) {
+      _.each(aFoldersTree, function (oFolder) {
+        oFlatFolders[oFolder.FullName] = oFolder
+
+        if (oFolder.SubFolders && oFolder.SubFolders) {
+          _recursive(oFolder.SubFolders)
+        }
+      })
+    }
+
+    _recursive(oFolderList)
+
+    return oFlatFolders
+  },
+
+  prepareFolderListFromServer: function (iAccountId, sNamespace, oFolderListFromServer, oOldFoldersByNames, aFoldersToRetrieve, aFoldersToDelete) {
     function _recursive(aFoldersTree) {
       let aNewFoldersTree = []
       let bHasSubscribed = false
       _.each(aFoldersTree, function (oFolderFromServer) {
-        let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullName]
+        let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullNameRaw]
+        delete oOldFoldersByNames[oFolderFromServer.FullNameRaw]
         let oNewFolder = {
           FullName: oFolderFromServer.FullNameRaw,
           Name: oFolderFromServer.Name,
           Type: oFolderFromServer.Type,
           Delimiter: oFolderFromServer.Delimiter,
-          Namespaced: oFolderFromServer.FullName + oFolderFromServer.Delimiter === sNamespace,
-          IconName: _getIconName(oFolderFromServer.Type, oFolderFromServer.FullName),
+          Namespaced: oFolderFromServer.FullNameRaw + oFolderFromServer.Delimiter === sNamespace,
+          IconName: _getIconName(oFolderFromServer.Type, oFolderFromServer.FullNameRaw),
           IsSubscribed: oFolderFromServer.IsSubscribed,
           IsSelectable: oFolderFromServer.IsSelectable,
           Exists: oFolderFromServer.Exists,
@@ -65,7 +76,7 @@ export default {
           Count: oOldFolder ? oOldFolder.Count : 0,
           UnseenCount: oOldFolder ? oOldFolder.UnseenCount : 0,
           NextUid: oOldFolder ? oOldFolder.NextUid : '',
-          Hash: oOldFolder ? oOldFolder.Hash : oFolderFromServer.FullName,
+          Hash: oOldFolder ? oOldFolder.Hash : oFolderFromServer.FullNameRaw,
         }
 
         oNewFolder.SubFolders = []
@@ -77,27 +88,10 @@ export default {
         }
         bHasSubscribed = bHasSubscribed || oNewFolder.Exists && oNewFolder.IsSubscribed || oNewFolder.HasSubscribed
 
-        switch (oNewFolder.Type) {
-          case mailEnums.FolderType.Inbox:
-            oInbox = oNewFolder
-            break
-          case mailEnums.FolderType.Sent:
-            oSent = oNewFolder
-            break
-          case mailEnums.FolderType.Drafts:
-            oDrafts = oNewFolder
-            break
-          case mailEnums.FolderType.Spam:
-            oSpam = oNewFolder
-            break
-          case mailEnums.FolderType.Trash:
-            oTrash = oNewFolder
-            break
+        if (!oOldFolder) {
+          aFoldersToRetrieve.push(oNewFolder)
         }
-      
         aNewFoldersTree.push(oNewFolder)
-        oNewFoldersFlat[oNewFolder.FullName] = oNewFolder
-        aNewFoldersNames.push(oNewFolder.FullName)
       })
 
       return {
@@ -108,23 +102,15 @@ export default {
 
     let aResultNewFoldersData = _recursive(oFolderListFromServer['@Collection'])
 
-    oInbox.HasChanges = true
+    _.each(oOldFoldersByNames, function (oFolderToDelete) {
+      aFoldersToDelete.push(oFolderToDelete)
+    })
 
     return {
       AccountId: iAccountId,
       Namespace: sNamespace,
       Count: oFolderListFromServer['@Count'] || 0,
       Tree: aResultNewFoldersData.Tree,
-      Flat: oNewFoldersFlat,
-      Names: aNewFoldersNames,
-
-      Inbox: oInbox,
-      Sent: oSent,
-      Drafts: oDrafts,
-      Spam: oSpam,
-      Trash: oTrash,
-
-      Current: oInbox,
     }
   },
 
@@ -156,7 +142,7 @@ export default {
       })
     }
 
-    _recursive(oFolderList.Tree)
+    _recursive(oFolderList && oFolderList.Tree || {})
 
     return aChangedFolders
   },
@@ -174,7 +160,7 @@ export default {
       })
       return oFoundFolder
     }
-    return _recursive(oFolderList.Tree)
+    return _recursive(oFolderList && oFolderList.Tree || {})
   },
 
   getMessagesInfo: function ({ iAccountId, sFolderFullName, sApiHost, sAuthToken }) {
@@ -385,11 +371,13 @@ export default {
     return new Promise((resolve, reject) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
-          let oFolder = this.getFolder(oFolderList, sFolderFullName)
-          if (oFolder) {
-            oFolder.HasChanges = false
+          if (oFolderList && oFolderList.Tree) {
+            let oFolder = this.getFolder(oFolderList, sFolderFullName)
+            if (oFolder) {
+              oFolder.HasChanges = false
+            }
+            foldersDbManager.setFolders(iAccountId, oFolderList).then(resolve, reject)
           }
-          foldersDbManager.setFolders({iAccountId, oFolderList}).then(resolve, reject)
         },
         reject
       )
@@ -400,10 +388,10 @@ export default {
     let aAllThreadsInfo = []
     _.each(aMessagesInfo, (oMessageInfo) => {
       if (_.isArray(oMessageInfo.thread)) {
-        aAllThreadsInfo = _.union(aAllThreadsInfo, oMessageInfo.thread)
+        aAllThreadsInfo = aAllThreadsInfo.concat(oMessageInfo.thread)
       }
     })
-    return _.union(aMessagesInfo, aAllThreadsInfo)
+    return aMessagesInfo.concat(aAllThreadsInfo)
   },
   
   _updateMessagesInfo: function (aOldMessagesInfo, aNewMessagesInfo) {

@@ -24,7 +24,7 @@
           {{ shortDate }}
         </q-item-label>
 
-        <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" text-color="white" size="sm" :color="message.ThreadHasUnread ? 'primary-dark': 'primary'">
+        <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" text-color="white" size="sm" :color="message.ThreadHasUnread ? 'primary': 'primary-dark'">
           {{message.Threads.length}}
           <q-tooltip v-if="!threadOpened && !message.ThreadHasUnread">
             Unfold thread

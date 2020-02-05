@@ -385,13 +385,16 @@ export default {
   },
 
   _getAllMessagesInfo: function (aMessagesInfo) {
-    let aAllThreadsInfo = []
-    _.each(aMessagesInfo, (oMessageInfo) => {
-      if (_.isArray(oMessageInfo.thread)) {
-        aAllThreadsInfo = aAllThreadsInfo.concat(oMessageInfo.thread)
-      }
-    })
-    return aMessagesInfo.concat(aAllThreadsInfo)
+    if (_.isArray(aMessagesInfo)) {
+      let aAllThreadsInfo = []
+      _.each(aMessagesInfo, (oMessageInfo) => {
+        if (_.isArray(oMessageInfo.thread)) {
+          aAllThreadsInfo = aAllThreadsInfo.concat(oMessageInfo.thread)
+        }
+      })
+      return aMessagesInfo.concat(aAllThreadsInfo)
+    }
+    return []
   },
   
   _updateMessagesInfo: function (aOldMessagesInfo, aNewMessagesInfo) {

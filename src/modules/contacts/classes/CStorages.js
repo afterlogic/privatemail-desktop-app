@@ -27,9 +27,10 @@ function CStorages() {
 CStorages.prototype.parse = function (mData) {
   if (_.isArray(mData)) {
     this.storages = mData
+    let aDisplayedStorages = this.getList()
     let sCurrentStorage = this.currentStorage
     if (this.storages.length > 0) {
-      if (this.storages.length > 1) {
+      if (aDisplayedStorages.length > 1) {
         this.storages.push('all')
       }
       if (_.indexOf(this.storages, this.currentStorage) === -1) {

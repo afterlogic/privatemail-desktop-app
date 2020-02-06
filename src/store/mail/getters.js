@@ -1,6 +1,10 @@
 
-export function getSyncing (state) {
-  return state.syncing
+export function getFoldersSyncing (state) {
+  return state.foldersSyncing
+}
+
+export function getMessagesSyncing (state) {
+  return state.messagesSyncing
 }
 
 export function getCurrentAccount (state) {

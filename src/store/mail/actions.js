@@ -103,7 +103,7 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
 }
 
 ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError }) => {
-  store.commit('mail/setSyncing', false)
+  store.commit('mail/setFoldersSyncing', false)
   if (oError || sError) {
     notification.showError(errors.getText(oError, sError))
   } else {
@@ -114,20 +114,22 @@ ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder
 })
 
 export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders) {
-  commit('setSyncing', true)
-  ipcRenderer.send('mail-refresh', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sCurrentFolderFullName: getters.getCurrentFolderFullName,
-    aFoldersToRefresh: bAllFolders ? state.currentFolderList.Names : getters.getDisplayedFolders,
-    bAllFolders,
-  })
+  if (store.getters['user/isAuthorized']) {
+    commit('setFoldersSyncing', true)
+    ipcRenderer.send('mail-refresh', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      iAccountId: getters.getCurrentAccountId,
+      sCurrentFolderFullName: getters.getCurrentFolderFullName,
+      aFoldersToRefresh: bAllFolders ? state.currentFolderList.Names : getters.getDisplayedFolders,
+      bAllFolders,
+    })
+  }
 }
 
 ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
   if (sError || oError) {
-    store.commit('mail/setSyncing', false)
+    store.commit('mail/setMessagesSyncing', false)
     notification.showError(errors.getText(oError || null, typesUtils.pString(sError)))
   } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
     let bSameList = sFolderFullName === store.getters['mail/getCurrentFolderFullName'] &&
@@ -135,7 +137,7 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
                     sSearch === store.getters['mail/getCurrentSearch'] &&
                     sFilter === store.getters['mail/getCurrentFilter']
     if (bSameList) {
-      store.commit('mail/setSyncing', false)
+      store.commit('mail/setMessagesSyncing', false)
       store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
       store.commit('mail/setCurrentMessages', aMessages)
     }
@@ -143,45 +145,49 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
 })
 
 export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolderFullName, iPage, sSearch, sFilter }) {
-  if (typeof sFolderFullName !== 'string') {
-    sFolderFullName = getters.getCurrentFolderFullName
-  }
-  if (typeof iPage !== 'number') {
-    iPage = getters.getCurrentPage
-  }
-  if (typeof sSearch !== 'string') {
-    sSearch = getters.getCurrentSearch
-  }
-  if (typeof sFilter !== 'string') {
-    sFilter = getters.getCurrentFilter
-  }
-  let bListChanged =  sFolderFullName !== getters.getCurrentFolderFullName ||
-                      iPage !== getters.getCurrentPage ||
-                      sSearch !== getters.getCurrentSearch ||
-                      sFilter !== getters.getCurrentFilter
-  if (bListChanged) {
-    commit('setSyncing', true)
-    commit('setCurrentFilter', sFilter)
-    commit('setCurrentSearch', { sSearch, oAdvancedSearch: null })
-    commit('setCurrentFolder', sFolderFullName)
-    commit('setCurrentPage', iPage)
-    commit('setCurrentMessagesTotalCount', 0)
-    commit('setCurrentMessages', [])
-    let oCurrentMessage = getters.getCurrentMessage
-    if (oCurrentMessage) {
-      commit('setCurrentMessage', null)
+  if (store.getters['user/isAuthorized']) {
+    if (typeof sFolderFullName !== 'string') {
+      sFolderFullName = getters.getCurrentFolderFullName
+    }
+    if (typeof iPage !== 'number') {
+      iPage = getters.getCurrentPage
+    }
+    if (typeof sSearch !== 'string') {
+      sSearch = getters.getCurrentSearch
+    }
+    if (typeof sFilter !== 'string') {
+      sFilter = getters.getCurrentFilter
+    }
+    let bListChanged =  sFolderFullName !== getters.getCurrentFolderFullName ||
+                        iPage !== getters.getCurrentPage ||
+                        sSearch !== getters.getCurrentSearch ||
+                        sFilter !== getters.getCurrentFilter
+    if (typesUtils.isNonEmptyString(sFolderFullName)) {
+      if (bListChanged) {
+        commit('setMessagesSyncing', true)
+        commit('setCurrentFilter', sFilter)
+        commit('setCurrentSearch', { sSearch, oAdvancedSearch: null })
+        commit('setCurrentFolder', sFolderFullName)
+        commit('setCurrentPage', iPage)
+        commit('setCurrentMessagesTotalCount', 0)
+        commit('setCurrentMessages', [])
+        let oCurrentMessage = getters.getCurrentMessage
+        if (oCurrentMessage) {
+          commit('setCurrentMessage', null)
+        }
+      }
+      ipcRenderer.send('mail-get-messages', {
+        sApiHost: store.getters['main/getApiHost'],
+        sAuthToken: store.getters['user/getAuthToken'],
+        iAccountId: getters.getCurrentAccountId,
+        sFolderFullName,
+        iPage,
+        iMessagesPerPage: getters.getMessagesPerPage,
+        sSearch,
+        sFilter,
+      })
     }
   }
-  ipcRenderer.send('mail-get-messages', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName,
-    iPage,
-    iMessagesPerPage: getters.getMessagesPerPage,
-    sSearch,
-    sFilter,
-  })
 }
 
 export function setCurrentFolder ({ state, commit, dispatch, getters }, sFolderFullName) {

@@ -163,7 +163,7 @@ export default {
             oEvent.sender.send('mail-get-messages', oResult)
           }
         )
-      } else {
+      } else if (typesUtils.isNonEmptyString(sFolderFullName)) {
         foldersManager.getMessagesInfo({ iAccountId, sFolderFullName, sApiHost, sAuthToken }).then(
           (aMessagesInfo) => {
             if (_.isArray(aMessagesInfo)) {
@@ -183,6 +183,8 @@ export default {
             oEvent.sender.send('mail-get-messages', oResult)
           }
         )
+      } else {
+        oEvent.sender.send('mail-get-messages', { sError: 'The folder is empty.' })
       }
     })
 

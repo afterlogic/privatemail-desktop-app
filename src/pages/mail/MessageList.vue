@@ -10,9 +10,9 @@
         <div class="pannel-hint">Unread messages in {{ folderName }} folder:</div>
       </template>
       <template v-if="messages.length === 0">
-        <div class="pannel-hint" v-if="!syncing && currentFilter === '' && currentSearch === ''">The folder is empty</div>
-        <div class="pannel-hint" v-if="!syncing && (currentFilter !== '' || currentSearch !== '')">No message found</div>
-        <div class="pannel-hint" v-if="syncing">Loading message list...</div>
+        <div class="pannel-hint" v-if="!mailSyncing && currentFilter === '' && currentSearch === ''">The folder is empty</div>
+        <div class="pannel-hint" v-if="!mailSyncing && (currentFilter !== '' || currentSearch !== '')">No message found</div>
+        <div class="pannel-hint" v-if="mailSyncing">Loading message list...</div>
       </template>
     </template>
     <MessageListItem v-for="message in messages" :key="message.Uid" :message="message" />
@@ -43,8 +43,8 @@ export default {
     messages () {
       return this.$store.getters['mail/getCurrentMessages']
     },
-    syncing () {
-      return this.$store.getters['mail/getSyncing']
+    mailSyncing () {
+      return this.$store.getters['mail/getFoldersSyncing'] || this.$store.getters['mail/getMessagesSyncing']
     },
     currentFilter () {
       return this.$store.getters['mail/getCurrentFilter']

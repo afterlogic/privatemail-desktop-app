@@ -2,8 +2,12 @@ import _ from 'lodash'
 
 import typesUtils from 'src/utils/types'
 
-export function setSyncing (state, payload) {
-  state.syncing = payload
+export function setFoldersSyncing (state, payload) {
+  state.foldersSyncing = payload
+}
+
+export function setMessagesSyncing (state, payload) {
+  state.messagesSyncing = payload
 }
 
 export function setCurrentAccount (state, payload) {

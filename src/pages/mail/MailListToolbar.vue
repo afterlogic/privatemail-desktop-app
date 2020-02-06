@@ -93,8 +93,14 @@ export default {
   },
 
   computed: {
+    isAuthorized () {
+      return this.$store.getters['user/isAuthorized']
+    },
+    foldersSyncing () {
+      return this.$store.getters['mail/getFoldersSyncing']
+    },
     mailSyncing () {
-      return this.$store.getters['mail/getSyncing']
+      return this.$store.getters['mail/getFoldersSyncing'] || this.$store.getters['mail/getMessagesSyncing']
     },
     checkedCount () {
       return this.checkedMessagesUids.length
@@ -108,10 +114,13 @@ export default {
   },
 
   watch: {
-    mailSyncing () {
-      if (!this.mailSyncing) {
-        if (coreSettings.iAutoRefreshIntervalMinutes > 0) {
-          clearTimeout(this.iRefreshTimer)
+    isAuthorized () {
+      clearTimeout(this.iRefreshTimer)
+    },
+    foldersSyncing () {
+      if (coreSettings.iAutoRefreshIntervalMinutes > 0) {
+        clearTimeout(this.iRefreshTimer)
+        if (!this.foldersSyncing) {
           this.iRefreshTimer = setTimeout(this.sync, coreSettings.iAutoRefreshIntervalMinutes * 60000)
         }
       }

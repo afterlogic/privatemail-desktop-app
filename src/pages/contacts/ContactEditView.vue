@@ -517,17 +517,21 @@ export default {
         notification.showReport('The contact has not been changed.')
         this.closeEditContact()
       } else {
-        this.bSaving = true
         let oContactToSave = _.cloneDeep(this.oContact)
         oContactToSave.setViewEmail()
         if (!typesUtils.isNonEmptyString(oContactToSave.Storage)) {
           oContactToSave.Storage = 'personal' // creating contact is allowed only for personal storage
         }
-        ipcRenderer.send('contacts-save-contact', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          oContactToSave,
-        })
+        if (!typesUtils.isNonEmptyString(oContactToSave.ViewEmail) && !typesUtils.isNonEmptyString(oContactToSave.FullName)) {
+          notification.showError('At least email address or display name must be set.')
+        } else {
+          this.bSaving = true
+          ipcRenderer.send('contacts-save-contact', {
+            sApiHost: this.$store.getters['main/getApiHost'],
+            sAuthToken: this.$store.getters['user/getAuthToken'],
+            oContactToSave,
+          })
+        }
       }
     },
     closeEditContact() {

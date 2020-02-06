@@ -201,7 +201,7 @@ export default {
                     }
                   )
                 } else {
-                  reject({ sMethod: 'getMessagesInfo', oError })
+                  reject({ sMethod: 'getMessagesInfo', oError, sError: 'No messages info was given from server for "' + sFolderFullName + '" folder' })
                 }
               },
             })

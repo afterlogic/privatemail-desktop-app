@@ -41,7 +41,7 @@ export default {
       return oCurrentAccount ? oCurrentAccount.Email : 'Mail'
     },
     showTabsbar () {
-      return this.isAuthorized && this.mailHeader !== 'Mail'
+      return this.isAuthorized // && this.mailHeader !== 'Mail'
     },
   },
 

@@ -12,10 +12,10 @@
                 <folder-list />
               </q-scroll-area>
             </div>
-            <div class="col-auto q-pa-md items-center">
+            <!-- <div class="col-auto q-pa-md items-center">
               <q-btn flat no-caps label="Manage folders" class="full-width"/>
               <q-btn flat no-caps label="Clear all user data" @click="clearAllUserData" class="full-width"/>
-            </div>
+            </div> -->
           </div>
         </template>
 
@@ -259,13 +259,13 @@ export default {
     destroySubscriptions () {
       this.$root.$off('message-checked', this.onMessageChecked)
     },
-    clearAllUserData () {
-      let sApiHost = this.$store.getters['main/getApiHost']
-      ipcRenderer.send('db-remove-all')
-      ipcRenderer.send('logout', { sApiHost })
-      this.$store.dispatch('main/clearAll')
-      this.$router.push({ path: '/login' })
-    },
+    // clearAllUserData () {
+    //   let sApiHost = this.$store.getters['main/getApiHost']
+    //   ipcRenderer.send('db-remove-all')
+    //   ipcRenderer.send('logout', { sApiHost })
+    //   this.$store.dispatch('main/clearAll')
+    //   this.$router.push({ path: '/login' })
+    // },
   },
 
   mounted: function () {

@@ -10,9 +10,9 @@ import contacts from './contacts/index.js'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  plugins: [createPersistedState({
-    paths: ['user', 'main', 'contacts'],
-  })],
+  // plugins: [createPersistedState({
+  //   paths: ['user', 'main', 'contacts'],
+  // })],
   modules: {
     main,
     user,

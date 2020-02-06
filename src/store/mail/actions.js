@@ -28,6 +28,10 @@ export function asyncGetSettings ({ commit, dispatch }, fGetSettingsCallback) {
         if (mailSettings.bAllowIdentities) {
           dispatch('asyncGetIdentities')
         }
+        ipcRenderer.send('contacts-refresh', {
+          sApiHost: store.getters['main/getApiHost'],
+          sAuthToken: store.getters['user/getAuthToken'],
+        })
       }
       if (_.isFunction(fGetSettingsCallback)) {
         fGetSettingsCallback(oError)

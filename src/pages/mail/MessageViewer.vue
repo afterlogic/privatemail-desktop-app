@@ -131,7 +131,8 @@
             </div>
           </div>
           <div class="row items-center q-pa-xs" style="clear: both;">
-            <div class="col subject text-h5">{{message.Subject}}</div>
+            <div class="col text-h5" v-if="message.Subject">{{message.Subject}}</div>
+            <div class="col text-h5 nodata" v-else>No subject</div>
             <div class="col-auto date" v-if="!showDetails">{{ middleDate }}</div>
           </div>
         </div>

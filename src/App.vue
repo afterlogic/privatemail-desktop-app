@@ -124,11 +124,11 @@ export default {
 	}
 }
 
-.q-item {
-  .nodata {
-    color: #b9b9b9;
-  }
+.nodata {
+  color: #b9b9b9;
+}
 
+.q-item {
   &.checked {
     background: var(--q-color-t-selection-alt);
 

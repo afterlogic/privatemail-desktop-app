@@ -13,7 +13,7 @@ export default {
   _refreshMessagesInNotCurrentFolders: async function (iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
     _.each(aChangedFolders, async function (oTmpFolder) {
       if (oTmpFolder.FullName !== sCurrentFolderFullName) {
-        await foldersManager.refreshMessagesInfo(iAccountId, oTmpFolder.FullName, sApiHost, sAuthToken)
+        await foldersManager.refreshMessagesInfo(iAccountId, oTmpFolder.FullName, oTmpFolder.Type, sApiHost, sAuthToken)
       }
     })
   },
@@ -29,7 +29,7 @@ export default {
       return oTmpFolder.FullName === sCurrentFolderFullName
     })
     if (oCurrentFolder) {
-      foldersManager.refreshMessagesInfo(iAccountId, sCurrentFolderFullName, sApiHost, sAuthToken).then(
+      foldersManager.refreshMessagesInfo(iAccountId, sCurrentFolderFullName, oCurrentFolder.Type, sApiHost, sAuthToken).then(
         (bHasChangesInCurrentFolder) => {
           oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder, sFolderFullName: sCurrentFolderFullName })
           this._refreshMessagesInNotCurrentFolders(iAccountId, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
@@ -153,7 +153,7 @@ export default {
       )
     })
 
-    ipcMain.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, sFilter, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, iFolderType, iPage, iMessagesPerPage, sSearch, sFilter, sApiHost, sAuthToken }) => {
       if (typesUtils.isNonEmptyString(sSearch) || typesUtils.isNonEmptyString(sFilter)) {
         messagesDbManager.getFilteredMessages({ iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, sFilter }).then(
           ({ aMessages, iTotalCount, oAdvancedSearch }) => {
@@ -164,7 +164,7 @@ export default {
           }
         )
       } else if (typesUtils.isNonEmptyString(sFolderFullName)) {
-        foldersManager.getMessagesInfo({ iAccountId, sFolderFullName, sApiHost, sAuthToken }).then(
+        foldersManager.getMessagesInfo({ iAccountId, sFolderFullName, iFolderType, sApiHost, sAuthToken }).then(
           (aMessagesInfo) => {
             if (_.isArray(aMessagesInfo)) {
               messagesManager.getMessagesWithThreads({ iAccountId, sFolderFullName, iPage, iMessagesPerPage, aMessagesInfo, sApiHost, sAuthToken }).then(

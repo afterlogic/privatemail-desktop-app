@@ -176,11 +176,15 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
           commit('setCurrentMessage', null)
         }
       }
+
+      let oFolder = getters.getFolderByFullName(sFolderFullName)
+
       ipcRenderer.send('mail-get-messages', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
         iAccountId: getters.getCurrentAccountId,
         sFolderFullName,
+        iFolderType: oFolder.Type,
         iPage,
         iMessagesPerPage: getters.getMessagesPerPage,
         sSearch,

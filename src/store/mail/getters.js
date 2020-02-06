@@ -94,6 +94,12 @@ export function getInboxFullName (state) {
   return state.currentFolderList.Inbox ? state.currentFolderList.Inbox.FullName : ''
 }
 
+export function getFolderByFullName (state) {
+  return function (sFolderFullName) {
+    return state.currentFolderList.Flat[sFolderFullName]
+  }
+}
+
 export function getDisplayedFolders (state) {
   let aDisplayedFolders = _.filter(state.currentFolderList.Flat, function (oFolder) {
     return oFolder.Exists && oFolder.IsSelectable && oFolder.IsSubscribed

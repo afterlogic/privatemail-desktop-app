@@ -163,16 +163,21 @@ export default {
     return _recursive(oFolderList && oFolderList.Tree || {})
   },
 
-  getMessagesInfo: function ({ iAccountId, sFolderFullName, sApiHost, sAuthToken }) {
+  _getUseThreadingForFolder: function (iFolderType) {
+    let bUseThreading = true
+    if (iFolderType === mailEnums.FolderType.Drafts || iFolderType === mailEnums.FolderType.Spam || iFolderType === mailEnums.FolderType.Trash) {
+      bUseThreading = false
+    }
+    return bUseThreading
+  },
+
+  getMessagesInfo: function ({ iAccountId, sFolderFullName, iFolderType, sApiHost, sAuthToken }) {
     return new Promise((resolve, reject) => {
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfo) => {
           if (_.isArray(aMessagesInfo)) {
             resolve(aMessagesInfo)
           } else {
-            let bDrafts = sFolderFullName.toLowerCase() === 'drafts'
-            let bSpam = sFolderFullName.toLowerCase() === 'spam'
-            let bTrash = sFolderFullName.toLowerCase() === 'trash'
             webApi.sendRequest({
               sApiHost,
               sAuthToken,
@@ -181,7 +186,7 @@ export default {
               oParameters: {
                 AccountID: iAccountId,
                 Folder: sFolderFullName,
-                UseThreading: (bDrafts || bSpam || bTrash) ? false : true,
+                UseThreading: this._getUseThreadingForFolder(iFolderType),
                 SortBy: 'arrival',
                 SortOrder: 1,
                 Search: '',
@@ -209,13 +214,10 @@ export default {
     })
   },
 
-  refreshMessagesInfo: function (iAccountId, sFolderFullName, sApiHost, sAuthToken) {
+  refreshMessagesInfo: function (iAccountId, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
     return new Promise((resolve, reject) => {
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfoFromDb) => {
-            let bDrafts = sFolderFullName.toLowerCase() === 'drafts'
-            let bSpam = sFolderFullName.toLowerCase() === 'spam'
-            let bTrash = sFolderFullName.toLowerCase() === 'trash'
             webApi.sendRequest({
               sApiHost,
               sAuthToken,
@@ -224,7 +226,7 @@ export default {
               oParameters: {
                 AccountID: iAccountId,
                 Folder: sFolderFullName,
-                UseThreading: (bDrafts || bSpam || bTrash) ? false : true,
+                UseThreading: this._getUseThreadingForFolder(iFolderType),
                 SortBy: 'arrival',
                 SortOrder: 1,
                 Search: '',

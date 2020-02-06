@@ -76,8 +76,11 @@ export function setCurrentFilter (state, sFilter) {
   state.currentFilter = typesUtils.pString(sFilter)
 }
 
-export function setCurrentSearch (state, { sSearch, oAdvancedSearch }) {
+export function setCurrentSearch (state, sSearch) {
   state.currentSearch = typesUtils.pString(sSearch)
+}
+
+export function setCurrentAdvancedSearch (state, oAdvancedSearch) {
   state.currentAdvancedSearch = oAdvancedSearch
 }
 

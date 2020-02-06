@@ -140,6 +140,7 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
       store.commit('mail/setMessagesSyncing', false)
       store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
       store.commit('mail/setCurrentMessages', aMessages)
+      store.commit('mail/setCurrentAdvancedSearch', oAdvancedSearch)
     }
   }
 })
@@ -166,7 +167,7 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       if (bListChanged) {
         commit('setMessagesSyncing', true)
         commit('setCurrentFilter', sFilter)
-        commit('setCurrentSearch', { sSearch, oAdvancedSearch: null })
+        commit('setCurrentSearch', sSearch)
         commit('setCurrentFolder', sFolderFullName)
         commit('setCurrentPage', iPage)
         commit('setCurrentMessagesTotalCount', 0)

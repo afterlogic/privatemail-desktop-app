@@ -487,6 +487,8 @@ export default {
       dialog: false,
       maximizedToggle: false,
 
+      allowInsertImage: false,
+
       sending: false, // indicates if sending is happening right now
       allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
 
@@ -532,9 +534,6 @@ export default {
   },
 
   computed: {
-    allowInsertImage () {
-      return mailSettings.bAllowInsertImage
-    },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
     },
@@ -945,6 +944,7 @@ export default {
       }
     },
     openCompose ({ aDraftInfo, sDraftUid, aToContacts, sToAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+      this.allowInsertImage = mailSettings.bAllowInsertImage
       this.setSelectedIdentity()
 
       if (typesUtils.isNonEmptyString(sToAddr)) {

@@ -118,12 +118,14 @@ ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder
 })
 
 export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders) {
-  if (store.getters['user/isAuthorized']) {
+  let oCurrentAccount = getters.getCurrentAccount
+  if (store.getters['user/isAuthorized'] && oCurrentAccount) {
     commit('setFoldersSyncing', true)
     ipcRenderer.send('mail-refresh', {
       sApiHost: store.getters['main/getApiHost'],
       sAuthToken: store.getters['user/getAuthToken'],
-      iAccountId: getters.getCurrentAccountId,
+      iAccountId: oCurrentAccount.AccountID,
+      bUseThreading: oCurrentAccount.UseThreading,
       sCurrentFolderFullName: getters.getCurrentFolderFullName,
       aFoldersToRefresh: bAllFolders ? state.currentFolderList.Names : getters.getDisplayedFolders,
       bAllFolders,
@@ -150,7 +152,8 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
 })
 
 export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolderFullName, iPage, sSearch, sFilter }) {
-  if (store.getters['user/isAuthorized']) {
+  let oCurrentAccount = getters.getCurrentAccount
+  if (store.getters['user/isAuthorized'] && oCurrentAccount) {
     if (typeof sFolderFullName !== 'string') {
       sFolderFullName = getters.getCurrentFolderFullName
     }
@@ -187,7 +190,8 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       ipcRenderer.send('mail-get-messages', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
-        iAccountId: getters.getCurrentAccountId,
+        iAccountId: oCurrentAccount.AccountID,
+        bUseThreading: oCurrentAccount.UseThreading,
         sFolderFullName,
         iFolderType: oFolder.Type,
         iPage,

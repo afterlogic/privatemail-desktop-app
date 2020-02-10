@@ -171,7 +171,7 @@ export default {
     return bUseThreading
   },
 
-  getMessagesInfo: function ({ iAccountId, sFolderFullName, iFolderType, sApiHost, sAuthToken }) {
+  getMessagesInfo: function ({ iAccountId, bUseThreading, sFolderFullName, iFolderType, sApiHost, sAuthToken }) {
     return new Promise((resolve, reject) => {
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfo) => {
@@ -186,7 +186,7 @@ export default {
               oParameters: {
                 AccountID: iAccountId,
                 Folder: sFolderFullName,
-                UseThreading: this._getUseThreadingForFolder(iFolderType),
+                UseThreading: bUseThreading && this._getUseThreadingForFolder(iFolderType),
                 SortBy: 'arrival',
                 SortOrder: 1,
                 Search: '',
@@ -214,7 +214,7 @@ export default {
     })
   },
 
-  refreshMessagesInfo: function (iAccountId, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
+  refreshMessagesInfo: function (iAccountId, bUseThreading, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
     return new Promise((resolve, reject) => {
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfoFromDb) => {
@@ -226,7 +226,7 @@ export default {
               oParameters: {
                 AccountID: iAccountId,
                 Folder: sFolderFullName,
-                UseThreading: this._getUseThreadingForFolder(iFolderType),
+                UseThreading: bUseThreading && this._getUseThreadingForFolder(iFolderType),
                 SortBy: 'arrival',
                 SortOrder: 1,
                 Search: '',

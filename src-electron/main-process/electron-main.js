@@ -106,8 +106,11 @@ function createWindow () {
     },
   })
   
-  mainWindow.removeMenu(); 
-  // mainWindow.setMemu(null);
+  // doesn't work on Mac
+  // Check this ELECTRON_FORCE_WINDOW_MENU_BAR on Linux
+  if (process.env.PROD) {
+	mainWindow.removeMenu(); 
+  }
 
   mainWindow.loadURL(process.env.APP_URL)
 

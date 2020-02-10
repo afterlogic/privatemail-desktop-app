@@ -269,6 +269,7 @@ export default {
   },
 
   mounted: function () {
+    this.searchInputText = this.searchText
     this.initSubscriptions()
     let bAuthorized = this.$store.getters['user/isAuthorized']
     if (!this.currentAccount && bAuthorized) {

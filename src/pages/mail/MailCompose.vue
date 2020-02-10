@@ -355,7 +355,7 @@
                             thumbnail
                             class="gt-xs"
                           >
-                            <img :src="attach.sThumbnailLink">
+                            <img :src="sApiHost + '/' + attach.sThumbnailLink">
                           </q-item-section>
 
                           <q-item-section top side>
@@ -468,7 +468,7 @@ import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 import webApi from 'src/utils/webApi'
 
-import CAttachment from 'src/modules/mail/classes/CAttachment.js'
+import cAttachment from 'src/modules/mail/classes/cAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
 import mailSettings from 'src/modules/mail/settings.js'
 
@@ -534,6 +534,9 @@ export default {
   },
 
   computed: {
+    sApiHost () {
+      return this.$store.getters['main/getApiHost']
+    },
     currentFolderList () {
       return this.$store.getters['mail/getCurrentFolderList']
     },
@@ -988,10 +991,9 @@ export default {
       this.attachments = []
       if (typesUtils.isNonEmptyArray(aAttachments)) {
         let aHashes = []
-        let sApiHost = this.$store.getters['main/getApiHost']
         _.each(aAttachments, (oAttachData) => {
-          let oAttach = new CAttachment()
-          oAttach.parseDataFromServer(oAttachData, sApiHost)
+          let oAttach = new cAttachment()
+          oAttach.parseDataFromServer(oAttachData, this.sApiHost)
           this.attachments.push(oAttach)
           if (typesUtils.isNonEmptyString(oAttach.sHash)) {
             aHashes.push(oAttach.sHash)
@@ -999,7 +1001,7 @@ export default {
         })
         if (aHashes.length > 0) {
           webApi.sendRequest({
-            sApiHost,
+            sApiHost: this.sApiHost,
             sModule: 'Mail',
             sMethod: 'SaveAttachmentsAsTempFiles',
             oParameters: {
@@ -1024,7 +1026,7 @@ export default {
           })
         } else if (typesUtils.isNonEmptyString(aAttachments[0].Content)) {
           webApi.sendRequest({
-            sApiHost,
+            sApiHost: this.sApiHost,
             sModule: 'Core',
             sMethod: 'SaveContentAsTempFile',
             oParameters: aAttachments[0],
@@ -1035,7 +1037,7 @@ export default {
                   if (oResult.Size === 0) {
                     oResult.Size = aAttachments[0].Content.length
                   }
-                  oAttach.parseDataFromServer(oResult, sApiHost)
+                  oAttach.parseDataFromServer(oResult, this.sApiHost)
                   oAttach.onUploadComplete()
                 }
               } else {
@@ -1045,7 +1047,7 @@ export default {
           })
         } else if (typesUtils.isNonEmptyString(aAttachments[0].ContactUUID)) {
           webApi.sendRequest({
-            sApiHost,
+            sApiHost: this.sApiHost,
             sModule: 'Contacts',
             sMethod: 'SaveContactAsTempFile',
             oParameters: { 'UUID': aAttachments[0].ContactUUID, 'FileName': aAttachments[0].FileName },
@@ -1053,7 +1055,7 @@ export default {
               if (oResult) {
                 let oAttach = this.attachments[0]
                 if (oAttach) {
-                  oAttach.parseDataFromServer(oResult, sApiHost)
+                  oAttach.parseDataFromServer(oResult, this.sApiHost)
                   oAttach.onUploadComplete()
                 }
               } else {
@@ -1110,7 +1112,7 @@ export default {
       this.$refs.insertImageDropdown.hide()
     },
     uploaderFactory () {
-      let url = this.$store.getters['main/getApiHost'] + '?/Api/'
+      let url = this.sApiHost + '/?/Api/'
       let sAuthToken = this.$store.getters['user/getAuthToken']
       let headers = []
       if (sAuthToken) {
@@ -1133,7 +1135,7 @@ export default {
     onImageFileAdded (files) {
       if (typesUtils.isNonEmptyArray(files)) {
         _.each(files, (oFile) => {
-          let oAttach = new CAttachment()
+          let oAttach = new cAttachment()
           oAttach.parseUploaderFile(oFile, true)
           this.attachments.push(oAttach)
         })
@@ -1142,7 +1144,7 @@ export default {
     onFileAdded (files) {
       if (typesUtils.isNonEmptyArray(files)) {
         _.each(files, (oFile) => {
-          let oAttach = new CAttachment()
+          let oAttach = new cAttachment()
           oAttach.parseUploaderFile(oFile, false)
           this.attachments.push(oAttach)
         })

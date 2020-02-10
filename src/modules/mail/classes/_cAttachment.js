@@ -1,7 +1,32 @@
 import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 
-function CAttachment () {
+let aViewMimeTypes = [
+  'image/jpeg', 'image/png', 'image/gif',
+  'text/html', 'text/plain', 'text/css',
+  'text/rfc822-headers', 'message/delivery-status',
+  'application/x-httpd-php', 'application/javascript'
+]
+let bAllowPdf = false
+if (bAllowPdf) {
+  aViewMimeTypes.push('application/pdf')
+  aViewMimeTypes.push('application/x-pdf')
+}
+
+let aViewExtensions = []
+
+function _getFileExtension (sFile) {
+  let sResult = ''
+  let iIndex = sFile.lastIndexOf('.')
+
+  if (iIndex > -1) {
+    sResult = sFile.substr(iIndex + 1)
+  }
+
+  return sResult
+}
+
+function cAttachment () {
   this.bInline = false
   this.bLinked = false
   this.bUploadFailed = false
@@ -12,6 +37,7 @@ function CAttachment () {
   this.sContent = ''
   this.sContentLocation = ''
   this.sDownloadLink = ''
+  this.sExtension = ''
   this.sFileName = ''
   this.sHash = ''
   this.iMimePartIndex = 0
@@ -22,11 +48,11 @@ function CAttachment () {
   this.sViewLink = ''
 }
 
-CAttachment.prototype.getFriendlySize = function () {
+cAttachment.prototype.getFriendlySize = function () {
   return textUtils.getFriendlySize(this.iSize)
 }
 
-CAttachment.prototype.getProgressPercent = function () {
+cAttachment.prototype.getProgressPercent = function () {
   if (this.oFile) {
     this.iProgressPercent = Math.ceil(this.oFile.__progress * 100)
     return this.iProgressPercent
@@ -34,7 +60,7 @@ CAttachment.prototype.getProgressPercent = function () {
   return this.iProgressPercent
 }
 
-CAttachment.prototype.getStatus = function () {
+cAttachment.prototype.getStatus = function () {
   let iProgressPercent = this.getProgressPercent()
   if (iProgressPercent === 100) {
     if (this.bUploadFailed) {
@@ -48,7 +74,7 @@ CAttachment.prototype.getStatus = function () {
   return 'Uploading'
 }
 
-CAttachment.prototype.parseUploaderFile = function (oFile, bLinked) {
+cAttachment.prototype.parseUploaderFile = function (oFile, bLinked) {
   this.bInline = bLinked
   this.bLinked = bLinked
   this.iProgressPercent = 0
@@ -62,19 +88,10 @@ CAttachment.prototype.parseUploaderFile = function (oFile, bLinked) {
   this.sType = typesUtils.pString(oFile.type, this.sType)
 }
 
-CAttachment.prototype.parseDataFromServer = function (oAttach, sApiHost) {
+cAttachment.prototype.parseDataFromServer = function (oAttach, sApiHost) {
   let sDownloadLink = typesUtils.pString(oAttach.Actions && oAttach.Actions.download && oAttach.Actions.download.url, this.sDownloadLink)
-  if (typesUtils.isNonEmptyString(sDownloadLink)) {
-    sDownloadLink = sApiHost + '/' + sDownloadLink
-  }
   let sThumbnailLink = typesUtils.pString(oAttach.ThumbnailUrl, this.sThumbnailUrl)
-  if (typesUtils.isNonEmptyString(sThumbnailLink)) {
-    sThumbnailLink = sApiHost + '/' + sThumbnailLink
-  }
   let sViewLink = typesUtils.pString(oAttach.Actions && oAttach.Actions.view && oAttach.Actions.view.url, this.sViewLink)
-  if (typesUtils.isNonEmptyString(sViewLink)) {
-    sViewLink = sApiHost + '/' + sViewLink
-  }
   this.bInline = typesUtils.pBool(oAttach.IsInline, this.bInline)
   this.bLinked = typesUtils.pBool(oAttach.IsLinked, this.bLinked)
   this.iSize = typesUtils.pInt(oAttach.Size || oAttach.EstimatedSize, this.iSize)
@@ -82,27 +99,32 @@ CAttachment.prototype.parseDataFromServer = function (oAttach, sApiHost) {
   this.sContent = typesUtils.pString(oAttach.Content, this.sContent)
   this.sContentLocation = typesUtils.pString(oAttach.ContentLocation, this.sContentLocation)
   this.sDownloadLink = sDownloadLink
+  this.sExtension = _getFileExtension(this.sFileName)
   this.sFileName = typesUtils.pString(oAttach.FileName, this.sFileName)
   this.sHash = typesUtils.pString(oAttach.Hash, this.sHash)
   this.iMimePartIndex = typesUtils.pInt(oAttach.MimePartIndex, this.iMimePartIndex)
   this.sTempName = typesUtils.pString(oAttach.TempName, this.sTempName)
   this.sThumbnailLink = sThumbnailLink
   this.sType = typesUtils.pString(oAttach.MimeType, this.sType)
-  this.sViewLink = sViewLink
+  let bViewSupported = (-1 !== _.indexOf(aViewMimeTypes, this.sType) || -1 !== _.indexOf(aViewExtensions, this.sExtension))
+  console.log('bViewSupported', bViewSupported, 'this.sType', this.sType, 'sExtension', this.sExtension)
+  if (bViewSupported) {
+    this.sViewLink = sViewLink
+  }
 }
 
-CAttachment.prototype.onUploadComplete = function () {
+cAttachment.prototype.onUploadComplete = function () {
   this.bUploadFailed = false
   this.iProgressPercent = 100
 }
 
-CAttachment.prototype.onUploadFailed = function () {
+cAttachment.prototype.onUploadFailed = function () {
   this.bUploadFailed = true
   this.iProgressPercent = 100
 }
 
-CAttachment.prototype.setTempName = function (sTempName) {
+cAttachment.prototype.setTempName = function (sTempName) {
   this.sTempName = typesUtils.pString(sTempName, this.sTempName)
 }
 
-export default CAttachment
+export default cAttachment

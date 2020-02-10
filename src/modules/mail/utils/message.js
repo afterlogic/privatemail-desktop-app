@@ -103,7 +103,7 @@ export default {
     let
       fFindAttachmentByCid = function (sCid) {
         return _.find(aAttachments, function (oAttachment) {
-          return oAttachment.CID === sCid
+          return oAttachment.sCid === sCid
         })
       },
       sResHtml = sHtml
@@ -115,8 +115,8 @@ export default {
     if (aFoundCids.length > 0) {
       _.each(aFoundCids, function (sFoundCid) {
         let oAttachment = fFindAttachmentByCid(sFoundCid)
-        if (oAttachment && oAttachment.Actions.view && oAttachment.Actions.view.url.length > 0) {
-          sResHtml = sResHtml.replace(new RegExp('data-x-src-cid="' + sFoundCid + '"', 'g'), 'data-x-src-cid="' + sFoundCid + '" src="' + sAppPath + oAttachment.Actions.view.url + '"')
+        if (oAttachment && typesUtils.isNonEmptyString(oAttachment.sViewLink)) {
+          sResHtml = sResHtml.replace(new RegExp('data-x-src-cid="' + sFoundCid + '"', 'g'), 'data-x-src-cid="' + sFoundCid + '" src="' + sAppPath + oAttachment.sViewLink + '"')
         }
       })
     }

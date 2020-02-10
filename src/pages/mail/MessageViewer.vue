@@ -154,18 +154,31 @@
           <div class="q-pa-md" v-html="text"></div>
         </q-scroll-area>
       </div>
-      <div class="col-auto attachments-panel" v-if="message.HasAttachments && message.Attachments && message.Attachments['@Collection']">
-        <q-item class="attachment-item" v-for="attach in message.Attachments['@Collection']" :key="attach.Hash" v-show="!attach.IsLinked">
+      <div class="col-auto attachments-panel" v-if="message.HasAttachments && aAttachments.length > 0">
+        <q-item class="attachment-item" v-for="attach in aAttachments" :key="attach.sHash" v-show="!attach.bLinked">
           <q-item-section avatar>
             <q-icon name="insert_drive_file" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{attach.FileName}}</q-item-label>
-            <q-item-label caption>{{attach.FriendlySize}}</q-item-label>
+            <q-item-label>{{attach.sFileName}}</q-item-label>
+            <q-item-label caption>{{attach.getFriendlySize()}}</q-item-label>
           </q-item-section>
-          <q-item-section side>
-            <q-btn flat icon="get_app" color="primary" v-if="attach.Actions && attach.Actions.download && attach.Actions.download.url"
-              @click="download(attach.Actions.download.url, attach.FileName)"></q-btn>
+          <q-item-section v-if="attach.sThumbnailLink" class="thumbnail-section" side>
+            <img :src="sApiHost + '/' + attach.sThumbnailLink">
+          </q-item-section>
+          <q-item-section side class="actions-section">
+            <q-btn flat icon="visibility" color="primary"
+              v-if="attach.sViewLink"
+              @click="viewAttach(attach.sViewLink, attach.sFileName)"
+            >
+              <q-tooltip>View</q-tooltip>
+            </q-btn>
+            <q-btn flat icon="get_app" color="primary"
+              v-if="attach.sDownloadLink"
+              @click="downloadAttach(attach.sDownloadLink, attach.sFileName)"
+            >
+              <q-tooltip>Download</q-tooltip>
+            </q-btn>
           </q-item-section>
           <q-separator />
         </q-item>
@@ -192,8 +205,19 @@
 <style lang="scss" scoped>
 .attachments-panel {
   background: #fafafa;
+  max-height: 200px;
+  overflow: auto;
   .attachment-item {
     border-bottom: 1px solid #eee;
+
+    .thumbnail-section {
+      max-width: 80px;
+      margin-right: 24px;
+    }
+
+    .actions-section {
+      margin-right: -14px;
+    }
 
     .q-item__section--avatar {
       color: #777;
@@ -226,6 +250,7 @@ import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
 
+import cAttachment from 'src/modules/mail/classes/cAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
 import messageUtils from 'src/modules/mail/utils/message.js'
 import mailEnums from 'src/modules/mail/enums.js'
@@ -255,6 +280,8 @@ export default {
       isDecrypted: false,
       decryptReport: '',
       showDetails: false,
+
+      aAttachments: [],
     }
   },
 
@@ -263,6 +290,9 @@ export default {
   },
 
   computed: {
+    sApiHost () {
+      return this.$store.getters['main/getApiHost']
+    },
     message () {
       return this.$store.getters['mail/getCurrentMessage']
     },
@@ -307,16 +337,14 @@ export default {
     message: function () {
       this.clearAll()
       this.populateMessageData()
-      if (this.message && this.message.Attachments && this.message.Attachments['@Collection']) {
-        _.each(this.message.Attachments['@Collection'], function (oAttach) {
-          oAttach.FriendlySize = textUtils.getFriendlySize(oAttach.EstimatedSize)
-        })
-      }
     },
   },
 
   methods: {
-    download: function (sDownloadUrl, sFileName) {
+    viewAttach: function (sViewUrl, sFileName) {
+      webApi.viewByUrlInNewWindow(sViewUrl, sFileName)
+    },
+    downloadAttach: function (sDownloadUrl, sFileName) {
       webApi.downloadByUrl(sDownloadUrl, sFileName)
     },
     sendQuickReply: function () {
@@ -386,10 +414,20 @@ export default {
     },
     populateMessageData: function () {
       let sText = ''
+      this.aAttachments = []
       if (this.message) {
+        if (this.message.Attachments && this.message.Attachments['@Collection']) {
+          let aAttachments = []
+          _.each(this.message.Attachments['@Collection'], (oAttachData) => {
+            let oAttach = new cAttachment()
+            oAttach.parseDataFromServer(oAttachData, this.sApiHost)
+            aAttachments.push(oAttach)
+          })
+          this.aAttachments = aAttachments
+        }
         if (this.message.Html) {
-          if (this.message.Attachments && this.message.Attachments['@Collection']) {
-            sText = messageUtils.prepareInlinePictures( this.message.Html, this.message.Attachments['@Collection'], this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
+          if (this.aAttachments && this.aAttachments.length > 0) {
+            sText = messageUtils.prepareInlinePictures( this.message.Html, this.aAttachments, this.message.FoundedCIDs, this.$store.getters['main/getApiHost'])
           } else {
             sText = this.message.Html
           }

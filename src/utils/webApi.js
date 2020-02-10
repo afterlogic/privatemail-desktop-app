@@ -70,6 +70,11 @@ export default {
       })
   },
 
+  viewByUrlInNewWindow: function (sViewUrl, sFileName) {
+    let url = store.getters['main/getApiHost'] + '/' + sViewUrl
+    window.open(url, sFileName)
+  },
+
   downloadByUrl: function (sDownloadUrl, sFileName) {
     let url = store.getters['main/getApiHost'] + '/' + sDownloadUrl
 

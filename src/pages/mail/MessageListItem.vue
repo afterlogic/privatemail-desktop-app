@@ -123,9 +123,9 @@ export default {
           oComposeParams = {
             aDraftInfo: this.message.DraftInfo,
             sDraftUid: this.message.Uid,
-            sToAddr: messageUtils.getFullAddress(this.message.To),
-            sCcAddr: messageUtils.getFullAddress(this.message.Cc),
-            sBccAddr: messageUtils.getFullAddress(this.message.Bcc),
+            aToContacts: messageUtils.getContactsToSend(this.message.To),
+            aCcContacts: messageUtils.getContactsToSend(this.message.Cc),
+            aBccContacts: messageUtils.getContactsToSend(this.message.Bcc),
             sSubject: this.message.Subject,
             sText: this.message.Html ? this.message.Html : this.message.Plain,
             bPlainText: !this.message.Html && !!this.message.Plain,

@@ -69,6 +69,21 @@ export default {
     return sReSubject
   },
 
+  getContactsToSend: function (oAddressesFromServer) {
+    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+
+    let aContacts = _.map(aCollection, function (oAddress) {
+      return {
+        full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
+        email: oAddress.Email,
+        name: oAddress.DisplayName,
+        id: 'rand_' + Math.round(Math.random() * 10000),
+      }
+    })
+
+    return aContacts
+  },
+
   getFullAddress: function (oAddressesFromServer) {
     let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
 

@@ -107,7 +107,6 @@ cAttachment.prototype.parseDataFromServer = function (oAttach, sApiHost) {
   this.sThumbnailLink = sThumbnailLink
   this.sType = typesUtils.pString(oAttach.MimeType, this.sType)
   let bViewSupported = (-1 !== _.indexOf(aViewMimeTypes, this.sType) || -1 !== _.indexOf(aViewExtensions, this.sExtension))
-  console.log('bViewSupported', bViewSupported, 'this.sType', this.sType, 'sExtension', this.sExtension)
   if (bViewSupported) {
     this.sViewLink = sViewLink
   }

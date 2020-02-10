@@ -12,7 +12,6 @@ let aContactDbMap = [
   {Name: 'ParentUUID', DbName: 'parent_uuid', Type: 'TEXT'},
   {Name: 'Storage', DbName: 'storage', Type: 'TEXT'},
   {Name: 'FullName', DbName: 'full_name', Type: 'TEXT'},
-  {Name: 'UseFriendlyName', DbName: 'use_friendly_name', Type: 'INTEGER', IsBool: true},
   {Name: 'PrimaryEmail', DbName: 'primary_email', Type: 'INTEGER'},
   {Name: 'PrimaryPhone', DbName: 'primary_phone', Type: 'INTEGER'},
   {Name: 'PrimaryAddress', DbName: 'primary_address', Type: 'INTEGER'},

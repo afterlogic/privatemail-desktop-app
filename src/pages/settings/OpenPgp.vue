@@ -324,7 +324,14 @@ export default {
       this.viewKeysDialog = true
     },
     sendKeys () {
-      this.openCompose({ aAttachments: [{ FileName: this.viewKeysFileName, Content: this.viewKeysValue }] })
+      this.openCompose({
+        aAttachments: [
+          {
+            FileName: this.viewKeysFileName,
+            Content: this.viewKeysValue,
+          }
+        ],
+      })
     },
     downloadKeys () {
       let oBlob = new Blob([this.viewKeysValue], {type: 'text/plain'})

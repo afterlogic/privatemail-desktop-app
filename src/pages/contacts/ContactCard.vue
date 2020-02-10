@@ -245,7 +245,15 @@ export default {
     sendThisContact () {
       let aFull = _.compact([this.contact.FullName, this.contact.ViewEmail])
       let sFileName = 'contact-' + aFull.join(' ') + '.vcf'
-      this.openCompose({ aAttachments: [{ FileName: sFileName, ContactUUID: this.contact.UUID }] })
+      this.openCompose({
+        aAttachments:
+        [
+          {
+            FileName: sFileName,
+            ContactUUID: this.contact.UUID,
+          }
+        ],
+      })
       if (this.$refs.cardPopup) {
         this.$refs.cardPopup.hide()
       }

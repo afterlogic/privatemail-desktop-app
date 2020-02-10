@@ -19,16 +19,15 @@ let Settings = {
  * @param {Object} oFetcherOrIdentity
  * @return {string}
  */
-function _getReplyAllCcAddr(oMessage, oCurrentAccount, oFetcherOrIdentity) {
+function _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity) {
   let
-    aToCollection = oMessage.To && _.isArray(oMessage.To['@Collection']) ? oMessage.To['@Collection'] : [],
-    aCcCollection = oMessage.Cc && _.isArray(oMessage.Cc['@Collection']) ? oMessage.Cc['@Collection'] : [],
-    aBccCollection = oMessage.Bcc && _.isArray(oMessage.Bcc['@Collection']) ? oMessage.Bcc['@Collection'] : [],
-    aAddrCollection = _.filter(_.union(aToCollection, aCcCollection, aBccCollection), function (oAddress) {
-      return oCurrentAccount.Email !== oAddress.Email && (!oFetcherOrIdentity || oFetcherOrIdentity.Email !== oAddress.Email)
+    aToContacts = oMessage.To && _.isArray(oMessage.To['@Collection']) ? messageUtils.getContactsToSend(oMessage.To) : [],
+    aCcContacts = oMessage.Cc && _.isArray(oMessage.Cc['@Collection']) ? messageUtils.getContactsToSend(oMessage.Cc) : [],
+    aBccContacts = oMessage.Bcc && _.isArray(oMessage.Bcc['@Collection']) ? messageUtils.getContactsToSend(oMessage.Bcc) : [],
+    aAllContacts = _.filter(_.union(aToContacts, aCcContacts, aBccContacts), function (oAddress) {
+      return oCurrentAccount.Email !== oAddress.email && (!oFetcherOrIdentity || oFetcherOrIdentity.Email !== oAddress.email)
     })
-
-  return messageUtils.getFullAddress({ '@Collection': aAddrCollection })
+  return aAllContacts
 }
 
 export default {
@@ -299,20 +298,19 @@ export default {
       oReplyData = {
         aDraftInfo: [],
         sDraftUid: '',
-        sToAddr: '',
-        sCcAddr: '',
-        sBccAddr: '',
+        aToContacts: [],
+        aCcContacts: [],
+        aBccContacts: [],
         sSubject: '',
         sText: '',
         aAttachments: [],
         sInReplyTo: oMessage.MessageId,
         sReferences: this.getReplyReferences(oMessage),
       },
-      sToAddr = messageUtils.getFullAddress(oMessage.ReplyTo),
-      sTo = messageUtils.getFullAddress(oMessage.To)
+      oReplyTo = oMessage.ReplyTo
 
-    if (sToAddr === '' || messageUtils.getFirstAddressEmail(oMessage.From) === messageUtils.getFirstAddressEmail(oMessage.ReplyTo) && messageUtils.getFirstAddressName(oMessage.ReplyTo) === '') {
-      sToAddr = messageUtils.getFullAddress(oMessage.From)
+    if (!oReplyTo || !typesUtils.isNonEmptyArray(oReplyTo['@Collection'])) {
+      oReplyTo = oMessage.From
     }
 
     // if (!sReplyText || sReplyText === '') {
@@ -324,8 +322,8 @@ export default {
       oReplyData.sText = sReplyText + this.getForwardMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity)
     } else if (sReplyType === mailEnums.ReplyType.Resend) {
       oReplyData.sText = sOrigText
-      oReplyData.sCcAddr = messageUtils.getFullAddress(oMessage.Cc)
-      oReplyData.sBccAddr = messageUtils.getFullAddress(oMessage.Bcc)
+      oReplyData.aCcContacts = messageUtils.getContactsToSend(oMessage.Cc)
+      oReplyData.aBccContacts = messageUtils.getContactsToSend(oMessage.Bcc)
     } else {
       oReplyData.sText = sReplyText + this.getReplyMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
     }
@@ -340,7 +338,7 @@ export default {
     switch (sReplyType) {
       case mailEnums.ReplyType.Reply:
         oReplyData.aDraftInfo = [mailEnums.ReplyType.Reply, oMessage.Uid, oMessage.Folder]
-        oReplyData.sToAddr = sToAddr
+        oReplyData.aToContacts = messageUtils.getContactsToSend(oReplyTo)
         oReplyData.sSubject = this.getReplySubject(oMessage.Subject, true)
         if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
           oReplyData.aAttachments = _.filter(oMessage.Attachments['@Collection'], function (oAttachData) {
@@ -350,8 +348,8 @@ export default {
         break
       case mailEnums.ReplyType.ReplyAll:
         oReplyData.aDraftInfo = [mailEnums.ReplyType.ReplyAll, oMessage.Uid, oMessage.Folder]
-        oReplyData.sToAddr = sToAddr
-        oReplyData.sCcAddr = _getReplyAllCcAddr(oMessage, oCurrentAccount, oFetcherOrIdentity)
+        oReplyData.aToContacts = messageUtils.getContactsToSend(oReplyTo)
+        oReplyData.aCcContacts = _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity)
         oReplyData.sSubject = this.getReplySubject(oMessage.Subject, true)
         if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
           oReplyData.aAttachments = _.filter(oMessage.Attachments['@Collection'], function (oAttachData) {
@@ -361,7 +359,7 @@ export default {
         break
       case mailEnums.ReplyType.Resend:
         oReplyData.aDraftInfo = [mailEnums.ReplyType.Resend, oMessage.Uid, oMessage.Folder, oMessage.Cc, oMessage.Bcc]
-        oReplyData.sToAddr = sTo
+        oReplyData.aToContacts = messageUtils.getContactsToSend(oMessage.To)
         oReplyData.sSubject = oMessage.Subject
         if (oMessage.Attachments && _.isArray(oMessage.Attachments['@Collection'])) {
           oReplyData.aAttachments = oMessage.Attachments['@Collection']

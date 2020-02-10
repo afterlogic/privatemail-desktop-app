@@ -168,7 +168,6 @@
                           </q-item>
                         </template>
                       </q-select>
-                      <!-- <q-input dense outlined v-model="ccAddr" :disable="disableRecipients" style="width: 100%;" /> -->
                     </q-item-section>
                   </q-item>
                   <q-item v-show="isBccShowed">
@@ -200,7 +199,6 @@
                           </q-item>
                         </template>
                       </q-select>
-                      <!-- <q-input dense outlined v-model="bccAddr" :disable="disableRecipients" style="width: 100%;" /> -->
                     </q-item-section>
                   </q-item>
                   <q-item>
@@ -499,8 +497,6 @@ export default {
       pgpApplied: false,
       editortext: '',
       editortextBeforePgp: '',
-      ccAddr: '',
-      bccAddr: '',
       disableRecipients: false,
       subjectText: '',
 
@@ -574,7 +570,7 @@ export default {
      */
     isEnableSending () {
       let
-        bRecipientIsEmpty = this.toAddrComputed.length === 0 && this.ccAddr.length === 0 && this.bccAddr.length === 0,
+        bRecipientIsEmpty = this.toAddrComputed.length === 0 && this.ccAddrComputed.length === 0 && this.bccAddrComputed.length === 0,
         bCurrentFolderListLoaded = !!this.currentFolderList && this.currentFolderList.AccountId !== 0
 
       return bCurrentFolderListLoaded && !this.sending && !bRecipientIsEmpty && this.allAttachmentsUploaded
@@ -586,7 +582,7 @@ export default {
     },
     recipientEmails () {
       let
-        aRecip = [this.toAddrComputed, this.ccAddr, this.bccAddr].join(',').split(','),
+        aRecip = [this.toAddrComputed, this.ccAddrComputed, this.bccAddrComputed].join(',').split(','),
         aEmails = []
 
       _.each(aRecip, function (sRecip) {
@@ -873,8 +869,8 @@ export default {
           oCurrentFolderList: this.currentFolderList,
           iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
           sToAddr: this.toAddrComputed,
-          sCcAddr: this.ccAddr,
-          sBccAddr: this.bccAddr,
+          sCcAddr: this.ccAddrComputed,
+          sBccAddr: this.bccAddrComputed,
           sSubject: this.subjectText,
           sText: this.getEditorTextForSend(),
           bPlainText: this.plainText,
@@ -901,8 +897,8 @@ export default {
         oCurrentFolderList: this.currentFolderList,
         iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
         sToAddr: this.toAddrComputed,
-        sCcAddr: this.ccAddr,
-        sBccAddr: this.bccAddr,
+        sCcAddr: this.ccAddrComputed,
+        sBccAddr: this.bccAddrComputed,
         sSubject: this.subjectText,
         sText: this.getEditorTextForSend(),
         bPlainText: this.plainText,
@@ -946,18 +942,10 @@ export default {
         }
       }
     },
-    openCompose ({ aDraftInfo, sDraftUid, aToContacts, sToAddr, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+    openCompose ({ aDraftInfo, sDraftUid, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
       this.allowInsertImage = mailSettings.bAllowInsertImage
       this.setSelectedIdentity()
-
-      if (typesUtils.isNonEmptyString(sToAddr)) {
-        this.selectedToAddr = [{
-          full: sToAddr,
-          label: textUtils.encodeHtml(sToAddr),
-          value: 'rand_' + Math.round(Math.random() * 10000),
-          short: textUtils.encodeHtml(sToAddr),
-        }]
-      } else if (typesUtils.isNonEmptyArray(aToContacts)) {
+      if (typesUtils.isNonEmptyArray(aToContacts)) {
         this.selectedToAddr = _.map(aToContacts, function (oContactData) {
           return {
             full: oContactData.full,
@@ -969,8 +957,30 @@ export default {
       } else {
         this.selectedToAddr = []
       }
-      this.selectedCcAddr = []
-      this.selectedBccAddr = []
+      if (typesUtils.isNonEmptyArray(aCcContacts)) {
+        this.selectedCcAddr = _.map(aCcContacts, function (oContactData) {
+          return {
+            full: oContactData.full,
+            label: textUtils.encodeHtml(oContactData.full),
+            value: 'id_' + oContactData.id,
+            short: oContactData.name || oContactData.email,
+          }
+        })
+      } else {
+        this.selectedCcAddr = []
+      }
+      if (typesUtils.isNonEmptyArray(aBccContacts)) {
+        this.selectedBccAddr = _.map(aBccContacts, function (oContactData) {
+          return {
+            full: oContactData.full,
+            label: textUtils.encodeHtml(oContactData.full),
+            value: 'id_' + oContactData.id,
+            short: oContactData.name || oContactData.email,
+          }
+        })
+      } else {
+        this.selectedBccAddr = []
+      }
       this.subjectText = typesUtils.pString(sSubject)
       this.plainText = false
       this.disableEditor = false
@@ -1071,8 +1081,8 @@ export default {
       this.inReplyTo = typesUtils.pString(sInReplyTo)
       this.references = typesUtils.pString(sReferences)
 
-      this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddr)
-      this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddr)
+      this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddrComputed)
+      this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddrComputed)
       this.dialog = true
 
       this.setAutosaveTimer()

@@ -9,7 +9,6 @@ function CContact(data) {
   this.ParentUUID = ''
   this.Storage = ''
   this.FullName = ''
-  this.UseFriendlyName = null
   this.PrimaryEmail = contactsEnums.PrimaryEmail.Personal
   this.PrimaryPhone = contactsEnums.PrimaryPhone.Personal
   this.PrimaryAddress = contactsEnums.PrimaryAddress.Personal
@@ -66,7 +65,6 @@ CContact.prototype.parse = function (data) {
   this.ParentUUID = typesUtils.pString(data.ParentUUID)
   this.Storage = typesUtils.pString(data.Storage)
   this.FullName = typesUtils.pString(data.FullName)
-  this.UseFriendlyName = typesUtils.pBool(data.UseFriendlyName)
   this.PrimaryEmail = typesUtils.pInt(data.PrimaryEmail)
   this.PrimaryPhone = typesUtils.pInt(data.PrimaryPhone)
   this.PrimaryAddress = typesUtils.pInt(data.PrimaryAddress)
@@ -133,7 +131,7 @@ CContact.prototype.getFull = function () {
   let sEmail = _.trim(this.ViewEmail)
   if (addressUtils.isCorrectEmail(sEmail)) {
     let sFullName = _.trim(this.FullName)
-    if (this.UseFriendlyName && typesUtils.isNonEmptyString(sFullName)) {
+    if (typesUtils.isNonEmptyString(sFullName)) {
       sFull = '"' + sFullName + '" <' + sEmail + '>'
     } else {
       sFull = sEmail

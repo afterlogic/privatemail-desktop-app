@@ -105,6 +105,9 @@ function createWindow () {
       nodeIntegration: true,
     },
   })
+  
+  mainWindow.removeMenu(); 
+  // mainWindow.setMemu(null);
 
   mainWindow.loadURL(process.env.APP_URL)
 

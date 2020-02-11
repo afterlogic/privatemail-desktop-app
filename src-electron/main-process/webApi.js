@@ -49,48 +49,55 @@ export default {
     let iRequestNumber = Math.random()
     aRequestsNumbers.push(iRequestNumber)
 
-    let oRequest = protocol.request(oOptions, (oResponse) => {
-      oResponse.setEncoding('utf8')
-
+    try {
       let aData = []
-      oResponse.on('data', (sData) => {
-        aData.push(sData)
-      })
+      let oRequest = protocol.request(oOptions, (oResponse) => {
+        oResponse.setEncoding('utf8')
 
-      oResponse.on('end', () => {
-        let sData = aData.join('')
-        let oData = JSON.parse(sData)
-        aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
-        // console.log('webApi response', aRequestsNumbers.length, oData)
-        let oResult = oData.Result
-        let oError = null
-        if (!oResult && oData.ErrorCode) {
-          oError = {
-            ErrorCode: oData.ErrorCode,
-            Module: oData.Module,
-          }
-        }
-        if (_.isFunction(fCallback)) {
-          fCallback(oResult, oError)
-        }
-        // if (aRequestsNumbers.length === 0) {
-        // }
-      })
-    })
-
-    oRequest.on('error', (oError) => {
-      aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
-      console.log('webApi error', aRequestsNumbers.length, oError)
-      if (_.isFunction(fCallback)) {
-        fCallback(false, {
-          ErrorCode: 0,
-          Module: sModule,
-          ErrorMessage: oError.message
+        oResponse.on('data', (sData) => {
+          aData.push(sData)
         })
-      }
-    })
 
-    oRequest.write(oPostData)
-    oRequest.end()
+        oResponse.on('end', () => {
+          let sData = aData.join('')
+          let oData = JSON.parse(sData)
+          aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
+          // console.log('webApi response', aRequestsNumbers.length, oData)
+          let oResult = oData.Result
+          let oError = null
+          if (!oResult && oData.ErrorCode) {
+            oError = {
+              ErrorCode: oData.ErrorCode,
+              Module: oData.Module,
+            }
+          }
+          if (_.isFunction(fCallback)) {
+            fCallback(oResult, oError)
+          }
+          // if (aRequestsNumbers.length === 0) {
+          // }
+        })
+      })
+
+      oRequest.on('error', (oError) => {
+        aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
+        console.log('webApi error', aRequestsNumbers.length, oError)
+        if (_.isFunction(fCallback)) {
+          fCallback(false, {
+            ErrorCode: 0,
+            Module: sModule,
+            ErrorMessage: oError.message
+          })
+        }
+      })
+
+      oRequest.write(oPostData)
+      oRequest.end()
+    } catch (oCatchedError) {
+      console.log('oCatchedError', oCatchedError)
+      console.log('oOptions', oOptions)
+      console.log('oPostData', oPostData)
+      console.log('aData', aData)
+    }
   },
 }

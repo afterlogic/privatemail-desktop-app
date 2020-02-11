@@ -9,10 +9,11 @@
       </q-item-section>
 
       <q-item-section>
-        <q-item-label lines="1">{{fromTo}}</q-item-label>
-        <q-item-label lines="1" v-if="message.Subject">{{message.Subject}}</q-item-label>
-        <q-item-label v-else lines="1" class="nodata">No subject</q-item-label>
+        <q-item-label lines="1" class="text-body2">{{fromTo}}</q-item-label>
+        <q-item-label lines="1" v-if="message.Subject" class="text-body1">{{message.Subject}}</q-item-label>
+        <q-item-label v-else lines="1" class="nodata text-body1">No subject</q-item-label>
       </q-item-section>
+      
       <q-item-section side>
         <q-item-label style="position: absolute; top: 6px; right: 6px;">
           <q-icon color="green" v-if="message.IsAnswered && !message.IsForwarded" flat name="reply" />
@@ -21,7 +22,7 @@
         </q-item-label>
         <q-item-label>
           <q-icon flat name="attachment" style="font-size: 1.5em;" v-if="message.HasAttachments" />
-          {{ shortDate }}
+          <span class="text-caption">{{ shortDate }}</span>
         </q-item-label>
 
         <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" text-color="white" size="sm" :color="message.ThreadHasUnread ? 'primary': 'primary-dark'">

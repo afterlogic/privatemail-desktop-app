@@ -118,9 +118,8 @@
                       >
                         <template v-slot:selected>
                           <span v-if="selectedToAddr">
-                            <q-chip flat dense v-for="oAddr in selectedToAddr" :key="oAddr.value">
+                            <q-chip flat v-for="oAddr in selectedToAddr" :key="oAddr.value" removable @remove="removeSelectedToAddr(oAddr.value)">
                               {{ oAddr.short }}
-                              <q-icon name="clear" class="remove-recipient-icon" @click.stop.prevent="removeSelectedToAddr(oAddr.value)" />
                               <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
                             </q-chip>
                           </span>
@@ -153,9 +152,8 @@
                       >
                         <template v-slot:selected>
                           <span v-if="selectedCcAddr">
-                            <q-chip flat dense v-for="oAddr in selectedCcAddr" :key="oAddr.value">
+                            <q-chip flat v-for="oAddr in selectedCcAddr" :key="oAddr.value" removable @remove="removeSelectedCcAddr(oAddr.value)">
                               {{ oAddr.short }}
-                              <q-icon name="clear" class="remove-recipient-icon" @click.stop.prevent="removeSelectedCcAddr(oAddr.value)" />
                               <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
                             </q-chip>
                           </span>
@@ -184,9 +182,8 @@
                       >
                         <template v-slot:selected>
                           <span v-if="selectedBccAddr">
-                            <q-chip flat dense v-for="oAddr in selectedBccAddr" :key="oAddr.value">
+                            <q-chip flat v-for="oAddr in selectedBccAddr" :key="oAddr.value" removable @remove="removeSelectedBccAddr(oAddr.value)">
                               {{ oAddr.short }}
-                              <q-icon name="clear" class="remove-recipient-icon" @click.stop.prevent="removeSelectedBccAddr(oAddr.value)" />
                               <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
                             </q-chip>
                           </span>
@@ -724,6 +721,7 @@ export default {
       ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch })
     },
     removeSelectedToAddr (sValue) {
+        console.log('removeSelectedToAddr', sValue);
       this.selectedToAddr = _.filter(this.selectedToAddr, function (oAddr) {
         return oAddr.value !== sValue
       })

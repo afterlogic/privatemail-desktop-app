@@ -136,7 +136,7 @@
             <div class="col-auto date" v-if="!showDetails">{{ middleDate }}</div>
           </div>
         </div>
-        <div :style="(showDetails? 'margin-bottom: -14px;' : 'margin-bottom: -19px;') + ' text-align: center;'">
+        <div class="expand-header-handler" :class="{'expanded': showDetails}">
           <q-btn
             :icon="showDetails ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
             flat dense
@@ -238,6 +238,20 @@
   .q-input {
     margin-right: 10px;
   }
+}
+.expand-header-handler {
+    margin-bottom: -19px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+
+    &.expanded {
+        margin-bottom: -14px;
+    }
+
+    .q-btn {
+        background: #fff;
+    }
 }
 </style>
 

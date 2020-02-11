@@ -270,10 +270,10 @@ export default {
       }
     },
     createGroup () {
-      let oCurrentContact = this.$store.getters['contacts/getCurrentContact'].contact
-      if (oCurrentContact) {
+      let sCurrentContactUuid = this.$store.getters['contacts/getCurrentContactUUID']
+      if (typesUtils.isNonEmptyString(sCurrentContactUuid)) {
         let aCheckedContacts = _.clone(this.$store.getters['contacts/getCheckedContacts'])
-        aCheckedContacts.push(oCurrentContact.UUID)
+        aCheckedContacts.push(sCurrentContactUuid)
         this.$store.commit('contacts/setCheckedContacts', aCheckedContacts)
         this.$store.dispatch('contacts/setCurrentContactByUUID', null)
       }

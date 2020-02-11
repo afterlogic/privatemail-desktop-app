@@ -44,11 +44,15 @@ export function getCurrentStorage(state) {
 }
 
 export function getCurrentContact(state) {
-  return state.contactByUUID
+  return (state.contactByUUID.contact && state.contactByUUID.contact instanceof CContact) ? state.contactByUUID.contact : null
 }
 
 export function getCurrentContactUUID(state) {
   return (state.contactByUUID.contact && state.contactByUUID.contact instanceof CContact) ? state.contactByUUID.UUID : ''
+}
+
+export function isCurrentContactEditMode(state) {
+  return (state.contactByUUID.contact && state.contactByUUID.contact instanceof CContact) ? state.contactByUUID.editable : false
 }
 
 export function getNewContactToEdit (state) {

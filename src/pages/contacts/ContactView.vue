@@ -205,20 +205,18 @@ export default {
   },
 
   watch: {
-    'contact': function() {
+    contact: function() {
       this.setFilteredGroups()
       this.setBirthDate()
     },
   },
 
   computed: {
-    'groupList': function () {
+    groupList: function () {
         return this.$store.getters['contacts/getGroups']
     },
-    'contact': function() {
-      let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
-      let contact = ContactByUUID.contact
-      return (contact && contact instanceof CContact) ? contact : null
+    contact: function() {
+      return this.$store.getters['contacts/getCurrentContact']
     },
     allowEdit: function () {
       let sCurrentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']

@@ -50,8 +50,8 @@
                 </div>
 
                 <template v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup">
-                  <contactView v-if="!currentContact.editable"/>
-                  <contactEditView v-if="currentContact.editable" :contact="currentContact.contact" />
+                  <contactView v-if="!editMode"/>
+                  <contactEditView v-if="editMode" :contact="currentContact" />
                 </template>
 
                 <contactEditView v-if="stateForCreatingContact && !stateForCreatingGroup" />
@@ -130,12 +130,14 @@ export default {
     },
   },
   computed: {
+    editMode () {
+      return this.$store.getters['contacts/isCurrentContactEditMode']
+    },
     currentContact () {
       return this.$store.getters['contacts/getCurrentContact']
     },
     showContact () {
-      let oContactContainer = this.$store.getters['contacts/getCurrentContact']
-      return (oContactContainer.contact && oContactContainer.contact instanceof CContact) ? true : false
+      return !!this.currentContact
     },
     currentGroup () {
       return this.$store.getters['contacts/getCurrentGroup']

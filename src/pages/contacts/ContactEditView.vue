@@ -501,9 +501,6 @@ export default {
 
   methods: {
     onSave () {
-      let ContactByUUID = this.$store.getters['contacts/getCurrentContact']
-      let oContactSource = ContactByUUID.contact
-
       if (this.sBirthDatePrev !== this.sBirthDate) {
         let oBirthDate = moment(this.sBirthDate, 'YYYY/MM/DD')
         this.oContact.BirthYear = oBirthDate.year()
@@ -511,6 +508,7 @@ export default {
         this.oContact.BirthDay = oBirthDate.date()
       }
 
+      let oContactSource = this.$store.getters['contacts/getCurrentContact']
       let bEqual = _.isEqual(this.oContact, oContactSource)
 
       if (bEqual) {

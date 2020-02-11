@@ -11,7 +11,7 @@
     <q-list>
       <div v-for="contact in contacts.list" :key="contact.UUID">
         <q-item clickable v-ripple @click="setCurrentContactByUUID(contact.UUID)" 
-            :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selectedContact}">
+            :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
           </q-item-section>
@@ -25,7 +25,7 @@
             <q-chip dense>It's me!</q-chip>
           </q-item-section>
         </q-item>
-        <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === selectedContact }" />
+        <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid }" />
       </div>
     </q-list>
   </div>
@@ -98,9 +98,8 @@ export default {
   },
 
   computed: {
-    selectedContact () {
-      let oContactData = this.$store.getters['contacts/getCurrentContact']
-      return typesUtils.pString(oContactData && oContactData.UUID)
+    currentContactUuid () {
+      return this.$store.getters['contacts/getCurrentContactUUID']
     },
     currentAccountEmail () {
       return this.$store.getters['mail/getCurrentAccountEmail']

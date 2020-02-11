@@ -15,10 +15,10 @@
       </q-item-section>
       
       <q-item-section side>
-        <q-item-label style="position: absolute; top: 6px; right: 6px;">
-          <q-icon color="green" v-if="message.IsAnswered && !message.IsForwarded" flat name="reply" />
-          <q-icon color="orange" v-if="!message.IsAnswered && message.IsForwarded" flat name="forward" />
-          <q-icon color="red" v-if="message.IsAnswered && message.IsForwarded" flat name="sync" />
+        <q-item-label class="email-markers" :class="{'answered': message.IsAnswered, 'forwarded': message.IsForwarded}" v-if="message.IsAnswered || message.IsForwarded">
+          <q-icon flat color="white" name="reply" v-if="message.IsAnswered && !message.IsForwarded"  />
+          <q-icon flat color="white" name="forward" v-if="!message.IsAnswered && message.IsForwarded" />
+          <q-icon flat color="white" name="sync" v-if="message.IsAnswered && message.IsForwarded"  />
         </q-item-label>
         <q-item-label>
           <q-icon flat name="attachment" style="font-size: 1.5em;" v-if="message.HasAttachments" />
@@ -53,6 +53,30 @@
 }
 hr.unread {
   background: #ddd;
+}
+
+.email-markers {
+    position: absolute; top: 0px; right: 0px;
+
+    &::before {
+        content: "";
+        display: block;
+        position: absolute;
+        border-right: 30px solid red;
+        border-bottom: 30px solid transparent;
+        right: 0px;
+        top: 0px;
+    }
+
+    &.answered::before {
+        border-right-color: #57ce57;
+    }
+    &.forwarded::before {
+        border-right-color: #e4be36;
+    }   
+    &.forwarded.answered::before {
+        border-right-color: #f18c6e;
+    }
 }
 </style>
 

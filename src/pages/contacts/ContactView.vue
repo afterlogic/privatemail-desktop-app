@@ -273,6 +273,7 @@ export default {
     },
     showEmailsWithThisContact () {
       this.$store.dispatch('mail/asyncGetMessages', {
+        sFolderFullName: this.$store.getters['mail/getInboxFullName'],
         iPage: 1,
         sSearch: 'email:' + this.contact.ViewEmail,
         sFilter: '',

@@ -156,29 +156,31 @@
       </div>
       <div class="col-auto attachments-panel" v-if="message.HasAttachments && aAttachments.length > 0">
         <q-item class="attachment-item" v-for="attach in aAttachments" :key="attach.sHash" v-show="!attach.bLinked">
-          <q-item-section avatar>
+          <q-item-section avatar v-if="!attach.sThumbnailLink">
             <q-icon name="insert_drive_file" />
+          </q-item-section>
+          <q-item-section avatar v-if="attach.sThumbnailLink" class="thumbnail-section">
+            <img :src="sApiHost + '/' + attach.sThumbnailLink">
           </q-item-section>
           <q-item-section>
             <q-item-label>{{attach.sFileName}}</q-item-label>
             <q-item-label caption>{{attach.getFriendlySize()}}</q-item-label>
           </q-item-section>
-          <q-item-section v-if="attach.sThumbnailLink" class="thumbnail-section" side>
-            <img :src="sApiHost + '/' + attach.sThumbnailLink">
-          </q-item-section>
-          <q-item-section side class="actions-section">
-            <q-btn flat icon="visibility" color="primary"
-              v-if="attach.sViewLink"
-              @click="viewAttach(attach.sViewLink, attach.sFileName)"
-            >
-              <q-tooltip>View</q-tooltip>
-            </q-btn>
-            <q-btn flat icon="get_app" color="primary"
-              v-if="attach.sDownloadLink"
-              @click="downloadAttach(attach.sDownloadLink, attach.sFileName)"
-            >
-              <q-tooltip>Download</q-tooltip>
-            </q-btn>
+          <q-item-section top side class="actions-section">
+            <div class="q-gutter-xs">
+              <q-btn flat icon="visibility" color="primary"
+                v-if="attach.sViewLink"
+                @click="viewAttach(attach.sViewLink, attach.sFileName)"
+                >
+                <q-tooltip>View</q-tooltip>
+              </q-btn>
+              <q-btn flat icon="get_app" color="primary" 
+                v-if="attach.sDownloadLink"
+                @click="downloadAttach(attach.sDownloadLink, attach.sFileName)"
+                >
+                <q-tooltip>Download</q-tooltip>
+              </q-btn>
+            </div>
           </q-item-section>
           <q-separator />
         </q-item>

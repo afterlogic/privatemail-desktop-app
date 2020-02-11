@@ -4,7 +4,7 @@
     <q-separator spaced />
     <q-list style="max-width: 500px;">
       <q-item>
-        <q-item-section side top style="min-width: 140px;">
+        <q-item-section side center style="min-width: 140px;">
           Messages per page
         </q-item-section>
         <q-item-section>

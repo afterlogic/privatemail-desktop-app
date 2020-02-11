@@ -1,89 +1,91 @@
 <template>
   <div class="row q-pa-sm items-center">
-    <q-btn v-if="currentStorage === 'personal' || currentStorage === 'all' || currentGroupUUID !== ''" @click="createGroup" flat color="primary" icon="group_add">
+    <span v-if="currentStorage === 'personal' || currentStorage === 'all' || currentGroupUUID !== ''">
+      <q-btn flat color="primary" icon="group_add" @click="createGroup" />
       <q-tooltip>
         New Group
       </q-tooltip>
-    </q-btn>
+    </span>
 
-    <q-btn flat color="primary" icon="mail_outline" :disable="checkedContactsCount === 0" @click="emailToContacts">
+    <span>
+      <q-btn flat color="primary" icon="mail_outline" :disable="checkedContactsCount === 0" @click="emailToContacts" />
       <q-tooltip>
         New Message
       </q-tooltip>
-    </q-btn>
+    </span>
 
-    <q-btn-dropdown :disable="checkedContactsCount === 0" flat color="primary" icon="folder_open">
-      <template v-slot:label>
-        <q-tooltip>
-          Add Contacts to
-        </q-tooltip>
-      </template>
-      <q-list>
-        <q-item clickable v-close-popup v-ripple v-for="group in groupsList" :key="group.UUID" @click.native="addContactsToGroup(group.UUID)">
-          <q-item-section>{{group.Name}}</q-item-section>
-        </q-item>
-        <q-item clickable @click="createGroup" v-ripple>
-          <q-item-section>- New group -</q-item-section>
-        </q-item>
-      </q-list>
-    </q-btn-dropdown>
+    <span>
+      <q-btn-dropdown flat color="primary" icon="folder_open" :disable="checkedContactsCount === 0">
+        <q-list>
+          <q-item clickable v-close-popup v-ripple v-for="group in groupsList" :key="group.UUID" @click.native="addContactsToGroup(group.UUID)">
+            <q-item-section>{{group.Name}}</q-item-section>
+          </q-item>
+          <q-item clickable @click="createGroup" v-ripple>
+            <q-item-section>- New group -</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+      <q-tooltip>
+        Add Contacts to
+      </q-tooltip>
+    </span>
 
-    <q-btn v-if="currentGroupUUID !== ''" flat color="primary" :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" 
-        icon="remove_circle_outline" @click="removeContactsFromGroup">
+    <span v-if="currentGroupUUID !== ''">
+      <q-btn flat color="primary" icon="remove_circle_outline" :label="checkedContactsCount > 0 ? checkedContactsCount : ''"
+        :disable="checkedContactsCount === 0" @click="removeContactsFromGroup" />
       <q-tooltip>
         Remove from group
       </q-tooltip>
-    </q-btn>
+    </span>
 
-    <q-btn v-if="currentStorage === 'personal' && currentGroupUUID === ''" flat color="primary" 
-        :disable="checkedContactsCount === 0" :label="checkedContactsCount > 0 ? checkedContactsCount : ''" icon="delete_outline" @click="askDeleteContacts">
+    <span v-if="currentStorage === 'personal' && currentGroupUUID === ''">
+      <q-btn flat color="primary" icon="delete_outline" :label="checkedContactsCount > 0 ? checkedContactsCount : ''"
+        :disable="checkedContactsCount === 0" @click="askDeleteContacts" />
       <q-tooltip>
         Delete
       </q-tooltip>
-    </q-btn>
+    </span>
 
-    <q-btn  v-if="currentStorage === 'personal' && currentGroupUUID === ''"
-            :disable="checkedContactsCount === 0"
-            flat color="primary" icon="adjust"
-            @click="updateSharedContacts">
+    <span v-if="currentStorage === 'personal' && currentGroupUUID === ''">
+      <q-btn flat color="primary" icon="adjust"
+        :disable="checkedContactsCount === 0" @click="updateSharedContacts" />
       <q-tooltip>
         Share
       </q-tooltip>
-    </q-btn>
+    </span>
 
-    <q-btn  v-if="currentStorage === 'shared' && currentGroupUUID === ''"
-            :disable="checkedContactsCount === 0"
-            flat color="primary" icon="remove_circle_outline"
-            @click="updateSharedContacts">
+    <span v-if="currentStorage === 'shared' && currentGroupUUID === ''">
+      <q-btn flat color="primary" icon="remove_circle_outline"
+        :disable="checkedContactsCount === 0" @click="updateSharedContacts" />
       <q-tooltip>
         Unshare
       </q-tooltip>
-    </q-btn>
+    </span>
 
-    <q-btn-dropdown flat color="primary" icon="import_export">
-      <template v-slot:label>
-        <q-tooltip>
-          More
-        </q-tooltip>
-      </template>
-      <q-list>
-        <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
-          <q-item-section>
-            <q-item-label>Export as CSV</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
-          <q-item-section>
-            <q-item-label>Export as VCF</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="dummyAction" v-if="currentStorage !== 'team' || currentGroupUUID !== ''">
-          <q-item-section>
-            <q-item-label>Import</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-btn-dropdown>
+    <span>
+      <q-btn-dropdown flat color="primary" icon="import_export">
+        <q-list>
+          <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
+            <q-item-section>
+              <q-item-label>Export as CSV</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
+            <q-item-section>
+              <q-item-label>Export as VCF</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable @click="dummyAction" v-if="currentStorage !== 'team' || currentGroupUUID !== ''">
+            <q-item-section>
+              <q-item-label>Import</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+      <q-tooltip>
+        More
+      </q-tooltip>
+    </span>
 
     <q-space/>
 

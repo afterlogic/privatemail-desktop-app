@@ -721,7 +721,6 @@ export default {
       ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch })
     },
     removeSelectedToAddr (sValue) {
-        console.log('removeSelectedToAddr', sValue);
       this.selectedToAddr = _.filter(this.selectedToAddr, function (oAddr) {
         return oAddr.value !== sValue
       })
@@ -1001,7 +1000,7 @@ export default {
         let aHashes = []
         _.each(aAttachments, (oAttachData) => {
           let oAttach = new cAttachment()
-          oAttach.parseDataFromServer(oAttachData, this.sApiHost)
+          oAttach.parseDataFromServer(oAttachData)
           this.attachments.push(oAttach)
           if (typesUtils.isNonEmptyString(oAttach.sHash)) {
             aHashes.push(oAttach.sHash)
@@ -1045,7 +1044,7 @@ export default {
                   if (oResult.Size === 0) {
                     oResult.Size = aAttachments[0].Content.length
                   }
-                  oAttach.parseDataFromServer(oResult, this.sApiHost)
+                  oAttach.parseDataFromServer(oResult)
                   oAttach.onUploadComplete()
                 }
               } else {
@@ -1063,7 +1062,7 @@ export default {
               if (oResult) {
                 let oAttach = this.attachments[0]
                 if (oAttach) {
-                  oAttach.parseDataFromServer(oResult, this.sApiHost)
+                  oAttach.parseDataFromServer(oResult)
                   oAttach.onUploadComplete()
                 }
               } else {
@@ -1166,10 +1165,10 @@ export default {
       let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
       if (oAttach) {
         if (oResponse && oResponse.Result && oResponse.Result.Attachment) {
-          oAttach.parseDataFromServer(oResponse.Result.Attachment, this.$store.getters['main/getApiHost'])
+          oAttach.parseDataFromServer(oResponse.Result.Attachment)
           oAttach.onUploadComplete()
           if (oAttach.bLinked) {
-            document.execCommand('insertHTML', true, '<img src="' + oAttach.sViewLink + '" data-x-src-cid="' + oAttach.sCid + '" />')
+            document.execCommand('insertHTML', true, '<img src="' + this.sApiHost + '/' + oAttach.sViewLink + '" data-x-src-cid="' + oAttach.sCid + '" />')
             this.$refs.imageUploader.removeFile(oFile)
             oAttach.oFile = null
           }

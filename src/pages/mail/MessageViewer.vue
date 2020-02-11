@@ -436,7 +436,7 @@ export default {
           let aAttachments = []
           _.each(this.message.Attachments['@Collection'], (oAttachData) => {
             let oAttach = new cAttachment()
-            oAttach.parseDataFromServer(oAttachData, this.sApiHost)
+            oAttach.parseDataFromServer(oAttachData)
             aAttachments.push(oAttach)
           })
           this.aAttachments = aAttachments

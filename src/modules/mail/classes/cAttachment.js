@@ -88,7 +88,7 @@ cAttachment.prototype.parseUploaderFile = function (oFile, bLinked) {
   this.sType = typesUtils.pString(oFile.type, this.sType)
 }
 
-cAttachment.prototype.parseDataFromServer = function (oAttach, sApiHost) {
+cAttachment.prototype.parseDataFromServer = function (oAttach) {
   let sDownloadLink = typesUtils.pString(oAttach.Actions && oAttach.Actions.download && oAttach.Actions.download.url, this.sDownloadLink)
   let sThumbnailLink = typesUtils.pString(oAttach.ThumbnailUrl, this.sThumbnailUrl)
   let sViewLink = typesUtils.pString(oAttach.Actions && oAttach.Actions.view && oAttach.Actions.view.url, this.sViewLink)

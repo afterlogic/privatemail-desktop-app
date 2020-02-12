@@ -9,23 +9,24 @@
       </q-item-section>
 
       <q-item-section>
-        <q-item-label lines="1" class="text-body2">{{fromTo}}</q-item-label>
-        <q-item-label lines="1" v-if="message.Subject" class="text-body1">{{message.Subject}}</q-item-label>
+        <q-item-label lines="1" class="text-body2" :class="{'text-weight-medium text-black': !message.IsSeen}">{{fromTo}}</q-item-label>
+        <q-item-label lines="1" v-if="message.Subject" class="text-body1" :class="{'text-weight-medium text-black': !message.IsSeen}">{{message.Subject}}</q-item-label>
         <q-item-label v-else lines="1" class="nodata text-body1">No subject</q-item-label>
       </q-item-section>
-      
+
       <q-item-section side>
         <q-item-label class="email-markers" :class="{'answered': message.IsAnswered, 'forwarded': message.IsForwarded}" v-if="message.IsAnswered || message.IsForwarded">
           <q-icon flat color="white" name="reply" v-if="message.IsAnswered && !message.IsForwarded"  />
           <q-icon flat color="white" name="forward" v-if="!message.IsAnswered && message.IsForwarded" />
           <q-icon flat color="white" name="sync" v-if="message.IsAnswered && message.IsForwarded"  />
         </q-item-label>
+
         <q-item-label>
-          <q-icon flat name="attachment" style="font-size: 1.5em;" v-if="message.HasAttachments" />
+          <q-icon flat name="attachment" class="q-mr-md text-weight-thin" style="font-size: 1.5em;" v-if="message.HasAttachments" />
           <span class="text-caption">{{ shortDate }}</span>
         </q-item-label>
 
-        <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" text-color="white" size="sm" :color="message.ThreadHasUnread ? 'primary': 'primary-dark'">
+        <q-chip v-if="message.Threads && message.Threads.length > 0" @click.native.stop="toggleThread" :text-color="message.ThreadHasUnread ? 'white' : 'black'" size="sm" :color="message.ThreadHasUnread ? 'primary': 'primary-dark'">
           {{message.Threads.length}}
           <q-tooltip v-if="!threadOpened && !message.ThreadHasUnread">
             Unfold thread
@@ -56,6 +57,10 @@
 }
 hr.unread {
   background: #ddd;
+}
+
+.text-body2, .text-body1 {
+    // color: $grey-7;
 }
 
 .email-markers {
@@ -135,6 +140,7 @@ export default {
     },
   },
   mounted: function () {
+    //   console.log(this.message)
     this.initSubscriptions()
   },
   methods: {

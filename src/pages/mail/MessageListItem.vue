@@ -9,8 +9,8 @@
       </q-item-section>
 
       <q-item-section>
-        <q-item-label lines="1" class="text-body2" :class="{'text-weight-medium text-black': !message.IsSeen}">{{fromTo}}</q-item-label>
-        <q-item-label lines="1" v-if="message.Subject" class="text-body1" :class="{'text-weight-medium text-black': !message.IsSeen}">{{message.Subject}}</q-item-label>
+        <q-item-label lines="1" class="text-body2">{{fromTo}}</q-item-label>
+        <q-item-label lines="1" v-if="message.Subject" class="text-body1">{{message.Subject}}</q-item-label>
         <q-item-label v-else lines="1" class="nodata text-body1">No subject</q-item-label>
       </q-item-section>
 
@@ -49,18 +49,14 @@
 
 <style lang="scss">
 .unread {
-  font-weight: bold;
   background: #fafafa;
-  .text-body1, .text-body2 {
+  .text-body1,
+  .text-body2 {
     font-weight: bold;
   }
 }
 hr.unread {
   background: #ddd;
-}
-
-.text-body2, .text-body1 {
-    // color: $grey-7;
 }
 
 .email-markers {

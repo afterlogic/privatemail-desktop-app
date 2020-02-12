@@ -83,7 +83,10 @@ function _getContactsSql ({ sStorage, sGroupUUID, sSearch, iPerPage, iPage }) {
   if (typesUtils.isNonEmptyString(sGroupUUID)) {
     aWhere.push('group_uuids LIKE ?')
     aParams.push('%"' + sGroupUUID + '"%')
-  } else if (sStorage !== 'all') {
+  } else if (sStorage === 'all') {
+    aWhere.push('storage != ?')
+    aParams.push('collected')
+  } else {
     aWhere.push('storage = ?')
     aParams.push(sStorage)
   }
@@ -526,14 +529,14 @@ export default {
   getContactsByEmails: function ({ aEmails }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        let sSql = 'SELECT * FROM contacts'
         let aWhere = _.map(aEmails, function () { return 'view_email = ?' })
-        if (aWhere.length > 0) {
-          sSql += ' WHERE ' + aWhere.join(' OR ')
-        }
+        let aParams = (['collected']).concat(aEmails)
+        let sSql = 'SELECT * FROM contacts WHERE storage != ? AND (' + aWhere.join(' OR ') + ')'
+        console.log('sSql', sSql)
+        console.log('aParams', aParams)
         oDb.all(
           sSql,
-          aEmails,
+          aParams,
           function(oError, aRows) {
             if (oError) {
               reject({ sMethod: 'getContactsByEmails', oError })

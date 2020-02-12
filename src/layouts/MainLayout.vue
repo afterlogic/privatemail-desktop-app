@@ -7,13 +7,26 @@
       </q-toolbar> -->
       <q-tabs align="left" class="q-pa-md main-tabs" v-if="showTabsbar">
         <q-route-tab to="/mail" :label="mailHeader" />
-        <q-btn-dropdown flat color="white" icon="none">
-          <q-list>
+        <q-btn-dropdown flat color="white" class="accounts-selector" content-class="accounts-selector-dropdown">
+          <q-list class="non-selectable">
+            <!-- <q-item class="dummy q-mr-xl q-pr-xl_">
+              {{mailHeader}}
+            </q-item> -->
             <q-item clickable v-close-popup v-for="oAccount in accountsForDropdown" :key="oAccount.iAccountId" @click="changeAccount(oAccount)">
               <q-item-section>{{oAccount.sEmail}}</q-item-section>
             </q-item>
           </q-list>
         </q-btn-dropdown>
+        <!-- <q-btn-dropdown outline flat split color="white" :label="mailHeader" to="/mail" class="accounts-selector1">
+          <q-item class="dummy q-mr-xl q-pr-xl_">
+              {{mailHeader}}
+            </q-item>
+          <q-list class="non-selectable">
+            <q-item clickable v-close-popup v-for="oAccount in accountsForDropdown" :key="oAccount.iAccountId" @click="changeAccount(oAccount)">
+              <q-item-section>{{oAccount.sEmail}}</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown> -->
         <q-route-tab to="/contacts" label="Contacts" />
         <!-- <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" /> -->
@@ -70,7 +83,7 @@ export default {
     },
   },
 }
-</script >
+</script>
 
 <style lang="scss">
   $startColor: var(--q-color-t-gradient-start);
@@ -89,5 +102,17 @@ export default {
 
   .q-header {
     border: 0px;
+  }
+
+  .accounts-selector .q-btn-dropdown__arrow {
+    margin-left: 0px;
+  }
+  .accounts-selector1 {
+  }
+  .accounts-selector-dropdown {
+    margin-top: 4px;
+    .dummy {
+      text-transform: uppercase;
+    }
   }
 </style>

@@ -21,7 +21,7 @@
     </q-item>
 
     <q-separator />
-    <q-item-label header v-if="groupList.length > 0">Groups</q-item-label>
+    <q-item-label header class="non-selectable" v-if="groupList.length > 0">Groups</q-item-label>
 
     <q-item clickable v-ripple v-for="group in groupList" :key="group.UUID"
       :class="{active: group.UUID === currentGroupUUID}"

@@ -16,14 +16,14 @@
       <q-item-section>
         <q-item-label lines="1">{{folder.Name}}</q-item-label>
       </q-item-section>
-      <q-item-section side v-if="folder.UnseenCount > 0" @click.native.stop="showUnreadMessages">
-        <q-chip dense>{{folder.UnseenCount}}
+      <q-item-section side class="non-selectable" v-if="folder.UnseenCount > 0" @click.native.stop="showUnreadMessages">
+        <q-chip dense >{{folder.UnseenCount}}
           <q-tooltip>
             Show unread messages only
           </q-tooltip>
         </q-chip>
       </q-item-section>
-      <q-item-section side v-if="showTotalCount">
+      <q-item-section side class="non-selectable" v-if="showTotalCount">
         <q-chip color="transparent" dense>{{folder.Count}}</q-chip>
       </q-item-section>
     </q-item>

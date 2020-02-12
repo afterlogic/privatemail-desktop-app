@@ -239,9 +239,7 @@
                       @hide="imageUrl=''"
                     >
                       <template v-slot:label>
-                        <q-tooltip>
-                          Insert Image
-                        </q-tooltip>
+                        <q-tooltip>Insert Image</q-tooltip>
                       </template>
 
                       <q-card class="">

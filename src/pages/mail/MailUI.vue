@@ -48,7 +48,7 @@
                       </q-input>
                     </template>
                     <div class="row q-gutter-md" style="padding: 0px 20px;">
-                      <div class="col q-gutter-md">
+                      <div class="col q-gutter-md non-selectable">
                         <q-input outlined dense bg-color="white" label="From" v-model="advSearchFrom" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" label="Subject" v-model="advSearchSubject" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" class="input-size" label="Since" v-model="advSearchSinceDate" mask="####.##.##" @keyup.enter.stop.prevent="advancedSearch">
@@ -62,7 +62,7 @@
                         </q-input>
                         <q-checkbox v-model="advSearchHasAttachments" label="Has attachments" />
                       </div>
-                      <div class="col q-gutter-md">
+                      <div class="col q-gutter-md non-selectable">
                         <q-input outlined dense bg-color="white" label="To" v-model="advSearchTo" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" label="Text" v-model="advSearchText" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" class="input-size" label="Till" v-model="advSearchTillDate" mask="####.##.##" @keyup.enter.stop.prevent="advancedSearch">

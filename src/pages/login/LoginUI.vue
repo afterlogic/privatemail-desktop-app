@@ -1,12 +1,12 @@
 <template>
-  <q-page-container style="height: 100vh">
+  <q-page-container style="height: 100vh non-selectable">
     <q-page class="flex content-center justify-center full-height theme-text">
       <div class="login-form column q-ma-xl" style="min-width: 400px">
-        <div class="col-auto q-px-md flex justify-center">
+        <div class="col-auto q-px-md flex justify-center non-selectable">
           <img class="logo" alt="PrivateMail" src="~assets/private-mail-logo.svg" />
         </div>
         <div class="col">
-          <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black" style="min-width: 400px">
+          <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black non-selectable" style="min-width: 400px">
             <q-input outlined v-if="showHost" v-model="host" label="Server" v-on:keyup.enter="logIn" />
             <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" ref="login" />
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
@@ -17,7 +17,7 @@
         </div>
       </div>
       <q-dialog v-model="enterPinDialog" persistent>
-        <q-card>
+        <q-card class="non-selectable">
           <q-card-section class="row items-center">
             <span class="text-h6">Enter PIN</span>
           </q-card-section>

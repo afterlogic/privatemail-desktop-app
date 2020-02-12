@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Open PGP settings</div>
+    <div class="text-h4 q-mb-md non-selectable">Open PGP settings</div>
     <q-separator spaced />
-    <q-list>
+    <q-list class="non-selectable">
       <q-item>
         <q-item-section>
           <q-item-label caption>Be aware of "Allow autosave in Drafts" setting in Mail module. Turn it off if you don't want the server to store unencrypted drafts. You will still be able to save drafts manually.</q-item-label>
@@ -54,7 +54,7 @@
     </div>
 
     <q-dialog v-model="deleteConfirmDialog" persistent>
-      <q-card class="q-px-sm">
+      <q-card class="q-px-sm non-selectable">
         <q-card-section v-if="deleteKeyPublic">
           Are you sure you want to delete public OpenPGP key for <b>{{ deleteKeyEmail }}</b>?
         </q-card-section>
@@ -69,7 +69,7 @@
     </q-dialog>
 
     <q-dialog v-model="enterPasswordDialog" persistent>
-      <q-card class="q-px-sm">
+      <q-card class="q-px-sm non-selectable">
         <q-card-section>
           <div class="text-h6">Enter password</div>
         </q-card-section>
@@ -94,7 +94,7 @@
     </q-dialog>
 
     <q-dialog v-model="viewKeysDialog" persistent>
-      <q-card class="q-px-sm">
+      <q-card class="q-px-sm non-selectable">
         <q-card-section>
           <div class="text-h6">{{ viewKeysHeader }}</div>
         </q-card-section>
@@ -111,7 +111,7 @@
     </q-dialog>
 
     <q-dialog v-model="importKeyDialog" persistent>
-      <q-card class="q-px-sm">
+      <q-card class="q-px-sm non-selectable">
         <q-card-section>
           <div class="text-h6">Import key</div>
         </q-card-section>
@@ -141,7 +141,7 @@
     </q-dialog>
 
     <q-dialog v-model="generateNewKeyDialog" persistent>
-      <q-card class="q-px-sm">
+      <q-card class="q-px-sm non-selectable">
         <q-card-section>
           <div class="text-h6">Generate new key</div>
         </q-card-section>
@@ -166,7 +166,15 @@
             <q-item-label>Key length</q-item-label>
           </q-item-section>
           <q-item-section side >
-            <q-select outlined dense v-model="newKeyLength" :options="newKeyLengthList" />
+            <q-select outlined dense v-model="newKeyLength" :options="newKeyLengthList">
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section class="non-selectable">
+                    <q-item-label v-html="scope.opt" />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </q-item-section>
         </q-item>
         <q-card-actions align="right">

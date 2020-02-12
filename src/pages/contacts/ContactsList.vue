@@ -17,9 +17,9 @@
           </q-item-section>
           <q-item-section>
             <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName}}</q-item-label>
-            <q-item-label v-else lines="1" class="nodata">No name</q-item-label>
+            <q-item-label v-else lines="1" class="nodata non-selectable">No name</q-item-label>
             <q-item-label v-if="contact.ViewEmail" lines="1">{{contact.ViewEmail}}</q-item-label>
-            <q-item-label v-else lines="1" class="nodata">No email address</q-item-label>
+            <q-item-label v-else lines="1" class="nodata non-selectable">No email address</q-item-label>
           </q-item-section>
           <q-item-section side v-if="contact.Storage === 'team' && contact.BusinessEmail === currentAccountEmail">
             <q-chip dense>It's me!</q-chip>

@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Common settings</div>
+    <div class="text-h4 q-mb-md non-selectable">Common settings</div>
     <q-separator spaced />
     <!-- <div class="theme-text theme-bg" style="widht: 100px; height: 100px;">
       Some text
     </div> -->
-    <q-list style="max-width: 500px;">
+    <q-list class="non-selectable" style="max-width: 500px;">
       <!-- <q-item>
         <q-item-section side center style="min-width: 100px;">
           Theme
@@ -33,10 +33,17 @@
           <q-select
             outlined dense style="width: 100%;"
             v-model="oAutoRefreshIntervalMinutes"
-            :options="aAutoRefreshIntervalMinutesList" />
+            :options="aAutoRefreshIntervalMinutesList">
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                <q-item-section class="non-selectable">
+                  <q-item-label v-html="scope.opt.label" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </q-item-section>
       </q-item>
-
 
       <q-item>
         <q-item-section side center>
@@ -81,6 +88,7 @@
   border: 1px solid var(--q-color-primary);
   align-self: flex-start;
 }
+
 </style>
 
 <script>

@@ -1,8 +1,8 @@
 <template>
-  <div class="row q-pa-sm items-center">
+  <div class="row q-pa-sm items-center non-selectable">
     <span>
       <q-btn-dropdown split flat color="primary" icon="drafts" :disable-main-btn="checkedCount === 0" @click="setMessagesRead(true)">
-        <q-list>
+        <q-list class="non-selectable">
           <q-item clickable v-close-popup @click="setAllMessagesRead">
             <q-item-section>
               <q-item-label>Mark All Read</q-item-label>
@@ -15,44 +15,34 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
-      <q-tooltip>
-        Mark As Read
-      </q-tooltip>
+      <q-tooltip>Mark As Read</q-tooltip>
     </span>
 
     <span>
       <q-btn-dropdown flat color="primary" icon="move_to_inbox" :disable="checkedCount === 0">
-        <q-list>
+        <q-list class="non-selectable">
           <MoveToFolderItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
         </q-list>
       </q-btn-dropdown>
-      <q-tooltip>
-        Move To Folder
-      </q-tooltip>
+      <q-tooltip>Move To Folder</q-tooltip>
     </span>
 
     <span>
       <q-btn flat no-wrap color="primary" icon="delete_outline" :label="checkedCount > 0 ? checkedCount : ''"
         :disable="checkedCount === 0" @click="deleteMessages" />
-      <q-tooltip>
-        Delete
-      </q-tooltip>
+      <q-tooltip>Delete</q-tooltip>
     </span>
 
     <span>
       <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam" />
-      <q-tooltip>
-        Spam
-      </q-tooltip>
+      <q-tooltip>Spam</q-tooltip>
     </span>
 
     <q-space/>
 
     <span>
       <q-btn flat color="primary" icon="sync" :loading=mailSyncing @click="fullSync" />
-      <q-tooltip>
-        Check Mail
-      </q-tooltip>
+      <q-tooltip>Check Mail</q-tooltip>
     </span>
 
     <q-dialog v-model="confirmDeletePermanently" persistent>

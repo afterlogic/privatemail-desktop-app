@@ -11,7 +11,7 @@
       <q-item-section>
         <q-item-label lines="1" class="text-body2">{{fromTo}}</q-item-label>
         <q-item-label lines="1" v-if="message.Subject" class="text-body1">{{message.Subject}}</q-item-label>
-        <q-item-label v-else lines="1" class="nodata text-body1">No subject</q-item-label>
+        <q-item-label v-else lines="1" class="nodata text-body1 non-selectable">No subject</q-item-label>
       </q-item-section>
 
       <q-item-section side>

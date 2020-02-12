@@ -1,6 +1,6 @@
 <template>
   <div class="full-height bg-white text-black">
-    <div class="pannel-hint" v-if="message === null">
+    <div class="pannel-hint non-selectable" v-if="message === null">
       No message selected.
       <br />
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
@@ -62,7 +62,7 @@
                 More
               </q-tooltip>
             </template>
-            <q-list>
+            <q-list class="non-selectable">
               <q-item clickable @click="dummyAction">
                 <q-item-section side>
                   <q-icon name="print" />
@@ -101,7 +101,7 @@
           </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
-          <div v-if="!showDetails">
+          <div class="non-selectable" v-if="!showDetails">
             <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" :min="true" />
             →
             <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" :min="true" />
@@ -110,23 +110,23 @@
           </div>
           <div v-if="showDetails">
             <div style="clear: both;">
-              <span>From: </span>
+              <span class="non-selectable">From: </span>
               <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" :min="false" />
             </div>
             <div v-if="to.length > 0">
-              <span>To: </span>
+              <span class="non-selectable">To: </span>
               <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" :min="false" />
             </div>
             <div v-if="cc.length > 0">
-              <span>Cc: </span>
+              <span class="non-selectable">Cc: </span>
               <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" :min="false" />
             </div>
             <div v-if="bcc.length > 0">
-              <span>Bcc: </span>
+              <span class="non-selectable">Bcc: </span>
               <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" :min="false" />
             </div>
             <div>
-              <span>Date: </span>
+              <span class="non-selectable">Date: </span>
               <span>{{fullDate}}</span>
             </div>
           </div>
@@ -194,9 +194,9 @@
           <q-toolbar class="q-pa-md buttons">
             <q-btn unelevated color="primary" label="Send" :disable="!isEnableSending" @click="sendQuickReply"/>
             <q-btn unelevated outline color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply"/>
-            Ctrl+Enter to send
+            <div class="non-selectable">Ctrl+Enter to send</div>
             <q-space />
-            <a href="javascript:void(0)" @click="replyAll">Open full reply form </a>
+            <a class="non-selectable" href="javascript:void(0)" @click="replyAll">Open full reply form </a>
           </q-toolbar>
         </div>
       </q-slide-transition>

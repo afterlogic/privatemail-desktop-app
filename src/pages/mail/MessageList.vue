@@ -2,17 +2,17 @@
   <div>
     <template v-if="folderSelected">
       <template v-if="currentSearch !== ''">
-        <span class="pannel-hint--link" @click="showAllMessages">Clear search</span>
-        <div class="pannel-hint">Search results for <b>{{ currentSearch }}</b> in {{ folderName }} folder:</div>
+        <span class="pannel-hint--link non-selectable" @click="showAllMessages">Clear search</span>
+        <div class="pannel-hint non-selectable">Search results for <b>{{ currentSearch }}</b> in {{ folderName }} folder:</div>
       </template>
       <template v-if="currentFilter !== ''">
-        <span class="pannel-hint--link" @click="showAllMessages">View all messages</span>
-        <div class="pannel-hint">Unread messages in {{ folderName }} folder:</div>
+        <span class="pannel-hint--link non-selectable" @click="showAllMessages">View all messages</span>
+        <div class="pannel-hint non-selectable">Unread messages in {{ folderName }} folder:</div>
       </template>
       <template v-if="messages.length === 0">
-        <div class="pannel-hint" v-if="!mailSyncing && currentFilter === '' && currentSearch === ''">The folder is empty</div>
-        <div class="pannel-hint" v-if="!mailSyncing && (currentFilter !== '' || currentSearch !== '')">No message found</div>
-        <div class="pannel-hint" v-if="mailSyncing">Loading message list...</div>
+        <div class="pannel-hint non-selectable" v-if="!mailSyncing && currentFilter === '' && currentSearch === ''">The folder is empty</div>
+        <div class="pannel-hint non-selectable" v-if="!mailSyncing && (currentFilter !== '' || currentSearch !== '')">No message found</div>
+        <div class="pannel-hint non-selectable" v-if="mailSyncing">Loading message list...</div>
       </template>
     </template>
     <MessageListItem v-for="message in messages" :key="message.Uid" :message="message" />

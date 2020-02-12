@@ -1,14 +1,22 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Mail settings</div>
+    <div class="text-h4 q-mb-md non-selectable">Mail settings</div>
     <q-separator spaced />
-    <q-list style="max-width: 500px;">
+    <q-list class="non-selectable" style="max-width: 500px;">
       <q-item>
         <q-item-section side center style="min-width: 140px;">
           Messages per page
         </q-item-section>
         <q-item-section>
-          <q-select outlined v-model="iMailsPerPage" :options="aMailsPerPageList" dense style="width: 100%;"/>
+          <q-select outlined v-model="iMailsPerPage" :options="aMailsPerPageList" dense style="width: 100%;">
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                <q-item-section class="non-selectable">
+                  <q-item-label v-html="scope.opt" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </q-item-section>
       </q-item>
 

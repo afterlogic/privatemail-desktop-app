@@ -50,6 +50,9 @@
 .unread {
   font-weight: bold;
   background: #fafafa;
+  .text-body1, .text-body2 {
+    font-weight: bold;
+  }
 }
 hr.unread {
   background: #ddd;

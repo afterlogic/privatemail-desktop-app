@@ -25,7 +25,7 @@ function _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity) {
     aCcContacts = oMessage.Cc && _.isArray(oMessage.Cc['@Collection']) ? messageUtils.getContactsToSend(oMessage.Cc) : [],
     aBccContacts = oMessage.Bcc && _.isArray(oMessage.Bcc['@Collection']) ? messageUtils.getContactsToSend(oMessage.Bcc) : [],
     aAllContacts = _.filter(_.union(aToContacts, aCcContacts, aBccContacts), function (oAddress) {
-      return oCurrentAccount.Email !== oAddress.email && (!oFetcherOrIdentity || oFetcherOrIdentity.Email !== oAddress.email)
+      return oCurrentAccount.sEmail !== oAddress.email && (!oFetcherOrIdentity || oFetcherOrIdentity.Email !== oAddress.email)
     })
   return aAllContacts
 }
@@ -37,12 +37,12 @@ export default {
         oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
         sSentFolder = oCurrentFolderList.Sent ? oCurrentFolderList.Sent.FullName : '',
         sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
-        sCurrEmail = oCurrentAccount.Email,
+        sCurrEmail = oCurrentAccount.sEmail,
         bSelfRecipient = (oParameters.To.indexOf(sCurrEmail) > -1 || oParameters.Cc.indexOf(sCurrEmail) > -1 ||
           oParameters.Bcc.indexOf(sCurrEmail) > -1),
         sLoadingMessage = 'Sending...' // textUtils.i18n('COREWEBCLIENT/INFO_SENDING')
 
-      if (oCurrentAccount.SaveRepliesToCurrFolder && !bSelfRecipient && typesUtils.isNonEmptyArray(oParameters.DraftInfo, 3)) {
+      if (oCurrentAccount.bSaveRepliesToCurrFolder && !bSelfRecipient && typesUtils.isNonEmptyArray(oParameters.DraftInfo, 3)) {
         sSentFolder = oParameters.DraftInfo[2]
       }
 

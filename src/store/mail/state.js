@@ -2,6 +2,7 @@ export default {
   foldersSyncing: false,
   messagesSyncing: false,
 
+  accounts: [],
   currentAccount: null,
   currentIdentities: [],
 

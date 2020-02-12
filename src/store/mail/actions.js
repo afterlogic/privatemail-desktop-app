@@ -13,14 +13,15 @@ import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 
-export function asyncGetSettings ({ commit, dispatch }, fGetSettingsCallback) {
+export function asyncGetSettings ({ state, commit, dispatch }, fGetSettingsCallback) {
   webApi.sendRequest({
     sModule: 'Core',
     sMethod: 'GetAppData',
     oParameters: {},
     fCallback: (oResult, oError) => {
       if (oResult && oResult['Mail'] && oResult['Mail'].Accounts && oResult['Mail'].Accounts[0]) {
-        commit('setCurrentAccount', oResult['Mail'].Accounts[0])
+        commit('setAccounts', oResult['Mail'].Accounts)
+        commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
         commit('resetCurrentFolderList')
         mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
         contactsSettings.parse(oResult['Contacts'])
@@ -51,7 +52,7 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
         let aIdentities = []
         let oAccount = state.currentAccount
         let bHasDefault = false
-        let iAccountId = oAccount.AccountID
+        let iAccountId = oAccount.iAccountId
         _.each(aIdentitiesData, function (oData) {
           let oIdentity = new cIdentity(oData)
           if (oIdentity.iIdAccount === iAccountId) {
@@ -61,14 +62,14 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
         })
         let oIdentity = new cIdentity({
           Default: !bHasDefault,
-          Email: oAccount.Email,
+          Email: oAccount.sEmail,
           EntityId: 0,
-          FriendlyName: oAccount.FriendlyName,
-          IdAccount: oAccount.AccountID,
-          IdUser: oAccount.IdUser,
-          Signature: oAccount.Signature,
+          FriendlyName: oAccount.sFriendlyName,
+          IdAccount: oAccount.iAccountId,
+          IdUser: oAccount.iIdUser,
+          Signature: oAccount.sSignature,
           UUID: '',
-          UseSignature: oAccount.UseSignature,
+          UseSignature: oAccount.bUseSignature,
         })
         aIdentities.unshift(oIdentity)
         commit('setCurrentIdentities', aIdentities)
@@ -124,8 +125,8 @@ export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders)
     ipcRenderer.send('mail-refresh', {
       sApiHost: store.getters['main/getApiHost'],
       sAuthToken: store.getters['user/getAuthToken'],
-      iAccountId: oCurrentAccount.AccountID,
-      bUseThreading: oCurrentAccount.UseThreading,
+      iAccountId: oCurrentAccount.iAccountId,
+      bUseThreading: oCurrentAccount.bUseThreading,
       sCurrentFolderFullName: getters.getCurrentFolderFullName,
       aFoldersToRefresh: bAllFolders ? state.currentFolderList.Names : getters.getDisplayedFolders,
       bAllFolders,
@@ -190,8 +191,8 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       ipcRenderer.send('mail-get-messages', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
-        iAccountId: oCurrentAccount.AccountID,
-        bUseThreading: oCurrentAccount.UseThreading,
+        iAccountId: oCurrentAccount.iAccountId,
+        bUseThreading: oCurrentAccount.bUseThreading,
         sFolderFullName,
         iFolderType: oFolder.Type,
         iPage,

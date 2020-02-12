@@ -755,12 +755,12 @@ export default {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       let aPrivateCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
         let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.Email
+        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
       })
       if (aPrivateCurrentKey.length > 0) {
         return aPrivateCurrentKey[0]
       } else {
-        notification.showError('No private key found for ' + this.currentAccount.Email + ' user.')
+        notification.showError('No private key found for ' + this.currentAccount.sEmail + ' user.')
         return null
       }
     },
@@ -1123,7 +1123,7 @@ export default {
       if (sAuthToken) {
         headers.push({name: 'Authorization', value: 'Bearer ' + sAuthToken})
       }
-      let iAccountId = this.currentAccount ? this.currentAccount.AccountID : 0
+      let iAccountId = this.currentAccount ? this.currentAccount.iAccountId : 0
       return {
         url,
         method: 'POST',

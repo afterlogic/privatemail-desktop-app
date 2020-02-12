@@ -6,7 +6,6 @@ import contactsEnums from 'src/modules/contacts/enums.js'
 function CContact(data) {
   this.EntityId = null
   this.UUID = ''
-  this.ParentUUID = ''
   this.Storage = ''
   this.FullName = ''
   this.PrimaryEmail = contactsEnums.PrimaryEmail.Personal
@@ -62,7 +61,6 @@ CContact.prototype.parse = function (data) {
   this.BusinessFax = typesUtils.pString(data.BusinessFax)
   this.EntityId = typesUtils.pInt(data.EntityId)
   this.UUID = typesUtils.pString(data.UUID)
-  this.ParentUUID = typesUtils.pString(data.ParentUUID)
   this.Storage = typesUtils.pString(data.Storage)
   this.FullName = typesUtils.pString(data.FullName)
   this.PrimaryEmail = typesUtils.pInt(data.PrimaryEmail)

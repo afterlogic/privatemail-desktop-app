@@ -2,6 +2,8 @@ import _ from 'lodash'
 
 import typesUtils from 'src/utils/types'
 
+import cAccount from 'src/modules/mail/classes/cAccount.js'
+
 export function setFoldersSyncing (state, payload) {
   state.foldersSyncing = payload
 }
@@ -10,7 +12,18 @@ export function setMessagesSyncing (state, payload) {
   state.messagesSyncing = payload
 }
 
-export function setCurrentAccount (state, payload) {
+export function setAccounts (state, aAccountsData) {
+  let aAccounts = []
+  if (typesUtils.isNonEmptyArray(aAccountsData)) {
+    _.each(aAccountsData, function (oAccountData) {
+      let oAccount = new cAccount(oAccountData)
+      aAccounts.push(oAccount)
+    })
+  }
+  state.accounts = aAccounts
+}
+
+export function setCurrentAccount (state, oAccount) {
   state.currentMessages = []
   state.totalMessagesCount = 0
   state.currentPage = 1
@@ -18,7 +31,7 @@ export function setCurrentAccount (state, payload) {
   state.messagesCache = {}
   state.currentMessage = null
 
-  state.currentAccount = payload
+  state.currentAccount = oAccount
 }
 
 export function setMailsPerPage (state, iMailsPerPage) {
@@ -53,7 +66,7 @@ export function resetCurrentFolderList (state) {
 }
 
 export function setCurrentFolderList (state, oFolderList) {
-  if (oFolderList.AccountId === state.currentAccount.AccountID) {
+  if (oFolderList.AccountId === state.currentAccount.iAccountId) {
     state.currentFolderList = oFolderList
   }
 }

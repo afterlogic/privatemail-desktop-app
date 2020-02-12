@@ -3,7 +3,6 @@ import typesUtils from '../../../utils/types'
 function CGroup(data) {
   this.EntityId = 0
   this.UUID = ''
-  this.ParentUUID = ''
   this.Name = ''
   this.IsOrganization = false
   this.Email = ''
@@ -24,7 +23,6 @@ function CGroup(data) {
 CGroup.prototype.parse = function (data) {
   this.EntityId = typesUtils.pInt(data.EntityId)
   this.UUID = typesUtils.pString(data.UUID)
-  this.ParentUUID = typesUtils.pString(data.ParentUUID)
   this.Name = typesUtils.pString(data.Name)
   this.IsOrganization = typesUtils.pBool(data.IsOrganization)
   this.Email = typesUtils.pString(data.Email)

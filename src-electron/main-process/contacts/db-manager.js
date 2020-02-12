@@ -9,7 +9,6 @@ let oDb = null
 let aContactDbMap = [
   {Name: 'EntityId', DbName: 'entity_id', Type: 'INTEGER'},
   {Name: 'UUID', DbName: 'uuid', Type: 'TEXT'},
-  {Name: 'ParentUUID', DbName: 'parent_uuid', Type: 'TEXT'},
   {Name: 'Storage', DbName: 'storage', Type: 'TEXT'},
   {Name: 'FullName', DbName: 'full_name', Type: 'TEXT'},
   {Name: 'PrimaryEmail', DbName: 'primary_email', Type: 'INTEGER'},
@@ -69,7 +68,6 @@ let aGroupDbMap = [
   {Name: 'Fax', DbName: 'fax', Type: 'TEXT'},
   {Name: 'IsOrganization', DbName: 'is_organization', Type: 'INTEGER', IsBool: true},
   {Name: 'Name', DbName: 'name', Type: 'TEXT'},
-  {Name: 'ParentUUID', DbName: 'parent_uuid', Type: 'TEXT'},
   {Name: 'Phone', DbName: 'phone', Type: 'TEXT'},
   {Name: 'State', DbName: 'state', Type: 'TEXT'},
   {Name: 'Street', DbName: 'street', Type: 'TEXT'},

@@ -553,7 +553,7 @@ export default {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
         let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return oKey.bPublic && oKeyEmail.email === this.currentAccount.Email
+        return oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
       })
       if (aPublicCurrentKey.length > 0) {
         return aPublicCurrentKey[0]
@@ -565,12 +565,12 @@ export default {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
         let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.Email
+        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
       })
       if (aPublicCurrentKey.length > 0) {
         return aPublicCurrentKey[0]
       } else {
-        notification.showError('No private key found for ' + this.currentAccount.Email + ' user.')
+        notification.showError('No private key found for ' + this.currentAccount.sEmail + ' user.')
         return null
       }
     },
@@ -586,7 +586,7 @@ export default {
           notification.showError(sError)
         }
       } else {
-        notification.showError('No public key found for ' + this.currentAccount.Email + ' user.')
+        notification.showError('No public key found for ' + this.currentAccount.sEmail + ' user.')
       }
     },
     async decrypt () {

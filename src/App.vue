@@ -46,7 +46,7 @@ export default {
   computed: {
     currentAccountId () {
       let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
-      return oCurrentAccount ? oCurrentAccount.AccountID : 0
+      return oCurrentAccount ? oCurrentAccount.iAccountId : 0
     },
     dataToSave () {
       return {

@@ -7,6 +7,13 @@
       </q-toolbar> -->
       <q-tabs align="left" class="q-pa-md main-tabs" v-if="showTabsbar">
         <q-route-tab to="/mail" :label="mailHeader" />
+        <q-btn-dropdown flat color="white" icon="none">
+          <q-list>
+            <q-item clickable v-close-popup v-for="oAccount in accountsForDropdown" :key="oAccount.iAccountId" @click="changeAccount(oAccount)">
+              <q-item-section>{{oAccount.sEmail}}</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
         <q-route-tab to="/contacts" label="Contacts" />
         <!-- <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" /> -->
@@ -37,18 +44,30 @@ export default {
       return this.$store.getters['user/isAuthorized']
     },
     mailHeader () {
-      var oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
-      return oCurrentAccount ? oCurrentAccount.Email : 'Mail'
+      let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
+      return oCurrentAccount ? oCurrentAccount.sEmail : 'Mail'
     },
     showTabsbar () {
       return this.isAuthorized // && this.mailHeader !== 'Mail'
+    },
+    accountsForDropdown () {
+      let aAccounts = this.$store.getters['mail/getAccounts']
+      let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
+      let iCurrAccountId = oCurrentAccount ? oCurrentAccount.iAccountId : 0
+      return _.filter(aAccounts, function (oAccount) {
+        return oAccount.iAccountId !== iCurrAccountId
+      })
     },
   },
 
   methods: {
     logIn () {
       this.$store.dispatch('login')
-    }
+    },
+    changeAccount (oAccount) {
+      this.$store.commit('mail/setCurrentAccount', oAccount)
+      this.$store.commit('mail/resetCurrentFolderList')
+    },
   },
 }
 </script >

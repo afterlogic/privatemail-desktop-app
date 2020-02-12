@@ -7,16 +7,20 @@ export function getMessagesSyncing (state) {
   return state.messagesSyncing
 }
 
+export function getAccounts (state) {
+  return state.accounts
+}
+
 export function getCurrentAccount (state) {
   return state.currentAccount
 }
 
 export function getCurrentAccountId (state) {
-  return state.currentAccount ? state.currentAccount.AccountID : 0
+  return state.currentAccount ? state.currentAccount.iAccountId : 0
 }
 
 export function getCurrentAccountEmail (state) {
-  return state.currentAccount ? state.currentAccount.Email : ''
+  return state.currentAccount ? state.currentAccount.sEmail : ''
 }
 
 export function getCurrentIdentities (state) {

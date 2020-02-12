@@ -136,7 +136,6 @@ export default {
     },
   },
   mounted: function () {
-    //   console.log(this.message)
     this.initSubscriptions()
   },
   methods: {

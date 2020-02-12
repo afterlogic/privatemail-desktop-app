@@ -43,6 +43,7 @@ export default {
               let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
               if (this.currentAccount) {
                 if (sCurrentPath !== '/mail') {
+                  ipcRenderer.send('init', { sApiHost: this.$store.getters['main/getApiHost'], sAuthToken: this.$store.getters['user/getAuthToken'] })
                   this.$router.push({ path: '/mail' })
                 }
               } else {
@@ -52,6 +53,7 @@ export default {
               }
             })
           } else {
+            ipcRenderer.send('init', { sApiHost: this.$store.getters['main/getApiHost'], sAuthToken: this.$store.getters['user/getAuthToken'] })
             this.$router.push({ path: '/mail' })
           }
         } else {

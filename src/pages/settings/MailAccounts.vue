@@ -2,6 +2,21 @@
   <div>
     <div class="text-h4 q-mb-md">Email accounts settings</div>
     <q-separator spaced />
+    <q-list class="non-selectable">
+      <q-item v-ripple clickable
+        :class="{checked: iEditAccountId === oAccount.iAccountId}"
+        v-for="oAccount in accounts" :key="oAccount.iAccountId"
+        @click="changeEditAccount(oAccount.iAccountId)"
+      >
+        <q-item-section>
+          <q-item-label>{{ oAccount.sEmail }}</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-btn flat color="primary" label="add identity" />
+        </q-item-section>
+      </q-item>
+    </q-list>
+    <q-separator spaced />
     <q-tabs
       v-model="mailTab"
       inline-label
@@ -10,10 +25,10 @@
       class="flex-start"
     >
       <q-tab name="props" label="Properties" />
-      <q-tab name="folders" label="Folders" />
+      <!-- <q-tab name="folders" label="Folders" />
       <q-tab name="forward" label="Forward" />
       <q-tab name="autoresponder" label="Autoresponder" />
-      <q-tab name="filters" label="Filters" />
+      <q-tab name="filters" label="Filters" /> -->
     </q-tabs>
     <q-separator />
 
@@ -25,84 +40,41 @@
     >
       <q-tab-panel name="props">
         <q-list>
-          <q-item-label header>General</q-item-label>
+          <q-item tag="label" v-ripple>
+            <q-item-section side top>
+              <q-checkbox v-model="bUseThreading" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Use mail threading if supported by the server</q-item-label>
+            </q-item-section>
+          </q-item>
 
           <q-item tag="label" v-ripple>
             <q-item-section side top>
-              <q-checkbox v-model="check1" />
+              <q-checkbox v-model="bSaveRepliesToCurrFolder" />
             </q-item-section>
-
             <q-item-section>
-              <q-item-label>Notifications</q-item-label>
+              <q-item-label>Save replies to the current folder</q-item-label>
               <q-item-label caption>
-                Notify me about updates to apps or games that I downloaded
+                When enabled, threads will include your replies and thus will look more complete.
               </q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-item tag="label" v-ripple>
-            <q-item-section side top>
-              <q-checkbox v-model="check2" />
-            </q-item-section>
-
+          <q-item>
             <q-item-section>
-              <q-item-label>Sound</q-item-label>
+              <q-item-label><q-btn flat color="primary" label="Remove account" /></q-item-label>
               <q-item-label caption>
-                Auto-update apps at anytime. Data charges may apply
+                Removes this account from the list. It won't delete the actual account from the mail server.
               </q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item tag="label" v-ripple>
-            <q-item-section side top>
-              <q-checkbox v-model="check3" />
-            </q-item-section>
-
-            <q-item-section>
-              <q-item-label>Auto-add widgets</q-item-label>
-              <q-item-label caption>
-                Automatically add home screen widgets
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-separator spaced />
-          <q-item-label header>Notifications</q-item-label>
-
-          <q-item tag="label" v-ripple>
-            <q-item-section>
-              <q-item-label>Battery too low</q-item-label>
-            </q-item-section>
-            <q-item-section side >
-              <q-toggle color="blue" v-model="notif1" val="battery" />
-            </q-item-section>
-          </q-item>
-
-          <q-item tag="label" v-ripple>
-            <q-item-section>
-              <q-item-label>Friend request</q-item-label>
-              <q-item-label caption>Allow notification</q-item-label>
-            </q-item-section>
-            <q-item-section side top>
-              <q-toggle color="green" v-model="notif2" val="friend" />
-            </q-item-section>
-          </q-item>
-
-          <q-item tag="label" v-ripple>
-            <q-item-section>
-              <q-item-label>Picture uploaded</q-item-label>
-              <q-item-label caption>Allow notification when uploading images</q-item-label>
-            </q-item-section>
-            <q-item-section side top>
-              <q-toggle color="red" v-model="notif3" val="picture" />
             </q-item-section>
           </q-item>
         </q-list>
         <q-separator spaced />
-        <q-btn color="primary" icon="done" label="Save" align="right" />
+        <q-btn color="primary" label="Save" align="right" />
       </q-tab-panel>
 
-      <q-tab-panel name="folders">
+      <!-- <q-tab-panel name="folders">
         <q-list padding>
           <q-item-label header>User Controls</q-item-label>
 
@@ -147,9 +119,9 @@
                 <template v-slot:prepend>
                   <q-icon name="search" ></q-icon>
                 </template>
-                <!-- <template v-slot:after>
+                <template v-slot:after>
                   <q-btn round dense flat icon="send" ></q-btn>
-                </template> -->
+                </template>
               </q-input>
             </div>
           </div>
@@ -177,9 +149,9 @@
                 <template v-slot:prepend>
                   <q-icon name="search" ></q-icon>
                 </template>
-                <!-- <template v-slot:after>
+                <template v-slot:after>
                   <q-btn round dense flat icon="send" ></q-btn>
-                </template> -->
+                </template>
               </q-input>
             </div>
           </div>
@@ -203,7 +175,7 @@
       </q-tab-panel>
       <q-tab-panel name="filters">
         <q-item-label header>Filters</q-item-label>
-      </q-tab-panel>
+      </q-tab-panel> -->
     </q-tab-panels>
   </div>
 </template>
@@ -215,32 +187,59 @@
 </style>
 
 <script>
-// import CommonTab from "pages/settings/Common.vue"
 
 export default {
-  name: "MailAccounts",
-  components: {
-    // CommonTab
-  },
+  name: 'MailAccounts',
+
   data () {
     return {
-      tab: 'mails',
       mailTab: 'props',
-      enableAutoresponder: false,
-      autoresponderSubject: '',
-      autoresponderMessage: '',
 
-      enableForward: '',
-      forwardEmail: '',
+      iEditAccountId: 0,
 
-      splitterModel: 20,
-      check1: false,
-      check2: true,
-      check3: false,
-      notif1: false,
-      notif2: true,
-      notif3: true
+      // enableAutoresponder: false,
+      // autoresponderSubject: '',
+      // autoresponderMessage: '',
+      // enableForward: '',
+      // forwardEmail: '',
+
+      bUseThreading: false,
+      bSaveRepliesToCurrFolder: false,
     }
-  }
-};
+  },
+
+  computed: {
+    accounts () {
+      return this.$store.getters['mail/getAccounts']
+    },
+    editAccount () {
+      console.log('editAccount', this.iEditAccountId)
+      return _.find(this.accounts, (oAccount) => {
+        return oAccount.iAccountId === this.iEditAccountId
+      })
+    },
+  },
+
+  watch: {
+    editAccount () {
+      if (this.editAccount) {
+        this.bUseThreading = this.editAccount.bUseThreading
+        this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
+      }
+    },
+  },
+
+  mounted () {
+    if (this.iEditAccountId === 0 && this.accounts.length > 0) {
+      this.iEditAccountId = this.accounts[0].iAccountId
+    }
+  },
+
+  methods: {
+    changeEditAccount (iAccountId) {
+      console.log('changeEditAccount', iAccountId)
+      this.iEditAccountId = iAccountId
+    },
+  },
+}
 </script>

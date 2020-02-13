@@ -6,7 +6,7 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
-      <div class="q-pa-md pgp-notification-panel" v-if="isEcryptedMessage || isSignedMessage" :class="{'success-report': isDecrypted || isVerified}">
+      <div class="q-pa-md pgp-notification-panel non-selectable" v-if="isEcryptedMessage || isSignedMessage" :class="{'success-report': isDecrypted || isVerified}">
         <template v-if="isEcryptedMessage && !isDecrypted">
           <div class="q-mb-md hint">OpenPGP encrypted message.</div>
           <div class="row">

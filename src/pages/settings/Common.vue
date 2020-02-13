@@ -6,16 +6,6 @@
       Some text
     </div> -->
     <q-list class="non-selectable" style="max-width: 500px;">
-      <q-item>
-        <q-item-section side center style="min-width: 100px;">
-          Theme
-        </q-item-section>
-        <q-item-section style="flex-direction: row; justify-content: flex-start;" class="q-gutter-sm">
-          <q-radio v-model="themeValue" val="light" label="Light" />
-          <q-radio v-model="themeValue" val="dark" label="Dark" />
-        </q-item-section>
-      </q-item>
-
       <!--<q-item>
         <q-item-section side center style="min-width: 100px;">
           Language
@@ -61,6 +51,16 @@
               class="custom-toggle"
               :options="aTimeFormatList"
             />
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section side center style="min-width: 100px;">
+          Theme
+        </q-item-section>
+        <q-item-section style="flex-direction: row; justify-content: flex-start;" class="q-gutter-sm">
+          <q-radio v-model="themeValue" val="light" label="Light" />
+          <q-radio v-model="themeValue" val="dark" label="Dark" />
         </q-item-section>
       </q-item>
 

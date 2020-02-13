@@ -22,7 +22,7 @@ export default {
     colors.setBrand('positive', '#33F')
     colors.setBrand('negative', '#33F')
     colors.setBrand('info', '#33F')
-    colors.setBrand('warning', '#33F')
+    colors.setBrand('warning', '#f00')
   },
   setDarkhemeColors () {
     colors.setBrand('t-background', '#000')
@@ -40,6 +40,6 @@ export default {
     colors.setBrand('positive', '#33F')
     colors.setBrand('negative', '#33F')
     colors.setBrand('info', '#33F')
-    colors.setBrand('warning', '#33F')
+    colors.setBrand('warning', '#f00')
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4 q-mb-md">Email accounts settings</div>
+    <div class="text-h4 q-mb-md non-selectable">Email accounts settings</div>
     <q-separator spaced />
     <q-list class="non-selectable">
       <q-item v-ripple clickable
@@ -38,8 +38,8 @@
       transition-prev="jump-up"
       transition-next="jump-up"
     >
-      <q-tab-panel name="props">
-        <q-list>
+      <q-tab-panel name="props" class="bg-grey-1">
+        <q-list class="non-selectable">
           <q-item tag="label" v-ripple>
             <q-item-section side top>
               <q-checkbox v-model="bUseThreading" />
@@ -63,7 +63,9 @@
 
           <q-item>
             <q-item-section>
-              <q-item-label><q-btn flat color="primary" label="Remove account" /></q-item-label>
+              <q-item-label>
+                <q-btn unelevated outline color="warning" label="Remove account" />
+              </q-item-label>
               <q-item-label caption>
                 Removes this account from the list. It won't delete the actual account from the mail server.
               </q-item-label>
@@ -71,7 +73,9 @@
           </q-item>
         </q-list>
         <q-separator spaced />
-        <q-btn color="primary" label="Save" align="right" />
+        <div class="q-pa-md">
+          <q-btn unelevated color="primary" label="Save" />
+        </div>
       </q-tab-panel>
 
       <!-- <q-tab-panel name="folders">

@@ -17,6 +17,10 @@
         <div>
             <a target="_blank" href="https://privatemail.com/privacy.php">Privacy policy</a>
         </div>
+        <q-separator spaced />
+        <div class="q-pa-md">
+          <q-btn flat no-caps label="Clear all user data" @click="clearAllUserData" class="full-width"/>
+        </div>
     </div>
   </div>
 </template>
@@ -25,13 +29,23 @@
 </style>
 
 <script>
-import {version} from '../../../package.json'
+import { ipcRenderer } from 'electron'
+import {version, buildNumber} from '../../../package.json'
 
 export default {
   data () {
     return {
-        version: version
+        version: version + '(' + buildNumber + ')'
     }
   },
+  methods: {
+    clearAllUserData () {
+       let sApiHost = this.$store.getters['main/getApiHost']
+       ipcRenderer.send('db-remove-all')
+       ipcRenderer.send('logout', { sApiHost })
+       this.$store.dispatch('main/clearAll')
+       this.$router.push({ path: '/login' })
+    },
+  }
 }
 </script>

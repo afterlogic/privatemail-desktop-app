@@ -11,8 +11,8 @@
             <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" ref="login" />
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
             <span class="pannel-hint--link" v-if="showHost" @click="showHost=false">Less options</span>
-            <q-btn color="primary" v-if="loading" size="20px" label="Signing In ..." no-caps disable />
-            <q-btn @click="logIn()" color="primary" v-else size="20px" label="Sign In" no-caps/>
+            <q-btn unelevated color="primary" no-caps disable size="20px" v-if="loading" label="Signing In ..." />
+            <q-btn unelevated color="primary" no-caps size="20px" v-else label="Sign In" @click="logIn()" />
           </div>
         </div>
       </div>

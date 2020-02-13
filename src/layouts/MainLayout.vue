@@ -7,7 +7,7 @@
       </q-toolbar> -->
       <q-tabs align="left" class="q-pa-md main-tabs" v-if="showTabsbar">
         <q-route-tab to="/mail" :label="mailHeader" />
-        <q-btn-dropdown flat color="white" class="accounts-selector" content-class="accounts-selector-dropdown">
+        <q-btn-dropdown flat color="white" v-if="accountsForDropdown.length > 0" class="accounts-selector" content-class="accounts-selector-dropdown">
           <q-list class="non-selectable">
             <!-- <q-item class="dummy q-mr-xl q-pr-xl_">
               {{mailHeader}}

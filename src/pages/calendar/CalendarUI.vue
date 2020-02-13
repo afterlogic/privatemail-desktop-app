@@ -31,14 +31,12 @@
         </template>
 
         <template v-slot:after>
-          <div class="column full-height bg-white text-black panel-rounded">
+          <div class="column full-height bg-white text-grey-8 panel-rounded">
             <div class="col-auto">
               <toolbar />
             </div>
-            <div class="col bg-white text-black">
-              
+            <div class="col">
               <!-- <q-scroll-area class="full-height" style="min-height: 800px;"> -->
-
                 <div class="column full-height">
                   <div class="col-2 row full-width" v-for="r in 6" :key="r">
                     <div class="col cell" v-for="n in 7" :key="n">{{(r- 1)*7 + n}}</div>

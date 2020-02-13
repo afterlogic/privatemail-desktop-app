@@ -1,5 +1,5 @@
 <template>
-  <div class="full-height bg-white text-black">
+  <div class="full-height bg-white text-grey-8">
     <div class="pannel-hint non-selectable" v-if="message === null">
       No message selected.
       <br />

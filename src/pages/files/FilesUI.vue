@@ -31,7 +31,7 @@
         </template>
 
         <template v-slot:after>
-          <div class="column full-height bg-white text-black panel-rounded">
+          <div class="column full-height bg-white text-grey-8 panel-rounded">
             <div class="col-auto">
               <toolbar />
               <q-toolbar style="width: 100%; background: #eee;">
@@ -52,7 +52,7 @@
               </q-breadcrumbs>
               <q-separator />
             </div>
-            <div class="col bg-white text-black">
+            <div class="col">
               <q-scroll-area class="full-height">
                 <div class="row q-pa-sm">
                   <q-card class="q-ma-md" v-for="n in 20" :key="n">

@@ -18,10 +18,10 @@
         <template v-slot:after>
           <q-splitter v-model="splitterMessageModel" separator-class="main-split-separator">
             <template v-slot:before>
-              <div class="column full-height bg-white text-black panel-rounded">
+              <div class="column full-height bg-white text-grey-8 panel-rounded">
                 <div class="col-auto">
                   <contact-list-toolbar />
-                  <q-toolbar style="width: 100%; background: #eee;">
+                  <q-toolbar class="q-px-md q-py-sm full-width bg-grey-3">
                     <q-checkbox v-model="allChecked" />
                     <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchInputText" v-on:keyup.enter="search" style="width: 100%;">
                       <template v-slot:prepend>
@@ -44,7 +44,7 @@
               </div>
             </template>
             <template v-slot:after>
-              <div class="full-height bg-white text-black panel-rounded">
+              <div class="full-height bg-white text-grey-8 panel-rounded">
                 <div class="pannel-hint non-selectable" v-if="!(showContact || showGroup || stateForCreatingContact || stateForCreatingGroup)">
                   No contact selected.
                 </div>

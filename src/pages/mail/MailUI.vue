@@ -22,23 +22,23 @@
         <template v-slot:after>
           <q-splitter v-model="splitterMessageModel" :limits="[2,50]" separator-class="main-split-separator">
             <template v-slot:before>
-              <div class="column no-wrap full-height bg-white text-black panel-rounded" style="overflow: hidden">
+              <div class="column no-wrap full-height bg-white text-grey-8 panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
                   <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" />
                   <q-expansion-item
                     expand-separator
                     icon="mail"
                     label="Inbox"
-                    style="width: 100%; background: #eee;"
+                    class="full-width bg-grey-3"
                     ref="advSearchExpansion"
+                    expand-icon-class="advanced-search-toggle"
                   >
                     <template v-slot:header>
                       <q-checkbox v-model="checkboxAll" />
-                      <q-input outlined rounded dense bg-color="white"
-                          @click.stop.prevent class="search-field"
+                      <q-input outlined rounded dense bg-color="white" class="search-field full-width"
                           v-model="searchInputText"
-                          @keyup.enter.stop.prevent="search"
-                          style="width: 100%;">
+                          @click.stop.prevent
+                          @keyup.enter.stop.prevent="search">
                         <template v-slot:prepend>
                           <q-icon name="search" @click.stop.prevent="search"></q-icon>
                         </template>
@@ -47,8 +47,8 @@
                         </template> -->
                       </q-input>
                     </template>
-                    <div class="row q-gutter-md" style="padding: 0px 20px;">
-                      <div class="col q-gutter-md non-selectable">
+                    <div class="row q-px-md q-pl-xl q-pt-md">
+                      <div class="col q-gutter-y-md q-pr-md q-pl-sm non-selectable">
                         <q-input outlined dense bg-color="white" label="From" v-model="advSearchFrom" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" label="Subject" v-model="advSearchSubject" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" class="input-size" label="Since" v-model="advSearchSinceDate" mask="####.##.##" @keyup.enter.stop.prevent="advancedSearch">
@@ -62,7 +62,7 @@
                         </q-input>
                         <q-checkbox v-model="advSearchHasAttachments" label="Has attachments" />
                       </div>
-                      <div class="col q-gutter-md non-selectable">
+                      <div class="col q-gutter-y-md q-pr-lg non-selectable">
                         <q-input outlined dense bg-color="white" label="To" v-model="advSearchTo" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" label="Text" v-model="advSearchText" @keyup.enter.stop.prevent="advancedSearch" />
                         <q-input outlined dense bg-color="white" class="input-size" label="Till" v-model="advSearchTillDate" mask="####.##.##" @keyup.enter.stop.prevent="advancedSearch">
@@ -76,8 +76,8 @@
                         </q-input>
                       </div>
                     </div>
-                    <div class="row q-gutter-md" style="padding: 0px 20px 10px;">
-                      <div class="col q-gutter-md">
+                    <div class="row q-px-md q-pb-lg justify-end">
+                      <div class="q-px-lg ">
                         <q-btn unelevated label="Search" color="primary" @click="advancedSearch"></q-btn>
                       </div>
                     </div>
@@ -103,7 +103,11 @@
   </q-page-container>
 </template>
 
-<style></style>
+<style>
+.advanced-search-toggle {
+  padding-right: 0px;
+}
+</style>
 
 <script>
 import { ipcRenderer } from 'electron'

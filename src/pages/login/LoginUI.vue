@@ -6,7 +6,7 @@
           <img class="logo" alt="PrivateMail" src="~assets/private-mail-logo.svg" />
         </div>
         <div class="col">
-          <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-black non-selectable" style="min-width: 400px">
+          <div class="column panel-rounded q-px-md q-pb-md q-gutter-y-md bg-white text-grey-8 non-selectable" style="min-width: 400px">
             <q-input outlined v-if="showHost" v-model="host" label="Server" v-on:keyup.enter="logIn" />
             <q-input outlined v-model="login" label="Login" v-on:keyup.enter="logIn" ref="login" />
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />

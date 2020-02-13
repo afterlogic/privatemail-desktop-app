@@ -10,13 +10,13 @@
     </template>
     <q-list>
       <div v-for="contact in contacts.list" :key="contact.UUID">
-        <q-item clickable v-ripple @click="setCurrentContactByUUID(contact.UUID)" 
+        <q-item clickable v-ripple class="contact-list-item q-py-md" @click="setCurrentContactByUUID(contact.UUID)" 
             :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
           </q-item-section>
           <q-item-section>
-            <q-item-label v-if="contact.FullName" lines="1">{{contact.FullName}}</q-item-label>
+            <q-item-label v-if="contact.FullName" lines="1" class="text-body1">{{contact.FullName}}</q-item-label>
             <q-item-label v-else lines="1" class="nodata non-selectable">No name</q-item-label>
             <q-item-label v-if="contact.ViewEmail" lines="1">{{contact.ViewEmail}}</q-item-label>
             <q-item-label v-else lines="1" class="nodata non-selectable">No email address</q-item-label>
@@ -46,6 +46,12 @@
 /* }  */
 .storage-type .svg-icon {
   fill: $grey-4;
+}
+
+.contact-list-item {
+  .q-item__label + .q-item__label {
+    margin-top: 8px;
+  }
 }
 </style>
 

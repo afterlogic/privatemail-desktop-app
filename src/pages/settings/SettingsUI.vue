@@ -26,10 +26,10 @@
         <template v-slot:after>
           <q-tab-panels
             v-model="tab"
-            animated
+            _animated
             transition-prev="jump-up"
             transition-next="jump-up"
-            class="panel-rounded bg-white text-black"
+            class="panel-rounded bg-white text-grey-8"
           >
             <q-tab-panel name="about">
               <AboutTab />

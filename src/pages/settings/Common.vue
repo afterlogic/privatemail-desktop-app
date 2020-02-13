@@ -6,7 +6,7 @@
       Some text
     </div> -->
     <q-list class="non-selectable" style="max-width: 500px;">
-      <!-- <q-item>
+      <q-item>
         <q-item-section side center style="min-width: 100px;">
           Theme
         </q-item-section>
@@ -16,7 +16,7 @@
         </q-item-section>
       </q-item>
 
-      <q-item>
+      <!--<q-item>
         <q-item-section side center style="min-width: 100px;">
           Language
         </q-item-section>
@@ -189,7 +189,7 @@ export default {
 
   methods: {
     save () {
-      // this.$store.commit('main/setTheme', this.themeValue)
+      this.$store.commit('main/setTheme', this.themeValue)
 
       this.bSaving = true
       webApi.sendRequest({

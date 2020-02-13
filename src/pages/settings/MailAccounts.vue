@@ -217,7 +217,6 @@ export default {
       return this.$store.getters['mail/getAccounts']
     },
     editAccount () {
-      console.log('editAccount', this.iEditAccountId)
       return _.find(this.accounts, (oAccount) => {
         return oAccount.iAccountId === this.iEditAccountId
       })
@@ -241,7 +240,6 @@ export default {
 
   methods: {
     changeEditAccount (iAccountId) {
-      console.log('changeEditAccount', iAccountId)
       this.iEditAccountId = iAccountId
     },
   },

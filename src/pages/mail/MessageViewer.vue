@@ -196,7 +196,7 @@
             <q-btn unelevated outline color="primary" label="Save" :disable="!isEnableSaving" @click="saveQuickReply"/>
             <div class="non-selectable">Ctrl+Enter to send</div>
             <q-space />
-            <a class="non-selectable" href="javascript:void(0)" @click="replyAll">Open full reply form </a>
+            <a class="non-selectable text-primary" href="javascript:void(0)" @click="replyAll">Open full reply form </a>
           </q-toolbar>
         </div>
       </q-slide-transition>

@@ -57,6 +57,7 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
+
       <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-toolbar-title @dblclick="maximizedToggle = false">
@@ -74,7 +75,7 @@
           </q-btn>
         </q-toolbar>
       </div>
-      <div class="column no-wrap bg-white" style="min-width: 1100px;" v-show="!maximizedToggle">
+      <div class="column no-wrap bg-white non-selectable" style="min-width: 1100px;" v-show="!maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />
@@ -101,7 +102,7 @@
                       From
                     </q-item-section>
                     <q-item-section>
-                      <q-select dense outlined v-model="selectedIdentity" :options="identitiesOptions" />
+                      <q-select dense outlined v-model="selectedIdentity" :options="identitiesOptions"></q-select>
                     </q-item-section>
                   </q-item>
                   <q-item>
@@ -131,11 +132,18 @@
                             </q-item-section>
                           </q-item>
                         </template>
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                            <q-item-section class="non-selectable">
+                              <q-item-label v-html="scope.opt.label" />
+                            </q-item-section>
+                          </q-item>
+                        </template>
                       </q-select>
                     </q-item-section>
                     <q-item-section style="max-width: 100px;" v-show="!isCcShowed || !isBccShowed">
-                      <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc">Show CC</a>
-                      <a href="javascript:void(0)" v-show="!isBccShowed" @click="showBcc">Show BCC</a>
+                      <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc" class="text-primary">Show CC</a>
+                      <a href="javascript:void(0)" v-show="!isBccShowed" @click="showBcc" class="text-primary">Show BCC</a>
                     </q-item-section>
                   </q-item>
                   <q-item v-show="isCcShowed">
@@ -162,6 +170,13 @@
                           <q-item>
                             <q-item-section class="text-grey">
                               No results
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                            <q-item-section class="non-selectable">
+                              <q-item-label v-html="scope.opt.label" />
                             </q-item-section>
                           </q-item>
                         </template>
@@ -192,6 +207,13 @@
                           <q-item>
                             <q-item-section class="text-grey">
                               No results
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                            <q-item-section class="non-selectable">
+                              <q-item-label v-html="scope.opt.label" />
                             </q-item-section>
                           </q-item>
                         </template>

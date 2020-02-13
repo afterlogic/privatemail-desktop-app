@@ -3,6 +3,8 @@ import { colors } from 'quasar'
 
 const primary = '#BC4799'
 const primaryDark = colors.lighten(primary, -50)
+const primaryLight = colors.lighten(primary, 50)
+const primaryPale = colors.lighten(primary, 80)
   
 
 export default {
@@ -17,6 +19,8 @@ export default {
 
     colors.setBrand('primary', '#ce0993')
     colors.setBrand('primary-dark', `${colors.lighten('#ce0993', -30)}`)
+    colors.setBrand('primary-light', `${colors.lighten('#ce0993', 30)}`)
+    colors.setBrand('primary-pale', `${colors.lighten('#ce0993', 50)}`)
     colors.setBrand('secondary', '#ccc')
     colors.setBrand('accent', '#BC4799')
     colors.setBrand('positive', '#33F')
@@ -34,6 +38,8 @@ export default {
 
     colors.setBrand('primary', '#BC4799')
     colors.setBrand('primary-dark', primaryDark)
+    colors.setBrand('primary-light', primaryLight)
+    colors.setBrand('primary-pale', primaryPale)
 
     colors.setBrand('secondary', '#33F')
     colors.setBrand('accent', '#f00')

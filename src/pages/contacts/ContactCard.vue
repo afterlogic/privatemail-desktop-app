@@ -1,10 +1,12 @@
 <template>
-  <q-chip :clickable="!!contact" :class="{'found_contact': !!contact, 'no_contact': !contact}">
+  <q-chip unelevated :class="{'found_contact': !!contact, 'no_contact': !contact}">
+    <!-- TODO add @mouseover="openCardPopup(true)" @mouseout="openCardPopup(false)" to the root element to make the card visible by hovering -->
     <span v-if="!min">{{ addr.Full }}</span>
     <span v-if="min">{{ (currentAccountEmail === addr.Email) ? 'me' : (addr.Name || addr.Email) }}</span>
-    <q-btn size="xs" unelevated dense rounded color="primary" v-if="contact === false" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -10px;" >
-      <q-icon size="xs" color="white" name="add" />
+    <q-btn size="8px" unelevated dense rounded color="primary" v-if="!contact" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -8px;" >
+      <q-icon size="12px" color="white" name="add" />
     </q-btn>
+    <!-- the hover ement should be on card itself also @mouseover="openCardPopup(true)" @mouseout="openCardPopup(false)" -->
     <q-popup-proxy ref="cardPopup">
       <q-card flat bordered class="my-card bg-grey-1" v-if="contact">
         <q-card-section>
@@ -74,8 +76,9 @@
         </q-card-actions>
       </q-card>
     </q-popup-proxy>
+    
     <q-dialog v-model="bNewContactDialog" persistent>
-      <q-card>
+      <q-card class="non-selectable">
         <q-card-section>
           <div class="text-h6">New Contact</div>
         </q-card-section>
@@ -133,8 +136,8 @@
           <a href="javascript:void(0)" @click="showAdditionalFields">Show additional fields</a>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Saving..." color="primary" v-if="bSaving" />
-          <q-btn flat label="Save" color="primary" v-if="!bSaving" @click="saveNewContact" />
+          <q-btn flat label="Creating..." color="primary" v-if="bSaving" />
+          <q-btn flat label="Create" color="primary" v-if="!bSaving" @click="saveNewContact" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -142,15 +145,17 @@
   </q-chip>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .input-size {
   width: 300px;
 }
 .q-chip.found_contact {
   min-width: 2em;
   justify-content: center;
-  background: var(--q-color-primary);
-  color: #fff;
+  color: var(--q-color-primary);
+  background: var(--q-color-primary-pale);
+  // background: lighten(var(--q-color-primary), 0.5);
+  
 }
 .q-chip.no_contact {
   min-width: 2em;
@@ -165,6 +170,7 @@
 <script>
 import { ipcRenderer } from 'electron'
 import moment from 'moment'
+import _ from 'lodash'
 
 import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
@@ -191,6 +197,7 @@ export default {
       sNewContactSkype: '',
       sNewContactFacebook: '',
       bSaving: false,
+      bShowContactCard: false,
     }
   },
 
@@ -213,7 +220,23 @@ export default {
     ipcRenderer.removeListener('contacts-save-contact', this.onSaveContact)
   },
 
+  watch: {
+    'bShowContactCard': function (v) {
+      if (this.$refs.cardPopup) {
+        if (v) {
+          this.$refs.cardPopup.show()
+        } else {
+          this.$refs.cardPopup.hide()
+        }
+      }
+    }
+  },
+
   methods: {
+    openCardPopup: _.debounce(function (bShow) {
+      console.log('openCardPopup');
+      this.bShowContactCard = bShow;
+    }, 300),
     setBirthDate () {
       if (this.contact && this.contact.BirthYear && this.contact.BirthMonth && this.contact.BirthDay) {
         let sDate = `${this.contact.BirthYear}-${this.contact.BirthMonth}-${this.contact.BirthDay}`

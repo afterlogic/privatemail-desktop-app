@@ -100,12 +100,12 @@ export default {
           } else {
             notification.showReport('Please fill up host field.')
           }
-        } else if (typesUtils.isNonEmptyString(this.hosts[sEmail])) {
-          this.host = this.hosts[sEmail]
-          this.continueLogIn()
+        // } else if (typesUtils.isNonEmptyString(this.hosts[sEmail])) {
+        //   this.host = this.hosts[sEmail]
+        //   this.continueLogIn()
         } else {
           let sUrl = ''
-          axios.get('https://test.afterlogic.com/autodiscover.php?email=' + sEmail)
+          axios.get('https://torguard.tv/pm/autodiscover.php?email=' + sEmail)
             .then((oResponse) => {
               sUrl = typesUtils.pString(oResponse && oResponse.data && oResponse.data.url)
             })

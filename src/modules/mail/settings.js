@@ -6,7 +6,7 @@ function CSettings () {
   // this.bAllowAlwaysRefreshFolders = false
   this.bAllowAutosaveInDrafts = false
   // this.bAllowChangeMailQuotaOnMailServer = false
-  // this.bAllowDefaultAccountForUser = false
+  this.bAllowDefaultAccountForUser = false
   this.bAllowIdentities = false
   this.bAllowInsertImage = false
   // this.bAllowTemplateFolders = false
@@ -46,7 +46,7 @@ CSettings.prototype.parse = function (oData, oWebclientData) {
     // this.bAllowAlwaysRefreshFolders = typesUtils.pBool(oData.AllowAlwaysRefreshFolders, this.bAllowAlwaysRefreshFolders)
     this.setAllowAutosaveInDrafts(oData.AllowAutosaveInDrafts)
     // this.bAllowChangeMailQuotaOnMailServer = typesUtils.pBool(oData.AllowChangeMailQuotaOnMailServer, this.bAllowChangeMailQuotaOnMailServer)
-    // this.bAllowDefaultAccountForUser = typesUtils.pBool(oData.AllowDefaultAccountForUser, this.bAllowDefaultAccountForUser)
+    this.bAllowDefaultAccountForUser = typesUtils.pBool(oData.AllowDefaultAccountForUser, this.bAllowDefaultAccountForUser)
     this.bAllowIdentities = typesUtils.pBool(oData.AllowIdentities, this.bAllowIdentities)
     this.bAllowInsertImage = typesUtils.pBool(oData.AllowInsertImage, this.bAllowInsertImage)
     // this.bAllowTemplateFolders = typesUtils.pBool(oData.AllowTemplateFolders, this.bAllowTemplateFolders)

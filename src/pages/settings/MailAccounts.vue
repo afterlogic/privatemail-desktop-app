@@ -61,10 +61,10 @@
             </q-item-section>
           </q-item>
 
-          <q-item>
+          <q-item v-if="!bDefaultAccount">
             <q-item-section>
               <q-item-label>
-                <q-btn unelevated outline color="warning" label="Remove account" />
+                <q-btn unelevated outline color="warning" label="Remove account" @click="removeAccount" />
               </q-item-label>
               <q-item-label caption>
                 Removes this account from the list. It won't delete the actual account from the mail server.
@@ -207,6 +207,7 @@ export default {
       // enableForward: '',
       // forwardEmail: '',
 
+      bDefaultAccount: false,
       bUseThreading: false,
       bSaveRepliesToCurrFolder: false,
     }
@@ -226,6 +227,7 @@ export default {
   watch: {
     editAccount () {
       if (this.editAccount) {
+        this.bDefaultAccount = this.editAccount.bDefault
         this.bUseThreading = this.editAccount.bUseThreading
         this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
       }
@@ -241,6 +243,11 @@ export default {
   methods: {
     changeEditAccount (iAccountId) {
       this.iEditAccountId = iAccountId
+    },
+    removeAccount () {
+      if (!this.bDefaultAccount) {
+        
+      }
     },
   },
 }

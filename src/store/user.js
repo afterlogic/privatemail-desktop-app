@@ -4,6 +4,11 @@ export default {
   namespaced: true,
   state: {
     authToken: '',
+    userId: 0,
+    userName: '',
+    userPublicId: '',
+    userRole: 4, // Anonymous
+    userTenantId: 0,
   },
   mutations: {
     setAuthToken (state, v) {
@@ -13,6 +18,13 @@ export default {
       if (typesUtils.isNonEmptyObject(oDataFromServer)) {
         state.authToken = typesUtils.pString(oDataFromServer.authToken, state.authToken)
       }
+    },
+    setUserData (state, oUserData) {
+      state.userId = oUserData.Id
+      state.userName = oUserData.Name
+      state.userPublicId = oUserData.PublicId
+      state.userRole = oUserData.Role
+      state.userTenantId = oUserData.TenantId
     },
   },
   actions: {
@@ -35,6 +47,9 @@ export default {
       return {
         authToken: state.authToken,
       }
+    },
+    getUserPublicId (state) {
+      return state.userPublicId
     },
   },
 }

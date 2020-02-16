@@ -1,4 +1,8 @@
+import store from 'src/store'
+
 import typesUtils from 'src/utils/types.js'
+
+import mailSettings from 'src/modules/mail/settings.js'
 
 function cAccount (oData) {
 // ** AccountID: 2696
@@ -62,6 +66,8 @@ function cAccount (oData) {
   if (typesUtils.isNonEmptyObject(oData)) {
     this.parse(oData)
   }
+
+  this.bDefault = mailSettings.bAllowDefaultAccountForUser && this.sEmail === store.getters['user/getUserPublicId']
 }
 
 cAccount.prototype.parse = function (oData) {

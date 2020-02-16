@@ -20,12 +20,15 @@ export function asyncGetSettings ({ state, commit, dispatch }, fGetSettingsCallb
     oParameters: {},
     fCallback: (oResult, oError) => {
       if (oResult && oResult['Mail'] && oResult['Mail'].Accounts && oResult['Mail'].Accounts[0]) {
+        store.commit('user/setUserData', oResult['User'])
+        coreSettings.parse(oResult['Core'], oResult['CoreWebclient'])
+        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
+        contactsSettings.parse(oResult['Contacts'])
+
         commit('setAccounts', oResult['Mail'].Accounts)
         commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
         commit('resetCurrentFolderList')
-        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
-        contactsSettings.parse(oResult['Contacts'])
-        coreSettings.parse(oResult['Core'], oResult['CoreWebclient'])
+
         if (mailSettings.bAllowIdentities) {
           dispatch('asyncGetIdentities')
         }

@@ -209,7 +209,6 @@ export default {
           let sQuestions = aUids.map(() => { return '?' }).join(',')
           aWhere.push('uid IN (' + sQuestions + ')')
           aParams = aParams.concat(aUids)
-
           oDb.all(
             'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
             aParams,
@@ -274,7 +273,7 @@ export default {
                   oMessage.PlainRaw = textUtils.htmlToPlain(oMessage.Html)
                 }
                 let aParams = dbHelper.prepareInsertParams(oMessage, aMessageDbMap)
-                oStatement.run.apply(oStatement, aParams)
+                oStatement.run(aParams)
               })
               oStatement.finalize(function (oError) {
                 if (oError) {
@@ -307,7 +306,7 @@ export default {
               oMessage.Folder,
               oMessage.Uid,
             ]
-            oStatement.run.apply(oStatement, aParams)
+            oStatement.run(aParams)
           })
           oStatement.finalize(function (oError) {
             if (oError) {

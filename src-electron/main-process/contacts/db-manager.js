@@ -282,7 +282,7 @@ export default {
         let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
         _.each(aGroups, function (oGroup) {
           let aParams = dbHelper.prepareInsertParams(oGroup, aGroupDbMap)
-          oStatement.run.apply(oStatement, aParams)
+          oStatement.run(aParams)
         })
         oStatement.finalize(function (oError) {
           if (oError) {
@@ -479,9 +479,9 @@ export default {
           let oInfoStatement = oDb.prepare('INSERT INTO contacts_info (storage, uuid, etag) VALUES (?, ?, ?)')
           _.each(aContacts, function (oContact) {
             let aParams = dbHelper.prepareInsertParams(oContact, aContactDbMap)
-            oStatement.run.apply(oStatement, aParams)
+            oStatement.run(aParams)
             if (bCreateInfo) {
-              oInfoStatement.run.apply(oInfoStatement, [oContact.Storage, oContact.UUID, oContact.ETag])
+              oInfoStatement.run([oContact.Storage, oContact.UUID, oContact.ETag])
             }
           })
           oStatement.finalize(function (oError) {
@@ -532,8 +532,6 @@ export default {
         let aWhere = _.map(aEmails, function () { return 'view_email = ?' })
         let aParams = (['collected']).concat(aEmails)
         let sSql = 'SELECT * FROM contacts WHERE storage != ? AND (' + aWhere.join(' OR ') + ')'
-        console.log('sSql', sSql)
-        console.log('aParams', aParams)
         oDb.all(
           sSql,
           aParams,
@@ -604,7 +602,7 @@ export default {
               return oContactDbMap.DbName === 'group_uuids'
             }))
             aParams = aParams.concat(aContactsUUIDs)
-            oStatement.run.apply(oStatement, aParams)
+            oStatement.run(aParams)
           })
           oStatement.finalize(function (oError) {
             if (oError) {
@@ -631,7 +629,7 @@ export default {
               return oContactDbMap.DbName === 'group_uuids'
             }))
             aParams = aParams.concat(aContactsUUIDs)
-            oStatement.run.apply(oStatement, aParams)
+            oStatement.run(aParams)
           })
           oStatement.finalize(function (oError) {
             if (oError) {
@@ -655,7 +653,7 @@ export default {
           let oStatement = oDb.prepare('UPDATE contacts SET storage=? WHERE uuid IN (' + sQuestions + ')')
           let sNewStorage = sStorage === 'personal' ? 'shared' : 'personal'
           let aParams = ([sNewStorage]).concat(aContactsUUIDs)
-          oStatement.run.apply(oStatement, aParams)
+          oStatement.run(aParams)
           oStatement.finalize(function (oError) {
             if (oError) {
               reject({ sMethod: 'removeContactsFromGroup', oError })

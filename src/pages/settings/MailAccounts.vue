@@ -74,7 +74,7 @@
         </q-list>
         <q-separator spaced />
         <div class="q-pa-md">
-          <q-btn unelevated color="primary" label="Save" />
+          <q-btn unelevated color="primary" label="Save" @click="saveAccount" />
         </div>
       </q-tab-panel>
 
@@ -191,6 +191,7 @@
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
 
 export default {
   name: 'MailAccounts',
@@ -238,11 +239,34 @@ export default {
     if (this.iEditAccountId === 0 && this.accounts.length > 0) {
       this.iEditAccountId = this.accounts[0].iAccountId
     }
+    this.initSubscriptions()
+  },
+
+  beforeDestroy: function () {
+    this.destroySubscriptions()
   },
 
   methods: {
     changeEditAccount (iAccountId) {
       this.iEditAccountId = iAccountId
+    },
+    onSaveAccountSettings (oEvent, { bResult, oError }) {
+      console.log('bResult, oError', bResult, oError)
+    },
+    initSubscriptions () {
+      ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
+    },
+    saveAccount () {
+      ipcRenderer.send('mail-save-account-settings', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.iEditAccountId,
+        bUseThreading: this.bUseThreading,
+        bSaveRepliesToCurrFolder: this.bSaveRepliesToCurrFolder,
+      })
     },
     removeAccount () {
       if (!this.bDefaultAccount) {

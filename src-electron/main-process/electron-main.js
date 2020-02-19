@@ -1,11 +1,14 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron'
 import _ from 'lodash'
 
+import typesUtils from './../../src/utils/types.js'
+import webApi from './webApi.js'
+
 import mainManager from './main/manager.js'
 import mainDbManager from './main/db-manager.js'
 
 import mailManager from './mail/manager.js'
-import foldersManager from './mail/folders-manager.js'
+import accountsDbManager from './mail/accounts-db-manager.js'
 import foldersDbManager from './mail/folders-db-manager.js'
 import messagesDbManager from './mail/messages-db-manager.js'
 
@@ -117,6 +120,7 @@ function createWindow () {
   oDbConnect = new sqlite3.Database(dbFullPath, (oError) => {
     if (oError === null) {
       mainDbManager.init(oDbConnect, version).then(function () {
+        accountsDbManager.init(oDbConnect)
         foldersDbManager.init(oDbConnect)
         messagesDbManager.init(oDbConnect)
         contactsDbManager.init(oDbConnect)
@@ -163,6 +167,7 @@ ipcMain.on('db-remove-all', (oEvent) => {
       if (oDbCloseError === null) {
         oDbConnect = null
         mainDbManager.init(oDbConnect)
+        accountsDbManager.init(oDbConnect)
         foldersDbManager.init(oDbConnect)
         messagesDbManager.init(oDbConnect)
         contactsDbManager.init(oDbConnect)
@@ -173,6 +178,7 @@ ipcMain.on('db-remove-all', (oEvent) => {
             oDbConnect = new sqlite3.Database(dbFullPath, (oDbCOnnectError) => {
               if (oDbCOnnectError === null) {
                 mainDbManager.init(oDbConnect)
+                accountsDbManager.init(oDbConnect)
                 foldersDbManager.init(oDbConnect)
                 messagesDbManager.init(oDbConnect)
                 contactsDbManager.init(oDbConnect)
@@ -192,6 +198,44 @@ ipcMain.on('db-remove-all', (oEvent) => {
   } else {
     oEvent.sender.send('db-remove-all', { sError: 'DB error' })
   }
+})
+
+ipcMain.on('core-get-appdata', (oEvent, { sApiHost, sAuthToken }) => {
+  webApi.sendRequest({
+    sApiHost,
+    sAuthToken,
+    sModule: 'Core',
+    sMethod: 'GetAppData',
+    oParameters: {},
+    fCallback: (oResult, oError) => {
+      oEvent.sender.send('core-get-appdata', { oResult, oError })
+      if (oResult && oResult['Mail'] && typesUtils.isNonEmptyArray(oResult['Mail'].Accounts)) {
+        accountsDbManager.setAccounts(oResult['Mail'].Accounts).then (
+          () => {
+            accountsDbManager.getAccounts().then (
+              (aAccounts) => {
+                console.log('aAccounts', aAccounts)
+                oEvent.sender.send('mail-get-accounts', { aAccounts })
+              },
+              (oResult) => {
+                oEvent.sender.send('mail-get-accounts', oResult)
+              }
+            )
+          }
+        )
+      } else {
+        accountsDbManager.getAccounts().then (
+          (aAccounts) => {
+            console.log('aAccounts', aAccounts)
+            oEvent.sender.send('mail-get-accounts', { aAccounts })
+          },
+          (oResult) => {
+            oEvent.sender.send('mail-get-accounts', oResult)
+          }
+        )
+      }
+    },
+  })
 })
 
 mainManager.initSubscriptions()

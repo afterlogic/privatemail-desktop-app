@@ -4,6 +4,7 @@ import _ from 'lodash'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
 
+import accountsDbManager from './accounts-db-manager.js'
 import foldersManager from './folders-manager.js'
 import foldersDbManager from './folders-db-manager.js'
 import messagesManager from './messages-manager.js'
@@ -271,6 +272,30 @@ export default {
             messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
             foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
           }
+        },
+      })
+    })
+
+    ipcMain.on('mail-save-account-settings', (oEvent, { iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'UpdateAccount',
+        oParameters: {
+          AccountID: iAccountId,
+          EnableThreading: bUseThreading,
+          SaveRepliesToCurrFolder: bSaveRepliesToCurrFolder,
+        },
+        fCallback: (bResult, oError) => {
+          console.log('bResult', bResult)
+          console.log('oError', oError)
+          // if (bResult) {
+          //   messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+          //   foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+          // }
+          oEvent.sender.send('mail-save-account-settings', { bResult, oError })
+          // accountsDbManager
         },
       })
     })

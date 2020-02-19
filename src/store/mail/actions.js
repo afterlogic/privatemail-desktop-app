@@ -13,34 +13,46 @@ import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 
-export function asyncGetSettings ({ state, commit, dispatch }, fGetSettingsCallback) {
-  webApi.sendRequest({
-    sModule: 'Core',
-    sMethod: 'GetAppData',
-    oParameters: {},
-    fCallback: (oResult, oError) => {
-      if (oResult && oResult['Mail'] && oResult['Mail'].Accounts && oResult['Mail'].Accounts[0]) {
+export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSettingsCallback) {
+  ipcRenderer.once('mail-get-accounts', (event, { aAccounts, oError }) => {
+    if (typesUtils.isNonEmptyArray(aAccounts)) {
+      commit('setAccounts', aAccounts)
+      commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
+      commit('resetCurrentFolderList')
+
+      if (mailSettings.bAllowIdentities) {
+        dispatch('asyncGetIdentities')
+      }
+      ipcRenderer.send('contacts-refresh', {
+        sApiHost: store.getters['main/getApiHost'],
+        sAuthToken: store.getters['user/getAuthToken'],
+      })
+    }
+    if (_.isFunction(fGetSettingsCallback)) {
+      fGetSettingsCallback(oError)
+    }
+  })
+
+  ipcRenderer.once('core-get-appdata', (event, {oResult, oError}) => {
+    if (oResult) {
+      if (oResult['User']) {
         store.commit('user/setUserData', oResult['User'])
+      }
+      if (oResult['Core'] && oResult['CoreWebclient']) {
         coreSettings.parse(oResult['Core'], oResult['CoreWebclient'])
+      }
+      if (oResult['Mail'] && oResult['MailWebclient']) {
         mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
+      }
+      if (oResult['Contacts']) {
         contactsSettings.parse(oResult['Contacts'])
-
-        commit('setAccounts', oResult['Mail'].Accounts)
-        commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
-        commit('resetCurrentFolderList')
-
-        if (mailSettings.bAllowIdentities) {
-          dispatch('asyncGetIdentities')
-        }
-        ipcRenderer.send('contacts-refresh', {
-          sApiHost: store.getters['main/getApiHost'],
-          sAuthToken: store.getters['user/getAuthToken'],
-        })
       }
-      if (_.isFunction(fGetSettingsCallback)) {
-        fGetSettingsCallback(oError)
-      }
-    },
+    }
+  })
+
+  ipcRenderer.send('core-get-appdata', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
   })
 }
 

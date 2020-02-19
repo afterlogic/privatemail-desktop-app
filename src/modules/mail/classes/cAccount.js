@@ -16,7 +16,6 @@ function cAccount (oData) {
 // ** FriendlyName: ""
 // ** IdUser: 2694
 // IncomingLogin: "nadine@afterlogic.com"
-// IncomingPassword: "*****"
 // IsDisabled: false
 // ** SaveRepliesToCurrFolder: false
 // Server: Object
@@ -41,7 +40,6 @@ function cAccount (oData) {
     // SievePort: 4190
     // SmtpAuthType: "2"
     // SmtpLogin: ""
-    // SmtpPassword: ""
     // TenantId: 2
     // UUID: "04bfe02f-1dad-4816-8af2-4e40ccaf8b0d"
     // UseFullEmailAddressAsLogin: true

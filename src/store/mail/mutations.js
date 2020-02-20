@@ -34,6 +34,27 @@ export function setCurrentAccount (state, oAccount) {
   state.currentAccount = oAccount
 }
 
+export function setAccountSettings (state, { iAccountId, bUseThreading, bSaveRepliesToCurrFolder }) {
+  let oAccount = _.find(state.accounts, (oTmpAccount) => {
+    return oTmpAccount.iAccountId === iAccountId
+  })
+  if (oAccount) {
+    oAccount.bUseThreading = bUseThreading
+    oAccount.bSaveRepliesToCurrFolder = bSaveRepliesToCurrFolder
+  }
+}
+
+export function removeAccount (state, { iAccountId }) {
+  state.accounts = _.filter(state.accounts, (oTmpAccount) => {
+    return oTmpAccount.iAccountId !== iAccountId
+  })
+}
+
+export function addAccount (state, { oAccountData }) {
+  let oAccount = new cAccount(oAccountData)
+  state.accounts.push(oAccount)
+}
+
 export function setMailsPerPage (state, iMailsPerPage) {
   state.messagesPerPage = iMailsPerPage
 }

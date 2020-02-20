@@ -145,4 +145,82 @@ export default {
       }
     })
   },
+
+  saveAccountSettings: function (iAccountId, bUseThreading, bSaveRepliesToCurrFolder) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('UPDATE accounts SET use_threading = ?, save_replies_to_curr_folder = ? WHERE account_id = ?')
+          let aParams = [
+            bUseThreading,
+            bSaveRepliesToCurrFolder,
+            iAccountId,
+          ]
+          oStatement.run(aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'saveAccountSettings', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'saveAccountSettings', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  removeAccount: function (iAccountId) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('DELETE FROM accounts WHERE account_id = ?')
+          let aParams = [
+            iAccountId,
+          ]
+          oStatement.run(aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'removeAccount', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'removeAccount', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  addAccount: function (oAccount) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let sFieldsDbNames = _.map(aAccountDbMap, function (oAccountDbFieldData) {
+            return oAccountDbFieldData.DbName
+          }).join(', ')
+          let sQuestions = aAccountDbMap.map(function () { return '?' }).join(',')
+          let oStatement = oDb.prepare('INSERT INTO accounts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+          if (oAccount.Server) {
+            _.each(oAccount.Server, function (mValue, sKey) {
+              oAccount['Server' + sKey] = mValue
+            })
+          }
+          let aParams = dbHelper.prepareInsertParams(oAccount, aAccountDbMap)
+          oStatement.run(aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'addAccount', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'addAccount', sError: 'No DB connection' })
+      }
+    })
+  },
 }

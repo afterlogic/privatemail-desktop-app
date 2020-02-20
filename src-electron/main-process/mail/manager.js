@@ -284,18 +284,134 @@ export default {
         sMethod: 'UpdateAccount',
         oParameters: {
           AccountID: iAccountId,
-          EnableThreading: bUseThreading,
+          UseThreading: bUseThreading,
           SaveRepliesToCurrFolder: bSaveRepliesToCurrFolder,
         },
+        fCallback: (oResult, oError) => {
+          let bResult = !!oResult
+          if (bResult) {
+            accountsDbManager.saveAccountSettings(oResult.AccountID, oResult.UseThreading, oResult.SaveRepliesToCurrFolder)
+            oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
+          } else {
+            oEvent.sender.send('mail-save-account-settings', { bResult, oError })
+          }
+        },
+      })
+    })
+
+    ipcMain.on('mail-remove-account', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'DeleteAccount',
+        oParameters: {
+          AccountID: iAccountId,
+        },
         fCallback: (bResult, oError) => {
-          console.log('bResult', bResult)
-          console.log('oError', oError)
-          // if (bResult) {
-          //   messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
-          //   foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
-          // }
-          oEvent.sender.send('mail-save-account-settings', { bResult, oError })
-          // accountsDbManager
+          if (bResult) {
+            accountsDbManager.removeAccount(iAccountId)
+          }
+          oEvent.sender.send('mail-remove-account', { bResult, iAccountId, oError })
+        },
+      })
+    })
+
+    ipcMain.on('mail-add-new-account', (oEvent, { sName, sEmail, sMainAccountDomain, sPassword, sApiHost, sAuthToken }) => {
+      let sNewAccountDomain = _.trim(sEmail).split('@')[1]
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'GetMailServerByDomain',
+        oParameters: {
+          'Domain': sNewAccountDomain,
+          'AllowWildcardDomain': true,
+        },
+        fCallback: (oResult, oError) => {
+          let oServer = null
+          if (oResult && typeof oResult.Server !== 'undefined' && typeof oResult.FoundWithWildcard !== 'undefined') {
+            if (oResult.FoundWithWildcard) {
+              if (sNewAccountDomain === sMainAccountDomain) {
+                oServer = oResult.Server
+              }
+            } else {
+              oServer = oResult.Server
+            }
+          }
+          if (oServer) {
+            webApi.sendRequest({
+              sApiHost,
+              sAuthToken,
+              sModule: 'Mail',
+              sMethod: 'CreateAccount',
+              oParameters: {
+                'FriendlyName': sName,
+                'Email': sEmail,
+                'IncomingLogin': sEmail,
+                'IncomingPassword': sPassword,
+                'Server': {
+                  'ServerId': oServer.ServerId
+                }
+              },
+              fCallback: (oResult, oError) => {
+                if (oResult) {
+                  accountsDbManager.addAccount(oResult)
+                  oEvent.sender.send('mail-add-new-account', { bResult: true, oAccountData: oResult })
+                } else {
+                  oEvent.sender.send('mail-add-new-account', { bResult: false, oError })
+                }
+              },
+            })
+          } else if (oError) {
+            oEvent.sender.send('mail-add-new-account', { bResult: false, oError })
+          } else {
+            oEvent.sender.send('mail-add-new-account', { bResult: false, bUnknownDomain: true })
+          }
+        },
+      })
+    })
+
+    ipcMain.on('mail-add-new-account-full', (oEvent, { sName, sEmail, sLogin, sPassword, sImapServer, iImapPort, bImapSsl, sSmtpServer, iSmtpPort, bSmtpSsl, bSmtpAuth, sApiHost, sAuthToken }) => {
+      let sSmtpAuthTypeUseUserCredentials = '2'
+      let sSmtpAuthTypeNoAuthentication = '0'
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'CreateAccount',
+        oParameters: {
+          FriendlyName: sName,
+          Email: sEmail,
+          IncomingLogin: sLogin,
+          IncomingPassword: sPassword,
+          Server: {
+            ServerId: 0,
+            Name: sImapServer,
+            IncomingServer: sImapServer,
+            IncomingPort: iImapPort,
+            IncomingUseSsl: bImapSsl,
+            OutgoingServer: sSmtpServer,
+            OutgoingPort: iSmtpPort,
+            OutgoingUseSsl: bSmtpSsl,
+            Domains: '',
+            SmtpAuthType: bSmtpAuth ? sSmtpAuthTypeUseUserCredentials : sSmtpAuthTypeNoAuthentication,
+            SmtpLogin: '',
+            SmtpPassword: '',
+            EnableSieve: false,
+            SievePort: 4190,
+            EnableThreading: true,
+            UseFullEmailAddressAsLogin: true,
+            SetExternalAccessServers: false,
+          },
+        },
+        fCallback: (oResult, oError) => {
+          if (oResult) {
+            accountsDbManager.addAccount(oResult)
+            oEvent.sender.send('mail-add-new-account', { bResult: true, oAccountData: oResult })
+          } else {
+            oEvent.sender.send('mail-add-new-account', { bResult: false, oError })
+          }
         },
       })
     })

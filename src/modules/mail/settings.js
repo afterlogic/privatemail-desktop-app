@@ -2,13 +2,14 @@ import typesUtils from 'src/utils/types.js'
 import store from 'src/store'
 
 function CSettings () {
-  // this.bAllowAddAccounts = false
+  this.bAllowAddAccounts = false
   // this.bAllowAlwaysRefreshFolders = false
   this.bAllowAutosaveInDrafts = false
   // this.bAllowChangeMailQuotaOnMailServer = false
   this.bAllowDefaultAccountForUser = false
   this.bAllowIdentities = false
   this.bAllowInsertImage = false
+  this.bAllowMultiAccounts = false
   // this.bAllowTemplateFolders = false
   this.iAutoSaveIntervalSeconds = 0
   // this.bAutocreateMailAccountOnNewUserFirstLogin = false
@@ -42,13 +43,14 @@ function CSettings () {
 
 CSettings.prototype.parse = function (oData, oWebclientData) {
   if (oData) {
-    // this.bAllowAddAccounts = typesUtils.pBool(oData.AllowAddAccounts, this.bAllowAddAccounts)
+    this.bAllowAddAccounts = typesUtils.pBool(oData.AllowAddAccounts, this.bAllowAddAccounts)
     // this.bAllowAlwaysRefreshFolders = typesUtils.pBool(oData.AllowAlwaysRefreshFolders, this.bAllowAlwaysRefreshFolders)
     this.setAllowAutosaveInDrafts(oData.AllowAutosaveInDrafts)
     // this.bAllowChangeMailQuotaOnMailServer = typesUtils.pBool(oData.AllowChangeMailQuotaOnMailServer, this.bAllowChangeMailQuotaOnMailServer)
     this.bAllowDefaultAccountForUser = typesUtils.pBool(oData.AllowDefaultAccountForUser, this.bAllowDefaultAccountForUser)
     this.bAllowIdentities = typesUtils.pBool(oData.AllowIdentities, this.bAllowIdentities)
     this.bAllowInsertImage = typesUtils.pBool(oData.AllowInsertImage, this.bAllowInsertImage)
+    this.bAllowMultiAccounts = typesUtils.pBool(oData.AllowMultiAccounts, this.bAllowMultiAccounts)
     // this.bAllowTemplateFolders = typesUtils.pBool(oData.AllowTemplateFolders, this.bAllowTemplateFolders)
     this.iAutoSaveIntervalSeconds = typesUtils.pInt(oData.AutoSaveIntervalSeconds, this.iAutoSaveIntervalSeconds)
     // this.bAutocreateMailAccountOnNewUserFirstLogin = typesUtils.pBool(oData.AutocreateMailAccountOnNewUserFirstLogin, this.bAutocreateMailAccountOnNewUserFirstLogin)

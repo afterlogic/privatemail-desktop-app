@@ -1,6 +1,9 @@
 <template>
   <div>
     <div class="text-h4 q-mb-md non-selectable">Email accounts settings</div>
+    <div class="buttons" v-if="allowAddNewAccount">
+      <q-btn unelevated color="primary" label="Add New Account" @click="openAddNewAccountDialog" />
+    </div>
     <q-separator spaced />
     <q-list class="non-selectable">
       <q-item v-ripple clickable
@@ -16,8 +19,10 @@
         </q-item-section>
       </q-item>
     </q-list>
+
     <q-separator spaced />
-    <q-tabs
+
+    <q-tabs v-if="editAccount"
       v-model="mailTab"
       inline-label
       :no-caps=true
@@ -30,9 +35,10 @@
       <q-tab name="autoresponder" label="Autoresponder" />
       <q-tab name="filters" label="Filters" /> -->
     </q-tabs>
-    <q-separator />
 
-    <q-tab-panels
+    <q-separator v-if="editAccount" />
+
+    <q-tab-panels v-if="editAccount"
       v-model="mailTab"
       animated
       transition-prev="jump-up"
@@ -64,7 +70,7 @@
           <q-item v-if="!bDefaultAccount">
             <q-item-section>
               <q-item-label>
-                <q-btn unelevated outline color="warning" label="Remove account" @click="removeAccount" />
+                <q-btn unelevated outline color="warning" label="Remove account" @click="openRemoveAccountDialog" />
               </q-item-label>
               <q-item-label caption>
                 Removes this account from the list. It won't delete the actual account from the mail server.
@@ -74,7 +80,8 @@
         </q-list>
         <q-separator spaced />
         <div class="q-pa-md">
-          <q-btn unelevated color="primary" label="Save" @click="saveAccount" />
+          <q-btn unelevated color="primary" v-if="bAccountSaving" label="Saving..." />
+          <q-btn unelevated color="primary" v-if="!bAccountSaving" label="Save" @click="saveAccountSettings" />
         </div>
       </q-tab-panel>
 
@@ -181,6 +188,118 @@
         <q-item-label header>Filters</q-item-label>
       </q-tab-panel> -->
     </q-tab-panels>
+
+    <q-dialog v-model="bAddNewAccountDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6">Add New Account</div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-section>
+            <q-item-label>Your name</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" v-model="sNewAccountName" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Email *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" v-model="sNewAccountEmail" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+        </q-item>
+        <q-item v-if="bSecondStepOfAddAccount">
+          <q-item-section>
+            <q-item-label>Login *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" v-model="sNewAccountLogin" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Password *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" type="password" v-model="sNewAccountPassword" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+        </q-item>
+        <q-item v-if="bSecondStepOfAddAccount">
+          <q-item-section>
+            <q-item-label style="white-space: nowrap;">IMAP Server *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense style="width: 200px;" v-model="sNewAccountImapServer" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+          <q-item-section side>
+            <q-item-label style="white-space: nowrap;">Port *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountImapPort" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+          <q-item-section side>
+            <q-checkbox v-model="bNewAccountImapSsl" />
+          </q-item-section>
+          <q-item-section side>
+            <q-item-label>SSL</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item v-if="bSecondStepOfAddAccount">
+          <q-item-section>
+            <q-item-label style="white-space: nowrap;">SMTP Server *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense style="width: 200px;" v-model="sNewAccountSmtpServer" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+          <q-item-section side>
+            <q-item-label style="white-space: nowrap;">Port *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountSmtpPort" v-on:keyup.enter="addNewAccount" />
+          </q-item-section>
+          <q-item-section side>
+            <q-checkbox v-model="bNewAccountSmtpSsl" />
+          </q-item-section>
+          <q-item-section side>
+            <q-item-label>SSL</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item tag="label" v-ripple v-if="bSecondStepOfAddAccount">
+          <q-item-section side center>
+            <q-checkbox v-model="bNewAccountSmtpAuth" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Use SMTP authentication</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Adding..." color="primary" v-if="bAddingNewAccount" />
+          <q-btn flat label="Add" color="primary" @click="addNewAccount" v-if="!bAddingNewAccount" />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="bRemoveAccountDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6">{{ editAccount ? editAccount.sEmail : '' }}</div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-label>Are you sure you want to remove account?</q-item-label>
+        </q-item>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Ok" color="primary" @click="removeAccount" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -188,10 +307,21 @@
 .autoresponder .row + .row {
   margin-top: 1rem;
 }
+.buttons {
+  text-align: right;
+}
+.input-size {
+  width: 300px;
+}
 </style>
 
 <script>
 import { ipcRenderer } from 'electron'
+
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
+
+import mailSettings from 'src/modules/mail/settings.js'
 
 export default {
   name: 'MailAccounts',
@@ -211,6 +341,22 @@ export default {
       bDefaultAccount: false,
       bUseThreading: false,
       bSaveRepliesToCurrFolder: false,
+      bAccountSaving: false,
+      bRemoveAccountDialog: false,
+      bAddNewAccountDialog: false,
+      sNewAccountName: '',
+      sNewAccountEmail: '',
+      sNewAccountPassword: '',
+      bAddingNewAccount: false,
+      bSecondStepOfAddAccount: false,
+      sNewAccountLogin: '',
+      sNewAccountImapServer: '',
+      sNewAccountImapPort: 143,
+      bNewAccountImapSsl: false,
+      sNewAccountSmtpServer: '',
+      iNewAccountSmtpPort: 25,
+      bNewAccountSmtpSsl: false,
+      bNewAccountSmtpAuth: true,
     }
   },
 
@@ -223,14 +369,36 @@ export default {
         return oAccount.iAccountId === this.iEditAccountId
       })
     },
+    allowAddNewAccount () {
+      return mailSettings.bAllowAddAccounts && (mailSettings.bAllowMultiAccounts || this.accounts.length === 0)
+    },
   },
 
   watch: {
+    accounts () {
+      if (!this.editAccount && this.accounts.length > 0) {
+        this.iEditAccountId = this.accounts[0].iAccountId
+      }
+    },
     editAccount () {
       if (this.editAccount) {
         this.bDefaultAccount = this.editAccount.bDefault
         this.bUseThreading = this.editAccount.bUseThreading
         this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
+      }
+    },
+    bNewAccountImapSsl () {
+      if (this.bNewAccountImapSsl && this.iNewAccountImapPort === 143) {
+        this.iNewAccountImapPort = 993
+      } else if (this.iNewAccountImapPort === 993) {
+        this.iNewAccountImapPort = 143
+      }
+    },
+    bNewAccountSmtpSsl () {
+      if (this.bNewAccountSmtpSsl && this.iNewAccountSmtpPort === 25) {
+        this.iNewAccountSmtpPort = 465
+      } else if (this.iNewAccountSmtpPort === 465) {
+        this.iNewAccountSmtpPort = 25
       }
     },
   },
@@ -250,16 +418,8 @@ export default {
     changeEditAccount (iAccountId) {
       this.iEditAccountId = iAccountId
     },
-    onSaveAccountSettings (oEvent, { bResult, oError }) {
-      console.log('bResult, oError', bResult, oError)
-    },
-    initSubscriptions () {
-      ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
-    },
-    destroySubscriptions () {
-      ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
-    },
-    saveAccount () {
+    saveAccountSettings () {
+      this.bAccountSaving = true
       ipcRenderer.send('mail-save-account-settings', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
@@ -268,10 +428,133 @@ export default {
         bSaveRepliesToCurrFolder: this.bSaveRepliesToCurrFolder,
       })
     },
+    onSaveAccountSettings (oEvent, { bResult, iAccountId, bUseThreading, bSaveRepliesToCurrFolder, oError }) {
+      this.bAccountSaving = false
+      if (bResult) {
+        notification.showReport('Settings have been updated successfully.')
+        this.$store.commit('mail/setAccountSettings', { iAccountId, bUseThreading, bSaveRepliesToCurrFolder })
+        this.bUseThreading = bUseThreading
+        this.bSaveRepliesToCurrFolder = bSaveRepliesToCurrFolder
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+      }
+    },
+    openRemoveAccountDialog () {
+      if (!this.bDefaultAccount) {
+        this.bRemoveAccountDialog = true
+      }
+    },
     removeAccount () {
       if (!this.bDefaultAccount) {
-        
+        ipcRenderer.send('mail-remove-account', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditAccountId,
+        })
       }
+    },
+    onRemoveAccount (oEvent, { bResult, iAccountId, oError }) {
+      if (bResult) {
+        notification.showReport('Account was successfully removed.')
+        this.$store.commit('mail/removeAccount', { iAccountId })
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while removing account.'))
+      }
+    },
+    openAddNewAccountDialog () {
+      if (this.allowAddNewAccount) {
+        this.bAddingNewAccount = false
+        this.sNewAccountName = ''
+        this.sNewAccountEmail = ''
+        this.sNewAccountPassword = ''
+        this.bSecondStepOfAddAccount = false
+        this.sNewAccountLogin = ''
+        this.sNewAccountImapServer = ''
+        this.iNewAccountImapPort = 143
+        this.bNewAccountImapSsl = false
+        this.sNewAccountSmtpServer = ''
+        this.iNewAccountSmtpPort = 25
+        this.bNewAccountSmtpSsl = false
+        this.bNewAccountSmtpAuth = true
+        this.bAddNewAccountDialog = true
+      }
+    },
+    addNewAccount () {
+      if (this.bSecondStepOfAddAccount) {
+        this.addNewAccountFull()
+      } else {
+        this.addNewAccountShort()
+      }
+    },
+    addNewAccountFull () {
+      if (this.allowAddNewAccount) {
+        if (_.trim(this.sNewAccountEmail) === '' || _.trim(this.sNewAccountPassword) === '' || _.trim(this.sNewAccountImapServer) === ''
+            || _.trim(this.iNewAccountImapPort) === '' || _.trim(this.sNewAccountSmtpServer) === '' || _.trim(this.iNewAccountSmtpPort) === '') {
+          notification.showError('Not all required fields are filled.')
+        } else {
+          this.bAddingNewAccount = true
+          ipcRenderer.send('mail-add-new-account-full', {
+            sApiHost: this.$store.getters['main/getApiHost'],
+            sAuthToken: this.$store.getters['user/getAuthToken'],
+            sName: this.sNewAccountName,
+            sEmail: this.sNewAccountEmail,
+            sLogin: this.sNewAccountLogin,
+            sPassword: this.sNewAccountPassword,
+            sImapServer: this.sNewAccountImapServer,
+            iImapPort: this.iNewAccountImapPort,
+            bImapSsl: this.bNewAccountImapSsl,
+            sSmtpServer: this.sNewAccountSmtpServer,
+            iSmtpPort: this.iNewAccountSmtpPort,
+            bSmtpSsl: this.bNewAccountSmtpSsl,
+            bSmtpAuth: this.bNewAccountSmtpAuth,
+          })
+        }
+      }
+    },
+    addNewAccountShort () {
+      if (this.allowAddNewAccount) {
+        if (_.trim(this.sNewAccountEmail) === '' || _.trim(this.sNewAccountPassword) === '') {
+          notification.showError('Not all required fields are filled.')
+        } else {
+          this.bAddingNewAccount = true
+          let sMainAccount = this.$store.getters['mail/getDefaultAccount']
+          let sMainAccountEmail = sMainAccount ? sMainAccount.sEmail : ''
+          let sMainAccountDomain = _.trim(sMainAccountEmail).split('@')[1]
+          ipcRenderer.send('mail-add-new-account', {
+            sApiHost: this.$store.getters['main/getApiHost'],
+            sAuthToken: this.$store.getters['user/getAuthToken'],
+            sName: this.sNewAccountName,
+            sEmail: this.sNewAccountEmail,
+            sMainAccountDomain,
+            sPassword: this.sNewAccountPassword,
+          })
+        }
+      }
+    },
+    onAddNewAccount (oEvent, { bResult, oAccountData, bUnknownDomain, oError }) {
+      this.bAddingNewAccount = false
+      if (bResult) {
+        this.bAddNewAccountDialog = false
+        notification.showReport('Account was successfully added.')
+        this.$store.commit('mail/addAccount', { oAccountData })
+      } else if (bUnknownDomain) {
+        this.sNewAccountLogin = this.sNewAccountEmail
+        this.bSecondStepOfAddAccount = true
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while adding account.'))
+      }
+    },
+    initSubscriptions () {
+      ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
+      ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
+      ipcRenderer.on('mail-add-new-account', this.onAddNewAccount)
+      ipcRenderer.on('mail-add-new-account-full', this.onAddNewAccount)
+    },
+    destroySubscriptions () {
+      ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
+      ipcRenderer.removeListener('mail-remove-account', this.onRemoveAccount)
+      ipcRenderer.removeListener('mail-add-new-account', this.onAddNewAccount)
+      ipcRenderer.removeListener('mail-add-new-account-full', this.onAddNewAccount)
     },
   },
 }

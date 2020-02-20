@@ -214,7 +214,6 @@ ipcMain.on('core-get-appdata', (oEvent, { sApiHost, sAuthToken }) => {
           () => {
             accountsDbManager.getAccounts().then (
               (aAccounts) => {
-                console.log('aAccounts', aAccounts)
                 oEvent.sender.send('mail-get-accounts', { aAccounts })
               },
               (oResult) => {
@@ -226,7 +225,6 @@ ipcMain.on('core-get-appdata', (oEvent, { sApiHost, sAuthToken }) => {
       } else {
         accountsDbManager.getAccounts().then (
           (aAccounts) => {
-            console.log('aAccounts', aAccounts)
             oEvent.sender.send('mail-get-accounts', { aAccounts })
           },
           (oResult) => {

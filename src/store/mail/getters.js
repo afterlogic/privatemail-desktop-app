@@ -15,6 +15,12 @@ export function getCurrentAccount (state) {
   return state.currentAccount
 }
 
+export function getDefaultAccount (state) {
+  return _.find(state.accounts, function (oAccount) {
+    return oAccount.bDefault
+  })
+}
+
 export function getCurrentAccountId (state) {
   return state.currentAccount ? state.currentAccount.iAccountId : 0
 }

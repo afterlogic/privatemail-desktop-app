@@ -68,6 +68,7 @@ export default {
           if (!oResult && oData.ErrorCode) {
             oError = {
               ErrorCode: oData.ErrorCode,
+              ErrorMessage: oData.ErrorMessage,
               Module: oData.Module,
             }
           }

@@ -57,6 +57,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
 }
 
 export function asyncGetIdentities ({ state, commit, dispatch }) {
+  console.log('asyncGetIdentities')
   webApi.sendRequest({
     sModule: 'Mail',
     sMethod: 'GetIdentities',

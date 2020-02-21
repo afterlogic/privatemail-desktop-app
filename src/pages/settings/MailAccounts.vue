@@ -6,18 +6,36 @@
     </div>
     <q-separator spaced />
     <q-list class="non-selectable">
-      <q-item v-ripple clickable
-        :class="{checked: iEditAccountId === oAccount.iAccountId}"
-        v-for="oAccount in accounts" :key="oAccount.iAccountId"
-        @click="changeEditAccount(oAccount.iAccountId)"
-      >
-        <q-item-section>
-          <q-item-label>{{ oAccount.sEmail }}</q-item-label>
-        </q-item-section>
-        <q-item-section side>
-          <q-btn flat color="primary" label="add identity" />
-        </q-item-section>
-      </q-item>
+      <span v-for="oAccount in accounts" :key="oAccount.iAccountId">
+        <q-item v-ripple clickable
+          :class="{checked: iEditAccountId === oAccount.iAccountId}"
+          @click="changeEditAccount(oAccount.iAccountId)"
+        >
+          <q-item-section>
+            <q-item-label>{{ oAccount.sEmail }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat color="primary" label="add identity" />
+          </q-item-section>
+        </q-item>
+        <span v-for="oIdentity in currentIdentities" :key="oIdentity.iEntityId">
+          <q-item v-ripple clickable
+            v-if="oIdentity.iIdAccount === oAccount.iAccountId"
+            :class="{checked: iEditIdentityId === oIdentity.iEntityId}"
+            @click="changeEditIdentity(oIdentity.iEntityId)"
+          >
+            <q-item-section avatar>
+              <q-icon name="arrow_upward" />
+            </q-item-section>
+            <q-item-section style="white-space: nowrap;">
+              Identity {{ oIdentity.getFull() }}
+            </q-item-section>
+            <q-item-section>
+              <q-icon name="check" v-if="oIdentity.bDefault" style="font-size: 2em;" />
+            </q-item-section>
+          </q-item>
+        </span>
+      </span>
     </q-list>
 
     <q-separator spaced />
@@ -189,6 +207,85 @@
       </q-tab-panel> -->
     </q-tab-panels>
 
+    <q-tabs v-if="editIdentity"
+      v-model="identityTab"
+      inline-label
+      :no-caps=true
+      align="left"
+      class="flex-start"
+    >
+      <q-tab name="props" label="Properties" />
+      <q-tab name="signature" label="Signature" />
+    </q-tabs>
+
+    <q-separator v-if="editIdentity" />
+
+    <q-tab-panels v-if="editIdentity"
+      v-model="identityTab"
+      animated
+      transition-prev="jump-up"
+      transition-next="jump-up"
+    >
+      <q-tab-panel name="props" class="bg-grey-1">
+        <q-list class="non-selectable" style="width: 450px;">
+          <q-item tag="label" v-ripple>
+            <q-item-section side top>
+              <q-checkbox v-model="bIdentityDefault" :disable="bDisableIdentityDefault" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Set default</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Your name</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input outlined dense class="input-size" v-model="sIdentityName" v-on:keyup.enter="saveIdentitySettings" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Email</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input outlined dense class="input-size" v-model="sIdentityEmail" v-on:keyup.enter="saveIdentitySettings" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+        <q-separator spaced />
+        <div class="q-pa-md">
+          <q-btn unelevated color="primary" v-if="bIdentitySaving" label="Saving..." />
+          <q-btn unelevated color="primary" v-if="!bIdentitySaving" label="Save" @click="saveIdentitySettings" />
+        </div>
+      </q-tab-panel>
+
+      <q-tab-panel name="signature" class="bg-grey-1">
+        <div class="q-pa-md">
+          <q-item tag="label">
+            <q-item-section side top>
+              <q-checkbox v-model="bIdentityNoSignature" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>No signature</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-editor
+                v-model="sIdentitySignature"
+                :definitions="{
+                  bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
+                }"
+              />
+            </q-item-section>
+          </q-item>
+        </div>
+        <q-separator spaced />
+        <q-btn color="primary" label="Save" />
+      </q-tab-panel>
+    </q-tab-panels>
+
     <q-dialog v-model="bAddNewAccountDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
@@ -329,8 +426,10 @@ export default {
   data () {
     return {
       mailTab: 'props',
+      identityTab: 'props',
 
-      iEditAccountId: 0,
+      iEditAccountId: -1,
+      iEditIdentityId: -1,
 
       // enableAutoresponder: false,
       // autoresponderSubject: '',
@@ -357,6 +456,14 @@ export default {
       iNewAccountSmtpPort: 25,
       bNewAccountSmtpSsl: false,
       bNewAccountSmtpAuth: true,
+
+      bIdentityDefault: false,
+      bDisableIdentityDefault: false,
+      sIdentityName: '',
+      sIdentityEmail: '',
+      bIdentitySaving: false,
+      bIdentityNoSignature: false,
+      sIdentitySignature: '',
     }
   },
 
@@ -372,6 +479,14 @@ export default {
     allowAddNewAccount () {
       return mailSettings.bAllowAddAccounts && (mailSettings.bAllowMultiAccounts || this.accounts.length === 0)
     },
+    currentIdentities () {
+      return this.$store.getters['mail/getCurrentIdentities']
+    },
+    editIdentity () {
+      return _.find(this.currentIdentities, (oIdentity) => {
+        return oIdentity.iEntityId === this.iEditIdentityId
+      })
+    },
   },
 
   watch: {
@@ -385,6 +500,16 @@ export default {
         this.bDefaultAccount = this.editAccount.bDefault
         this.bUseThreading = this.editAccount.bUseThreading
         this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
+      }
+    },
+    editIdentity () {
+      if (this.editIdentity) {
+        this.bIdentityDefault = this.editIdentity.bDefault
+        this.bDisableIdentityDefault = this.editIdentity.bDefault
+        this.sIdentityName = this.editIdentity.sFriendlyName
+        this.sIdentityEmail = this.editIdentity.sEmail
+        this.bIdentityNoSignature = !this.editIdentity.bUseSignature
+        this.sIdentitySignature = this.editIdentity.sSignature
       }
     },
     bNewAccountImapSsl () {
@@ -404,8 +529,8 @@ export default {
   },
 
   mounted () {
-    if (this.iEditAccountId === 0 && this.accounts.length > 0) {
-      this.iEditAccountId = this.accounts[0].iAccountId
+    if (this.iEditAccountId === -1 && this.accounts.length > 0) {
+      this.changeEditAccount(this.accounts[0].iAccountId)
     }
     this.initSubscriptions()
   },
@@ -417,6 +542,11 @@ export default {
   methods: {
     changeEditAccount (iAccountId) {
       this.iEditAccountId = iAccountId
+      this.iEditIdentityId = -1
+    },
+    changeEditIdentity (iIdentityId) {
+      this.iEditAccountId = -1
+      this.iEditIdentityId = iIdentityId
     },
     saveAccountSettings () {
       this.bAccountSaving = true
@@ -433,8 +563,10 @@ export default {
       if (bResult) {
         notification.showReport('Settings have been updated successfully.')
         this.$store.commit('mail/setAccountSettings', { iAccountId, bUseThreading, bSaveRepliesToCurrFolder })
-        this.bUseThreading = bUseThreading
-        this.bSaveRepliesToCurrFolder = bSaveRepliesToCurrFolder
+        if (iAccountId === this.iEditAccountId) {
+          this.bUseThreading = bUseThreading
+          this.bSaveRepliesToCurrFolder = bSaveRepliesToCurrFolder
+        }
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
       }
@@ -544,17 +676,49 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while adding account.'))
       }
     },
+    saveIdentitySettings () {
+      if (this.editIdentity) {
+        this.bIdentitySaving = true
+        ipcRenderer.send('mail-save-identity-settings', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.editIdentity.iIdAccount,
+          iIdentityId: this.iEditIdentityId,
+          bDefault: this.bIdentityDefault,
+          sName: this.sIdentityName,
+          sEmail: this.sIdentityEmail,
+        })
+      }
+    },
+    onSaveIdentitySettings (oEvent, { bResult, iIdentityId, bDefault, sName, sEmail, oError }) {
+      console.log('onSaveIdentitySettings', { bResult, iIdentityId, bDefault, sName, sEmail, oError })
+      this.bIdentitySaving = false
+      if (bResult) {
+        notification.showReport('Settings have been updated successfully.')
+        this.$store.dispatch('mail/asyncGetIdentities')
+        // this.$store.commit('mail/setIdentitySettings', { iIdentityId, bDefault, sName, sEmail })
+        if (iIdentityId === this.iEditIdentityId) {
+          this.bIdentityDefault = bDefault
+          this.sIdentityName = sName
+          this.sIdentityEmail = sEmail
+        }
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+      }
+    },
     initSubscriptions () {
       ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.on('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.on('mail-add-new-account-full', this.onAddNewAccount)
+      ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.removeListener('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.removeListener('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.removeListener('mail-add-new-account-full', this.onAddNewAccount)
+      ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
     },
   },
 }

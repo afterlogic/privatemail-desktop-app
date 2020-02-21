@@ -415,5 +415,34 @@ export default {
         },
       })
     })
+
+    ipcMain.on('mail-save-identity-settings', (oEvent, { iAccountId, iIdentityId, bDefault, sName, sEmail, sApiHost, sAuthToken }) => {
+      let bAccountPart = iIdentityId === 0
+      let oParameters = {
+        AccountID: iAccountId,
+        Default: bDefault,
+        FriendlyName: sName,
+        AccountPart: bAccountPart
+      }
+      if (!bAccountPart) {
+        oParameters.Email = sEmail
+        oParameters.EntityId = iIdentityId
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'UpdateIdentity',
+        oParameters,
+        fCallback: (bResult, oError) => {
+          if (bResult) {
+            // accountsDbManager.saveAccountSettings(oResult.AccountID, oResult.UseThreading, oResult.SaveRepliesToCurrFolder)
+            oEvent.sender.send('mail-save-identity-settings', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, oError })
+          } else {
+            oEvent.sender.send('mail-save-identity-settings', { bResult, oError })
+          }
+        },
+      })
+    })
   },
 }

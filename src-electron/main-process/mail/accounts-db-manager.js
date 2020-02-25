@@ -146,7 +146,7 @@ export default {
     })
   },
 
-  saveAccountSettings: function ({ iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sFriendlyName }) {
+  saveAccountSettings: function ({ iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sFriendlyName, bNoSignature, sSignature }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
@@ -163,6 +163,14 @@ export default {
           if (typeof sFriendlyName === 'string') {
             aValuesToSet.push('friendly_name = ?')
             aParams.push(sFriendlyName)
+          }
+          if (typeof bNoSignature === 'boolean') {
+            aValuesToSet.push('use_signature = ?')
+            aParams.push(!bNoSignature)
+          }
+          if (typeof sSignature === 'string') {
+            aValuesToSet.push('signature = ?')
+            aParams.push(sSignature)
           }
           let oStatement = oDb.prepare('UPDATE accounts SET ' + aValuesToSet.join(', ') + ' WHERE account_id = ?')
           aParams.push(iAccountId)

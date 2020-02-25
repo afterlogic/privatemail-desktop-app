@@ -15,7 +15,7 @@
             <q-item-label>{{ oAccount.sEmail }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-btn flat color="primary" label="add identity" />
+            <q-btn flat color="primary" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
           </q-item-section>
         </q-item>
         <span v-for="oIdentity in (identities[oAccount.iAccountId] || [])" :key="oIdentity.iEntityId">
@@ -289,7 +289,10 @@
           </q-item>
         </div>
         <q-separator spaced />
-        <q-btn color="primary" label="Save" />
+        <div class="q-pa-md">
+          <q-btn unelevated color="primary" v-if="bIdentitySaving" label="Saving..." />
+          <q-btn unelevated color="primary" v-if="!bIdentitySaving" label="Save" @click="saveIdentitySettings" />
+        </div>
       </q-tab-panel>
     </q-tab-panels>
 
@@ -424,7 +427,7 @@
             <q-item-label>Email *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense class="input-size" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
+            <q-input outlined dense class="input-size" :disable="bDisableNewIdentityEmail" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
@@ -525,6 +528,8 @@ export default {
       bAddNewIdentityDialog: false,
       sNewIdentityName: '',
       sNewIdentityEmail: '',
+      iNewIdentityAccountId: -1,
+      bDisableNewIdentityEmail: false,
       bAddingNewIdentity: '',
     }
   },
@@ -570,7 +575,7 @@ export default {
     },
     editIdentity () {
       if (this.editIdentity) {
-        this.bIdentityIsAccountPart = this.iEditAccountId === 0
+        this.bIdentityIsAccountPart = this.iEditIdentityId === 0
         this.bIdentityDefault = this.editIdentity.bDefault
         this.bDisableIdentityDefault = this.editIdentity.bDefault
         this.sIdentityName = this.editIdentity.sFriendlyName
@@ -754,13 +759,15 @@ export default {
           sAuthToken: this.$store.getters['user/getAuthToken'],
           iAccountId: this.editIdentity.iIdAccount,
           iIdentityId: this.iEditIdentityId,
-          bDefault: this.bIdentityDefault,
-          sName: this.sIdentityName,
-          sEmail: this.sIdentityEmail,
+          bDefault: (this.identityTab === 'props') ? this.bIdentityDefault : undefined,
+          sName: (this.identityTab === 'props') ? this.sIdentityName : undefined,
+          sEmail: (this.identityTab === 'props') ? this.sIdentityEmail : undefined,
+          bNoSignature: (this.identityTab === 'signature') ? this.bIdentityNoSignature : undefined,
+          sSignature: (this.identityTab === 'signature') ? '<div data-crea="font-wrapper" style="font-family: Tahoma, sans-serif; font-size: 16px; direction: ltr;">' + this.sIdentitySignature + '</div>' : undefined,
         })
       }
     },
-    onSaveIdentitySettings (oEvent, { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, oError }) {
+    onSaveIdentitySettings (oEvent, { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, oError }) {
       this.bIdentitySaving = false
       if (bResult) {
         notification.showReport('Settings have been updated successfully.')
@@ -769,18 +776,35 @@ export default {
         }
         this.$store.dispatch('mail/asyncGetIdentities')
         if (iIdentityId === this.iEditIdentityId) {
-          this.bIdentityDefault = bDefault
-          this.sIdentityName = sName
-          this.sIdentityEmail = sEmail
+          if (typeof bDefault === 'boolean') {
+            this.bIdentityDefault = bDefault
+          }
+          if (typeof sName === 'string') {
+            this.sIdentityName = sName
+          }
+          if (typeof sName === 'string') {
+            this.sIdentityEmail = sEmail
+          }
+          if (typeof bNoSignature === 'boolean') {
+            this.bIdentityNoSignature = bNoSignature
+          }
+          if (typeof sSignature === 'string') {
+            this.sIdentitySignature = sSignature
+          }
         }
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
       }
     },
-    openAddNewIdentityDialog () {
+    openAddNewIdentityDialog (iAccountId) {
+      let oAccount = _.find(this.accounts, (oTmpAccount) => {
+        return oTmpAccount.iAccountId === iAccountId
+      })
       this.bAddingNewIdentity = false
       this.sNewIdentityName = ''
-      this.sNewIdentityEmail = ''
+      this.sNewIdentityEmail = oAccount.sEmail
+      this.iNewIdentityAccountId = iAccountId
+      this.bDisableNewIdentityEmail = mailSettings.bOnlyUserEmailsInIdentities
       this.bAddNewIdentityDialog = true
     },
     addNewIdentity () {
@@ -791,15 +815,17 @@ export default {
         ipcRenderer.send('mail-add-new-identity', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iNewIdentityAccountId,
           sName: this.sNewIdentityName,
           sEmail: this.sNewIdentityEmail,
         })
       }
     },
-    onAddNewIdentity (oEvent, { bResult, oError }) {
+    onAddNewIdentity (oEvent, { iNewIdentityId, iAccountId, oError }) {
       this.bAddingNewIdentity = false
-      if (bResult) {
+      if (typeof iNewIdentityId === 'number') {
         this.bAddNewIdentityDialog = false
+        this.changeEditIdentity (iNewIdentityId, iAccountId)
         notification.showReport('Identity was successfully added.')
         this.$store.dispatch('mail/asyncGetIdentities')
       } else {

@@ -428,15 +428,13 @@ export default {
         sMethod: 'GetIdentities',
         oParameters: {},
         fCallback: (aResult, oError) => {
-          console.log('aResult', aResult)
-          console.log('oError', oError)
           let aIdentitiesData = _.isArray(aResult) ? aResult : []
           oEvent.sender.send('mail-get-identities', { aIdentitiesData })
         },
       })
     })
 
-    ipcMain.on('mail-save-identity-settings', (oEvent, { iAccountId, iIdentityId, bDefault, sName, sEmail, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-save-identity-settings', (oEvent, { iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, sApiHost, sAuthToken }) => {
       let bAccountPart = iIdentityId === 0
       let oParameters = {
         AccountID: iAccountId,
@@ -448,11 +446,23 @@ export default {
         oParameters.Email = sEmail
         oParameters.EntityId = iIdentityId
       }
+      let sMethod = 'UpdateIdentity'
+      if (typeof bNoSignature === 'boolean' && typeof sSignature === 'string') {
+        sMethod = 'UpdateSignature'
+        oParameters = {
+          AccountID: iAccountId,
+          UseSignature: !bNoSignature,
+          Signature: sSignature,
+        }
+        if (!bAccountPart) {
+          oParameters.EntityId = iIdentityId
+        }
+      }
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
         sModule: 'Mail',
-        sMethod: 'UpdateIdentity',
+        sMethod,
         oParameters,
         fCallback: (bResult, oError) => {
           if (bResult) {
@@ -460,9 +470,11 @@ export default {
               accountsDbManager.saveAccountSettings({
                 iAccountId,
                 sFriendlyName: sName,
+                bNoSignature,
+                sSignature,
               })
             }
-            oEvent.sender.send('mail-save-identity-settings', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, oError })
+            oEvent.sender.send('mail-save-identity-settings', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, oError })
           } else {
             oEvent.sender.send('mail-save-identity-settings', { bResult, oError })
           }
@@ -470,8 +482,31 @@ export default {
       })
     })
 
+    ipcMain.on('mail-add-new-identity', (oEvent, { iAccountId, sName, sEmail, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'CreateIdentity',
+        oParameters: {
+          AccountID: iAccountId,
+          Default: false,
+          FriendlyName: sName,
+          AccountPart: false,
+          Email: sEmail,
+        },
+        fCallback: (iNewIdentityId, oError) => {
+          if (typeof iNewIdentityId === 'number') {
+            // accountsDbManager.addAccount(oResult)
+            oEvent.sender.send('mail-add-new-identity', { bResult: true, iNewIdentityId, iAccountId })
+          } else {
+            oEvent.sender.send('mail-add-new-identity', { bResult: false, oError })
+          }
+        },
+      })
+    })
+
     ipcMain.on('mail-remove-identity', (oEvent, { iAccountId, iIdentityId, sApiHost, sAuthToken }) => {
-      console.log(' { iAccountId, iIdentityId, sApiHost, sAuthToken }', { iAccountId, iIdentityId, sApiHost, sAuthToken })
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -482,8 +517,6 @@ export default {
           EntityId: iIdentityId,
         },
         fCallback: (bResult, oError) => {
-          console.log('bResult', bResult)
-          console.log('oError', oError)
           if (bResult) {
             // accountsDbManager.removeAccount(iAccountId)
           }

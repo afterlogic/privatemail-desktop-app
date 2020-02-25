@@ -4,7 +4,7 @@ export default {
 
   accounts: [],
   currentAccount: null,
-  currentIdentities: [],
+  identities: {},
 
   currentFolderList: {
     AccountId: 0,

@@ -290,7 +290,11 @@ export default {
         fCallback: (oResult, oError) => {
           let bResult = !!oResult
           if (bResult) {
-            accountsDbManager.saveAccountSettings(oResult.AccountID, oResult.UseThreading, oResult.SaveRepliesToCurrFolder)
+            accountsDbManager.saveAccountSettings({
+              iAccountId: oResult.AccountID,
+              bUseThreading: oResult.UseThreading,
+              bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder,
+            })
             oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
           } else {
             oEvent.sender.send('mail-save-account-settings', { bResult, oError })
@@ -416,6 +420,22 @@ export default {
       })
     })
 
+    ipcMain.on('mail-get-identities', (oEvent, { sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'GetIdentities',
+        oParameters: {},
+        fCallback: (aResult, oError) => {
+          console.log('aResult', aResult)
+          console.log('oError', oError)
+          let aIdentitiesData = _.isArray(aResult) ? aResult : []
+          oEvent.sender.send('mail-get-identities', { aIdentitiesData })
+        },
+      })
+    })
+
     ipcMain.on('mail-save-identity-settings', (oEvent, { iAccountId, iIdentityId, bDefault, sName, sEmail, sApiHost, sAuthToken }) => {
       let bAccountPart = iIdentityId === 0
       let oParameters = {
@@ -436,11 +456,38 @@ export default {
         oParameters,
         fCallback: (bResult, oError) => {
           if (bResult) {
-            // accountsDbManager.saveAccountSettings(oResult.AccountID, oResult.UseThreading, oResult.SaveRepliesToCurrFolder)
+            if (bAccountPart) {
+              accountsDbManager.saveAccountSettings({
+                iAccountId,
+                sFriendlyName: sName,
+              })
+            }
             oEvent.sender.send('mail-save-identity-settings', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, oError })
           } else {
             oEvent.sender.send('mail-save-identity-settings', { bResult, oError })
           }
+        },
+      })
+    })
+
+    ipcMain.on('mail-remove-identity', (oEvent, { iAccountId, iIdentityId, sApiHost, sAuthToken }) => {
+      console.log(' { iAccountId, iIdentityId, sApiHost, sAuthToken }', { iAccountId, iIdentityId, sApiHost, sAuthToken })
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'DeleteIdentity',
+        oParameters: {
+          AccountID: iAccountId,
+          EntityId: iIdentityId,
+        },
+        fCallback: (bResult, oError) => {
+          console.log('bResult', bResult)
+          console.log('oError', oError)
+          if (bResult) {
+            // accountsDbManager.removeAccount(iAccountId)
+          }
+          oEvent.sender.send('mail-remove-identity', { bResult, oError })
         },
       })
     })

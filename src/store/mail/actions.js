@@ -57,40 +57,38 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
 }
 
 export function asyncGetIdentities ({ state, commit, dispatch }) {
-  console.log('asyncGetIdentities')
-  webApi.sendRequest({
-    sModule: 'Mail',
-    sMethod: 'GetIdentities',
-    oParameters: {},
-    fCallback: (aResult, oError) => {
-      if (state.currentAccount) {
-        let aIdentitiesData = _.isArray(aResult) ? aResult : []
-        let aIdentities = []
-        let oAccount = state.currentAccount
-        let bHasDefault = false
-        let iAccountId = oAccount.iAccountId
-        _.each(aIdentitiesData, function (oData) {
-          let oIdentity = new cIdentity(oData)
-          if (oIdentity.iIdAccount === iAccountId) {
-            aIdentities.push(oIdentity)
-            bHasDefault = bHasDefault || oIdentity.bDefault
-          }
-        })
-        let oIdentity = new cIdentity({
-          Default: !bHasDefault,
-          Email: oAccount.sEmail,
-          EntityId: 0,
-          FriendlyName: oAccount.sFriendlyName,
-          IdAccount: oAccount.iAccountId,
-          IdUser: oAccount.iIdUser,
-          Signature: oAccount.sSignature,
-          UUID: '',
-          UseSignature: oAccount.bUseSignature,
-        })
-        aIdentities.unshift(oIdentity)
-        commit('setCurrentIdentities', aIdentities)
+  ipcRenderer.once('mail-get-identities', (event, { aIdentitiesData }) => {
+    let aIdentities = {}
+    _.each(aIdentitiesData, function (oData) {
+      let oIdentity = new cIdentity(oData)
+      if (!_.isArray(aIdentities[oIdentity.iIdAccount])) {
+        aIdentities[oIdentity.iIdAccount] = []
       }
-    },
+      aIdentities[oIdentity.iIdAccount].push(oIdentity)
+    })
+    _.each(state.accounts, function (oAccount) {
+      let aAccountIdentities = aIdentities[oAccount.iAccountId] || []
+      let bHasDefault = !!_.find(aAccountIdentities, function (oIdentity) {
+        return oIdentity.bDefault
+      })
+      aAccountIdentities.unshift(new cIdentity({
+        Default: !bHasDefault,
+        Email: oAccount.sEmail,
+        EntityId: 0,
+        FriendlyName: oAccount.sFriendlyName,
+        IdAccount: oAccount.iAccountId,
+        IdUser: oAccount.iIdUser,
+        Signature: oAccount.sSignature,
+        UUID: '',
+        UseSignature: oAccount.bUseSignature,
+      }))
+      aIdentities[oAccount.iAccountId] = aAccountIdentities
+    })
+    commit('setIdentities', aIdentities)
+  })
+  ipcRenderer.send('mail-get-identities', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
   })
 }
 

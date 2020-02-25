@@ -16,7 +16,7 @@ function CSettings () {
   // this.bIgnoreImapSubscription = false
   // this.iImageUploadSizeLimit = 0
   // this.oMessagesSortBy = null
-  // this.bOnlyUserEmailsInIdentities = false
+  this.bOnlyUserEmailsInIdentities = false
   // this.oSmtpAuthType = null
 
   // this.bAllowAppRegisterMailto = false
@@ -57,7 +57,7 @@ CSettings.prototype.parse = function (oData, oWebclientData) {
     // this.bIgnoreImapSubscription = typesUtils.pBool(oData.IgnoreImapSubscription, this.bIgnoreImapSubscription)
     // this.iImageUploadSizeLimit = typesUtils.pInt(oData.ImageUploadSizeLimit, this.iImageUploadSizeLimit)
     // this.oMessagesSortBy = typesUtils.pObject(oData.MessagesSortBy, this.oMessagesSortBy)
-    // this.bOnlyUserEmailsInIdentities = typesUtils.pBool(oData.OnlyUserEmailsInIdentities, this.bOnlyUserEmailsInIdentities)
+    this.bOnlyUserEmailsInIdentities = typesUtils.pBool(oData.OnlyUserEmailsInIdentities, this.bOnlyUserEmailsInIdentities)
     // this.oSmtpAuthType = typesUtils.pObject(oData.SmtpAuthType, this.oSmtpAuthType)
   }
 

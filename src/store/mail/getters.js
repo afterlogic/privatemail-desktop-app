@@ -30,16 +30,23 @@ export function getCurrentAccountEmail (state) {
 }
 
 export function getCurrentIdentities (state) {
-  return state.currentIdentities
+  let iAccountId = state.currentAccount ? state.currentAccount.iAccountId : 0
+  return state.identities[iAccountId] || []
+}
+
+export function getIdentities (state) {
+  return state.identities
 }
 
 export function getCurrentDefaultIdentity (state) {
-  if (state.currentIdentities.length > 0) {
-    let oIdentity = _.find(state.currentIdentities, function (oIdentity) {
+  let iAccountId = state.currentAccount ? state.currentAccount.iAccountId : 0
+  let aCurrentIdentities = state.identities[iAccountId] || []
+  if (aCurrentIdentities.length > 0) {
+    let oIdentity = _.find(aCurrentIdentities, function (oIdentity) {
       return oIdentity.bDefault
     })
     if (!oIdentity) {
-      oIdentity = state.currentIdentities[0]
+      oIdentity = aCurrentIdentities[0]
     }
     if (oIdentity) {
       return oIdentity

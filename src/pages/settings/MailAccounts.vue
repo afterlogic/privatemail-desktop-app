@@ -18,11 +18,11 @@
             <q-btn flat color="primary" label="add identity" />
           </q-item-section>
         </q-item>
-        <span v-for="oIdentity in currentIdentities" :key="oIdentity.iEntityId">
+        <span v-for="oIdentity in (identities[oAccount.iAccountId] || [])" :key="oIdentity.iEntityId">
           <q-item v-ripple clickable
             v-if="oIdentity.iIdAccount === oAccount.iAccountId"
-            :class="{checked: iEditIdentityId === oIdentity.iEntityId}"
-            @click="changeEditIdentity(oIdentity.iEntityId)"
+            :class="{checked: iEditIdentityId === oIdentity.iEntityId && iEditIdentityAccountId === oAccount.iAccountId}"
+            @click="changeEditIdentity(oIdentity.iEntityId, oIdentity.iIdAccount)"
           >
             <q-item-section avatar>
               <q-icon name="arrow_upward" />
@@ -249,7 +249,14 @@
               <q-item-label>Email</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense class="input-size" v-model="sIdentityEmail" v-on:keyup.enter="saveIdentitySettings" />
+              <q-input outlined dense class="input-size" v-model="sIdentityEmail" :disable="bDisableIdentityEmail" v-on:keyup.enter="saveIdentitySettings" />
+            </q-item-section>
+          </q-item>
+          <q-item v-if="!bIdentityIsAccountPart">
+            <q-item-section>
+              <q-item-label>
+                <q-btn unelevated outline color="warning" label="Remove identity" @click="openRemoveIdentityDialog" />
+              </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -397,6 +404,53 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <q-dialog v-model="bAddNewIdentityDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6">Add New Identity</div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-section>
+            <q-item-label>Your name</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" v-model="sNewIdentityName" v-on:keyup.enter="addNewIdentity" />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Email *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
+          </q-item-section>
+        </q-item>
+        <q-card-actions align="right">
+          <q-btn flat label="Adding..." color="primary" v-if="bAddingNewIdentity" />
+          <q-btn flat label="Add" color="primary" @click="addNewIdentity" v-if="!bAddingNewIdentity" />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="bRemoveIdentityDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6">{{ editIdentity ? editIdentity.getFull() : '' }}</div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-label>Are you sure you want to remove identity?</q-item-label>
+        </q-item>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Ok" color="primary" @click="removeIdentity" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -430,6 +484,7 @@ export default {
 
       iEditAccountId: -1,
       iEditIdentityId: -1,
+      iEditIdentityAccountId: -1,
 
       // enableAutoresponder: false,
       // autoresponderSubject: '',
@@ -457,13 +512,20 @@ export default {
       bNewAccountSmtpSsl: false,
       bNewAccountSmtpAuth: true,
 
+      bIdentityIsAccountPart: false,
       bIdentityDefault: false,
       bDisableIdentityDefault: false,
       sIdentityName: '',
       sIdentityEmail: '',
+      bDisableIdentityEmail: false,
       bIdentitySaving: false,
       bIdentityNoSignature: false,
       sIdentitySignature: '',
+      bRemoveIdentityDialog: false,
+      bAddNewIdentityDialog: false,
+      sNewIdentityName: '',
+      sNewIdentityEmail: '',
+      bAddingNewIdentity: '',
     }
   },
 
@@ -482,8 +544,12 @@ export default {
     currentIdentities () {
       return this.$store.getters['mail/getCurrentIdentities']
     },
+    identities () {
+      return this.$store.getters['mail/getIdentities']
+    },
     editIdentity () {
-      return _.find(this.currentIdentities, (oIdentity) => {
+      let aIdentityAcountIdentities = this.identities[this.iEditIdentityAccountId] || []
+      return _.find(aIdentityAcountIdentities, (oIdentity) => {
         return oIdentity.iEntityId === this.iEditIdentityId
       })
     },
@@ -504,10 +570,12 @@ export default {
     },
     editIdentity () {
       if (this.editIdentity) {
+        this.bIdentityIsAccountPart = this.iEditAccountId === 0
         this.bIdentityDefault = this.editIdentity.bDefault
         this.bDisableIdentityDefault = this.editIdentity.bDefault
         this.sIdentityName = this.editIdentity.sFriendlyName
         this.sIdentityEmail = this.editIdentity.sEmail
+        this.bDisableIdentityEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
         this.bIdentityNoSignature = !this.editIdentity.bUseSignature
         this.sIdentitySignature = this.editIdentity.sSignature
       }
@@ -542,10 +610,12 @@ export default {
   methods: {
     changeEditAccount (iAccountId) {
       this.iEditAccountId = iAccountId
+      this.iEditIdentityAccountId = -1
       this.iEditIdentityId = -1
     },
-    changeEditIdentity (iIdentityId) {
+    changeEditIdentity (iIdentityId, iIdentityAccountId) {
       this.iEditAccountId = -1
+      this.iEditIdentityAccountId = iIdentityAccountId
       this.iEditIdentityId = iIdentityId
     },
     saveAccountSettings () {
@@ -690,13 +760,14 @@ export default {
         })
       }
     },
-    onSaveIdentitySettings (oEvent, { bResult, iIdentityId, bDefault, sName, sEmail, oError }) {
-      console.log('onSaveIdentitySettings', { bResult, iIdentityId, bDefault, sName, sEmail, oError })
+    onSaveIdentitySettings (oEvent, { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, oError }) {
       this.bIdentitySaving = false
       if (bResult) {
         notification.showReport('Settings have been updated successfully.')
+        if (iIdentityId === 0) {
+          this.$store.commit('mail/setAccountSettings', { iAccountId, sName })
+        }
         this.$store.dispatch('mail/asyncGetIdentities')
-        // this.$store.commit('mail/setIdentitySettings', { iIdentityId, bDefault, sName, sEmail })
         if (iIdentityId === this.iEditIdentityId) {
           this.bIdentityDefault = bDefault
           this.sIdentityName = sName
@@ -706,12 +777,66 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
       }
     },
+    openAddNewIdentityDialog () {
+      this.bAddingNewIdentity = false
+      this.sNewIdentityName = ''
+      this.sNewIdentityEmail = ''
+      this.bAddNewIdentityDialog = true
+    },
+    addNewIdentity () {
+      if (_.trim(this.sNewIdentityEmail) === '') {
+        notification.showError('Not all required fields are filled.')
+      } else {
+        this.bAddingNewIdentity = true
+        ipcRenderer.send('mail-add-new-identity', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          sName: this.sNewIdentityName,
+          sEmail: this.sNewIdentityEmail,
+        })
+      }
+    },
+    onAddNewIdentity (oEvent, { bResult, oError }) {
+      this.bAddingNewIdentity = false
+      if (bResult) {
+        this.bAddNewIdentityDialog = false
+        notification.showReport('Identity was successfully added.')
+        this.$store.dispatch('mail/asyncGetIdentities')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while adding identity.'))
+      }
+    },
+    openRemoveIdentityDialog () {
+      if (!this.bIdentityIsAccountPart) {
+        this.bRemoveIdentityDialog = true
+      }
+    },
+    removeIdentity () {
+      if (!this.bIdentityIsAccountPart) {
+        ipcRenderer.send('mail-remove-identity', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditIdentityAccountId,
+          iIdentityId: this.iEditIdentityId,
+        })
+      }
+    },
+    onRemoveIdentity (oEvent, { bResult, oError }) {
+      if (bResult) {
+        notification.showReport('Identity was successfully removed.')
+        this.$store.dispatch('mail/asyncGetIdentities')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
+      }
+    },
     initSubscriptions () {
       ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.on('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.on('mail-add-new-account-full', this.onAddNewAccount)
       ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
+      ipcRenderer.on('mail-add-new-identity', this.onAddNewIdentity)
+      ipcRenderer.on('mail-remove-identity', this.onRemoveIdentity)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
@@ -719,6 +844,8 @@ export default {
       ipcRenderer.removeListener('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.removeListener('mail-add-new-account-full', this.onAddNewAccount)
       ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
+      ipcRenderer.removeListener('mail-add-new-identity', this.onAddNewIdentity)
+      ipcRenderer.removeListener('mail-remove-identity', this.onRemoveIdentity)
     },
   },
 }

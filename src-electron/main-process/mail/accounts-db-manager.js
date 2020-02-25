@@ -146,16 +146,26 @@ export default {
     })
   },
 
-  saveAccountSettings: function (iAccountId, bUseThreading, bSaveRepliesToCurrFolder) {
+  saveAccountSettings: function ({ iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sFriendlyName }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
-          let oStatement = oDb.prepare('UPDATE accounts SET use_threading = ?, save_replies_to_curr_folder = ? WHERE account_id = ?')
-          let aParams = [
-            bUseThreading,
-            bSaveRepliesToCurrFolder,
-            iAccountId,
-          ]
+          let aValuesToSet = []
+          let aParams = []
+          if (typeof bUseThreading === 'boolean') {
+            aValuesToSet.push('use_threading = ?')
+            aParams.push(bUseThreading)
+          }
+          if (typeof bSaveRepliesToCurrFolder === 'boolean') {
+            aValuesToSet.push('save_replies_to_curr_folder = ?')
+            aParams.push(bSaveRepliesToCurrFolder)
+          }
+          if (typeof sFriendlyName === 'string') {
+            aValuesToSet.push('friendly_name = ?')
+            aParams.push(sFriendlyName)
+          }
+          let oStatement = oDb.prepare('UPDATE accounts SET ' + aValuesToSet.join(', ') + ' WHERE account_id = ?')
+          aParams.push(iAccountId)
           oStatement.run(aParams)
           oStatement.finalize(function (oError) {
             if (oError) {

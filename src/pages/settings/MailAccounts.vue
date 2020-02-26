@@ -15,7 +15,10 @@
             <q-item-label>{{ oAccount.sEmail }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-btn flat color="primary" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
+            <q-btn flat color="primary" v-if="bAllowAliases" label="add alias" />
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat color="primary" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
           </q-item-section>
         </q-item>
         <span v-for="oIdentity in (identities[oAccount.iAccountId] || [])" :key="oIdentity.iEntityId">
@@ -32,6 +35,19 @@
             </q-item-section>
             <q-item-section>
               <q-icon name="check" v-if="oIdentity.bDefault" style="font-size: 2em;" />
+            </q-item-section>
+          </q-item>
+        </span>
+        <span v-for="oAlias in oAccount.aAliases" :key="oAlias.iEntityId">
+          <q-item v-ripple clickable
+            :class="{checked: iEditAliasId === oAlias.iEntityId && iEditAliasAccountId === oAccount.iAccountId}"
+            @click="changeEditAlias(oAlias.iEntityId, oAlias.iIdAccount)"
+          >
+            <q-item-section avatar>
+              <q-icon name="arrow_upward" />
+            </q-item-section>
+            <q-item-section style="white-space: nowrap;">
+              Alias {{ oAlias.getFull() }}
             </q-item-section>
           </q-item>
         </span>
@@ -536,6 +552,8 @@ export default {
       iEditAccountId: -1,
       iEditIdentityId: -1,
       iEditIdentityAccountId: -1,
+      iEditAliasAccountId: -1,
+      iEditAliasId: -1,
 
       // enableAutoresponder: false,
       // autoresponderSubject: '',
@@ -563,6 +581,7 @@ export default {
       bNewAccountSmtpSsl: false,
       bNewAccountSmtpAuth: true,
 
+      bAllowIdentities: false,
       bAllowInsertImage: false,
       bIdentityIsAccountPart: false,
       bIdentityDefault: false,
@@ -586,6 +605,8 @@ export default {
       iNewIdentityAccountId: -1,
       bNewIdentityDisableEmail: false,
       bNewIdentityAdding: '',
+
+      bAllowAliases: false,
     }
   },
 
@@ -645,6 +666,12 @@ export default {
         ['unordered', 'ordered'],
         aLastSection
       ]
+    },
+    editAlias () {
+      let aAliasAcountIdentities = this.identities[this.iEditAliasAccountId] || []
+      return _.find(aAliasAcountIdentities, (oAlias) => {
+        return oAlias.iEntityId === this.iEditAliasId
+      })
     },
   },
 
@@ -727,7 +754,9 @@ export default {
     if (this.iEditAccountId === -1 && this.accounts.length > 0) {
       this.changeEditAccount(this.accounts[0].iAccountId)
     }
+    this.bAllowIdentities = mailSettings.bAllowIdentities
     this.bAllowInsertImage = mailSettings.bAllowInsertImage
+    this.bAllowAliases = mailSettings.bAllowAliases
     this.initSubscriptions()
   },
 
@@ -740,11 +769,22 @@ export default {
       this.iEditAccountId = iAccountId
       this.iEditIdentityAccountId = -1
       this.iEditIdentityId = -1
+      this.iEditAliasAccountId = -1
+      this.iEditAliasId = -1
     },
     changeEditIdentity (iIdentityId, iIdentityAccountId) {
       this.iEditAccountId = -1
       this.iEditIdentityAccountId = iIdentityAccountId
       this.iEditIdentityId = iIdentityId
+      this.iEditAliasAccountId = -1
+      this.iEditAliasId = -1
+    },
+    changeEditAlias (iAliasId, iAliasAccountId) {
+      this.iEditAccountId = -1
+      this.iEditIdentityAccountId = -1
+      this.iEditIdentityId = -1
+      this.iEditAliasAccountId = iAliasAccountId
+      this.iEditAliasId = iAliasId
     },
     saveAccountSettings () {
       this.bAccountSaving = true

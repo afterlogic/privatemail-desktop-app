@@ -249,7 +249,8 @@
               <q-item-label>Email</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense class="input-size" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
+              <q-input outlined dense class="input-size" v-if="aIdentityEmailOptions.length === 0" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
+              <q-select outlined dense class="input-size" v-if="aIdentityEmailOptions.length > 0" v-model="sIdentityEmail" :options="aIdentityEmailOptions" />
             </q-item-section>
           </q-item>
           <q-item v-if="!bIdentityIsAccountPart">
@@ -472,7 +473,8 @@
             <q-item-label>Email *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense class="input-size" :disable="bNewIdentityDisableEmail" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
+            <q-input outlined dense class="input-size" v-if="aNewIdentityEmailOptions.length === 0" :disable="bNewIdentityDisableEmail" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
+            <q-select outlined dense class="input-size" v-if="aNewIdentityEmailOptions.length > 0" v-model="sNewIdentityEmail" :options="aNewIdentityEmailOptions" />
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
@@ -567,6 +569,7 @@ export default {
       bIdentityDisableDefault: false,
       sIdentityName: '',
       sIdentityEmail: '',
+      aIdentityEmailOptions: [],
       bIdentityDisableEmail: false,
       bIdentityNoSignature: false,
       sIdentitySignature: '',
@@ -579,6 +582,7 @@ export default {
       bNewIdentityDialog: false,
       sNewIdentityName: '',
       sNewIdentityEmail: '',
+      aNewIdentityEmailOptions: [],
       iNewIdentityAccountId: -1,
       bNewIdentityDisableEmail: false,
       bNewIdentityAdding: '',
@@ -664,6 +668,19 @@ export default {
         this.bIdentityDisableDefault = this.editIdentity.bDefault
         this.sIdentityName = this.editIdentity.sFriendlyName
         this.sIdentityEmail = this.editIdentity.sEmail
+        let oIdentityAccount = _.find(this.accounts, (oAccount) => {
+          return oAccount.iAccountId === this.editIdentity.iIdAccount
+        })
+        if (!this.bIdentityIsAccountPart && oIdentityAccount && _.isArray(oIdentityAccount.aAliases)) {
+          this.aIdentityEmailOptions = _.map(oIdentityAccount.aAliases, (oAlias) => {
+            return oAlias.sEmail
+          })
+        } else {
+          this.aIdentityEmailOptions = []
+        }
+        if (this.aIdentityEmailOptions.length > 0) {
+          this.aIdentityEmailOptions.unshift(oIdentityAccount.sEmail)
+        }
         this.bIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
         this.bIdentityNoSignature = !this.editIdentity.bUseSignature
         this.sIdentitySignature = this.editIdentity.sSignature
@@ -888,9 +905,6 @@ export default {
           if (typeof sName === 'string') {
             this.sIdentityName = sName
           }
-          if (typeof sName === 'string') {
-            this.sIdentityEmail = sEmail
-          }
           if (typeof bNoSignature === 'boolean') {
             this.bIdentityNoSignature = bNoSignature
           }
@@ -912,6 +926,17 @@ export default {
       this.iNewIdentityAccountId = iAccountId
       this.bNewIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities
       this.bNewIdentityDialog = true
+
+      if (oAccount && _.isArray(oAccount.aAliases)) {
+        this.aNewIdentityEmailOptions = _.map(oAccount.aAliases, (oAlias) => {
+          return oAlias.sEmail
+        })
+      } else {
+        this.aNewIdentityEmailOptions = []
+      }
+      if (this.aNewIdentityEmailOptions.length > 0) {
+        this.aNewIdentityEmailOptions.unshift(oAccount.sEmail)
+      }
     },
     addNewIdentity () {
       if (_.trim(this.sNewIdentityEmail) === '') {

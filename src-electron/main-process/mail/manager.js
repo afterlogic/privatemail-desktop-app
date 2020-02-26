@@ -420,6 +420,28 @@ export default {
       })
     })
 
+    ipcMain.on('mail-get-aliases', (oEvent, { sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'CpanelIntegrator',
+        sMethod: 'GetAliases',
+        oParameters: {},
+        fCallback: (oResult, oError) => {
+          if (oResult && _.isArray(oResult.ObjAliases)) {
+            accountsDbManager.setAliases(oResult.ObjAliases)
+            oEvent.sender.send('mail-get-aliases', { aAliasesData: oResult.ObjAliases })
+          } else {
+            accountsDbManager.getAliases().then(
+              (aAliasesData) => {
+                oEvent.sender.send('mail-get-aliases', { aAliasesData })
+              }
+            )
+          }
+        },
+      })
+    })
+
     ipcMain.on('mail-get-identities', (oEvent, { sApiHost, sAuthToken }) => {
       webApi.sendRequest({
         sApiHost,

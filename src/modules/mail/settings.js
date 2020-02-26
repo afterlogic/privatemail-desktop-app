@@ -39,9 +39,11 @@ function CSettings () {
   // this.bAllowHorizontalLayout = false
   // this.bHorizontalLayoutByDefault = false
   // this.bShowMessagesCountInFolderList = false
+
+  this.bAllowAliases = false
 }
 
-CSettings.prototype.parse = function (oData, oWebclientData) {
+CSettings.prototype.parse = function (oData, oWebclientData, oCpanelData) {
   if (oData) {
     this.bAllowAddAccounts = typesUtils.pBool(oData.AllowAddAccounts, this.bAllowAddAccounts)
     // this.bAllowAlwaysRefreshFolders = typesUtils.pBool(oData.AllowAlwaysRefreshFolders, this.bAllowAlwaysRefreshFolders)
@@ -82,6 +84,10 @@ CSettings.prototype.parse = function (oData, oWebclientData) {
     // this.bAllowHorizontalLayout = typesUtils.pBool(oWebclientData.AllowHorizontalLayout, this.bAllowHorizontalLayout)
     // this.bHorizontalLayoutByDefault = typesUtils.pBool(oWebclientData.HorizontalLayoutByDefault, this.bHorizontalLayoutByDefault)
     // this.bShowMessagesCountInFolderList = typesUtils.pBool(oWebclientData.ShowMessagesCountInFolderList, this.bShowMessagesCountInFolderList)
+  }
+
+  if (!_.isEmpty(oCpanelData)) {
+    this.bAllowAliases = typesUtils.pBool(oCpanelData.AllowAliases, this.bAllowAliases)
   }
 }
 

@@ -65,6 +65,18 @@ let aIdentityDbMap = [
   {Name: 'UseSignature', DbName: 'use_signature', Type: 'INTEGER', IsBool: true},
 ]
 
+let aAliasDbMap = [
+  {Name: 'Email', DbName: 'email', Type: 'TEXT'},
+  {Name: 'EntityId', DbName: 'entity_id', Type: 'INTEGER'},
+  {Name: 'ForwardTo', DbName: 'forward_to', Type: 'TEXT'},
+  {Name: 'FriendlyName', DbName: 'friendly_name', Type: 'TEXT'},
+  {Name: 'IdAccount', DbName: 'id_account', Type: 'INTEGER'},
+  {Name: 'IdUser', DbName: 'id_user', Type: 'INTEGER'},
+  {Name: 'Signature', DbName: 'signature', Type: 'TEXT'},
+  {Name: 'UUID', DbName: 'uuid', Type: 'TEXT'},
+  {Name: 'UseSignature', DbName: 'use_signature', Type: 'INTEGER', IsBool: true},
+]
+
 export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
@@ -81,6 +93,12 @@ export default {
         })
         let sIdentityDbFields = aIdentityDbFields.join(', ')
         oDb.run('CREATE TABLE IF NOT EXISTS identities (' + sIdentityDbFields + ')')
+
+        let aAliasDbFields = _.map(aAliasDbMap, function (oAliasDbFieldData) {
+          return oAliasDbFieldData.DbName + ' ' + oAliasDbFieldData.Type
+        })
+        let sAliasDbFields = aAliasDbFields.join(', ')
+        oDb.run('CREATE TABLE IF NOT EXISTS aliases (' + sAliasDbFields + ')')
       })
     }
   },
@@ -310,6 +328,60 @@ export default {
         )
       } else {
         reject({ sMethod: 'getIdentities', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setAliases: function (aAliases) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          oDb.run('DELETE FROM aliases', [], (oError) => {
+            if (oError) {
+              reject({ sMethod: 'setAliases', oError })
+            } else {
+              let sFieldsDbNames = _.map(aAliasDbMap, function (oAliasDbFieldData) {
+                return oAliasDbFieldData.DbName
+              }).join(', ')
+              let sQuestions = aAliasDbMap.map(function () { return '?' }).join(',')
+              let oStatement = oDb.prepare('INSERT INTO aliases (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+              _.each(aAliases, function (oAlias) {
+                let aParams = dbHelper.prepareInsertParams(oAlias, aAliasDbMap)
+                oStatement.run(aParams)
+              })
+              oStatement.finalize(function (oError) {
+                if (oError) {
+                  reject({ sMethod: 'setAliases', oError })
+                } else {
+                  resolve()
+                }
+              })
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setAliases', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  getAliases: function () {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.all(
+          'SELECT * FROM aliases',
+          [],
+          (oError, aRows) => {
+            if (oError) {
+              reject({ sMethod: 'getAliases', oError })
+            } else {
+              let aAliases = dbHelper.prepareDataFromDb(aRows, aAliasDbMap)
+              resolve(aAliases)
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getAliases', sError: 'No DB connection' })
       }
     })
   },

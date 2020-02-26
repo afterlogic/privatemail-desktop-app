@@ -14,6 +14,10 @@ import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 
 export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSettingsCallback) {
+  ipcRenderer.once('mail-get-aliases', (event, { aAliasesData }) => {
+    commit('setAliases', { oDefaultAccount: getters.getDefaultAccount, aAliasesData })
+  })
+
   ipcRenderer.once('mail-get-accounts', (event, { aAccounts, oError }) => {
     if (typesUtils.isNonEmptyArray(aAccounts)) {
       commit('setAccounts', aAccounts)
@@ -27,6 +31,12 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
       })
+      if (mailSettings.bAllowAliases && getters.getDefaultAccount) {
+        ipcRenderer.send('mail-get-aliases', {
+          sApiHost: store.getters['main/getApiHost'],
+          sAuthToken: store.getters['user/getAuthToken'],
+        })
+      }
     }
     if (_.isFunction(fGetSettingsCallback)) {
       fGetSettingsCallback(oError)
@@ -42,7 +52,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
         coreSettings.parse(oResult['Core'], oResult['CoreWebclient'])
       }
       if (oResult['Mail'] && oResult['MailWebclient']) {
-        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'])
+        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'], oResult['CpanelIntegrator'])
       }
       if (oResult['Contacts']) {
         contactsSettings.parse(oResult['Contacts'])

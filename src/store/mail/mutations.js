@@ -3,6 +3,7 @@ import _ from 'lodash'
 import typesUtils from 'src/utils/types'
 
 import cAccount from 'src/modules/mail/classes/cAccount.js'
+import cAlias from 'src/modules/mail/classes/cAlias.js'
 
 export function setFoldersSyncing (state, payload) {
   state.foldersSyncing = payload
@@ -21,6 +22,19 @@ export function setAccounts (state, aAccountsData) {
     })
   }
   state.accounts = aAccounts
+}
+
+export function setAliases (state, { oDefaultAccount, aAliasesData }) {
+  let aAliases = []
+  if (typesUtils.isNonEmptyArray(aAliasesData)) {
+    _.each(aAliasesData, function (oAliasData) {
+      let oAlias = new cAlias(oAliasData)
+      aAliases.push(oAlias)
+    })
+  }
+  if (oDefaultAccount) {
+    oDefaultAccount.aAliases = aAliases
+  }
 }
 
 export function setCurrentAccount (state, oAccount) {

@@ -60,6 +60,7 @@ function cAccount (oData) {
   this.sUUID = ''
   this.bUseSignature = false
   this.bUseThreading = false
+  this.aAliases = []
 
   if (typesUtils.isNonEmptyObject(oData)) {
     this.parse(oData)

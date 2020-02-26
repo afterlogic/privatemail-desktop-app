@@ -34,7 +34,7 @@ export function setCurrentAccount (state, oAccount) {
   state.currentAccount = oAccount
 }
 
-export function setAccountSettings (state, { iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sName }) {
+export function setAccountSettings (state, { iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sName, bNoSignature, sSignature }) {
   let oAccount = _.find(state.accounts, (oTmpAccount) => {
     return oTmpAccount.iAccountId === iAccountId
   })
@@ -47,6 +47,12 @@ export function setAccountSettings (state, { iAccountId, bUseThreading, bSaveRep
     }
     if (typeof sName === 'string') {
       oAccount.sFriendlyName = sName
+    }
+    if (typeof bNoSignature === 'boolean') {
+      oAccount.bUseSignature = !bNoSignature
+    }
+    if (typeof sSignature === 'string') {
+      oAccount.sSignature = sSignature
     }
   }
 }

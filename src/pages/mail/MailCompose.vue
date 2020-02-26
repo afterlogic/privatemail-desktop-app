@@ -942,8 +942,9 @@ export default {
         this.selectedIdentity = null
       } else {
         let mSelectedIdentityId = this.selectedIdentity ? this.selectedIdentity.value.iEntityId : false
+        let mSelectedIdentityAccountId = this.selectedIdentity ? this.selectedIdentity.value.iIdAccount : false
         let oSelectedIdentity = _.find(this.identities, function (oIdentity) {
-          return oIdentity.iEntityId === mSelectedIdentityId
+          return oIdentity.iEntityId === mSelectedIdentityId && oIdentity.iIdAccount === mSelectedIdentityAccountId
         })
         if (!oSelectedIdentity) {
           let oIdentity = _.find(this.identities, function (oIdentity) {

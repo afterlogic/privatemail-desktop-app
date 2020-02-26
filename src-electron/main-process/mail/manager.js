@@ -428,8 +428,16 @@ export default {
         sMethod: 'GetIdentities',
         oParameters: {},
         fCallback: (aResult, oError) => {
-          let aIdentitiesData = _.isArray(aResult) ? aResult : []
-          oEvent.sender.send('mail-get-identities', { aIdentitiesData })
+          if (_.isArray(aResult)) {
+            accountsDbManager.setIdentities(aResult)
+            oEvent.sender.send('mail-get-identities', { aIdentitiesData: aResult })
+          } else {
+            accountsDbManager.getIdentities().then(
+              (aIdentitiesData) => {
+                oEvent.sender.send('mail-get-identities', { aIdentitiesData })
+              }
+            )
+          }
         },
       })
     })
@@ -455,7 +463,7 @@ export default {
           Signature: sSignature,
         }
         if (!bAccountPart) {
-          oParameters.EntityId = iIdentityId
+          oParameters.IdentityId = iIdentityId
         }
       }
       webApi.sendRequest({
@@ -497,7 +505,6 @@ export default {
         },
         fCallback: (iNewIdentityId, oError) => {
           if (typeof iNewIdentityId === 'number') {
-            // accountsDbManager.addAccount(oResult)
             oEvent.sender.send('mail-add-new-identity', { bResult: true, iNewIdentityId, iAccountId })
           } else {
             oEvent.sender.send('mail-add-new-identity', { bResult: false, oError })
@@ -517,9 +524,6 @@ export default {
           EntityId: iIdentityId,
         },
         fCallback: (bResult, oError) => {
-          if (bResult) {
-            // accountsDbManager.removeAccount(iAccountId)
-          }
           oEvent.sender.send('mail-remove-identity', { bResult, oError })
         },
       })

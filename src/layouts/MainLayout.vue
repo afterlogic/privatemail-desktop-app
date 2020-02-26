@@ -80,7 +80,10 @@ export default {
     changeAccount (oAccount) {
       this.$store.commit('mail/setCurrentAccount', oAccount)
       this.$store.commit('mail/resetCurrentFolderList')
-      this.$router.push({ path: '/mail' })
+      let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
+      if (sCurrentPath !== '/mail') {
+        this.$router.push({ path: '/mail' })
+      }
     },
   },
 }

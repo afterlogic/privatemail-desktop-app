@@ -230,7 +230,7 @@
         <q-list class="non-selectable" style="width: 450px;">
           <q-item tag="label" v-ripple>
             <q-item-section side top>
-              <q-checkbox v-model="bIdentityDefault" :disable="bDisableIdentityDefault" />
+              <q-checkbox v-model="bIdentityDefault" :disable="bIdentityDisableDefault" />
             </q-item-section>
             <q-item-section>
               <q-item-label>Set default</q-item-label>
@@ -249,7 +249,7 @@
               <q-item-label>Email</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense class="input-size" v-model="sIdentityEmail" :disable="bDisableIdentityEmail" v-on:keyup.enter="saveIdentitySettings" />
+              <q-input outlined dense class="input-size" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
             </q-item-section>
           </q-item>
           <q-item v-if="!bIdentityIsAccountPart">
@@ -279,12 +279,57 @@
           </q-item>
           <q-item>
             <q-item-section>
-              <q-editor
-                v-model="sIdentitySignature"
-                :definitions="{
-                  bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
+              <q-editor v-model="sIdentitySignature" ref="editor" height="400px" class="full-height"
+                :disable="bIdentityDisableEditor"
+                :toolbar="editorToolbar"
+                :fonts="{
+                  arial: 'Arial',
+                  arial_black: 'Arial Black',
+                  courier_new: 'Courier New',
+                  tahoma: 'Tahoma',
+                  times_new_roman: 'Times New Roman',
+                  verdana: 'Verdana'
                 }"
-              />
+              >
+                <template v-slot:image>
+                  <q-btn-dropdown
+                    flat
+                    dense
+                    size="sm"
+                    class="arrowless"
+                    icon="image"
+                    ref="insertImageDropdown"
+                    @hide="oIdentityImageToInsert=null"
+                  >
+                    <template v-slot:label>
+                      <q-tooltip>Insert Image</q-tooltip>
+                    </template>
+
+                    <q-card class="">
+                        <q-item-label header>Please select an image file to upload</q-item-label>
+                        <q-item>
+                          <q-file outline class="full-width" color="primary" label="Choose File"
+                            v-model="oIdentityImageToInsert"
+                            :multiple="false"
+                            :accept="sIdentityAcceptedImageTypes"
+                          />
+                        </q-item>
+
+                        <q-item-label header>or enter an URL:</q-item-label>
+                        <q-item>
+                          <q-input outlined dense type="text" class="full-width" v-model="sIdentityExternalImageUrl" />
+                        </q-item>
+                
+                      <q-card-actions align="right">
+                        <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
+                        <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
+                      </q-card-actions>
+                    </q-card>
+                    <div>
+                    </div>
+                  </q-btn-dropdown>
+                </template>
+              </q-editor>
             </q-item-section>
           </q-item>
         </div>
@@ -408,7 +453,7 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="bAddNewIdentityDialog" persistent>
+    <q-dialog v-model="bNewIdentityDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
           <div class="text-h6">Add New Identity</div>
@@ -427,12 +472,12 @@
             <q-item-label>Email *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense class="input-size" :disable="bDisableNewIdentityEmail" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
+            <q-input outlined dense class="input-size" :disable="bNewIdentityDisableEmail" v-model="sNewIdentityEmail" v-on:keyup.enter="addNewIdentity" />
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
-          <q-btn flat label="Adding..." color="primary" v-if="bAddingNewIdentity" />
-          <q-btn flat label="Add" color="primary" @click="addNewIdentity" v-if="!bAddingNewIdentity" />
+          <q-btn flat label="Adding..." color="primary" v-if="bNewIdentityAdding" />
+          <q-btn flat label="Add" color="primary" @click="addNewIdentity" v-if="!bNewIdentityAdding" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -474,6 +519,7 @@ import { ipcRenderer } from 'electron'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
 
 import mailSettings from 'src/modules/mail/settings.js'
 
@@ -515,22 +561,27 @@ export default {
       bNewAccountSmtpSsl: false,
       bNewAccountSmtpAuth: true,
 
+      bAllowInsertImage: false,
       bIdentityIsAccountPart: false,
       bIdentityDefault: false,
-      bDisableIdentityDefault: false,
+      bIdentityDisableDefault: false,
       sIdentityName: '',
       sIdentityEmail: '',
-      bDisableIdentityEmail: false,
-      bIdentitySaving: false,
+      bIdentityDisableEmail: false,
       bIdentityNoSignature: false,
       sIdentitySignature: '',
+      bIdentityDisableEditor: false,
+      sIdentityAcceptedImageTypes: 'image/*',
+      sIdentityExternalImageUrl: '',
+      oIdentityImageToInsert: null,
+      bIdentitySaving: false,
       bRemoveIdentityDialog: false,
-      bAddNewIdentityDialog: false,
+      bNewIdentityDialog: false,
       sNewIdentityName: '',
       sNewIdentityEmail: '',
       iNewIdentityAccountId: -1,
-      bDisableNewIdentityEmail: false,
-      bAddingNewIdentity: '',
+      bNewIdentityDisableEmail: false,
+      bNewIdentityAdding: '',
     }
   },
 
@@ -558,6 +609,39 @@ export default {
         return oIdentity.iEntityId === this.iEditIdentityId
       })
     },
+    editorToolbar () {
+      if (this.bIdentityDisableEditor) {
+        return []
+      }
+      let aLastSection = this.bAllowInsertImage ? ['link', 'image', 'removeFormat'] : ['link', 'removeFormat']
+      return [
+        ['undo', 'redo'],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{
+          list: 'no-icons',
+          options: [
+            'default_font',
+            'arial',
+            'arial_black',
+            'courier_new',
+            'tahoma',
+            'times_new_roman',
+            'verdana'
+          ],
+        }, {
+          list: 'no-icons',
+          options: [
+            'size-2',
+            'size-3',
+            'size-5',
+            'size-7'
+          ],
+        },
+        'colors'],
+        ['unordered', 'ordered'],
+        aLastSection
+      ]
+    },
   },
 
   watch: {
@@ -577,10 +661,10 @@ export default {
       if (this.editIdentity) {
         this.bIdentityIsAccountPart = this.iEditIdentityId === 0
         this.bIdentityDefault = this.editIdentity.bDefault
-        this.bDisableIdentityDefault = this.editIdentity.bDefault
+        this.bIdentityDisableDefault = this.editIdentity.bDefault
         this.sIdentityName = this.editIdentity.sFriendlyName
         this.sIdentityEmail = this.editIdentity.sEmail
-        this.bDisableIdentityEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
+        this.bIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
         this.bIdentityNoSignature = !this.editIdentity.bUseSignature
         this.sIdentitySignature = this.editIdentity.sSignature
       }
@@ -599,12 +683,34 @@ export default {
         this.iNewAccountSmtpPort = 25
       }
     },
+    bIdentityNoSignature () {
+      this.bIdentityDisableEditor = this.bIdentityNoSignature
+    },
+    oIdentityImageToInsert () {
+      let oFile = this.oIdentityImageToInsert
+      if (this.bAllowInsertImage && oFile && 0 === oFile.type.indexOf('image/')) {
+        if (mailSettings.iImageUploadSizeLimit > 0 && oFile.size > mailSettings.iImageUploadSizeLimit) {
+          notification.showError('The file cannot be uploaded as it\'s too big.')
+        } else {
+          let oReader = new window.FileReader()
+          let sId = oFile.name + '_' + Math.random().toString()
+          document.execCommand('insertHTML', true, '<img id="' + sId + '" />')
+
+          oReader.onload = (oEvent) => {
+            this.sIdentitySignature = this.sIdentitySignature.replace('id="' + sId + '"', 'src="' + oEvent.target.result + '"')
+          }
+
+          oReader.readAsDataURL(oFile)
+        }
+      }
+    },
   },
 
   mounted () {
     if (this.iEditAccountId === -1 && this.accounts.length > 0) {
       this.changeEditAccount(this.accounts[0].iAccountId)
     }
+    this.bAllowInsertImage = mailSettings.bAllowInsertImage
     this.initSubscriptions()
   },
 
@@ -763,7 +869,7 @@ export default {
           sName: (this.identityTab === 'props') ? this.sIdentityName : undefined,
           sEmail: (this.identityTab === 'props') ? this.sIdentityEmail : undefined,
           bNoSignature: (this.identityTab === 'signature') ? this.bIdentityNoSignature : undefined,
-          sSignature: (this.identityTab === 'signature') ? '<div data-crea="font-wrapper" style="font-family: Tahoma, sans-serif; font-size: 16px; direction: ltr;">' + this.sIdentitySignature + '</div>' : undefined,
+          sSignature: (this.identityTab === 'signature') ? this.sIdentitySignature : undefined,
         })
       }
     },
@@ -772,7 +878,7 @@ export default {
       if (bResult) {
         notification.showReport('Settings have been updated successfully.')
         if (iIdentityId === 0) {
-          this.$store.commit('mail/setAccountSettings', { iAccountId, sName })
+          this.$store.commit('mail/setAccountSettings', { iAccountId, sName, bNoSignature, sSignature })
         }
         this.$store.dispatch('mail/asyncGetIdentities')
         if (iIdentityId === this.iEditIdentityId) {
@@ -800,18 +906,18 @@ export default {
       let oAccount = _.find(this.accounts, (oTmpAccount) => {
         return oTmpAccount.iAccountId === iAccountId
       })
-      this.bAddingNewIdentity = false
+      this.bNewIdentityAdding = false
       this.sNewIdentityName = ''
       this.sNewIdentityEmail = oAccount.sEmail
       this.iNewIdentityAccountId = iAccountId
-      this.bDisableNewIdentityEmail = mailSettings.bOnlyUserEmailsInIdentities
-      this.bAddNewIdentityDialog = true
+      this.bNewIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities
+      this.bNewIdentityDialog = true
     },
     addNewIdentity () {
       if (_.trim(this.sNewIdentityEmail) === '') {
         notification.showError('Not all required fields are filled.')
       } else {
-        this.bAddingNewIdentity = true
+        this.bNewIdentityAdding = true
         ipcRenderer.send('mail-add-new-identity', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],
@@ -822,9 +928,9 @@ export default {
       }
     },
     onAddNewIdentity (oEvent, { iNewIdentityId, iAccountId, oError }) {
-      this.bAddingNewIdentity = false
+      this.bNewIdentityAdding = false
       if (typeof iNewIdentityId === 'number') {
-        this.bAddNewIdentityDialog = false
+        this.bNewIdentityDialog = false
         this.changeEditIdentity (iNewIdentityId, iAccountId)
         notification.showReport('Identity was successfully added.')
         this.$store.dispatch('mail/asyncGetIdentities')
@@ -854,6 +960,13 @@ export default {
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
       }
+    },
+    insertImageByUrl () {
+      this.$refs.editor.focus()
+      document.execCommand('insertHTML', true, '<img src="' + this.sIdentityExternalImageUrl + '" />')
+    },
+    cancelInsertImage () {
+      this.$refs.insertImageDropdown.hide()
     },
     initSubscriptions () {
       ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)

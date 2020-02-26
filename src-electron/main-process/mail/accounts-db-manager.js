@@ -53,6 +53,18 @@ let aAccountDbMap = [
   {Name: 'UseToAuthorize', DbName: 'use_to_authorize', Type: 'INTEGER', IsBool: true},
 ]
 
+let aIdentityDbMap = [
+  {Name: 'Default', DbName: 'default_identity', Type: 'INTEGER', IsBool: true}, // "default" word is reserved in sql
+  {Name: 'Email', DbName: 'email', Type: 'TEXT'},
+  {Name: 'EntityId', DbName: 'entity_id', Type: 'INTEGER'},
+  {Name: 'FriendlyName', DbName: 'friendly_name', Type: 'TEXT'},
+  {Name: 'IdAccount', DbName: 'id_account', Type: 'INTEGER'},
+  {Name: 'IdUser', DbName: 'id_user', Type: 'INTEGER'},
+  {Name: 'Signature', DbName: 'signature', Type: 'TEXT'},
+  {Name: 'UUID', DbName: 'uuid', Type: 'TEXT'},
+  {Name: 'UseSignature', DbName: 'use_signature', Type: 'INTEGER', IsBool: true},
+]
+
 export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
@@ -63,6 +75,12 @@ export default {
         })
         let sAccountDbFields = aAccountDbFields.join(', ')
         oDb.run('CREATE TABLE IF NOT EXISTS accounts (' + sAccountDbFields + ')')
+
+        let aIdentityDbFields = _.map(aIdentityDbMap, function (oIdentityDbFieldData) {
+          return oIdentityDbFieldData.DbName + ' ' + oIdentityDbFieldData.Type
+        })
+        let sIdentityDbFields = aIdentityDbFields.join(', ')
+        oDb.run('CREATE TABLE IF NOT EXISTS identities (' + sIdentityDbFields + ')')
       })
     }
   },
@@ -114,7 +132,7 @@ export default {
         oDb.serialize(() => {
           oDb.run('DELETE FROM accounts', [], (oError) => {
             if (oError) {
-              reject({ sMethod: 'setMessages', oError })
+              reject({ sMethod: 'setAccounts', oError })
             } else {
               let sFieldsDbNames = _.map(aAccountDbMap, function (oAccountDbFieldData) {
                 return oAccountDbFieldData.DbName
@@ -132,7 +150,7 @@ export default {
               })
               oStatement.finalize(function (oError) {
                 if (oError) {
-                  reject({ sMethod: 'setMessages', oError })
+                  reject({ sMethod: 'setAccounts', oError })
                 } else {
                   resolve()
                 }
@@ -141,7 +159,7 @@ export default {
           })
         })
       } else {
-        reject({ sMethod: 'setMessages', sError: 'No DB connection' })
+        reject({ sMethod: 'setAccounts', sError: 'No DB connection' })
       }
     })
   },
@@ -238,6 +256,60 @@ export default {
         })
       } else {
         reject({ sMethod: 'addAccount', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  setIdentities: function (aIdentities) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          oDb.run('DELETE FROM identities', [], (oError) => {
+            if (oError) {
+              reject({ sMethod: 'setIdentities', oError })
+            } else {
+              let sFieldsDbNames = _.map(aIdentityDbMap, function (oIdentityDbFieldData) {
+                return oIdentityDbFieldData.DbName
+              }).join(', ')
+              let sQuestions = aIdentityDbMap.map(function () { return '?' }).join(',')
+              let oStatement = oDb.prepare('INSERT INTO identities (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+              _.each(aIdentities, function (oIdentity) {
+                let aParams = dbHelper.prepareInsertParams(oIdentity, aIdentityDbMap)
+                oStatement.run(aParams)
+              })
+              oStatement.finalize(function (oError) {
+                if (oError) {
+                  reject({ sMethod: 'setIdentities', oError })
+                } else {
+                  resolve()
+                }
+              })
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setIdentities', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  getIdentities: function () {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.all(
+          'SELECT * FROM identities',
+          [],
+          (oError, aRows) => {
+            if (oError) {
+              reject({ sMethod: 'getIdentities', oError })
+            } else {
+              let aIdentities = dbHelper.prepareDataFromDb(aRows, aIdentityDbMap)
+              resolve(aIdentities)
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getIdentities', sError: 'No DB connection' })
       }
     })
   },

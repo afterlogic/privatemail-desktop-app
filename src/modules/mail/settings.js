@@ -14,7 +14,7 @@ function CSettings () {
   this.iAutoSaveIntervalSeconds = 0
   // this.bAutocreateMailAccountOnNewUserFirstLogin = false
   // this.bIgnoreImapSubscription = false
-  // this.iImageUploadSizeLimit = 0
+  this.iImageUploadSizeLimit = 0
   // this.oMessagesSortBy = null
   this.bOnlyUserEmailsInIdentities = false
   // this.oSmtpAuthType = null
@@ -55,7 +55,7 @@ CSettings.prototype.parse = function (oData, oWebclientData) {
     this.iAutoSaveIntervalSeconds = typesUtils.pInt(oData.AutoSaveIntervalSeconds, this.iAutoSaveIntervalSeconds)
     // this.bAutocreateMailAccountOnNewUserFirstLogin = typesUtils.pBool(oData.AutocreateMailAccountOnNewUserFirstLogin, this.bAutocreateMailAccountOnNewUserFirstLogin)
     // this.bIgnoreImapSubscription = typesUtils.pBool(oData.IgnoreImapSubscription, this.bIgnoreImapSubscription)
-    // this.iImageUploadSizeLimit = typesUtils.pInt(oData.ImageUploadSizeLimit, this.iImageUploadSizeLimit)
+    this.iImageUploadSizeLimit = typesUtils.pInt(oData.ImageUploadSizeLimit, this.iImageUploadSizeLimit)
     // this.oMessagesSortBy = typesUtils.pObject(oData.MessagesSortBy, this.oMessagesSortBy)
     this.bOnlyUserEmailsInIdentities = typesUtils.pBool(oData.OnlyUserEmailsInIdentities, this.bOnlyUserEmailsInIdentities)
     // this.oSmtpAuthType = typesUtils.pObject(oData.SmtpAuthType, this.oSmtpAuthType)

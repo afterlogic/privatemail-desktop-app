@@ -80,6 +80,7 @@ module.exports = function (ctx) {
         'QPopupProxy',
         'QUploader',
         'QUploaderAddTrigger',
+        'QFile',
       ],
 
       directives: [

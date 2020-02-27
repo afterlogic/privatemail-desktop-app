@@ -65,7 +65,7 @@ export default {
           // console.log('webApi response', aRequestsNumbers.length, oData)
           let oResult = oData.Result
           let oError = null
-          if (!oResult && oData.ErrorCode) {
+          if (!oResult && (oData.ErrorCode || oData.ErrorMessage)) {
             oError = {
               ErrorCode: oData.ErrorCode,
               ErrorMessage: oData.ErrorMessage,

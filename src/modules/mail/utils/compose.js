@@ -1,12 +1,16 @@
 import _ from 'lodash'
-import dateUtils from 'src/utils/date.js'
-import typesUtils from 'src/utils/types.js'
-import textUtils from 'src/utils/text.js'
+
+import store from 'src/store'
+
 import addressUtils from 'src/utils/address.js'
-import messageUtils from 'src/modules/mail/utils/message.js'
-import mailEnums from 'src/modules/mail/enums.js'
-import webApi from 'src/utils/webApi.js'
+import dateUtils from 'src/utils/date.js'
 import notification from 'src/utils/notification.js'
+import textUtils from 'src/utils/text.js'
+import typesUtils from 'src/utils/types.js'
+import webApi from 'src/utils/webApi.js'
+
+import mailEnums from 'src/modules/mail/enums.js'
+import messageUtils from 'src/modules/mail/utils/message.js'
 
 let Settings = {
   JoinReplyPrefixes: true,
@@ -325,6 +329,37 @@ export default {
       oReplyData.aCcContacts = messageUtils.getContactsToSend(oMessage.Cc)
       oReplyData.aBccContacts = messageUtils.getContactsToSend(oMessage.Bcc)
     } else {
+      let aToCollection = _.isArray(oMessage.To['@Collection']) ? oMessage.To['@Collection'] : []
+      let aCcCollection = _.isArray(oMessage.Cc['@Collection']) ? oMessage.Cc['@Collection'] : []
+      let aAddresses = _.union(aToCollection, aCcCollection)
+
+      let oCurrentAccount = store.getters['mail/getCurrentAccount']
+      let aAliases = oCurrentAccount ? oCurrentAccount.aAliases : []
+      let aIdentities = store.getters['mail/getCurrentIdentities']
+      let aAllIdentities = aIdentities.concat(aAliases)
+
+      let oCompleteMatch = null
+      let oWithMatchingEmail = null
+      _.each(aAllIdentities, function (oIdentity) {
+        if (oCompleteMatch === null) {
+          let oFoundAddress = _.find(aAddresses, function (oAddress) {
+            return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase() && oAddress.DisplayName.toLowerCase() === oIdentity.sFriendlyName.toLowerCase()
+          })
+          if (oFoundAddress) {
+            oCompleteMatch = oIdentity
+          }
+        }
+        if (oWithMatchingEmail === null) {
+          let oFoundAddress = _.find(aAddresses, function (oAddress) {
+            return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase()
+          })
+          if (oFoundAddress) {
+            oWithMatchingEmail = oIdentity
+          }
+        }
+      })
+      oReplyData.oIdentity = oCompleteMatch || oWithMatchingEmail
+
       oReplyData.sText = sReplyText + this.getReplyMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
     }
 

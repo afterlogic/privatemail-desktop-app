@@ -961,9 +961,12 @@ export default {
         }
       }
     },
-    openCompose ({ aDraftInfo, sDraftUid, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+    openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
       this.allowInsertImage = mailSettings.bAllowInsertImage
-      this.selectedIdentity = null
+      this.selectedIdentity = oIdentity ? {
+        label: textUtils.encodeHtml(oIdentity.getFull()),
+        value: oIdentity,
+      }: null
       this.setSelectedIdentity()
       if (typesUtils.isNonEmptyArray(aToContacts)) {
         this.selectedToAddr = _.map(aToContacts, function (oContactData) {

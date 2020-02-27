@@ -15,7 +15,7 @@
               <q-item-label class="text-weight-medium">{{ oAccount.sEmail }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-btn flat color="primary" v-if="bAllowAliases" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
+              <q-btn flat color="primary" v-if="bAllowAliases && oAccount.bDefault" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
             </q-item-section>
             <q-item-section side>
               <q-btn flat color="primary" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
@@ -500,23 +500,23 @@
     </q-dialog>
 
     <q-dialog v-model="bNewAliasDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable" style="width: 700px;">
         <q-card-section>
-          <div class="text-h6">Add New Alias</div>
+          <div class="text-h6">Create Alias</div>
         </q-card-section>
 
         <q-item>
           <q-item-section>
-            <q-item-label>Your name</q-item-label>
+            <q-item-label style="white-space: nowrap;">Your name</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense class="input-size" v-model="sNewAliasName" v-on:keyup.enter="addNewAlias" />
+            <q-input outlined dense v-model="sNewAliasName" v-on:keyup.enter="addNewAlias" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>@</q-item-label>
+            <q-item-label style="text-align: center;">@</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-select outlined dense class="input-size" v-model="sNewAliasDomain" :options="aNewAliasDomainOptions" />
+            <q-select outlined dense v-model="sNewAliasDomain" :options="aNewAliasDomainOptions" />
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
@@ -645,7 +645,6 @@ export default {
       sNewAliasDomain: '',
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
-      iNewAliasAccountId: -1,
     }
   },
 
@@ -1024,7 +1023,6 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
       }
     },
-
     saveAliasSettings (bAliasNoSignature, sAliasSignature) {
       if (this.editAlias) {
         this.bAliasSaving = true
@@ -1068,46 +1066,27 @@ export default {
       })
       this.bNewAliasAdding = false
       this.sNewAliasName = ''
-      this.sNewAliasDomain = ''
-      this.aNewAliasDomainOptions = []
-      this.iNewAliasAccountId = iAccountId
+      this.aNewAliasDomainOptions = oAccount.aServerDomains
+      this.sNewAliasDomain = oAccount.aServerDomains.length > 0 ? oAccount.aServerDomains[0] : ''
       this.bNewAliasDialog = true
-
-      // if (oAccount && _.isArray(oAccount.aAliases)) {
-      //   this.aNewAliasEmailOptions = _.map(oAccount.aAliases, (oAlias) => {
-      //     return oAlias.sEmail
-      //   })
-      // } else {
-      //   this.aNewAliasEmailOptions = []
-      // }
-      // if (this.aNewAliasEmailOptions.length > 0) {
-      //   this.aNewAliasEmailOptions.unshift(oAccount.sEmail)
-      // }
-      // bNewAliasDialog: false,
-      // sNewAliasName: '',
-      // sNewAliasDomain: '',
-      // aNewAliasDomainOptions: [],
-      // bNewAliasAdding: false,
     },
     addNewAlias () {
-      if (_.trim(this.sNewAliasEmail) === '') {
+      if (_.trim(this.sNewAliasName) === '') {
         notification.showError('Not all required fields are filled.')
       } else {
         this.bNewAliasAdding = true
         ipcRenderer.send('mail-add-new-alias', {
           sApiHost: this.$store.getters['main/getApiHost'],
           sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iNewAliasAccountId,
-          sName: this.sNewAliasName,
-          sEmail: this.sNewAliasEmail,
+          sAliasName: this.sNewAliasName,
+          sAliasDomain: this.sNewAliasDomain,
         })
       }
     },
-    onAddNewAlias (oEvent, { iNewAliasId, iAccountId, oError }) {
+    onAddNewAlias (oEvent, { bResult, oError }) {
       this.bNewAliasAdding = false
-      if (typeof iNewAliasId === 'number') {
+      if (bResult) {
         this.bNewAliasDialog = false
-        this.changeEditAlias (iNewAliasId, iAccountId)
         notification.showReport('Alias was successfully added.')
         this.$store.dispatch('mail/asyncGetAliases')
       } else {

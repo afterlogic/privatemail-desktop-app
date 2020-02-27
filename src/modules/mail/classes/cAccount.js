@@ -19,7 +19,7 @@ function cAccount (oData) {
 // IsDisabled: false
 // ** SaveRepliesToCurrFolder: false
 // Server: Object
-    // Domains: "afterlogic.com"
+    // ** Domains: "afterlogic.com"
     // EnableSieve: false
     // EnableThreading: true
     // EntityId: 3
@@ -43,7 +43,7 @@ function cAccount (oData) {
     // TenantId: 2
     // UUID: "04bfe02f-1dad-4816-8af2-4e40ccaf8b0d"
     // UseFullEmailAddressAsLogin: true
-// ServerId: 3
+// ** ServerId: 3
 // ** Signature: ""
 // UUID: "f4d1b1ba-7710-452e-bacd-46483a3baafe"
 // ** UseSignature: false
@@ -56,6 +56,7 @@ function cAccount (oData) {
   this.sFriendlyName = ''
   this.iIdUser = 0
   this.bSaveRepliesToCurrFolder = false
+  this.aServerDomains = []
   this.iServerId = 0
   this.sSignature = ''
   this.sUUID = ''
@@ -77,6 +78,7 @@ cAccount.prototype.parse = function (oData) {
   this.sFriendlyName = typesUtils.pString(oData.FriendlyName)
   this.iIdUser = typesUtils.pInt(oData.IdUser)
   this.bSaveRepliesToCurrFolder = typesUtils.pBool(oData.SaveRepliesToCurrFolder)
+  this.aServerDomains = typesUtils.pString(oData.ServerDomains).split('\r\n')
   this.iServerId = typesUtils.pInt(oData.ServerId)
   this.sSignature = typesUtils.pString(oData.Signature)
   this.sUUID = typesUtils.pString(oData.UUID)

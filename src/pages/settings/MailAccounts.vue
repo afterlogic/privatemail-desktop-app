@@ -4,7 +4,7 @@
     <div class="buttons q-mb-md" v-if="allowAddNewAccount">
       <q-btn unelevated color="primary" label="Add New Account" @click="openAddNewAccountDialog" />
     </div>
-    <q-list class="non-selectable bg-grey-1 rounded-borders" bordered separator>
+    <q-list class="non-selectable bg-grey-1 rounded-borders q-mb-md" bordered separator>
       <span v-for="oAccount in accounts" :key="oAccount.iAccountId">
         <div class="bg-grey-4 text-black">
           <q-item dense v-ripple clickable
@@ -40,17 +40,20 @@
             </q-item-section>
           </q-item>
         </q-list>
-        <q-list class="non-selectable" separator>
-          <q-item v-ripple clickable
+        <q-list class="non-selectable text-black" separator>
+          <q-item dense v-ripple clickable
             v-for="oAlias in oAccount.aAliases" :key="oAlias.iEntityId"
             :class="{selected: iEditAliasId === oAlias.iEntityId && iEditAliasAccountId === oAccount.iAccountId}"
             @click="changeEditAlias(oAlias.iEntityId, oAlias.iIdAccount)"
           >
-            <q-item-section avatar>
-              <q-icon name="arrow_upward" />
+            <q-item-section side>
+              <q-icon size="16px" name="arrow_upward" />
             </q-item-section>
             <q-item-section style="white-space: nowrap;">
-              Alias {{ oAlias.getFull() }}
+              <q-item-label>
+                <span class="nodata">Alias </span>
+                <span class="text-weight-medium">{{ oAlias.getFull() }}</span>
+              </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -62,7 +65,7 @@
       inline-label
       :no-caps=true
       align="left"
-      class="flex-start q-mt-md"
+      class="flex-start"
     >
       <q-tab name="props" label="Properties" />
       <!-- <q-tab name="folders" label="Folders" />
@@ -81,7 +84,7 @@
     >
       <q-tab-panel name="props" class="bg-grey-1">
         <q-list class="non-selectable">
-          <q-item tag="label" v-ripple>
+          <q-item tag="label">
             <q-item-section side top>
               <q-checkbox v-model="bUseThreading" />
             </q-item-section>
@@ -90,7 +93,7 @@
             </q-item-section>
           </q-item>
 
-          <q-item tag="label" v-ripple>
+          <q-item tag="label">
             <q-item-section side top>
               <q-checkbox v-model="bSaveRepliesToCurrFolder" />
             </q-item-section>
@@ -245,7 +248,7 @@
     >
       <q-tab-panel name="props" class="bg-grey-1">
         <q-list class="non-selectable" style="width: 450px;">
-          <q-item tag="label" v-ripple>
+          <q-item tag="label" :disable="bIdentityDisableDefault">
             <q-item-section side top>
               <q-checkbox v-model="bIdentityDefault" :disable="bIdentityDisableDefault" />
             </q-item-section>
@@ -258,7 +261,7 @@
               <q-item-label>Your name</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense class="input-size" v-model="sIdentityName" v-on:keyup.enter="saveIdentitySettings" />
+              <q-input outlined dense bg-color="white" class="input-size" v-model="sIdentityName" v-on:keyup.enter="saveIdentitySettings" />
             </q-item-section>
           </q-item>
           <q-item>
@@ -266,8 +269,8 @@
               <q-item-label>Email</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense class="input-size" v-if="aIdentityEmailOptions.length === 0" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
-              <q-select outlined dense class="input-size" v-if="aIdentityEmailOptions.length > 0" v-model="sIdentityEmail" :options="aIdentityEmailOptions" />
+              <q-input outlined dense bg-color="white" class="input-size" v-if="aIdentityEmailOptions.length === 0" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
+              <q-select outlined dense bg-color="white" class="input-size" v-if="aIdentityEmailOptions.length > 0" v-model="sIdentityEmail" :options="aIdentityEmailOptions" />
             </q-item-section>
           </q-item>
           <q-item v-if="!bIdentityIsAccountPart">
@@ -316,7 +319,7 @@
               <q-item-label>Your name</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense class="input-size" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
+              <q-input outlined dense bg-color="white" class="input-size" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
             </q-item-section>
           </q-item>
           <q-item>
@@ -506,14 +509,14 @@
         </q-card-section>
 
         <q-item>
-          <q-item-section>
-            <q-item-label style="white-space: nowrap;">Your name</q-item-label>
-          </q-item-section>
           <q-item-section side>
+            <q-item-label>Alias name</q-item-label>
+          </q-item-section>
+          <q-item-section>
             <q-input outlined dense v-model="sNewAliasName" v-on:keyup.enter="addNewAlias" />
           </q-item-section>
-          <q-item-section>
-            <q-item-label style="text-align: center;">@</q-item-label>
+          <q-item-section side>
+            <q-item-label>@</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-select outlined dense v-model="sNewAliasDomain" :options="aNewAliasDomainOptions" />

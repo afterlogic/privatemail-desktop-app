@@ -15,10 +15,11 @@
               <q-item-label class="text-weight-medium">{{ oAccount.sEmail }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-btn flat color="primary" v-if="bAllowAliases && oAccount.bDefault" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
+              
+              <q-btn flat color="primary" :text-color="iEditAccountId === oAccount.iAccountId ? 'white' : ''" v-if="bAllowAliases && oAccount.bDefault" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
             </q-item-section>
             <q-item-section side>
-              <q-btn flat color="primary" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
+              <q-btn flat color="primary" :text-color="iEditAccountId === oAccount.iAccountId ? 'white' : ''" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
             </q-item-section>
           </q-item>
         </div>

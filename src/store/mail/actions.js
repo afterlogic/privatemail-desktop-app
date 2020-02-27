@@ -56,9 +56,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
 }
 
 export function asyncGetAliases ({ state, commit, dispatch, getters }) {
-  console.log('getters.getDefaultAccount', getters.getDefaultAccount)
   if (mailSettings.bAllowAliases && getters.getDefaultAccount) {
-    console.log('getters.getDefaultAccount.iServerId', getters.getDefaultAccount.iServerId)
     ipcRenderer.once('mail-get-aliases', (event, { aAliasesData }) => {
       commit('setAliases', { oDefaultAccount: getters.getDefaultAccount, aAliasesData })
     })

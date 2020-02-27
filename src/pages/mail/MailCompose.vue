@@ -560,7 +560,8 @@ export default {
       return this.$store.getters['mail/getCurrentIdentities']
     },
     identitiesOptions () {
-      return _.map(this.identities, function (oIdentity) {
+      let aAliases = this.currentAccount ? this.currentAccount.aAliases : []
+      return _.map(this.identities.concat(aAliases), function (oIdentity) {
         return {
           label: textUtils.encodeHtml(oIdentity.getFull()),
           value: oIdentity,
@@ -962,6 +963,7 @@ export default {
     },
     openCompose ({ aDraftInfo, sDraftUid, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
       this.allowInsertImage = mailSettings.bAllowInsertImage
+      this.selectedIdentity = null
       this.setSelectedIdentity()
       if (typesUtils.isNonEmptyArray(aToContacts)) {
         this.selectedToAddr = _.map(aToContacts, function (oContactData) {
@@ -1009,11 +1011,8 @@ export default {
         this.editortext = sText
       } else {
         let oIdentity = this.selectedIdentity && this.selectedIdentity.value
-        if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
-          this.editortext = '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
-        } else {
-          this.editortext = ''
-        }
+        let sSignature = oIdentity && oIdentity.bUseSignature ? oIdentity.sSignature : ''
+        this.editortext = '<br><br><div data-anchor="signature">' + sSignature + '</div>'
       }
 
       this.attachments = []

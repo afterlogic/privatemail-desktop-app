@@ -1,46 +1,49 @@
 <template>
   <div>
     <div class="text-h4 q-mb-md non-selectable">Email accounts settings</div>
-    <div class="buttons" v-if="allowAddNewAccount">
+    <div class="buttons q-mb-md" v-if="allowAddNewAccount">
       <q-btn unelevated color="primary" label="Add New Account" @click="openAddNewAccountDialog" />
     </div>
-    <q-separator spaced />
-    <q-list class="non-selectable">
+    <q-list class="non-selectable bg-grey-1 rounded-borders" bordered separator>
       <span v-for="oAccount in accounts" :key="oAccount.iAccountId">
-        <q-item v-ripple clickable
-          :class="{checked: iEditAccountId === oAccount.iAccountId}"
-          @click="changeEditAccount(oAccount.iAccountId)"
-        >
-          <q-item-section>
-            <q-item-label>{{ oAccount.sEmail }}</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-btn flat color="primary" v-if="bAllowAliases" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
-          </q-item-section>
-          <q-item-section side>
-            <q-btn flat color="primary" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
-          </q-item-section>
-        </q-item>
-        <span v-for="oIdentity in (identities[oAccount.iAccountId] || [])" :key="oIdentity.iEntityId">
-          <q-item v-ripple clickable
-            v-if="oIdentity.iIdAccount === oAccount.iAccountId"
-            :class="{checked: iEditIdentityId === oIdentity.iEntityId && iEditIdentityAccountId === oAccount.iAccountId}"
-            @click="changeEditIdentity(oIdentity.iEntityId, oIdentity.iIdAccount)"
+        <div class="bg-grey-4 text-black">
+          <q-item dense v-ripple clickable
+            :class="{selected: iEditAccountId === oAccount.iAccountId}"
+            @click="changeEditAccount(oAccount.iAccountId)"
           >
-            <q-item-section avatar>
-              <q-icon name="arrow_upward" />
-            </q-item-section>
-            <q-item-section style="white-space: nowrap;">
-              Identity {{ oIdentity.getFull() }}
-            </q-item-section>
             <q-item-section>
-              <q-icon name="check" v-if="oIdentity.bDefault" style="font-size: 2em;" />
+              <q-item-label class="text-weight-medium">{{ oAccount.sEmail }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn flat color="primary" v-if="bAllowAliases" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
+            </q-item-section>
+            <q-item-section side>
+              <q-btn flat color="primary" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
             </q-item-section>
           </q-item>
-        </span>
-        <span v-for="oAlias in oAccount.aAliases" :key="oAlias.iEntityId">
+        </div>
+        <q-list class="non-selectable text-black" separator>
+          <q-item dense v-ripple clickable
+            v-for="oIdentity in (identities[oAccount.iAccountId] || [])" :key="oIdentity.iEntityId"
+            :class="{selected: iEditIdentityId === oIdentity.iEntityId && iEditIdentityAccountId === oAccount.iAccountId}"
+            @click="changeEditIdentity(oIdentity.iEntityId, oIdentity.iIdAccount)"
+          >
+            <q-item-section side>
+              <q-icon size="16px" name="arrow_upward" />
+            </q-item-section>
+            <q-item-section style="white-space: nowrap;">
+              <q-item-label>
+                <span class="nodata">Identity </span>
+                <span class="text-weight-medium">{{ oIdentity.getFull() }}</span>
+                <q-icon name="check" size="18px" v-if="oIdentity.bDefault" />
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+        <q-list class="non-selectable" separator>
           <q-item v-ripple clickable
-            :class="{checked: iEditAliasId === oAlias.iEntityId && iEditAliasAccountId === oAccount.iAccountId}"
+            v-for="oAlias in oAccount.aAliases" :key="oAlias.iEntityId"
+            :class="{selected: iEditAliasId === oAlias.iEntityId && iEditAliasAccountId === oAccount.iAccountId}"
             @click="changeEditAlias(oAlias.iEntityId, oAlias.iIdAccount)"
           >
             <q-item-section avatar>
@@ -50,18 +53,16 @@
               Alias {{ oAlias.getFull() }}
             </q-item-section>
           </q-item>
-        </span>
+        </q-list>
       </span>
     </q-list>
-
-    <q-separator spaced />
 
     <q-tabs v-if="editAccount"
       v-model="mailTab"
       inline-label
       :no-caps=true
       align="left"
-      class="flex-start"
+      class="flex-start q-mt-md"
     >
       <q-tab name="props" label="Properties" />
       <!-- <q-tab name="folders" label="Folders" />

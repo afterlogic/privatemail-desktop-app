@@ -15,7 +15,7 @@
             <q-item-label>{{ oAccount.sEmail }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-btn flat color="primary" v-if="bAllowAliases" label="add alias" />
+            <q-btn flat color="primary" v-if="bAllowAliases" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
           </q-item-section>
           <q-item-section side>
             <q-btn flat color="primary" v-if="bAllowIdentities" label="add identity" @click.native.stop="openAddNewIdentityDialog(oAccount.iAccountId)"/>
@@ -289,6 +289,55 @@
       </q-tab-panel>
     </q-tab-panels>
 
+    <q-tabs v-if="editAlias"
+      v-model="aliasTab"
+      inline-label
+      :no-caps=true
+      align="left"
+      class="flex-start"
+    >
+      <q-tab name="props" label="Properties" />
+      <q-tab name="signature" label="Signature" />
+    </q-tabs>
+
+    <q-separator v-if="editAlias" />
+
+    <q-tab-panels v-if="editAlias"
+      v-model="aliasTab"
+      animated
+      transition-prev="jump-up"
+      transition-next="jump-up"
+    >
+      <q-tab-panel name="props" class="bg-grey-1">
+        <q-list class="non-selectable" style="width: 450px;">
+          <q-item>
+            <q-item-section>
+              <q-item-label>Your name</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input outlined dense class="input-size" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>
+                <q-btn unelevated outline color="warning" label="Remove alias" @click="openRemoveAliasDialog" />
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+        <q-separator spaced />
+        <div class="q-pa-md">
+          <q-btn unelevated color="primary" v-if="bAliasSaving" label="Saving..." />
+          <q-btn unelevated color="primary" v-if="!bAliasSaving" label="Save" @click="saveAliasSettings" />
+        </div>
+      </q-tab-panel>
+
+      <q-tab-panel name="signature" class="bg-grey-1">
+        <MailAccountsSignatureTab :noSignature="bAliasNoSignature" :signature="sAliasSignature" :isSaving="bAliasSaving" :saveSignature="saveAliasSettings" />
+      </q-tab-panel>
+    </q-tab-panels>
+
     <q-dialog v-model="bAddNewAccountDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
@@ -404,7 +453,7 @@
     <q-dialog v-model="bNewIdentityDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
-          <div class="text-h6">Add New Identity</div>
+          <div class="text-h6">Create Identity</div>
         </q-card-section>
 
         <q-item>
@@ -425,8 +474,8 @@
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
-          <q-btn flat label="Adding..." color="primary" v-if="bNewIdentityAdding" />
-          <q-btn flat label="Add" color="primary" @click="addNewIdentity" v-if="!bNewIdentityAdding" />
+          <q-btn flat label="Creating..." color="primary" v-if="bNewIdentityAdding" />
+          <q-btn flat label="Create" color="primary" @click="addNewIdentity" v-if="!bNewIdentityAdding" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -444,6 +493,51 @@
 
         <q-card-actions align="right">
           <q-btn flat label="Ok" color="primary" @click="removeIdentity" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="bNewAliasDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6">Add New Alias</div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-section>
+            <q-item-label>Your name</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" v-model="sNewAliasName" v-on:keyup.enter="addNewAlias" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>@</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-select outlined dense class="input-size" v-model="sNewAliasDomain" :options="aNewAliasDomainOptions" />
+          </q-item-section>
+        </q-item>
+        <q-card-actions align="right">
+          <q-btn flat label="Creating..." color="primary" v-if="bNewAliasAdding" />
+          <q-btn flat label="Create" color="primary" @click="addNewAlias" v-if="!bNewAliasAdding" />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="bRemoveAliasDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6">{{ editAlias ? editAlias.getFull() : '' }}</div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-label>Are you sure you want to remove alias? It will be deleted from the mail server too.</q-item-label>
+        </q-item>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Ok" color="primary" @click="removeAlias" v-close-popup />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -485,6 +579,7 @@ export default {
     return {
       mailTab: 'props',
       identityTab: 'props',
+      aliasTab: 'props',
 
       iEditAccountId: -1,
       iEditIdentityId: -1,
@@ -539,6 +634,17 @@ export default {
       bNewIdentityAdding: '',
 
       bAllowAliases: false,
+      sAliasName: '',
+      bAliasNoSignature: false,
+      sAliasSignature: '',
+      bAliasSaving: false,
+      bRemoveAliasDialog: false,
+      bNewAliasDialog: false,
+      sNewAliasName: '',
+      sNewAliasDomain: '',
+      aNewAliasDomainOptions: [],
+      bNewAliasAdding: false,
+      iNewAliasAccountId: -1,
     }
   },
 
@@ -561,16 +667,23 @@ export default {
       return this.$store.getters['mail/getIdentities']
     },
     editIdentity () {
-      let aIdentityAcountIdentities = this.identities[this.iEditIdentityAccountId] || []
-      return _.find(aIdentityAcountIdentities, (oIdentity) => {
+      let aIdentityAccountIdentities = this.identities[this.iEditIdentityAccountId] || []
+      return _.find(aIdentityAccountIdentities, (oIdentity) => {
         return oIdentity.iEntityId === this.iEditIdentityId
       })
     },
     editAlias () {
-      let aAliasAcountIdentities = this.identities[this.iEditAliasAccountId] || []
-      return _.find(aAliasAcountIdentities, (oAlias) => {
-        return oAlias.iEntityId === this.iEditAliasId
+      let aAliasAccount = _.find(this.accounts, (oAccount) => {
+        return oAccount.iAccountId === this.iEditAliasAccountId
       })
+
+      if (_.isArray(aAliasAccount && aAliasAccount.aAliases)) {
+        return _.find(aAliasAccount.aAliases, (oAlias) => {
+          return oAlias.iEntityId === this.iEditAliasId
+        })
+      }
+
+      return null
     },
   },
 
@@ -624,6 +737,13 @@ export default {
         this.iNewAccountSmtpPort = 465
       } else if (this.iNewAccountSmtpPort === 465) {
         this.iNewAccountSmtpPort = 25
+      }
+    },
+    editAlias () {
+      if (this.editAlias) {
+        this.sAliasName = this.editAlias.sFriendlyName
+        this.bAliasNoSignature = !this.editAlias.bUseSignature
+        this.sAliasSignature = this.editAlias.sSignature
       }
     },
   },
@@ -903,6 +1023,117 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
       }
     },
+
+    saveAliasSettings (bAliasNoSignature, sAliasSignature) {
+      if (this.editAlias) {
+        this.bAliasSaving = true
+        ipcRenderer.send('mail-save-alias-settings', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.editAlias.iIdAccount,
+          iAliasId: this.iEditAliasId,
+          sName: (this.aliasTab === 'props') ? this.sAliasName : undefined,
+          bNoSignature: (this.aliasTab === 'signature') ? bAliasNoSignature : undefined,
+          sSignature: (this.aliasTab === 'signature') ? sAliasSignature : undefined,
+        })
+      }
+    },
+    onSaveAliasSettings (oEvent, { bResult, iAccountId, iAliasId, sName, sEmail, bNoSignature, sSignature, oError }) {
+      this.bAliasSaving = false
+      if (bResult) {
+        notification.showReport('Settings have been updated successfully.')
+        if (iAliasId === 0) {
+          this.$store.commit('mail/setAccountSettings', { iAccountId, sName, bNoSignature, sSignature })
+        }
+        this.$store.dispatch('mail/asyncGetAliases')
+        if (iAliasId === this.iEditAliasId) {
+          if (typeof sName === 'string') {
+            this.sAliasName = sName
+          }
+          if (typeof bNoSignature === 'boolean') {
+            this.bAliasNoSignature = bNoSignature
+          }
+          if (typeof sSignature === 'string') {
+            this.sAliasSignature = sSignature
+          }
+        }
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+      }
+    },
+    openAddNewAliasDialog (iAccountId) {
+      let oAccount = _.find(this.accounts, (oTmpAccount) => {
+        return oTmpAccount.iAccountId === iAccountId
+      })
+      this.bNewAliasAdding = false
+      this.sNewAliasName = ''
+      this.sNewAliasDomain = ''
+      this.aNewAliasDomainOptions = []
+      this.iNewAliasAccountId = iAccountId
+      this.bNewAliasDialog = true
+
+      // if (oAccount && _.isArray(oAccount.aAliases)) {
+      //   this.aNewAliasEmailOptions = _.map(oAccount.aAliases, (oAlias) => {
+      //     return oAlias.sEmail
+      //   })
+      // } else {
+      //   this.aNewAliasEmailOptions = []
+      // }
+      // if (this.aNewAliasEmailOptions.length > 0) {
+      //   this.aNewAliasEmailOptions.unshift(oAccount.sEmail)
+      // }
+      // bNewAliasDialog: false,
+      // sNewAliasName: '',
+      // sNewAliasDomain: '',
+      // aNewAliasDomainOptions: [],
+      // bNewAliasAdding: false,
+    },
+    addNewAlias () {
+      if (_.trim(this.sNewAliasEmail) === '') {
+        notification.showError('Not all required fields are filled.')
+      } else {
+        this.bNewAliasAdding = true
+        ipcRenderer.send('mail-add-new-alias', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iNewAliasAccountId,
+          sName: this.sNewAliasName,
+          sEmail: this.sNewAliasEmail,
+        })
+      }
+    },
+    onAddNewAlias (oEvent, { iNewAliasId, iAccountId, oError }) {
+      this.bNewAliasAdding = false
+      if (typeof iNewAliasId === 'number') {
+        this.bNewAliasDialog = false
+        this.changeEditAlias (iNewAliasId, iAccountId)
+        notification.showReport('Alias was successfully added.')
+        this.$store.dispatch('mail/asyncGetAliases')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while adding alias.'))
+      }
+    },
+    openRemoveAliasDialog () {
+      this.bRemoveAliasDialog = true
+    },
+    removeAlias () {
+      if (this.editAlias) {
+        ipcRenderer.send('mail-remove-alias', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          sAliasEmail: this.editAlias.sEmail,
+        })
+      }
+    },
+    onRemoveAlias (oEvent, { bResult, oError }) {
+      if (bResult) {
+        notification.showReport('Alias was successfully removed.')
+        this.$store.dispatch('mail/asyncGetAliases')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while removing alias.'))
+      }
+    },
+
     initSubscriptions () {
       ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
@@ -911,6 +1142,9 @@ export default {
       ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
       ipcRenderer.on('mail-add-new-identity', this.onAddNewIdentity)
       ipcRenderer.on('mail-remove-identity', this.onRemoveIdentity)
+      ipcRenderer.on('mail-save-alias-settings', this.onSaveAliasSettings)
+      ipcRenderer.on('mail-add-new-alias', this.onAddNewAlias)
+      ipcRenderer.on('mail-remove-alias', this.onRemoveAlias)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
@@ -920,6 +1154,9 @@ export default {
       ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
       ipcRenderer.removeListener('mail-add-new-identity', this.onAddNewIdentity)
       ipcRenderer.removeListener('mail-remove-identity', this.onRemoveIdentity)
+      ipcRenderer.removeListener('mail-save-alias-settings', this.onSaveAliasSettings)
+      ipcRenderer.removeListener('mail-add-new-alias', this.onAddNewAlias)
+      ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
     },
   },
 }

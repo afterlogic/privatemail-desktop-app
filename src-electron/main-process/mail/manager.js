@@ -442,6 +442,69 @@ export default {
       })
     })
 
+    ipcMain.on('mail-save-alias-settings', (oEvent, { iAccountId, iAliasId, sName, bNoSignature, sSignature, sApiHost, sAuthToken }) => {
+      let sMethod = 'UpdateAlias'
+      let oParameters = {
+        AccountID: iAccountId,
+        FriendlyName: sName,
+        EntityId: iAliasId
+      }
+      if (typeof bNoSignature === 'boolean' && typeof sSignature === 'string') {
+        sMethod = 'UpdateSignature'
+        oParameters = {
+          AccountID: iAccountId,
+          UseSignature: !bNoSignature,
+          Signature: sSignature,
+          AliasId: iAliasId,
+        }
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'CpanelIntegrator',
+        sMethod,
+        oParameters,
+        fCallback: (bResult, oError) => {
+          if (bResult) {
+            oEvent.sender.send('mail-save-alias-settings', { bResult, iAccountId, iAliasId, sName, bNoSignature, sSignature, oError })
+          } else {
+            oEvent.sender.send('mail-save-alias-settings', { bResult, oError })
+          }
+        },
+      })
+    })
+
+    ipcMain.on('mail-add-new-alias', (oEvent, { sAliasName, sAliasDomain, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'CpanelIntegrator',
+        sMethod: 'AddNewAlias',
+        oParameters: {
+          AliasName: sAliasName,
+          AliasDomain: sAliasDomain,
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-add-new-alias', { bResult, oError })
+        },
+      })
+    })
+
+    ipcMain.on('mail-remove-alias', (oEvent, { sAliasEmail, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'CpanelIntegrator',
+        sMethod: 'DeleteAliases',
+        oParameters: {
+          Aliases: [sAliasEmail],
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-remove-alias', { bResult, oError })
+        },
+      })
+    })
+
     ipcMain.on('mail-get-identities', (oEvent, { sApiHost, sAuthToken }) => {
       webApi.sendRequest({
         sApiHost,

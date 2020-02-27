@@ -56,6 +56,7 @@ function cAccount (oData) {
   this.sFriendlyName = ''
   this.iIdUser = 0
   this.bSaveRepliesToCurrFolder = false
+  this.iServerId = 0
   this.sSignature = ''
   this.sUUID = ''
   this.bUseSignature = false
@@ -76,6 +77,7 @@ cAccount.prototype.parse = function (oData) {
   this.sFriendlyName = typesUtils.pString(oData.FriendlyName)
   this.iIdUser = typesUtils.pInt(oData.IdUser)
   this.bSaveRepliesToCurrFolder = typesUtils.pBool(oData.SaveRepliesToCurrFolder)
+  this.iServerId = typesUtils.pInt(oData.ServerId)
   this.sSignature = typesUtils.pString(oData.Signature)
   this.sUUID = typesUtils.pString(oData.UUID)
   this.bUseSignature = typesUtils.pBool(oData.UseSignature)

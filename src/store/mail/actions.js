@@ -14,29 +14,18 @@ import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 
 export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSettingsCallback) {
-  ipcRenderer.once('mail-get-aliases', (event, { aAliasesData }) => {
-    commit('setAliases', { oDefaultAccount: getters.getDefaultAccount, aAliasesData })
-  })
-
   ipcRenderer.once('mail-get-accounts', (event, { aAccounts, oError }) => {
     if (typesUtils.isNonEmptyArray(aAccounts)) {
       commit('setAccounts', aAccounts)
       commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
       commit('resetCurrentFolderList')
 
-      if (mailSettings.bAllowIdentities) {
-        dispatch('asyncGetIdentities')
-      }
+      dispatch('asyncGetIdentities')
+      dispatch('asyncGetAliases')
       ipcRenderer.send('contacts-refresh', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
       })
-      if (mailSettings.bAllowAliases && getters.getDefaultAccount) {
-        ipcRenderer.send('mail-get-aliases', {
-          sApiHost: store.getters['main/getApiHost'],
-          sAuthToken: store.getters['user/getAuthToken'],
-        })
-      }
     }
     if (_.isFunction(fGetSettingsCallback)) {
       fGetSettingsCallback(oError)
@@ -66,40 +55,58 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
   })
 }
 
+export function asyncGetAliases ({ state, commit, dispatch, getters }) {
+  console.log('getters.getDefaultAccount', getters.getDefaultAccount)
+  if (mailSettings.bAllowAliases && getters.getDefaultAccount) {
+    console.log('getters.getDefaultAccount.iServerId', getters.getDefaultAccount.iServerId)
+    ipcRenderer.once('mail-get-aliases', (event, { aAliasesData }) => {
+      commit('setAliases', { oDefaultAccount: getters.getDefaultAccount, aAliasesData })
+    })
+
+    ipcRenderer.send('mail-get-aliases', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+    })
+  }
+}
+
 export function asyncGetIdentities ({ state, commit, dispatch }) {
-  ipcRenderer.once('mail-get-identities', (event, { aIdentitiesData }) => {
-    let aIdentities = {}
-    _.each(aIdentitiesData, function (oData) {
-      let oIdentity = new cIdentity(oData)
-      if (!_.isArray(aIdentities[oIdentity.iIdAccount])) {
-        aIdentities[oIdentity.iIdAccount] = []
-      }
-      aIdentities[oIdentity.iIdAccount].push(oIdentity)
-    })
-    _.each(state.accounts, function (oAccount) {
-      let aAccountIdentities = aIdentities[oAccount.iAccountId] || []
-      let bHasDefault = !!_.find(aAccountIdentities, function (oIdentity) {
-        return oIdentity.bDefault
+  if (mailSettings.bAllowIdentities) {
+    ipcRenderer.once('mail-get-identities', (event, { aIdentitiesData }) => {
+      let aIdentities = {}
+      _.each(aIdentitiesData, function (oData) {
+        let oIdentity = new cIdentity(oData)
+        if (!_.isArray(aIdentities[oIdentity.iIdAccount])) {
+          aIdentities[oIdentity.iIdAccount] = []
+        }
+        aIdentities[oIdentity.iIdAccount].push(oIdentity)
       })
-      aAccountIdentities.unshift(new cIdentity({
-        Default: !bHasDefault,
-        Email: oAccount.sEmail,
-        EntityId: 0,
-        FriendlyName: oAccount.sFriendlyName,
-        IdAccount: oAccount.iAccountId,
-        IdUser: oAccount.iIdUser,
-        Signature: oAccount.sSignature,
-        UUID: '',
-        UseSignature: oAccount.bUseSignature,
-      }))
-      aIdentities[oAccount.iAccountId] = aAccountIdentities
+      _.each(state.accounts, function (oAccount) {
+        let aAccountIdentities = aIdentities[oAccount.iAccountId] || []
+        let bHasDefault = !!_.find(aAccountIdentities, function (oIdentity) {
+          return oIdentity.bDefault
+        })
+        aAccountIdentities.unshift(new cIdentity({
+          Default: !bHasDefault,
+          Email: oAccount.sEmail,
+          EntityId: 0,
+          FriendlyName: oAccount.sFriendlyName,
+          IdAccount: oAccount.iAccountId,
+          IdUser: oAccount.iIdUser,
+          Signature: oAccount.sSignature,
+          UUID: '',
+          UseSignature: oAccount.bUseSignature,
+        }))
+        aIdentities[oAccount.iAccountId] = aAccountIdentities
+      })
+      commit('setIdentities', aIdentities)
     })
-    commit('setIdentities', aIdentities)
-  })
-  ipcRenderer.send('mail-get-identities', {
-    sApiHost: store.getters['main/getApiHost'],
-    sAuthToken: store.getters['user/getAuthToken'],
-  })
+
+    ipcRenderer.send('mail-get-identities', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+    })
+  }
 }
 
 ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {

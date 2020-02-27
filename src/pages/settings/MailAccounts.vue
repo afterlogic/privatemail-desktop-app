@@ -285,76 +285,7 @@
       </q-tab-panel>
 
       <q-tab-panel name="signature" class="bg-grey-1">
-        <div class="q-pa-md">
-          <q-item tag="label">
-            <q-item-section side top>
-              <q-checkbox v-model="bIdentityNoSignature" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>No signature</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-editor v-model="sIdentitySignature" ref="editor" height="400px" class="full-height"
-                :disable="bIdentityDisableEditor"
-                :toolbar="editorToolbar"
-                :fonts="{
-                  arial: 'Arial',
-                  arial_black: 'Arial Black',
-                  courier_new: 'Courier New',
-                  tahoma: 'Tahoma',
-                  times_new_roman: 'Times New Roman',
-                  verdana: 'Verdana'
-                }"
-              >
-                <template v-slot:image>
-                  <q-btn-dropdown
-                    flat
-                    dense
-                    size="sm"
-                    class="arrowless"
-                    icon="image"
-                    ref="insertImageDropdown"
-                    @hide="oIdentityImageToInsert=null"
-                  >
-                    <template v-slot:label>
-                      <q-tooltip>Insert Image</q-tooltip>
-                    </template>
-
-                    <q-card class="">
-                        <q-item-label header>Please select an image file to upload</q-item-label>
-                        <q-item>
-                          <q-file outline class="full-width" color="primary" label="Choose File"
-                            v-model="oIdentityImageToInsert"
-                            :multiple="false"
-                            :accept="sIdentityAcceptedImageTypes"
-                          />
-                        </q-item>
-
-                        <q-item-label header>or enter an URL:</q-item-label>
-                        <q-item>
-                          <q-input outlined dense type="text" class="full-width" v-model="sIdentityExternalImageUrl" />
-                        </q-item>
-                
-                      <q-card-actions align="right">
-                        <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
-                        <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
-                      </q-card-actions>
-                    </q-card>
-                    <div>
-                    </div>
-                  </q-btn-dropdown>
-                </template>
-              </q-editor>
-            </q-item-section>
-          </q-item>
-        </div>
-        <q-separator spaced />
-        <div class="q-pa-md">
-          <q-btn unelevated color="primary" v-if="bIdentitySaving" label="Saving..." />
-          <q-btn unelevated color="primary" v-if="!bIdentitySaving" label="Save" @click="saveIdentitySettings" />
-        </div>
+        <MailAccountsSignatureTab :noSignature="bIdentityNoSignature" :signature="sIdentitySignature" :isSaving="bIdentitySaving" :saveSignature="saveIdentitySettings" />
       </q-tab-panel>
     </q-tab-panels>
 
@@ -541,8 +472,14 @@ import typesUtils from 'src/utils/types.js'
 
 import mailSettings from 'src/modules/mail/settings.js'
 
+import MailAccountsSignatureTab from './MailAccountsSignatureTab.vue'
+
 export default {
   name: 'MailAccounts',
+
+  components: {
+    MailAccountsSignatureTab,
+  },
 
   data () {
     return {
@@ -582,7 +519,6 @@ export default {
       bNewAccountSmtpAuth: true,
 
       bAllowIdentities: false,
-      bAllowInsertImage: false,
       bIdentityIsAccountPart: false,
       bIdentityDefault: false,
       bIdentityDisableDefault: false,
@@ -592,10 +528,6 @@ export default {
       bIdentityDisableEmail: false,
       bIdentityNoSignature: false,
       sIdentitySignature: '',
-      bIdentityDisableEditor: false,
-      sIdentityAcceptedImageTypes: 'image/*',
-      sIdentityExternalImageUrl: '',
-      oIdentityImageToInsert: null,
       bIdentitySaving: false,
       bRemoveIdentityDialog: false,
       bNewIdentityDialog: false,
@@ -633,39 +565,6 @@ export default {
       return _.find(aIdentityAcountIdentities, (oIdentity) => {
         return oIdentity.iEntityId === this.iEditIdentityId
       })
-    },
-    editorToolbar () {
-      if (this.bIdentityDisableEditor) {
-        return []
-      }
-      let aLastSection = this.bAllowInsertImage ? ['link', 'image', 'removeFormat'] : ['link', 'removeFormat']
-      return [
-        ['undo', 'redo'],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{
-          list: 'no-icons',
-          options: [
-            'default_font',
-            'arial',
-            'arial_black',
-            'courier_new',
-            'tahoma',
-            'times_new_roman',
-            'verdana'
-          ],
-        }, {
-          list: 'no-icons',
-          options: [
-            'size-2',
-            'size-3',
-            'size-5',
-            'size-7'
-          ],
-        },
-        'colors'],
-        ['unordered', 'ordered'],
-        aLastSection
-      ]
     },
     editAlias () {
       let aAliasAcountIdentities = this.identities[this.iEditAliasAccountId] || []
@@ -727,27 +626,6 @@ export default {
         this.iNewAccountSmtpPort = 25
       }
     },
-    bIdentityNoSignature () {
-      this.bIdentityDisableEditor = this.bIdentityNoSignature
-    },
-    oIdentityImageToInsert () {
-      let oFile = this.oIdentityImageToInsert
-      if (this.bAllowInsertImage && oFile && 0 === oFile.type.indexOf('image/')) {
-        if (mailSettings.iImageUploadSizeLimit > 0 && oFile.size > mailSettings.iImageUploadSizeLimit) {
-          notification.showError('The file cannot be uploaded as it\'s too big.')
-        } else {
-          let oReader = new window.FileReader()
-          let sId = oFile.name + '_' + Math.random().toString()
-          document.execCommand('insertHTML', true, '<img id="' + sId + '" />')
-
-          oReader.onload = (oEvent) => {
-            this.sIdentitySignature = this.sIdentitySignature.replace('id="' + sId + '"', 'src="' + oEvent.target.result + '"')
-          }
-
-          oReader.readAsDataURL(oFile)
-        }
-      }
-    },
   },
 
   mounted () {
@@ -755,7 +633,6 @@ export default {
       this.changeEditAccount(this.accounts[0].iAccountId)
     }
     this.bAllowIdentities = mailSettings.bAllowIdentities
-    this.bAllowInsertImage = mailSettings.bAllowInsertImage
     this.bAllowAliases = mailSettings.bAllowAliases
     this.initSubscriptions()
   },
@@ -914,7 +791,7 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while adding account.'))
       }
     },
-    saveIdentitySettings () {
+    saveIdentitySettings (bIdentityNoSignature, sIdentitySignature) {
       if (this.editIdentity) {
         this.bIdentitySaving = true
         ipcRenderer.send('mail-save-identity-settings', {
@@ -925,8 +802,8 @@ export default {
           bDefault: (this.identityTab === 'props') ? this.bIdentityDefault : undefined,
           sName: (this.identityTab === 'props') ? this.sIdentityName : undefined,
           sEmail: (this.identityTab === 'props') ? this.sIdentityEmail : undefined,
-          bNoSignature: (this.identityTab === 'signature') ? this.bIdentityNoSignature : undefined,
-          sSignature: (this.identityTab === 'signature') ? this.sIdentitySignature : undefined,
+          bNoSignature: (this.identityTab === 'signature') ? bIdentityNoSignature : undefined,
+          sSignature: (this.identityTab === 'signature') ? sIdentitySignature : undefined,
         })
       }
     },
@@ -1025,13 +902,6 @@ export default {
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
       }
-    },
-    insertImageByUrl () {
-      this.$refs.editor.focus()
-      document.execCommand('insertHTML', true, '<img src="' + this.sIdentityExternalImageUrl + '" />')
-    },
-    cancelInsertImage () {
-      this.$refs.insertImageDropdown.hide()
     },
     initSubscriptions () {
       ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)

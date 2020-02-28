@@ -97,12 +97,12 @@
             <div class="col column">
               <div class="col-auto">
                 <q-list>
-                  <q-item v-if="identities.length > 1">
+                  <q-item v-if="allIdentities.length > 1">
                     <q-item-section side center style="min-width: 100px;">
                       From
                     </q-item-section>
                     <q-item-section>
-                      <q-select dense outlined v-model="selectedIdentity" :options="identitiesOptions"></q-select>
+                      <q-select dense outlined v-model="selectedIdentity" :options="allIdentitiesOptions"></q-select>
                     </q-item-section>
                   </q-item>
                   <q-item>
@@ -556,12 +556,16 @@ export default {
     currentAccount () {
       return this.$store.getters['mail/getCurrentAccount']
     },
-    identities () {
-      return this.$store.getters['mail/getCurrentIdentities']
+    allIdentities () {
+      let aAliases = this.currentAccount && _.isArray(this.currentAccount.aAliases) ? this.currentAccount.aAliases : []
+      let aIdentities = this.$store.getters['mail/getCurrentIdentities']
+      if (!_.isArray(aIdentities)) {
+        aIdentities = []
+      }
+      return aIdentities.concat(aAliases)
     },
-    identitiesOptions () {
-      let aAliases = this.currentAccount ? this.currentAccount.aAliases : []
-      return _.map(this.identities.concat(aAliases), function (oIdentity) {
+    allIdentitiesOptions () {
+      return _.map(this.allIdentities, function (oIdentity) {
         return {
           label: textUtils.encodeHtml(oIdentity.getFull()),
           value: oIdentity,
@@ -651,7 +655,7 @@ export default {
   },
 
   watch: {
-    identities () {
+    allIdentities () {
       this.setSelectedIdentity()
     },
     selectedIdentity () {
@@ -939,20 +943,20 @@ export default {
       })
     },
     setSelectedIdentity () {
-      if (this.identities.length === 0) {
+      if (this.allIdentities.length === 0) {
         this.selectedIdentity = null
       } else {
         let mSelectedIdentityId = this.selectedIdentity ? this.selectedIdentity.value.iEntityId : false
         let mSelectedIdentityAccountId = this.selectedIdentity ? this.selectedIdentity.value.iIdAccount : false
-        let oSelectedIdentity = _.find(this.identities, function (oIdentity) {
+        let oSelectedIdentity = _.find(this.allIdentities, function (oIdentity) {
           return oIdentity.iEntityId === mSelectedIdentityId && oIdentity.iIdAccount === mSelectedIdentityAccountId
         })
         if (!oSelectedIdentity) {
-          let oIdentity = _.find(this.identities, function (oIdentity) {
+          let oIdentity = _.find(this.allIdentities, function (oIdentity) {
             return oIdentity.bDefault
           })
           if (!oIdentity) {
-            oIdentity = this.identities[0]
+            oIdentity = this.allIdentities[0]
           }
           this.selectedIdentity = {
             label: textUtils.encodeHtml(oIdentity.getFull()),
@@ -966,7 +970,7 @@ export default {
       this.selectedIdentity = oIdentity ? {
         label: textUtils.encodeHtml(oIdentity.getFull()),
         value: oIdentity,
-      }: null
+      } : null
       this.setSelectedIdentity()
       if (typesUtils.isNonEmptyArray(aToContacts)) {
         this.selectedToAddr = _.map(aToContacts, function (oContactData) {

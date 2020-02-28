@@ -484,6 +484,8 @@ import typesUtils from 'src/utils/types.js'
 import webApi from 'src/utils/webApi'
 
 import cAttachment from 'src/modules/mail/classes/cAttachment.js'
+import cIdentity from 'src/modules/mail/classes/cIdentity.js'
+import cAlias from 'src/modules/mail/classes/cAlias.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
 import mailSettings from 'src/modules/mail/settings.js'
 
@@ -505,6 +507,7 @@ export default {
       allowInsertImage: false,
 
       sending: false, // indicates if sending is happening right now
+      saving: false, // indicates if saving is happening right now
       allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
 
       selectedIdentity: null,
@@ -886,10 +889,12 @@ export default {
     send () {
       if (this.isEnableSending) {
         this.clearAutosaveTimer()
+        this.sending = true
         composeUtils.sendMessage({
           oCurrentAccount: this.currentAccount,
           oCurrentFolderList: this.currentFolderList,
-          iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
+          iIdentityId: (this.selectedIdentity && this.selectedIdentity.value instanceof cIdentity) ? this.selectedIdentity.value.iEntityId : 0,
+          iAliasId: (this.selectedIdentity && this.selectedIdentity.value instanceof cAlias) ? this.selectedIdentity.value.iEntityId : 0,
           sToAddr: this.toAddrComputed,
           sCcAddr: this.ccAddrComputed,
           sBccAddr: this.bccAddrComputed,
@@ -902,6 +907,7 @@ export default {
           sInReplyTo: this.inReplyTo,
           sReferences: this.references,
         }, (oResult, oError) => {
+          this.sending = false
           if (oResult) {
             notification.showReport('Your message has been sent.')
             this.closeCompose()
@@ -913,34 +919,39 @@ export default {
       }
     },
     save () {
-      this.clearAutosaveTimer()
-      composeUtils.saveMessage({
-        oCurrentAccount: this.currentAccount,
-        oCurrentFolderList: this.currentFolderList,
-        iIdentityId: this.selectedIdentity ? this.selectedIdentity.value.iEntityId : 0,
-        sToAddr: this.toAddrComputed,
-        sCcAddr: this.ccAddrComputed,
-        sBccAddr: this.bccAddrComputed,
-        sSubject: this.subjectText,
-        sText: this.getEditorTextForSend(),
-        bPlainText: this.plainText,
-        aAttachments: this.attachments,
-        sDraftUid: this.draftUid,
-        aDraftInfo: this.draftInfo,
-        sInReplyTo: this.inReplyTo,
-        sReferences: this.references,
-      }, (oResult, oError, oParameters) => {
-        if (oResult) {
-          notification.showReport('Your message has been saved.')
-          if (oParameters && oParameters.DraftUid === this.draftUid) {
-            this.draftUid = typesUtils.pString(oResult.NewUid)
+      if (!this.saving && !this.sending) {
+        this.clearAutosaveTimer()
+        this.saving = true
+        composeUtils.saveMessage({
+          oCurrentAccount: this.currentAccount,
+          oCurrentFolderList: this.currentFolderList,
+          iIdentityId: (this.selectedIdentity && this.selectedIdentity.value instanceof cIdentity) ? this.selectedIdentity.value.iEntityId : 0,
+          iAliasId: (this.selectedIdentity && this.selectedIdentity.value instanceof cAlias) ? this.selectedIdentity.value.iEntityId : 0,
+          sToAddr: this.toAddrComputed,
+          sCcAddr: this.ccAddrComputed,
+          sBccAddr: this.bccAddrComputed,
+          sSubject: this.subjectText,
+          sText: this.getEditorTextForSend(),
+          bPlainText: this.plainText,
+          aAttachments: this.attachments,
+          sDraftUid: this.draftUid,
+          aDraftInfo: this.draftInfo,
+          sInReplyTo: this.inReplyTo,
+          sReferences: this.references,
+        }, (oResult, oError, oParameters) => {
+          this.saving = false
+          if (oResult) {
+            notification.showReport('Your message has been saved.')
+            if (oParameters && oParameters.DraftUid === this.draftUid) {
+              this.draftUid = typesUtils.pString(oResult.NewUid)
+            }
+            this.$store.dispatch('mail/asyncRefresh')
+            this.setAutosaveTimer()
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while saving message'))
           }
-          this.$store.dispatch('mail/asyncRefresh')
-          this.setAutosaveTimer()
-        } else {
-          notification.showError(errors.getText(oError, 'Error occurred while saving message'))
-        }
-      })
+        })
+      }
     },
     setSelectedIdentity () {
       if (this.allIdentities.length === 0) {

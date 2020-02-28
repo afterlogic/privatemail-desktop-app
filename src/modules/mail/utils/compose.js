@@ -35,10 +35,10 @@ function _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity) {
 }
 
 export default {
-  sendMessage: function ({oCurrentAccount, oCurrentFolderList, iIdentityId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
+  sendMessage: function ({oCurrentAccount, oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
     if (this.verifyDataForSending(sToAddr, sCcAddr, sBccAddr)) {
       let
-        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
+        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
         sSentFolder = oCurrentFolderList.Sent ? oCurrentFolderList.Sent.FullName : '',
         sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
         sCurrEmail = oCurrentAccount.sEmail,
@@ -76,9 +76,9 @@ export default {
     }
   },
 
-  saveMessage: function ({oCurrentFolderList, iIdentityId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
+  saveMessage: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
     let
-      oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
+      oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
       sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
       sLoadingMessage = 'Saving...' // textUtils.i18n('%MODULENAME%/INFO_SAVING')
 
@@ -147,7 +147,7 @@ export default {
     return oAttachments
   },
 
-  getSendSaveParameters: function ({oCurrentFolderList, iIdentityId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments}) {
+  getSendSaveParameters: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments}) {
     let
       oAttachments = this.convertAttachmentsForSending(aAttachments),
       oParameters = null
@@ -160,6 +160,7 @@ export default {
       'AccountID': oCurrentFolderList.AccountId,
       'FetcherID': '',
       'IdentityID': iIdentityId,
+      'AliasID': iAliasId,
       'DraftInfo': typesUtils.pArray(aDraftInfo),
       'DraftUid': typesUtils.pString(sDraftUid),
       'To': typesUtils.pString(sToAddr),
@@ -286,6 +287,36 @@ export default {
     return sForwardBody
   },
 
+  getIdentityForCompose: function (aAddresses) {
+    let oCurrentAccount = store.getters['mail/getCurrentAccount']
+    let aAliases = oCurrentAccount ? oCurrentAccount.aAliases : []
+    let aIdentities = store.getters['mail/getCurrentIdentities']
+    let aAllIdentities = aIdentities.concat(aAliases)
+
+    let oCompleteMatch = null
+    let oWithMatchingEmail = null
+    _.each(aAllIdentities, function (oIdentity) {
+      if (oCompleteMatch === null) {
+        let oFoundAddress = _.find(aAddresses, function (oAddress) {
+          return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase() && oAddress.DisplayName.toLowerCase() === oIdentity.sFriendlyName.toLowerCase()
+        })
+        if (oFoundAddress) {
+          oCompleteMatch = oIdentity
+        }
+      }
+      if (oWithMatchingEmail === null) {
+        let oFoundAddress = _.find(aAddresses, function (oAddress) {
+          return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase()
+        })
+        if (oFoundAddress) {
+          oWithMatchingEmail = oIdentity
+        }
+      }
+    })
+
+    return  oCompleteMatch || oWithMatchingEmail
+  },
+
   /**
    * @param {string} sOrigText
    * @param {Object} oMessage
@@ -325,6 +356,8 @@ export default {
     if (sReplyType === mailEnums.ReplyType.Forward) {
       oReplyData.sText = sReplyText + this.getForwardMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity)
     } else if (sReplyType === mailEnums.ReplyType.Resend) {
+      let aAddresses = _.isArray(oMessage.From['@Collection']) ? oMessage.From['@Collection'] : []
+      oReplyData.oIdentity = this.getIdentityForCompose(aAddresses)
       oReplyData.sText = sOrigText
       oReplyData.aCcContacts = messageUtils.getContactsToSend(oMessage.Cc)
       oReplyData.aBccContacts = messageUtils.getContactsToSend(oMessage.Bcc)
@@ -332,33 +365,7 @@ export default {
       let aToCollection = _.isArray(oMessage.To['@Collection']) ? oMessage.To['@Collection'] : []
       let aCcCollection = _.isArray(oMessage.Cc['@Collection']) ? oMessage.Cc['@Collection'] : []
       let aAddresses = _.union(aToCollection, aCcCollection)
-
-      let oCurrentAccount = store.getters['mail/getCurrentAccount']
-      let aAliases = oCurrentAccount ? oCurrentAccount.aAliases : []
-      let aIdentities = store.getters['mail/getCurrentIdentities']
-      let aAllIdentities = aIdentities.concat(aAliases)
-
-      let oCompleteMatch = null
-      let oWithMatchingEmail = null
-      _.each(aAllIdentities, function (oIdentity) {
-        if (oCompleteMatch === null) {
-          let oFoundAddress = _.find(aAddresses, function (oAddress) {
-            return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase() && oAddress.DisplayName.toLowerCase() === oIdentity.sFriendlyName.toLowerCase()
-          })
-          if (oFoundAddress) {
-            oCompleteMatch = oIdentity
-          }
-        }
-        if (oWithMatchingEmail === null) {
-          let oFoundAddress = _.find(aAddresses, function (oAddress) {
-            return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase()
-          })
-          if (oFoundAddress) {
-            oWithMatchingEmail = oIdentity
-          }
-        }
-      })
-      oReplyData.oIdentity = oCompleteMatch || oWithMatchingEmail
+      oReplyData.oIdentity = this.getIdentityForCompose(aAddresses)
 
       oReplyData.sText = sReplyText + this.getReplyMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
     }

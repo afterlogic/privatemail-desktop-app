@@ -88,6 +88,7 @@ hr.unread {
 import addressUtils from 'src/utils/address'
 import dateUtils from 'src/utils/date'
 
+import composeUtils from 'src/modules/mail/utils/compose.js'
 import messageUtils from 'src/modules/mail/utils/message.js'
 
 export default {
@@ -148,20 +149,21 @@ export default {
         sDraftFolder = (oCurrentFolderList && oCurrentFolderList.Drafts) ? oCurrentFolderList.Drafts.FullName : ''
 
       if (this.message.Folder === sDraftFolder) {
-        let
-          oComposeParams = {
-            aDraftInfo: this.message.DraftInfo,
-            sDraftUid: this.message.Uid,
-            aToContacts: messageUtils.getContactsToSend(this.message.To),
-            aCcContacts: messageUtils.getContactsToSend(this.message.Cc),
-            aBccContacts: messageUtils.getContactsToSend(this.message.Bcc),
-            sSubject: this.message.Subject,
-            sText: this.message.Html ? this.message.Html : this.message.Plain,
-            bPlainText: !this.message.Html && !!this.message.Plain,
-            aAttachments: this.message.Attachments && _.isArray(this.message.Attachments['@Collection']) ? this.message.Attachments['@Collection'] : [],
-            sInReplyTo: this.message.InReplyTo,
-            sReferences: this.message.References,
-          }
+        let aFromAddresses = _.isArray(this.message.From['@Collection']) ? this.message.From['@Collection'] : []
+        let oComposeParams = {
+          aDraftInfo: this.message.DraftInfo,
+          sDraftUid: this.message.Uid,
+          oIdentity: composeUtils.getIdentityForCompose(aFromAddresses),
+          aToContacts: messageUtils.getContactsToSend(this.message.To),
+          aCcContacts: messageUtils.getContactsToSend(this.message.Cc),
+          aBccContacts: messageUtils.getContactsToSend(this.message.Bcc),
+          sSubject: this.message.Subject,
+          sText: this.message.Html ? this.message.Html : this.message.Plain,
+          bPlainText: !this.message.Html && !!this.message.Plain,
+          aAttachments: this.message.Attachments && _.isArray(this.message.Attachments['@Collection']) ? this.message.Attachments['@Collection'] : [],
+          sInReplyTo: this.message.InReplyTo,
+          sReferences: this.message.References,
+        }
         this.openCompose(oComposeParams)
       }
     },

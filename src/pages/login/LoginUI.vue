@@ -71,7 +71,6 @@ export default {
       password: '',
       loading: false,
       showHost: false,
-      hosts: {},
 
       bNeedSecondAttempt: false,
       sApiHostAttempt: '',
@@ -100,29 +99,22 @@ export default {
           } else {
             notification.showReport('Please fill up host field.')
           }
-        // } else if (typesUtils.isNonEmptyString(this.hosts[sEmail])) {
-        //   this.host = this.hosts[sEmail]
-        //   this.continueLogIn()
         } else {
-          let sUrl = ''
-          axios.get('https://torguard.tv/pm/autodiscover.php?email=' + sEmail)
-            .then((oResponse) => {
-              sUrl = typesUtils.pString(oResponse && oResponse.data && oResponse.data.url)
-            })
-            .finally(() => {
-              if (typesUtils.isNonEmptyString(sUrl)) {
-                this.hosts[sEmail] = sUrl
-                this.host = this.hosts[sEmail]
-                this.continueLogIn()
+          ipcRenderer.once('main-get-host', (oEvent, oData) => {
+            let sUrl = typesUtils.pString(oData && oData.url)
+            if (typesUtils.isNonEmptyString(sUrl)) {
+              this.host = sUrl
+              this.continueLogIn()
+            } else {
+              this.showHost = true
+              if (typesUtils.isNonEmptyString(this.host)) {
+                notification.showReport('Please check the host and try signing in again.')
               } else {
-                this.showHost = true
-                if (typesUtils.isNonEmptyString(this.host)) {
-                  notification.showReport('Please check the host and try signing in again.')
-                } else {
-                  notification.showReport('Please fill up host field.')
-                }
+                notification.showReport('Please fill up host field.')
               }
-            })
+            }
+          })
+          ipcRenderer.send('main-get-host', { sEmail })
         }
       }
     },

@@ -153,10 +153,12 @@ export default {
       }
     },
     moveMessagesToTrash () {
-      this.moveMessagesToFolder('Trash')
+      let sTrashFullName = this.$store.getters['mail/getTrashFullName']
+      this.moveMessagesToFolder(sTrashFullName)
     },
     moveMessagesToSpam () {
-      this.moveMessagesToFolder('Spam')
+      let sSpamFullName = this.$store.getters['mail/getSpamFullName']
+      this.moveMessagesToFolder(sSpamFullName)
     },
     moveMessagesToFolder (sFolder) {
       if (this.checkedCount > 0) {

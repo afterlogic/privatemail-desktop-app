@@ -115,6 +115,14 @@ export function getInboxFullName (state) {
   return state.currentFolderList.Inbox ? state.currentFolderList.Inbox.FullName : ''
 }
 
+export function getTrashFullName (state) {
+  return state.currentFolderList.Trash ? state.currentFolderList.Trash.FullName : ''
+}
+
+export function getSpamFullName (state) {
+  return state.currentFolderList.Spam ? state.currentFolderList.Spam.FullName : ''
+}
+
 export function getFolderByFullName (state) {
   return function (sFolderFullName) {
     return state.currentFolderList.Flat[sFolderFullName]

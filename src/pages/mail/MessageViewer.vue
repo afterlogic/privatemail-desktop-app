@@ -610,7 +610,7 @@ export default {
       if (oPrivateCurrentKey) {
         let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerify(this.message.PlainRaw, oPrivateCurrentKey, this.privateKeyPass, aPublicKeys)
         if (sDecryptedData) {
-          this.text = sDecryptedData
+          this.text = sDecryptedData.replace(/\r\n/g, '<br />').replace(/\n/g, '<br />')
           this.isDecrypted = true
           this.decryptReport = sReport
         } else {

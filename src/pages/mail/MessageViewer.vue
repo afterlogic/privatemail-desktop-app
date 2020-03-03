@@ -561,6 +561,19 @@ export default {
         return null
       }
     },
+    getPublicKeyByEmail (sEmail) {
+      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
+        
+        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+        return oKey.bPublic && oKeyEmail.email === sEmail
+      })
+      if (aPublicCurrentKey.length > 0) {
+        return aPublicCurrentKey[0]
+      } else {
+        return null
+      }
+    },
     getPrivateCurrentKey () {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
@@ -575,9 +588,10 @@ export default {
       }
     },
     async verify () {
-      let oPublicCurrentKey = this.getPublicCurrentKey()
+      let oPublicCurrentKey = this.getPublicKeyByEmail(messageUtils.getFirstAddressEmail(this.message.From))
       if (oPublicCurrentKey) {
         let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicCurrentKey])
+        let oResponse = await OpenPgp.verify(this.message.PlainRaw, [oPublicCurrentKey])
         if (sVerifiedData) {
           this.text = sVerifiedData
           this.isVerified = true

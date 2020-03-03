@@ -537,17 +537,16 @@ export default {
         sMethod: 'GetServers',
         oParameters: {},
         fCallback: (aResult, oError) => {
-          oEvent.sender.send('mail-get-servers', { aServersData: _.isArray(aResult) ? aResult: [] })
-          // if (_.isArray(aResult)) {
-          //   accountsDbManager.setIdentities(aResult)
-          //   oEvent.sender.send('mail-get-identities', { aIdentitiesData: aResult })
-          // } else {
-          //   accountsDbManager.getIdentities().then(
-          //     (aIdentitiesData) => {
-          //       oEvent.sender.send('mail-get-identities', { aIdentitiesData })
-          //     }
-          //   )
-          // }
+          if (_.isArray(aResult)) {
+            accountsDbManager.setServers(aResult)
+            oEvent.sender.send('mail-get-servers', { aServersData: aResult })
+          } else {
+            accountsDbManager.getServers().then(
+              (aServersData) => {
+                oEvent.sender.send('mail-get-servers', { aServersData })
+              }
+            )
+          }
         },
       })
     })

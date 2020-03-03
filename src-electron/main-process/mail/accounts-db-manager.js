@@ -53,6 +53,34 @@ let aAccountDbMap = [
   {Name: 'UseToAuthorize', DbName: 'use_to_authorize', Type: 'INTEGER', IsBool: true},
 ]
 
+let aServerDbMap = [
+  {Name: 'AllowEditDomains', DbName: 'allow_edit_domains', Type: 'INTEGER', IsBool: true},
+  {Name: 'Domains', DbName: 'domains', Type: 'TEXT'},
+  {Name: 'EnableSieve', DbName: 'enable_sieve', Type: 'INTEGER', IsBool: true},
+  {Name: 'EnableThreading', DbName: 'enable_threading', Type: 'INTEGER', IsBool: true},
+  {Name: 'EntityId', DbName: 'entity_id', Type: 'INTEGER'},
+  {Name: 'ExternalAccessImapPort', DbName: 'external_access_imap_port', Type: 'INTEGER'},
+  {Name: 'ExternalAccessImapServer', DbName: 'external_access_imap_server', Type: 'TEXT'},
+  {Name: 'ExternalAccessSmtpPort', DbName: 'external_access_smtp_port', Type: 'INTEGER'},
+  {Name: 'ExternalAccessSmtpServer', DbName: 'external_access_smtp_server', Type: 'TEXT'},
+  {Name: 'IncomingPort', DbName: 'incoming_port', Type: 'INTEGER'},
+  {Name: 'IncomingServer', DbName: 'incoming_server', Type: 'TEXT'},
+  {Name: 'IncomingUseSsl', DbName: 'incoming_use_ssl', Type: 'INTEGER', IsBool: true},
+  {Name: 'Name', DbName: 'name', Type: 'TEXT'},
+  {Name: 'OutgoingPort', DbName: 'outgoing_port', Type: 'INTEGER'},
+  {Name: 'OutgoingServer', DbName: 'outgoing_server', Type: 'TEXT'},
+  {Name: 'OutgoingUseSsl', DbName: 'outgoing_use_ssl', Type: 'INTEGER', IsBool: true},
+  {Name: 'OwnerType', DbName: 'owner_type', Type: 'TEXT'},
+  {Name: 'ServerId', DbName: 'server_id', Type: 'INTEGER'},
+  {Name: 'SetExternalAccessServers', DbName: 'set_external_access_servers', Type: 'INTEGER', IsBool: true},
+  {Name: 'SievePort', DbName: 'sieve_port', Type: 'INTEGER'},
+  {Name: 'SmtpAuthType', DbName: 'smtp_auth_type', Type: 'TEXT'},
+  {Name: 'SmtpLogin', DbName: 'smtp_login', Type: 'TEXT'},
+  {Name: 'TenantId', DbName: 'tenant_id', Type: 'INTEGER'},
+  {Name: 'UUID', DbName: 'uuid', Type: 'TEXT'},
+  {Name: 'UseFullEmailAddressAsLogin', DbName: 'use_full_email_address_as_login', Type: 'INTEGER', IsBool: true},
+]
+
 let aIdentityDbMap = [
   {Name: 'Default', DbName: 'default_identity', Type: 'INTEGER', IsBool: true}, // "default" word is reserved in sql
   {Name: 'Email', DbName: 'email', Type: 'TEXT'},
@@ -88,6 +116,12 @@ export default {
         let sAccountDbFields = aAccountDbFields.join(', ')
         oDb.run('CREATE TABLE IF NOT EXISTS accounts (' + sAccountDbFields + ')')
 
+        let aServerDbFields = _.map(aServerDbMap, function (oServerDbFieldData) {
+          return oServerDbFieldData.DbName + ' ' + oServerDbFieldData.Type
+        })
+        let sServerDbFields = aServerDbFields.join(', ')
+        oDb.run('CREATE TABLE IF NOT EXISTS servers (' + sServerDbFields + ')')
+
         let aIdentityDbFields = _.map(aIdentityDbMap, function (oIdentityDbFieldData) {
           return oIdentityDbFieldData.DbName + ' ' + oIdentityDbFieldData.Type
         })
@@ -101,6 +135,60 @@ export default {
         oDb.run('CREATE TABLE IF NOT EXISTS aliases (' + sAliasDbFields + ')')
       })
     }
+  },
+
+  setServers: function (aServers) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          oDb.run('DELETE FROM servers', [], (oError) => {
+            if (oError) {
+              reject({ sMethod: 'setServers', oError })
+            } else {
+              let sFieldsDbNames = _.map(aServerDbMap, function (oServerDbFieldData) {
+                return oServerDbFieldData.DbName
+              }).join(', ')
+              let sQuestions = aServerDbMap.map(function () { return '?' }).join(',')
+              let oStatement = oDb.prepare('INSERT INTO servers (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+              _.each(aServers, function (oServer) {
+                let aParams = dbHelper.prepareInsertParams(oServer, aServerDbMap)
+                oStatement.run(aParams)
+              })
+              oStatement.finalize(function (oError) {
+                if (oError) {
+                  reject({ sMethod: 'setServers', oError })
+                } else {
+                  resolve()
+                }
+              })
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'setServers', sError: 'No DB connection' })
+      }
+    })
+  },
+
+  getServers: function () {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.all(
+          'SELECT * FROM servers',
+          [],
+          (oError, aRows) => {
+            if (oError) {
+              reject({ sMethod: 'getServers', oError })
+            } else {
+              let aServers = dbHelper.prepareDataFromDb(aRows, aServerDbMap)
+              resolve(aServers)
+            }
+          }
+        )
+      } else {
+        reject({ sMethod: 'getServers', sError: 'No DB connection' })
+      }
+    })
   },
 
   getAccounts: function () {

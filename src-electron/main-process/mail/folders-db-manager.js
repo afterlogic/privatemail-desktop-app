@@ -13,6 +13,33 @@ export default {
     }
   },
 
+  removeAccount: function (iAccountId) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('DELETE FROM folders WHERE acct_id = ?')
+          let aParams = [
+            iAccountId,
+          ]
+          oStatement.run(aParams)
+
+          oStatement = oDb.prepare('DELETE FROM messages_info WHERE acct_id = ?')
+          oStatement.run(aParams)
+
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'removeAccount', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'removeAccount', sError: 'No DB connection' })
+      }
+    })
+  },
+
   getFolders: function (iAccountId) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

@@ -234,6 +234,13 @@ export default {
             iAccountId,
           ]
           oStatement.run(aParams)
+
+          oStatement = oDb.prepare('DELETE FROM identities WHERE id_account = ?')
+          oStatement.run(aParams)
+
+          oStatement = oDb.prepare('DELETE FROM aliases WHERE id_account = ?')
+          oStatement.run(aParams)
+
           oStatement.finalize(function (oError) {
             if (oError) {
               reject({ sMethod: 'removeAccount', oError })

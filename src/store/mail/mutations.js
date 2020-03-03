@@ -4,6 +4,7 @@ import typesUtils from 'src/utils/types'
 
 import cAccount from 'src/modules/mail/classes/cAccount.js'
 import cAlias from 'src/modules/mail/classes/cAlias.js'
+import cServer from 'src/modules/mail/classes/cServer.js'
 
 export function setFoldersSyncing (state, payload) {
   state.foldersSyncing = payload
@@ -35,6 +36,15 @@ export function setAliases (state, { oDefaultAccount, aAliasesData }) {
   if (oDefaultAccount) {
     oDefaultAccount.aAliases = aAliases
   }
+}
+
+export function setServers (state, aServersData) {
+  let aServers = []
+  _.each(aServersData, function (oData) {
+    let oServer = new cServer(oData)
+    aServers.push(oServer)
+  })
+  state.servers = aServers
 }
 
 export function setCurrentAccount (state, oAccount) {

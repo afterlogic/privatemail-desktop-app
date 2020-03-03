@@ -381,21 +381,29 @@
             <q-input outlined dense class="input-size" type="password" v-model="sNewAccountPassword" v-on:keyup.enter="addNewAccount" />
           </q-item-section>
         </q-item>
+        <q-item v-if="bSecondStepOfAddAccount && newAccountServerOptions.length > 1">
+          <q-item-section>
+            <q-item-label>Server *</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-select outlined dense class="input-size" v-model="oNewAccountServer" :options="newAccountServerOptions" />
+          </q-item-section>
+        </q-item>
         <q-item v-if="bSecondStepOfAddAccount">
           <q-item-section>
             <q-item-label style="white-space: nowrap;">IMAP Server *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense style="width: 200px;" v-model="sNewAccountImapServer" v-on:keyup.enter="addNewAccount" />
+            <q-input outlined dense style="width: 200px;" v-model="sNewAccountImapServer" v-on:keyup.enter="addNewAccount" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
             <q-item-label style="white-space: nowrap;">Port *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountImapPort" v-on:keyup.enter="addNewAccount" />
+            <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountImapPort" v-on:keyup.enter="addNewAccount" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
-            <q-checkbox v-model="bNewAccountImapSsl" />
+            <q-checkbox v-model="bNewAccountImapSsl" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
             <q-item-label>SSL</q-item-label>
@@ -406,16 +414,16 @@
             <q-item-label style="white-space: nowrap;">SMTP Server *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense style="width: 200px;" v-model="sNewAccountSmtpServer" v-on:keyup.enter="addNewAccount" />
+            <q-input outlined dense style="width: 200px;" v-model="sNewAccountSmtpServer" v-on:keyup.enter="addNewAccount" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
             <q-item-label style="white-space: nowrap;">Port *</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountSmtpPort" v-on:keyup.enter="addNewAccount" />
+            <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountSmtpPort" v-on:keyup.enter="addNewAccount" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
-            <q-checkbox v-model="bNewAccountSmtpSsl" />
+            <q-checkbox v-model="bNewAccountSmtpSsl" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
             <q-item-label>SSL</q-item-label>
@@ -423,7 +431,7 @@
         </q-item>
         <q-item tag="label" v-ripple v-if="bSecondStepOfAddAccount">
           <q-item-section side center>
-            <q-checkbox v-model="bNewAccountSmtpAuth" />
+            <q-checkbox v-model="bNewAccountSmtpAuth" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section>
             <q-item-label>Use SMTP authentication</q-item-label>
@@ -569,6 +577,8 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
+import cServer from 'src/modules/mail/classes/cServer.js'
+
 import mailSettings from 'src/modules/mail/settings.js'
 
 import MailAccountsSignatureTab from './MailAccountsSignatureTab.vue'
@@ -610,6 +620,10 @@ export default {
       bAddingNewAccount: false,
       bSecondStepOfAddAccount: false,
       sNewAccountLogin: '',
+      oNewAccountServer: {
+        label: 'Configure manually',
+        value: null,
+      },
       sNewAccountImapServer: '',
       sNewAccountImapPort: 143,
       bNewAccountImapSsl: false,
@@ -664,8 +678,22 @@ export default {
     allowAddNewAccount () {
       return mailSettings.bAllowAddAccounts && (mailSettings.bAllowMultiAccounts || this.accounts.length === 0)
     },
-    currentIdentities () {
-      return this.$store.getters['mail/getCurrentIdentities']
+    newAccountServerOptions () {
+      let aServers = this.$store.getters['mail/getServers']
+      let aNewAccountServerOptions = _.map(aServers, function (oServer) {
+        return {
+          label: oServer.sName,
+          value: oServer,
+        }
+      })
+      aNewAccountServerOptions.push({
+        label: 'Configure manually',
+        value: null,
+      })
+      return aNewAccountServerOptions
+    },
+    existingServerSelected () {
+      return this.oNewAccountServer && this.oNewAccountServer.value instanceof cServer
     },
     identities () {
       return this.$store.getters['mail/getIdentities']
@@ -741,6 +769,29 @@ export default {
         this.iNewAccountSmtpPort = 465
       } else if (this.iNewAccountSmtpPort === 465) {
         this.iNewAccountSmtpPort = 25
+      }
+    },
+    existingServerSelected () {
+      console.log('oNewAccountServer', this.oNewAccountServer)
+      if (this.existingServerSelected) {
+        let oServer = this.oNewAccountServer.value
+        this.sNewAccountImapServer = oServer.sIncomingServer
+        this.iNewAccountImapPort = oServer.iIncomingPort
+        this.bNewAccountImapSsl = oServer.bIncomingUseSsl
+        this.sNewAccountSmtpServer = oServer.sOutgoingServer
+        this.iNewAccountSmtpPort = oServer.iOutgoingPort
+        this.bNewAccountSmtpSsl = oServer.bOutgoingUseSsl
+        let sSmtpAuthTypeUseUserCredentials = '2'
+        let sSmtpAuthTypeNoAuthentication = '0'
+        this.bNewAccountSmtpAuth = sSmtpAuthTypeUseUserCredentials === '0'
+      } else {
+        this.sNewAccountImapServer = ''
+        this.iNewAccountImapPort = 143
+        this.bNewAccountImapSsl = false
+        this.sNewAccountSmtpServer = ''
+        this.iNewAccountSmtpPort = 25
+        this.bNewAccountSmtpSsl = false
+        this.bNewAccountSmtpAuth = true
       }
     },
     editAlias () {
@@ -847,6 +898,10 @@ export default {
         this.iNewAccountSmtpPort = 25
         this.bNewAccountSmtpSsl = false
         this.bNewAccountSmtpAuth = true
+        this.oNewAccountServer = {
+          label: 'Configure manually',
+          value: null,
+        }
         this.bAddNewAccountDialog = true
       }
     },
@@ -871,6 +926,7 @@ export default {
             sEmail: this.sNewAccountEmail,
             sLogin: this.sNewAccountLogin,
             sPassword: this.sNewAccountPassword,
+            iServerId: this.existingServerSelected ? this.oNewAccountServer.value.iEntityId : 0,
             sImapServer: this.sNewAccountImapServer,
             iImapPort: this.iNewAccountImapPort,
             bImapSsl: this.bNewAccountImapSsl,
@@ -908,6 +964,7 @@ export default {
         this.bAddNewAccountDialog = false
         notification.showReport('Account was successfully added.')
         this.$store.commit('mail/addAccount', { oAccountData })
+        this.$store.dispatch('mail/asyncGetIdentities')
       } else if (bUnknownDomain) {
         this.sNewAccountLogin = this.sNewAccountEmail
         this.bSecondStepOfAddAccount = true

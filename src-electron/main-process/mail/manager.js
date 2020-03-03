@@ -315,6 +315,8 @@ export default {
         fCallback: (bResult, oError) => {
           if (bResult) {
             accountsDbManager.removeAccount(iAccountId)
+            foldersDbManager.removeAccount(iAccountId)
+            messagesDbManager.removeAccount(iAccountId)
           }
           oEvent.sender.send('mail-remove-account', { bResult, iAccountId, oError })
         },
@@ -376,7 +378,7 @@ export default {
       })
     })
 
-    ipcMain.on('mail-add-new-account-full', (oEvent, { sName, sEmail, sLogin, sPassword, sImapServer, iImapPort, bImapSsl, sSmtpServer, iSmtpPort, bSmtpSsl, bSmtpAuth, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-add-new-account-full', (oEvent, { sName, sEmail, sLogin, sPassword, iServerId, sImapServer, iImapPort, bImapSsl, sSmtpServer, iSmtpPort, bSmtpSsl, bSmtpAuth, sApiHost, sAuthToken }) => {
       let sSmtpAuthTypeUseUserCredentials = '2'
       let sSmtpAuthTypeNoAuthentication = '0'
       webApi.sendRequest({
@@ -390,7 +392,7 @@ export default {
           IncomingLogin: sLogin,
           IncomingPassword: sPassword,
           Server: {
-            ServerId: 0,
+            ServerId: iServerId,
             Name: sImapServer,
             IncomingServer: sImapServer,
             IncomingPort: iImapPort,
@@ -523,6 +525,29 @@ export default {
               }
             )
           }
+        },
+      })
+    })
+
+    ipcMain.on('mail-get-servers', (oEvent, { sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'GetServers',
+        oParameters: {},
+        fCallback: (aResult, oError) => {
+          oEvent.sender.send('mail-get-servers', { aServersData: _.isArray(aResult) ? aResult: [] })
+          // if (_.isArray(aResult)) {
+          //   accountsDbManager.setIdentities(aResult)
+          //   oEvent.sender.send('mail-get-identities', { aIdentitiesData: aResult })
+          // } else {
+          //   accountsDbManager.getIdentities().then(
+          //     (aIdentitiesData) => {
+          //       oEvent.sender.send('mail-get-identities', { aIdentitiesData })
+          //     }
+          //   )
+          // }
         },
       })
     })

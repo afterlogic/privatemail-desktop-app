@@ -5,7 +5,6 @@ import _ from 'lodash'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
-import webApi from 'src/utils/webApi.js'
 
 import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
@@ -22,6 +21,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
 
       dispatch('asyncGetIdentities')
       dispatch('asyncGetAliases')
+      dispatch('asyncGetServers')
       ipcRenderer.send('contacts-refresh', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
@@ -105,6 +105,17 @@ export function asyncGetIdentities ({ state, commit, dispatch }) {
       sAuthToken: store.getters['user/getAuthToken'],
     })
   }
+}
+
+export function asyncGetServers ({ state, commit, dispatch }) {
+    ipcRenderer.once('mail-get-servers', (event, { aServersData }) => {
+      commit('setServers', aServersData)
+    })
+
+    ipcRenderer.send('mail-get-servers', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+    })
 }
 
 ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {

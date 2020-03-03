@@ -38,6 +38,10 @@ export function getIdentities (state) {
   return state.identities
 }
 
+export function getServers (state) {
+  return state.servers
+}
+
 export function getCurrentDefaultIdentity (state) {
   let iAccountId = state.currentAccount ? state.currentAccount.iAccountId : 0
   let aCurrentIdentities = state.identities[iAccountId] || []

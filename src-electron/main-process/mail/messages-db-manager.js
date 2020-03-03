@@ -75,6 +75,29 @@ export default {
     }
   },
 
+  removeAccount: function (iAccountId) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('DELETE FROM messages WHERE account_id = ?')
+          let aParams = [
+            iAccountId,
+          ]
+          oStatement.run(aParams)
+          oStatement.finalize(function (oError) {
+            if (oError) {
+              reject({ sMethod: 'removeAccount', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'removeAccount', sError: 'No DB connection' })
+      }
+    })
+  },
+
   getFilteredMessages: function ({ iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, sFilter }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

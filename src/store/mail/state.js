@@ -5,6 +5,7 @@ export default {
   accounts: [],
   currentAccount: null,
   identities: {},
+  servers: [],
 
   currentFolderList: {
     AccountId: 0,

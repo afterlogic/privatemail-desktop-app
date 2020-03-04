@@ -1,7 +1,7 @@
 {
   "name": "PrivateMailDesktop",
   "version": "1.2.0",
-  "buildNumber": "3",
+  "buildNumber": "4",
   "description": "Collaboration multiplatform desktop app",
   "productName": "PrivateMail Desktop",
   "cordovaId": "org.cordova.quasar.app",

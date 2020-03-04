@@ -20,6 +20,7 @@
             <q-tab name="mobile-sync" icon="sync" label="Mobile Sync" style="justify-content: start;" /> -->
             <q-tab name="open-pgp" icon="vpn_key" label="Open PGP" style="justify-content: start;" />
             <q-tab name="about" icon="" label="About" style="justify-content: start;" />
+            <!-- <q-tab name="sandbox" icon="" label="SandboxTab" style="justify-content: start;" /> -->
           </q-tabs>
         </template>
 
@@ -31,9 +32,14 @@
             transition-next="jump-up"
             class="panel-rounded bg-white text-grey-8"
           >
+            <q-tab-panel name="sandbox">
+              <SandboxTab />
+            </q-tab-panel>
+
             <q-tab-panel name="about">
               <AboutTab />
             </q-tab-panel>
+
             <q-tab-panel name="common">
               <common-tab />
             </q-tab-panel>
@@ -88,6 +94,7 @@ import FilesTab from "./Files.vue"
 import MobileSyncTab from "./MobileSync.vue"
 import OpenPGPTab from "./OpenPgp.vue"
 import AboutTab from "./About.vue"
+import SandboxTab from "./Sandbox.vue"
 
 
 export default {
@@ -101,7 +108,8 @@ export default {
     FilesTab,
     MobileSyncTab,
     OpenPGPTab,
-    AboutTab
+    AboutTab,
+    SandboxTab,
   },
   data () {
     return {

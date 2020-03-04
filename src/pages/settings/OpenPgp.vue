@@ -150,7 +150,16 @@
             <q-item-label>Email</q-item-label>
           </q-item-section>
           <q-item-section side >
-            <q-item-label>{{ newKeyEmail }}</q-item-label>
+            <q-item-label v-if="newKeyEmailOptions.length === 1" class="input-size">{{ newKeyEmailOptions[0].value }}</q-item-label>
+            <q-select outlined dense class="input-size" v-if="newKeyEmailOptions.length > 1" v-model="sNewKeyEmail" :options="newKeyEmailOptions">
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section class="non-selectable">
+                    <q-item-label v-html="scope.opt.label" />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </q-item-section>
         </q-item>
         <q-item>
@@ -158,7 +167,7 @@
             <q-item-label>Password</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense type="password" v-model="newKeyPassword" />
+            <q-input outlined dense type="password" class="input-size" v-model="newKeyPassword" />
           </q-item-section>
         </q-item>
         <q-item>
@@ -166,7 +175,7 @@
             <q-item-label>Key length</q-item-label>
           </q-item-section>
           <q-item-section side >
-            <q-select outlined dense v-model="newKeyLength" :options="newKeyLengthList">
+            <q-select outlined dense v-model="newKeyLength" :options="newKeyLengthList" class="input-size">
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
@@ -186,7 +195,11 @@
   </div>
 </template>
 
-<style></style>
+<style>
+  .input-size {
+    width: 300px;
+  }
+</style>
 
 <script>
 import { saveAs } from 'file-saver'
@@ -194,6 +207,7 @@ import { saveAs } from 'file-saver'
 import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
@@ -228,6 +242,7 @@ export default {
 
       isGenerating: false,
       generateNewKeyDialog: false,
+      sNewKeyEmail: '',
       newKeyPassword: '',
       newKeyLength: 2048,
       newKeyLengthList: [2048, 4096],
@@ -262,6 +277,34 @@ export default {
       }
       return sEmail
     },
+    newKeyEmailOptions () {
+      let aNewKeyEmailOptions = []
+      let aIdentities = this.$store.getters['mail/getIdentities']
+      let aAccounts = this.$store.getters['mail/getAccounts']
+      _.each(aAccounts, function (oAccount) {
+        let aAccountIdentities = aIdentities[oAccount.iAccountId] || []
+        aNewKeyEmailOptions = aNewKeyEmailOptions.concat(_.map(aAccountIdentities, function (oIdentity) {
+          return {
+            label: textUtils.encodeHtml(oIdentity.getFull()),
+            value: oIdentity.getFull(),
+          }
+        }))
+        aNewKeyEmailOptions = aNewKeyEmailOptions.concat(_.map(oAccount.aAliases, function (oAlias) {
+          return {
+            label: textUtils.encodeHtml(oAlias.getFull()),
+            value: oAlias.getFull(),
+          }
+        }))
+      })
+      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      return _.filter(aNewKeyEmailOptions, function (oOption) {
+        let oOptionEmailParts = addressUtils.getEmailParts(oOption.value)
+        return !_.find (aOpenPgpKeys, (oKey) => {
+          let oKeyEmailParts = addressUtils.getEmailParts(oKey.sEmail)
+          return oKeyEmailParts.email === oOptionEmailParts.email
+        })
+      })
+    },
     openPgpPublicKeys () {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       return _.filter(aOpenPgpKeys, function (oKey) {
@@ -275,14 +318,7 @@ export default {
       })
     },
     allowGenerateNewKey () {
-      let bAllow = !this.isGenerating
-      if (bAllow) {
-        let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
-        bAllow = !_.find (aOpenPgpKeys, (oKey) => {
-          return oKey.sEmail === this.newKeyEmail
-        })
-      }
-      return bAllow
+      return !this.isGenerating && this.newKeyEmailOptions.length > 0
     },
   },
 
@@ -427,19 +463,20 @@ export default {
     openGenerateNewKey () {
       if (this.allowGenerateNewKey) {
         this.generateNewKeyDialog = true
+        this.sNewKeyEmail = this.newKeyEmailOptions[0]
       }
     },
     generateNewKey () {
       if (this.allowGenerateNewKey) {
         this.isGenerating = true
-        OpenPgp.generateKey(this.newKeyEmail, this.newKeyPassword, this.newKeyLength, (oKeyPair) => {
+        OpenPgp.generateKey(this.sNewKeyEmail.value, this.newKeyPassword, this.newKeyLength, (oKeyPair) => {
           let aKeys = []
           if (oKeyPair.privateKeyArmored) {
             aKeys.push({
               bPublic: false,
               sArmor: oKeyPair.privateKeyArmored,
               sId: 'key-' + Math.round(Math.random() * 1000000),
-              sEmail: this.newKeyEmail,
+              sEmail: this.sNewKeyEmail.value,
             })
           }
           if (oKeyPair.publicKeyArmored) {
@@ -447,7 +484,7 @@ export default {
               bPublic: true,
               sArmor: oKeyPair.publicKeyArmored,
               sId: 'key-' + Math.round(Math.random() * 1000000),
-              sEmail: this.newKeyEmail,
+              sEmail: this.sNewKeyEmail.value,
             })
           }
           if (aKeys.length > 0) {

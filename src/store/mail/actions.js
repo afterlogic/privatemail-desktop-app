@@ -150,7 +150,7 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
 ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError }) => {
   store.commit('mail/setFoldersSyncing', false)
   if (oError || sError) {
-    notification.showError(errors.getText(oError, sError))
+    notification.showError(errors.getText(oError, sError || 'Error occured while checking mail'))
   } else {
     if (bHasChanges) {
       store.dispatch('mail/asyncGetFolderList', {})
@@ -177,7 +177,7 @@ export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders)
 ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
   if (sError || oError) {
     store.commit('mail/setMessagesSyncing', false)
-    notification.showError(errors.getText(oError || null, typesUtils.pString(sError)))
+    notification.showError(errors.getText(oError, sError || 'Error occured while getting messages'))
   } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
     let bSameList = sFolderFullName === store.getters['mail/getCurrentFolderFullName'] &&
                     iPage === store.getters['mail/getCurrentPage'] &&
@@ -294,7 +294,7 @@ ipcRenderer.on('mail-delete-messages', (event, { bResult, oError }) => {
   if (bResult) {
     store.dispatch('mail/asyncRefresh')
   } else {
-    notification.showError(errors.getText(oError || null, 'Error occured while deleting of message(s).'))
+    notification.showError(errors.getText(oError, 'Error occured while deleting of message(s).'))
   }
 })
 
@@ -320,7 +320,7 @@ ipcRenderer.on('mail-move-messages', (event, { bResult, oError }) => {
   if (bResult) {
     store.dispatch('mail/asyncRefresh')
   } else {
-    notification.showError(errors.getText(oError || null, 'Error occured while moving of message(s).'))
+    notification.showError(errors.getText(oError, 'Error occured while moving of message(s).'))
   }
 })
 

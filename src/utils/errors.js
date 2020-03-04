@@ -3,7 +3,7 @@ import typesUtils from './types.js'
 export default {
   getText: function (oError, sDefaultText) {
     console.log('oError', oError)
-    let sErrorText = sDefaultText
+    let sErrorText = typesUtils.pString(sDefaultText)
     if (oError) {
       if (oError.Module === 'Mail') {
         switch (oError.ErrorCode) {

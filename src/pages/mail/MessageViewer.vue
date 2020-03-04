@@ -600,7 +600,6 @@ export default {
       let oPublicCurrentKey = this.getPublicKeyByEmail(messageUtils.getFirstAddressEmail(this.message.From))
       if (oPublicCurrentKey) {
         let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicCurrentKey])
-        let oResponse = await OpenPgp.verify(this.message.PlainRaw, [oPublicCurrentKey])
         if (sVerifiedData) {
           this.text = sVerifiedData
           this.isVerified = true

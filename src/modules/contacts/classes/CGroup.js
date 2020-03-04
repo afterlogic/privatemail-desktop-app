@@ -7,6 +7,7 @@ function CGroup(data) {
   this.IsOrganization = false
   this.Email = ''
   this.Company = ''
+  this.Country = ''
   this.Street = ''
   this.City = ''
   this.State = ''
@@ -27,6 +28,7 @@ CGroup.prototype.parse = function (data) {
   this.IsOrganization = typesUtils.pBool(data.IsOrganization)
   this.Email = typesUtils.pString(data.Email)
   this.Company = typesUtils.pString(data.Company)
+  this.Country = typesUtils.pString(data.Country)
   this.Street = typesUtils.pString(data.Street)
   this.City = typesUtils.pString(data.City)
   this.State = typesUtils.pString(data.State)

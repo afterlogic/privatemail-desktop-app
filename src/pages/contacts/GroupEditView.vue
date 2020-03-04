@@ -28,6 +28,10 @@
                   <q-input outlined dense class="input-size" v-model="oCurrentGroup.Company"/>
                 </div>
                 <div class="input-line">
+                  <label class="label-size">Country:</label>
+                  <q-input outlined dense class="input-size" v-model="oCurrentGroup.Country"/>
+                </div>
+                <div class="input-line">
                   <label class="label-size">State:</label>
                   <q-input outlined dense class="input-size" v-model="oCurrentGroup.State"/></div>
                 <div class="input-line">

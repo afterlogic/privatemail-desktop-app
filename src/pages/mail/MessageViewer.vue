@@ -377,6 +377,15 @@ export default {
           oComposeReplyParams.iIdentityId = oIdentity.iEntityId
         }
         this.isSendingOrSaving = true
+        oComposeReplyParams.sToAddr = (_.map(oComposeReplyParams.aToContacts || [], function (oContact) {
+          return oContact.full
+        })).join(', ')
+        oComposeReplyParams.sCcAddr = (_.map(oComposeReplyParams.aCcContacts || [], function (oContact) {
+          return oContact.full
+        })).join(', ')
+        oComposeReplyParams.sBccAddr = (_.map(oComposeReplyParams.aBccContacts || [], function (oContact) {
+          return oContact.full
+        })).join(', ')
         composeUtils.sendMessage(oComposeReplyParams, (oResult, oError) => {
           if (oResult) {
             // notification.showReport(textUtils.i18n('%MODULENAME%/REPORT_MESSAGE_SENT'))

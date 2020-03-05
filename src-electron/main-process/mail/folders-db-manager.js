@@ -220,4 +220,27 @@ export default {
       this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo })
     })
   },
+  
+  deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+    return new Promise((resolve, reject) => {
+      if (aUids.length === 0) {
+        resolve()
+      }
+      else {
+        this.getMessagesInfo({ iAccountId, sFolderFullName }).then((aMessagesInfo) => {
+          aMessagesInfo = _.filter(aMessagesInfo, function (oMessageInfo) {
+            return aUids.indexOf(oMessageInfo.uid) === -1
+          })
+          _.each(aMessagesInfo, (oMessageInfo) => {
+            if (oMessageInfo.thread) {
+              oMessageInfo.thread = _.filter(oMessageInfo.thread, function (oThreadMessageInfo) {
+                return aUids.indexOf(oThreadMessageInfo.uid) === -1
+              })
+            }
+          })
+          this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo }).then(resolve, reject)
+        })
+      }
+    })
+  },
 }

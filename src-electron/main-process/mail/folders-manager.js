@@ -1,3 +1,4 @@
+import { app } from 'electron'
 import _ from 'lodash'
 
 import foldersDbManager from './folders-db-manager.js'
@@ -216,6 +217,13 @@ export default {
 
   refreshMessagesInfo: function (iAccountId, bUseThreading, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
     return new Promise((resolve, reject) => {
+      let oNow = new Date()
+      let sStartedGetMessagesInfo = oNow.getHours() + ':' + oNow.getMinutes() + ':' + oNow.getSeconds() + ':' + oNow.getMilliseconds()
+      if (!_.isObject(app.aStartedGetMessagesInfo)) {
+        app.aStartedGetMessagesInfo = {}
+      }
+      let sStartedGetMessagesInfoKey = JSON.stringify({ iAccountId, sFolderFullName })
+      app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] = sStartedGetMessagesInfo
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfoFromDb) => {
             webApi.sendRequest({
@@ -233,34 +241,36 @@ export default {
                 Filter: '',
               },
               fCallback: (aMessagesInfoFromServer, oError) => {
-                let { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve } = this._updateMessagesInfo(aMessagesInfoFromDb, aMessagesInfoFromServer)
-                this._deleteMessages({ iAccountId, sFolderFullName, aUids: aUidsToDelete }).then(
-                  () => {
-                    this._syncMessages({ iAccountId, sFolderFullName, aMessagesInfoToSync }).then(
-                      () => {
-                        this._retrieveMessages({ iAccountId, sFolderFullName, aUids: aUidsToRetrieve, sApiHost, sAuthToken }).then(
-                          () => {
-                            foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: aMessagesInfoFromServer }).then(
-                              () => {
-                                let bHasChanges = typesUtils.isNonEmptyArray(aUidsToDelete) || typesUtils.isNonEmptyArray(aMessagesInfoToSync) || typesUtils.isNonEmptyArray(aUidsToRetrieve)
-                                this._markFolderWithoutChanges({ iAccountId, sFolderFullName }).then(
-                                  () => {
-                                    resolve(bHasChanges)
-                                  },
-                                  reject
-                                )
-                              },
-                              reject
-                            )
-                          },
-                          reject
-                        )
-                      },
-                      reject
-                    )
-                  },
-                  reject
-                )
+                if (app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] === sStartedGetMessagesInfo) {
+                  let { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve } = this._updateMessagesInfo(aMessagesInfoFromDb, aMessagesInfoFromServer)
+                  this.deleteMessages({ iAccountId, sFolderFullName, aUids: aUidsToDelete }).then(
+                    () => {
+                      this._syncMessages({ iAccountId, sFolderFullName, aMessagesInfoToSync }).then(
+                        () => {
+                          this._retrieveMessages({ iAccountId, sFolderFullName, aUids: aUidsToRetrieve, sApiHost, sAuthToken }).then(
+                            () => {
+                              foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: aMessagesInfoFromServer }).then(
+                                () => {
+                                  let bHasChanges = typesUtils.isNonEmptyArray(aUidsToDelete) || typesUtils.isNonEmptyArray(aMessagesInfoToSync) || typesUtils.isNonEmptyArray(aUidsToRetrieve)
+                                  this._markFolderWithoutChanges({ iAccountId, sFolderFullName }).then(
+                                    () => {
+                                      resolve(bHasChanges)
+                                    },
+                                    reject
+                                  )
+                                },
+                                reject
+                              )
+                            },
+                            reject
+                          )
+                        },
+                        reject
+                      )
+                    },
+                    reject
+                  )
+                }
               },
             })
         },
@@ -271,16 +281,19 @@ export default {
     })
   },
 
-  _deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+  deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
     return new Promise((resolve, reject) => {
       if (!_.isArray(aUids)) {
-        reject({ sMethod: '_deleteMessages', sError: 'aUids is not an Array' })
+        reject({ sMethod: 'deleteMessages', sError: 'aUids is not an Array' })
       }
       else if (aUids.length === 0) {
         resolve()
       }
       else {
-        messagesDbManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(resolve, reject)
+        foldersDbManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+          () => {
+            messagesDbManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(resolve, reject)
+          }, reject)
       }
     })
   },
@@ -327,12 +340,23 @@ export default {
         resolve()
       }
       else {
-        let iChunkLen = 50
-        for (let iIndex = 0, iUidsCount = aUids.length; iIndex < iUidsCount; iIndex += iChunkLen) {
-          let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
-          await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: aUidsChunk, sApiHost, sAuthToken })
-        }
-        resolve()
+        messagesDbManager.getMessagesUidsByUids({ iAccountId, sFolderFullName, aUids }).then(
+          async (aUidsFromDb) => {
+            if (!_.isArray(aUidsFromDb)) {
+              aUidsFromDb = []
+            }
+            let aUidsNotInDb = _.difference(aUids, aUidsFromDb)
+            let iChunkLen = 50
+            for (let iIndex = 0, iUidsCount = aUidsNotInDb.length; iIndex < iUidsCount; iIndex += iChunkLen) {
+              let aUidsChunk = aUidsNotInDb.slice(iIndex, iIndex + iChunkLen)
+              await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: aUidsChunk, sApiHost, sAuthToken })
+            }
+            resolve()
+          },
+          (oResult) => {
+            reject(oResult)
+          }
+        )
       }
     })
   },

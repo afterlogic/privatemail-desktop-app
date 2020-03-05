@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { app, ipcMain } from 'electron'
 import _ from 'lodash'
 
 import typesUtils from '../../../src/utils/types.js'
@@ -82,6 +82,12 @@ export default {
   },
 
   _refreshFoldersInformationFromServer: function (oEvent, iAccountId, bUseThreading, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken) {
+    let oNow = new Date()
+    let sStartedGetRelevantFoldersInformation = oNow.getHours() + ':' + oNow.getMinutes() + ':' + oNow.getSeconds() + ':' + oNow.getMilliseconds()
+    if (!_.isObject(app.aStartedGetRelevantFoldersInformation)) {
+      app.aStartedGetRelevantFoldersInformation = {}
+    }
+    app.aStartedGetRelevantFoldersInformation[iAccountId] = sStartedGetRelevantFoldersInformation
     webApi.sendRequest({
       sApiHost,
       sAuthToken,
@@ -93,23 +99,25 @@ export default {
         UseListStatusIfPossible: true,
       },
       fCallback: (oResult, oError) => {
-        if (oResult && oResult.Counts) {
-          foldersDbManager.getFolders(iAccountId).then(
-            (oFolderList) => {
-              let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
-              if (aChangedFolders.length > 0) {
-                foldersDbManager.setFolders(iAccountId, oFolderList)
-                this.refreshMessagesInFolders(oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
-              } else {
-                oEvent.sender.send('mail-refresh', { bHasChanges: false, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
+        if (app.aStartedGetRelevantFoldersInformation[iAccountId] === sStartedGetRelevantFoldersInformation) {
+          if (oResult && oResult.Counts) {
+            foldersDbManager.getFolders(iAccountId).then(
+              (oFolderList) => {
+                let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
+                if (aChangedFolders.length > 0) {
+                  foldersDbManager.setFolders(iAccountId, oFolderList)
+                  this.refreshMessagesInFolders(oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+                } else {
+                  oEvent.sender.send('mail-refresh', { bHasChanges: false, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
+                }
+              },
+              (oResult) => {
+                oEvent.sender.send('mail-refresh', oResult)
               }
-            },
-            (oResult) => {
-              oEvent.sender.send('mail-refresh', oResult)
-            }
-          )
-        } else {
-          oEvent.sender.send('mail-refresh', { oError })
+            )
+          } else {
+            oEvent.sender.send('mail-refresh', { oError })
+          }
         }
       },
     })
@@ -190,6 +198,15 @@ export default {
     })
 
     ipcMain.on('mail-delete-messages', (oEvent, { iAccountId, sFolderFullName, aUids, sApiHost, sAuthToken }) => {
+      if (!_.isObject(app.aStartedGetRelevantFoldersInformation)) {
+        app.aStartedGetRelevantFoldersInformation = {}
+      }
+      app.aStartedGetRelevantFoldersInformation[iAccountId] = '---'
+      let sStartedGetMessagesInfoKey = JSON.stringify({ iAccountId, sFolderFullName })
+      if (!_.isObject(app.aStartedGetMessagesInfo)) {
+        app.aStartedGetMessagesInfo = {}
+      }
+      app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] = '---'
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -201,12 +218,32 @@ export default {
           Uids: aUids.join(','),
         },
         fCallback: (bResult, oError) => {
-          oEvent.sender.send('mail-delete-messages', { bResult, oError })
+          if (bResult) {
+            foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+              () => {
+                oEvent.sender.send('mail-delete-messages', { bResult, oError })
+              },
+              (oResult) => {
+                oEvent.sender.send('mail-delete-messages', oResult)
+              }
+            )
+          } else {
+            oEvent.sender.send('mail-delete-messages', { bResult, oError })
+          }
         },
       })
     })
 
     ipcMain.on('mail-move-messages', (oEvent, { iAccountId, sFolderFullName, sToFolderFullName, aUids, sApiHost, sAuthToken }) => {
+      if (!_.isObject(app.aStartedGetRelevantFoldersInformation)) {
+        app.aStartedGetRelevantFoldersInformation = {}
+      }
+      app.aStartedGetRelevantFoldersInformation[iAccountId] = '---'
+      let sStartedGetMessagesInfoKey = JSON.stringify({ iAccountId, sFolderFullName })
+      if (!_.isObject(app.aStartedGetMessagesInfo)) {
+        app.aStartedGetMessagesInfo = {}
+      }
+      app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] = '---'
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -219,7 +256,22 @@ export default {
           Uids: aUids.join(','),
         },
         fCallback: (bResult, oError) => {
-          oEvent.sender.send('mail-move-messages', { bResult, oError })
+          app.aStartedGetRelevantFoldersInformation[iAccountId] = '----'
+          let sStartedGetMessagesInfoKey = JSON.stringify({ iAccountId, sFolderFullName })
+          app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] = '----'
+          if (bResult) {
+            foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+              () => {
+                oEvent.sender.send('mail-move-messages', { bResult, aRemovedUids: aUids, oError })
+              },
+              (oResult) => {
+                oResult.aRemovedUids = aUids
+                oEvent.sender.send('mail-move-messages', oResult)
+              }
+            )
+          } else {
+            oEvent.sender.send('mail-move-messages', { bResult, aRemovedUids: aUids, oError })
+          }
         },
       })
     })

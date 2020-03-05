@@ -98,6 +98,53 @@ export default {
     })
   },
 
+  getMessagesUidsByUids: function ({ iAccountId, sFolderFullName, aUids }) {
+    return new Promise(async (resolve, reject) => {
+      let aUidsFromDb = []
+      let iChunkLen = 997
+      for (let iIndex = 0, iUidsCount = aUids.length; iIndex < iUidsCount; iIndex += iChunkLen) {
+        let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
+        let aUidsFromDbChunk = await this._getMessagesUidsLessThan998ByUids({ iAccountId, sFolderFullName, aUids: aUidsChunk })
+        if (_.isArray(aUidsFromDbChunk)) {
+          aUidsFromDb = aUidsFromDb.concat(aUidsFromDbChunk)
+        }
+      }
+      resolve(aUidsFromDb)
+    })
+  },
+
+  _getMessagesUidsLessThan998ByUids: function ({ iAccountId, sFolderFullName, aUids }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        aUids = aUids.slice(0, 997)
+        if (typesUtils.isNonEmptyArray(aUids)) {
+          let aWhere = ['account_id = ?', 'folder = ?']
+          let aParams = [iAccountId, sFolderFullName]
+          let sQuestions = aUids.map(() => { return '?' }).join(',')
+          aWhere.push('uid IN (' + sQuestions + ')')
+          aParams = aParams.concat(aUids)
+          oDb.all(
+            'SELECT uid FROM messages WHERE ' + aWhere.join(' AND '),
+            aParams,
+            (oError, aRows) => {
+              if (oError) {
+                reject({ sMethod: 'getMessagesUidsByUids', oError })
+              } else {
+                resolve(_.map(aRows, (oRow) => {
+                  return oRow.uid
+                }))
+              }
+            }
+          )
+        } else {
+          reject({ sMethod: 'getMessagesUidsByUids', sError: 'No UIDs to retrieve' })
+        }
+      } else {
+        reject({ sMethod: 'getMessagesUidsByUids', sError: 'No DB connection' })
+      }
+    })
+  },
+
   getFilteredMessages: function ({ iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, sFilter }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

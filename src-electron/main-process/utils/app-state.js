@@ -16,7 +16,8 @@ export default {
   },
 
   isLastFoldersInfoTime: function (iAccountId, sLastFoldersInfoTime) {
-    return aLastFoldersInfoTime[iAccountId] === sLastFoldersInfoTime
+    return true
+    // return aLastFoldersInfoTime[iAccountId] === sLastFoldersInfoTime
   },
 
   setLastMessagesInfoTime: function (iAccountId, sFolderFullName) {
@@ -33,7 +34,8 @@ export default {
   },
 
   isLastMessagesInfoTime: function (iAccountId, sFolderFullName, sLastMessagesInfoTime) {
-    let sLastMessagesInfoTimeKey = JSON.stringify({ iAccountId, sFolderFullName })
-    return aLastMessagesInfoTime[sLastMessagesInfoTimeKey] === sLastMessagesInfoTime
+    return true
+    // let sLastMessagesInfoTimeKey = JSON.stringify({ iAccountId, sFolderFullName })
+    // return aLastMessagesInfoTime[sLastMessagesInfoTimeKey] === sLastMessagesInfoTime
   },
 }

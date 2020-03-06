@@ -1,11 +1,11 @@
-import { app } from 'electron'
 import _ from 'lodash'
+
+import appState from '../utils/app-state.js'
+import typesUtils from '../../../src/utils/types.js'
+import webApi from '../webApi.js'
 
 import foldersDbManager from './folders-db-manager.js'
 import messagesDbManager from './messages-db-manager.js'
-
-import typesUtils from '../../../src/utils/types.js'
-import webApi from '../webApi.js'
 
 import mailEnums from '../../../src/modules/mail/enums.js'
 
@@ -217,13 +217,7 @@ export default {
 
   refreshMessagesInfo: function (iAccountId, bUseThreading, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
     return new Promise((resolve, reject) => {
-      let oNow = new Date()
-      let sStartedGetMessagesInfo = oNow.getHours() + ':' + oNow.getMinutes() + ':' + oNow.getSeconds() + ':' + oNow.getMilliseconds()
-      if (!_.isObject(app.aStartedGetMessagesInfo)) {
-        app.aStartedGetMessagesInfo = {}
-      }
-      let sStartedGetMessagesInfoKey = JSON.stringify({ iAccountId, sFolderFullName })
-      app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] = sStartedGetMessagesInfo
+      let sLastMessagesInfoTime = appState.setLastMessagesInfoTime(iAccountId, sFolderFullName)
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfoFromDb) => {
             webApi.sendRequest({
@@ -241,7 +235,7 @@ export default {
                 Filter: '',
               },
               fCallback: (aMessagesInfoFromServer, oError) => {
-                if (app.aStartedGetMessagesInfo[sStartedGetMessagesInfoKey] === sStartedGetMessagesInfo) {
+                if (appState.isLastMessagesInfoTime(iAccountId, sFolderFullName, sLastMessagesInfoTime)) {
                   let { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve } = this._updateMessagesInfo(aMessagesInfoFromDb, aMessagesInfoFromServer)
                   this.deleteMessages({ iAccountId, sFolderFullName, aUids: aUidsToDelete }).then(
                     () => {

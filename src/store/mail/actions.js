@@ -307,7 +307,6 @@ export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUi
     if (_.isEqual(aUids, aRemovedUids)) {
       if (bResult) {
         dispatch('asyncGetMessages', {})
-        dispatch('asyncRefresh')
       } else {
         notification.showError(errors.getText(oError, 'Error occured while deleting of message(s).'))
       }
@@ -339,7 +338,6 @@ export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters },
     if (_.isEqual(aUids, aRemovedUids)) {
       if (bResult) {
         dispatch('asyncGetMessages', {})
-        dispatch('asyncRefresh')
       } else {
         notification.showError(errors.getText(oError, 'Error occured while moving of message(s).'))
       }

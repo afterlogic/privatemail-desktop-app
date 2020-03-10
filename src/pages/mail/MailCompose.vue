@@ -509,6 +509,7 @@ export default {
       sending: false, // indicates if sending is happening right now
       saving: false, // indicates if saving is happening right now
       allAttachmentsUploaded: true, // indicates if all attachments are loaded from server (for forward or sending files from other modules)
+      oCommitedMessageData: null,
 
       selectedIdentity: null,
 
@@ -886,71 +887,85 @@ export default {
       }
       return sEditortext
     },
+    getMessageData () {
+      return {
+        oCurrentAccount: this.currentAccount,
+        oCurrentFolderList: this.currentFolderList,
+        iIdentityId: (this.selectedIdentity && this.selectedIdentity.value instanceof cIdentity) ? this.selectedIdentity.value.iEntityId : 0,
+        iAliasId: (this.selectedIdentity && this.selectedIdentity.value instanceof cAlias) ? this.selectedIdentity.value.iEntityId : 0,
+        sToAddr: this.toAddrComputed,
+        sCcAddr: this.ccAddrComputed,
+        sBccAddr: this.bccAddrComputed,
+        sSubject: this.subjectText,
+        sText: this.getEditorTextForSend(),
+        bPlainText: this.plainText,
+        aAttachments: this.attachments,
+        sDraftUid: this.draftUid,
+        aDraftInfo: this.draftInfo,
+        sInReplyTo: this.inReplyTo,
+        sReferences: this.references,
+      }
+    },
+    isMessageDataChanged () {
+      let oCurrentMessageData = this.getMessageData()
+      return (oCurrentMessageData.oCurrentAccount && oCurrentMessageData.oCurrentAccount.iAccountId) !== (this.oCommitedMessageData.oCurrentAccount && this.oCommitedMessageData.oCurrentAccount.iAccountId)
+            || (oCurrentMessageData.oCurrentFolderList && oCurrentMessageData.oCurrentFolderList.AccountId) !== (this.oCommitedMessageData.oCurrentFolderList && this.oCommitedMessageData.oCurrentFolderList.AccountId)
+            || oCurrentMessageData.iIdentityId !== this.oCommitedMessageData.iIdentityId
+            || oCurrentMessageData.iAliasId !== this.oCommitedMessageData.iAliasId
+            || oCurrentMessageData.sToAddr !== this.oCommitedMessageData.sToAddr
+            || oCurrentMessageData.sCcAddr !== this.oCommitedMessageData.sCcAddr
+            || oCurrentMessageData.sBccAddr !== this.oCommitedMessageData.sBccAddr
+            || oCurrentMessageData.sSubject !== this.oCommitedMessageData.sSubject
+            || oCurrentMessageData.sText !== this.oCommitedMessageData.sText
+            || oCurrentMessageData.bPlainText !== this.oCommitedMessageData.bPlainText
+            || !_.isEqual(oCurrentMessageData.aAttachments, this.oCommitedMessageData.aAttachments)
+            || oCurrentMessageData.sInReplyTo !== this.oCommitedMessageData.sInReplyTo
+            || oCurrentMessageData.sReferences !== this.oCommitedMessageData.sReferences
+    },
+    commitMessageData () {
+      this.oCommitedMessageData = this.getMessageData()
+    },
     send () {
       if (this.isEnableSending) {
+        this.commitMessageData()
         this.clearAutosaveTimer()
         this.sending = true
-        composeUtils.sendMessage({
-          oCurrentAccount: this.currentAccount,
-          oCurrentFolderList: this.currentFolderList,
-          iIdentityId: (this.selectedIdentity && this.selectedIdentity.value instanceof cIdentity) ? this.selectedIdentity.value.iEntityId : 0,
-          iAliasId: (this.selectedIdentity && this.selectedIdentity.value instanceof cAlias) ? this.selectedIdentity.value.iEntityId : 0,
-          sToAddr: this.toAddrComputed,
-          sCcAddr: this.ccAddrComputed,
-          sBccAddr: this.bccAddrComputed,
-          sSubject: this.subjectText,
-          sText: this.getEditorTextForSend(),
-          bPlainText: this.plainText,
-          aAttachments: this.attachments,
-          sDraftUid: this.draftUid,
-          aDraftInfo: this.draftInfo,
-          sInReplyTo: this.inReplyTo,
-          sReferences: this.references,
-        }, (oResult, oError) => {
-          this.sending = false
-          if (oResult) {
-            notification.showReport('Your message has been sent.')
-            this.closeCompose()
-            this.$store.dispatch('mail/asyncRefresh')
-          } else {
-            notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+        composeUtils.sendMessage(
+          this.getMessageData(),
+          (oResult, oError) => {
+            this.sending = false
+            if (oResult) {
+              notification.showReport('Your message has been sent.')
+              this.closeCompose()
+              this.$store.dispatch('mail/asyncRefresh')
+            } else {
+              notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+            }
           }
-        })
+        )
       }
     },
     save () {
       if (!this.saving && !this.sending) {
+        this.commitMessageData()
         this.clearAutosaveTimer()
         this.saving = true
-        composeUtils.saveMessage({
-          oCurrentAccount: this.currentAccount,
-          oCurrentFolderList: this.currentFolderList,
-          iIdentityId: (this.selectedIdentity && this.selectedIdentity.value instanceof cIdentity) ? this.selectedIdentity.value.iEntityId : 0,
-          iAliasId: (this.selectedIdentity && this.selectedIdentity.value instanceof cAlias) ? this.selectedIdentity.value.iEntityId : 0,
-          sToAddr: this.toAddrComputed,
-          sCcAddr: this.ccAddrComputed,
-          sBccAddr: this.bccAddrComputed,
-          sSubject: this.subjectText,
-          sText: this.getEditorTextForSend(),
-          bPlainText: this.plainText,
-          aAttachments: this.attachments,
-          sDraftUid: this.draftUid,
-          aDraftInfo: this.draftInfo,
-          sInReplyTo: this.inReplyTo,
-          sReferences: this.references,
-        }, (oResult, oError, oParameters) => {
-          this.saving = false
-          if (oResult) {
-            notification.showReport('Your message has been saved.')
-            if (oParameters && oParameters.DraftUid === this.draftUid) {
-              this.draftUid = typesUtils.pString(oResult.NewUid)
+        composeUtils.saveMessage(
+          this.getMessageData(),
+          (oResult, oError, oParameters) => {
+            this.saving = false
+            if (oResult) {
+              notification.showReport('Your message has been saved.')
+              if (oParameters && oParameters.DraftUid === this.draftUid) {
+                this.draftUid = typesUtils.pString(oResult.NewUid)
+              }
+              this.$store.dispatch('mail/asyncRefresh')
+              this.setAutosaveTimer()
+            } else {
+              notification.showError(errors.getText(oError, 'Error occurred while saving message'))
             }
-            this.$store.dispatch('mail/asyncRefresh')
-            this.setAutosaveTimer()
-          } else {
-            notification.showError(errors.getText(oError, 'Error occurred while saving message'))
           }
-        })
+        )
       }
     },
     setSelectedIdentity () {
@@ -976,7 +991,7 @@ export default {
         }
       }
     },
-    openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+    async openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
       this.allowInsertImage = mailSettings.bAllowInsertImage
       this.selectedIdentity = oIdentity ? {
         label: textUtils.encodeHtml(oIdentity.getFull()),
@@ -1064,6 +1079,7 @@ export default {
                     oAttach.onUploadComplete()
                   }
                 })
+                this.commitMessageData()
               } else {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
@@ -1085,6 +1101,7 @@ export default {
                   oAttach.parseDataFromServer(oResult)
                   oAttach.onUploadComplete()
                 }
+                this.commitMessageData()
               } else {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
@@ -1103,6 +1120,7 @@ export default {
                   oAttach.parseDataFromServer(oResult)
                   oAttach.onUploadComplete()
                 }
+                this.commitMessageData()
               } else {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
@@ -1120,6 +1138,8 @@ export default {
       this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddrComputed)
       this.dialog = true
 
+      await this.$nextTick()
+      this.commitMessageData()
       this.setAutosaveTimer()
     },
     closeCompose () {
@@ -1239,7 +1259,9 @@ export default {
       this.$refs.uploader.pickFiles()
     },
     saveAndClose () {
-      this.save()
+      if (this.isMessageDataChanged()) {
+        this.save()
+      }
       this.closeCompose()
     },
   },

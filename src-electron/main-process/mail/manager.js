@@ -245,15 +245,14 @@ export default {
           if (bResult) {
             foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
               () => {
-                oEvent.sender.send('mail-move-messages', { bResult, aRemovedUids: aUids, oError })
+                oEvent.sender.send('mail-move-messages', { bResult, oError })
               },
               (oResult) => {
-                oResult.aRemovedUids = aUids
                 oEvent.sender.send('mail-move-messages', oResult)
               }
             )
           } else {
-            oEvent.sender.send('mail-move-messages', { bResult, aRemovedUids: aUids, oError })
+            oEvent.sender.send('mail-move-messages', { bResult, oError })
           }
         },
       })
@@ -278,18 +277,19 @@ export default {
         sModule: 'Mail',
         sMethod,
         oParameters,
-        fCallback: (bResult, oError) => {
+        fCallback: async (bResult, oError) => {
           appState.resetLastFoldersInfoTime(iAccountId)
           appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)
           if (bResult) {
             if (bAllMessages) {
-              messagesDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
-              foldersDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
+              await messagesDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
+              await foldersDbManager.setAllMessagesSeen({ iAccountId, sFolderFullName, bIsSeen })
             } else {
-              messagesDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
-              foldersDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
+              await messagesDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
+              await foldersDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
             }
           }
+          oEvent.sender.send('mail-set-messages-seen', { bResult, oError })
         },
       })
     })
@@ -308,13 +308,14 @@ export default {
           Uids: sUid,
           SetAction: bFlagged,
         },
-        fCallback: (bResult, oError) => {
+        fCallback: async (bResult, oError) => {
           appState.resetLastFoldersInfoTime(iAccountId)
           appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)
           if (bResult) {
-            messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
-            foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+            await messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
+            await foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
           }
+          oEvent.sender.send('mail-set-messages-flagged', { bResult, oError })
         },
       })
     })

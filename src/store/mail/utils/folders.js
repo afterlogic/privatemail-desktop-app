@@ -41,8 +41,6 @@ export default {
 
     _recursive(oFolderList.Tree)
 
-    oInbox.HasChanges = true
-
     return {
       AccountId: oFolderList.AccountId,
       Namespace: oFolderList.Namespace,

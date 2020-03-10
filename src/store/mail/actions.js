@@ -12,6 +12,19 @@ import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 
+let aOperationStarted = {}
+function _refreshAfterGroupOperation (sOperationName, oParameters, bResult) {
+  if (_.isEqual(aOperationStarted[sOperationName], oParameters)) {
+    delete aOperationStarted[sOperationName]
+    if (_.isEmpty(aOperationStarted)) {
+      if (bResult) {
+        store.dispatch('mail/asyncGetMessages', {})
+      }
+      store.dispatch('mail/asyncRefresh')
+    }
+  }
+}
+
 export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSettingsCallback) {
   ipcRenderer.once('mail-get-accounts', (event, { aAccounts, oError }) => {
     if (typesUtils.isNonEmptyArray(aAccounts)) {
@@ -127,9 +140,13 @@ ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {
         oFolderList.Current = oFolderList.Flat[store.state.mail.currentFolderList.Current.FullName]
       }
       store.commit('mail/setCurrentFolderList', oFolderList)
-      store.dispatch('mail/asyncGetMessages', {
-        sFolderFullName: oFolderList.Current.FullName,
-      })
+      if (oFolderList.Current.HasChanges) {
+        store.dispatch('mail/asyncRefresh')
+      } else {
+        store.dispatch('mail/asyncGetMessages', {
+          sFolderFullName: oFolderList.Current.FullName,
+        })
+      }
       if (bFirstTime) {
         store.dispatch('mail/asyncRefresh', true)
       }
@@ -211,7 +228,7 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       let oFolder = getters.getFolderByFullName(sFolderFullName)
 
       ipcRenderer.removeAllListeners('mail-get-messages')
-      ipcRenderer.once('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
+      ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
         if (sError || oError) {
           commit('setMessagesSyncing', false)
           notification.showError(errors.getText(oError, sError || 'Error occured while getting messages'))
@@ -268,6 +285,11 @@ export function setCurrentMessage ({ commit, dispatch }, oMessage) {
 }
 
 export function asyncSetMessagesRead ({ state, commit, dispatch, getters }, { aUids, bIsSeen }) {
+  ipcRenderer.removeAllListeners('mail-set-messages-seen')
+  ipcRenderer.on('mail-set-messages-seen', (event, { bResult, oError }) => {
+    _refreshAfterGroupOperation ('mail-set-messages-seen', { aUids, bIsSeen }, bResult)
+  })
+  aOperationStarted['mail-set-messages-seen'] = { aUids, bIsSeen }
   commit('setMessagesRead', { aUids, bIsSeen })
   ipcRenderer.send('mail-set-messages-seen', {
     sApiHost: store.getters['main/getApiHost'],
@@ -280,6 +302,11 @@ export function asyncSetMessagesRead ({ state, commit, dispatch, getters }, { aU
 }
 
 export function asyncSetAllMessagesRead ({ state, commit, dispatch, getters }) {
+  ipcRenderer.removeAllListeners('mail-set-messages-seen')
+  ipcRenderer.on('mail-set-messages-seen', (event, { bResult, oError }) => {
+    _refreshAfterGroupOperation ('mail-set-messages-seen', {}, bResult)
+  })
+  aOperationStarted['mail-set-messages-seen'] = { }
   commit('setAllMessagesRead')
   ipcRenderer.send('mail-set-messages-seen', {
     sApiHost: store.getters['main/getApiHost'],
@@ -291,28 +318,21 @@ export function asyncSetAllMessagesRead ({ state, commit, dispatch, getters }) {
 }
 
 export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUids }) {
+  ipcRenderer.removeAllListeners('mail-delete-messages')
+  ipcRenderer.on('mail-delete-messages', (event, { bResult, oError }) => {
+    if (!bResult) {
+      notification.showError(errors.getText(oError, 'Error occured while deleting of message(s).'))
+    }
+    _refreshAfterGroupOperation ('mail-delete-messages', { aUids }, bResult)
+  })
   commit('setMessagesDeleted', {
     aUids,
-    bDeleted: true,
   })
   let oCurrentMessage = getters.getCurrentMessage
   if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
     commit('setCurrentMessage', null)
   }
-
-  ipcRenderer.removeAllListeners('mail-get-messages') // Remove listener to prevent receiving of message list with just deleted messages.
-  ipcRenderer.removeAllListeners('mail-delete-messages') // Remove old listener which use old value of aUids.
-  // Listener should work several times in case there have been several deletions in a row. Only the latest will be processed.
-  ipcRenderer.on('mail-delete-messages', (event, { bResult, aRemovedUids, oError }) => {
-    if (_.isEqual(aUids, aRemovedUids)) {
-      if (bResult) {
-        dispatch('asyncGetMessages', {})
-        dispatch('asyncRefresh')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occured while deleting of message(s).'))
-      }
-    }
-  })
+  aOperationStarted['mail-delete-messages'] = { aUids }
   ipcRenderer.send('mail-delete-messages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -323,28 +343,22 @@ export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUi
 }
 
 export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters }, { aUids, sToFolderFullName }) {
+  ipcRenderer.removeAllListeners('mail-move-messages')
+  ipcRenderer.on('mail-move-messages', (event, { bResult, oError }) => {
+    if (!bResult) {
+      notification.showError(errors.getText(oError, 'Error occured while moving of message(s).'))
+    }
+    _refreshAfterGroupOperation ('mail-move-messages', { aUids, sToFolderFullName }, bResult)
+  })
   commit('setMessagesDeleted', {
     aUids,
-    bDeleted: true,
+    oToFolder: getters.getFolderByFullName(sToFolderFullName),
   })
   let oCurrentMessage = getters.getCurrentMessage
   if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
     commit('setCurrentMessage', null)
   }
-
-  ipcRenderer.removeAllListeners('mail-get-messages') // Remove listener to prevent receiving of message list with just moved messages.
-  ipcRenderer.removeAllListeners('mail-move-messages') // Remove old listener which use old value of aUids.
-  // Listener should work several times in case there have been several deletions in a row. Only the latest will be processed.
-  ipcRenderer.on('mail-move-messages', (event, { bResult, aRemovedUids, oError }) => {
-    if (_.isEqual(aUids, aRemovedUids)) {
-      if (bResult) {
-        dispatch('asyncGetMessages', {})
-        dispatch('asyncRefresh')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occured while moving of message(s).'))
-      }
-    }
-  })
+  aOperationStarted['mail-move-messages'] = { aUids, sToFolderFullName }
   ipcRenderer.send('mail-move-messages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -356,7 +370,12 @@ export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters },
 }
 
 export function asyncSetMessageFlagged ({ state, commit, dispatch, getters }, { sUid, bFlagged }) {
+  ipcRenderer.removeAllListeners('mail-set-messages-flagged')
+  ipcRenderer.on('mail-set-messages-flagged', (event, { bResult, oError }) => {
+    _refreshAfterGroupOperation ('mail-set-messages-flagged', { sUid, bFlagged }, bResult)
+  })
   commit('setMessageFlagged', { sUid, bFlagged })
+  aOperationStarted['mail-set-messages-flagged'] = { sUid, bFlagged }
   ipcRenderer.send('mail-set-messages-flagged', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],

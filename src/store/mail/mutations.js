@@ -2,6 +2,8 @@ import _ from 'lodash'
 
 import typesUtils from 'src/utils/types'
 
+import mailEnums from 'src/modules/mail/enums.js'
+
 import cAccount from 'src/modules/mail/classes/cAccount.js'
 import cAlias from 'src/modules/mail/classes/cAlias.js'
 import cServer from 'src/modules/mail/classes/cServer.js'
@@ -201,17 +203,29 @@ export function setAllMessagesRead (state) {
   state.currentFolderList.Current.UnseenCount = 0
 }
 
-export function setMessagesDeleted (state, { aUids, bDeleted }) {
+export function setMessagesDeleted (state, { aUids, oToFolder }) {
+  let iUnseenDeletedCount = 0
   _.each(state.currentMessages, function (oMessage) {
     if (aUids.indexOf(oMessage.Uid) >= 0) {
-      oMessage.Deleted = bDeleted
+      oMessage.Deleted = true
+      if (!oMessage.IsSeen) {
+        iUnseenDeletedCount++
+      }
     }
     _.each(oMessage.Threads, function (oThreadMessage) {
       if (aUids.indexOf(oThreadMessage.Uid) >= 0) {
-        oThreadMessage.Deleted = bDeleted
+        oThreadMessage.Deleted = true
+        if (!oThreadMessage.IsSeen) {
+          iUnseenDeletedCount++
+        }
       }
     })
   })
+  let iUnseenCount = state.currentFolderList.Current.UnseenCount - iUnseenDeletedCount
+  state.currentFolderList.Current.UnseenCount = iUnseenCount > 0 ? iUnseenCount : 0
+  if (oToFolder) {
+    oToFolder.UnseenCount = oToFolder.UnseenCount + iUnseenDeletedCount
+  }
 }
 
 export function setMessageFlagged (state, { sUid, bFlagged }) {

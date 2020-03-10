@@ -16,26 +16,30 @@ export default {
   },
 
   isLastFoldersInfoTime: function (iAccountId, sLastFoldersInfoTime) {
-    return true
-    // return aLastFoldersInfoTime[iAccountId] === sLastFoldersInfoTime
+    return aLastFoldersInfoTime[iAccountId] === sLastFoldersInfoTime
   },
 
   setLastMessagesInfoTime: function (iAccountId, sFolderFullName) {
     let oNow = new Date()
     let sLastMessagesInfoTime = oNow.getHours() + ':' + oNow.getMinutes() + ':' + oNow.getSeconds() + ':' + oNow.getMilliseconds()
-    let sLastMessagesInfoTimeKey = JSON.stringify({ iAccountId, sFolderFullName })
-    aLastMessagesInfoTime[sLastMessagesInfoTimeKey] = sLastMessagesInfoTime
+    if (!_.isObject(aLastMessagesInfoTime[iAccountId])) {
+      aLastMessagesInfoTime[iAccountId] = {}
+    }
+    aLastMessagesInfoTime[iAccountId][sFolderFullName] = sLastMessagesInfoTime
     return sLastMessagesInfoTime
   },
 
   resetLastMessagesInfoTime: function (iAccountId, sFolderFullName) {
-    let sLastMessagesInfoTimeKey = JSON.stringify({ iAccountId, sFolderFullName, sFolderFullName })
-    aLastMessagesInfoTime[sLastMessagesInfoTimeKey] = '---'
+    if (!_.isObject(aLastMessagesInfoTime[iAccountId])) {
+      aLastMessagesInfoTime[iAccountId] = {}
+    }
+    aLastMessagesInfoTime[iAccountId][sFolderFullName] = '---'
   },
 
   isLastMessagesInfoTime: function (iAccountId, sFolderFullName, sLastMessagesInfoTime) {
-    return true
-    // let sLastMessagesInfoTimeKey = JSON.stringify({ iAccountId, sFolderFullName })
-    // return aLastMessagesInfoTime[sLastMessagesInfoTimeKey] === sLastMessagesInfoTime
+    if (!_.isObject(aLastMessagesInfoTime[iAccountId])) {
+      aLastMessagesInfoTime[iAccountId] = {}
+    }
+    return aLastMessagesInfoTime[iAccountId][sFolderFullName] === sLastMessagesInfoTime
   },
 }

@@ -87,8 +87,10 @@ hr.unread {
 <script>
 import addressUtils from 'src/utils/address'
 import dateUtils from 'src/utils/date'
+import typesUtils from 'src/utils/types.js'
 
 import composeUtils from 'src/modules/mail/utils/compose.js'
+import mailEnums from 'src/modules/mail/enums.js'
 import messageUtils from 'src/modules/mail/utils/message.js'
 
 export default {
@@ -120,14 +122,29 @@ export default {
       return this.message.Deleted
     },
     fromTo () {
-      let oFromTo = (this.message.Folder === 'Drafts' || this.message.Folder === 'Sent') ? this.message.To : this.message.From
-      let aFromTo = []
-      if (oFromTo && oFromTo['@Collection']) {
-        _.each(oFromTo['@Collection'], function (address) {
-          aFromTo.push(addressUtils.getFullEmail(address.DisplayName, address.Email))
-        })
+      let oFolder = this.$store.getters['mail/getFolderByFullName'](this.message.Folder)
+      let aAddressesCollection = []
+      if (oFolder && (oFolder.Type === mailEnums.FolderType.Drafts || oFolder.Type === mailEnums.FolderType.Sent)) {
+        if (this.message.To && _.isArray(this.message.To['@Collection'])) {
+          aAddressesCollection = this.message.To['@Collection']
+        }
+      } else {
+        if (this.message.From && _.isArray(this.message.From['@Collection'])) {
+          aAddressesCollection = this.message.From['@Collection']
+        }
       }
-      return aFromTo.join(', ')
+
+      let sCurrentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+
+      return _.map(aAddressesCollection, function (oAddress) {
+        if (sCurrentAccountEmail === oAddress.Email) {
+          return 'me'
+        }
+        if (typesUtils.isNonEmptyString(oAddress.DisplayName)) {
+          return oAddress.DisplayName
+        }
+        return oAddress.Email
+      }).join(', ')
     },
     selected () {
       return !!this.message && this.message.Uid === this.$store.getters['mail/getCurrentMessageUid']

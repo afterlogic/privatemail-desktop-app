@@ -6,6 +6,16 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
+      <div class="q-pa-md pgp-notification-panel non-selectable" v-if="message.HasExternals && !bExternalPicturesShown">
+        <template>
+          <div class="q-mb-md hint">
+            Pictures in this message have been blocked for your safety
+          </div>
+          <div class="row">
+            <q-btn unelevated outline color="primary" label="Show pictures" @click="showExternalPictures" />
+          </div>
+        </template>
+      </div>
       <div class="q-pa-md pgp-notification-panel non-selectable" v-if="isEcryptedMessage || isSignedMessage" :class="{'success-report': isDecrypted || isVerified}">
         <template v-if="isEcryptedMessage && !isDecrypted">
           <div class="q-mb-md hint">OpenPGP encrypted message.</div>
@@ -289,6 +299,7 @@ export default {
       cc: [],
       bcc: [],
       text: '',
+      bExternalPicturesShown: false,
       isEcryptedMessage: false,
       isSignedMessage: false,
       isVerified: false,
@@ -461,6 +472,7 @@ export default {
         }
       }
       this.text = sText
+      this.bExternalPicturesShown = false
       this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
       this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
 
@@ -626,6 +638,10 @@ export default {
           notification.showError(sError)
         }
       }
+    },
+    showExternalPictures () {
+      this.text = messageUtils.getTextWithExternalPictures(this.text)
+      this.bExternalPicturesShown = true
     },
     dummyAction() {
       notification.showReport('Coming soon')

@@ -137,5 +137,10 @@ export default {
     }
 
     return sResHtml
-  }
+  },
+
+  getTextWithExternalPictures (sText) {
+    sText = typesUtils.pString(sText)
+    return sText.replace(/\s+data-x-src="/g, ' src="').replace(/\s+data-x-style-url="/g, ' style="')
+  },
 }

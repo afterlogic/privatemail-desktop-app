@@ -60,7 +60,7 @@ export default {
 
         oResponse.on('end', () => {
           let sData = aData.join('')
-          let oData = JSON.parse(sData)
+          let oData = sData !== '' ? JSON.parse(sData) : {}
           aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
           // console.log('webApi response', aRequestsNumbers.length, oData)
           let oResult = oData.Result

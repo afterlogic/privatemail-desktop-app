@@ -597,9 +597,10 @@ export default {
       }
     },
     async verify () {
-      let oPublicCurrentKey = this.getPublicKeyByEmail(messageUtils.getFirstAddressEmail(this.message.From))
-      if (oPublicCurrentKey) {
-        let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicCurrentKey])
+      let sFromEmail = messageUtils.getFirstAddressEmail(this.message.From)
+      let oPublicFromKey = this.getPublicKeyByEmail(sFromEmail)
+      if (oPublicFromKey) {
+        let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicFromKey])
         if (sVerifiedData) {
           this.text = sVerifiedData
           this.isVerified = true
@@ -608,7 +609,7 @@ export default {
           notification.showError(sError)
         }
       } else {
-        notification.showError('No public key found for ' + this.currentAccount.sEmail + ' user.')
+        notification.showError('No public key found for ' + sFromEmail + ' user.')
       }
     },
     async decrypt () {

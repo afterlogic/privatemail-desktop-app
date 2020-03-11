@@ -403,10 +403,7 @@
             <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountImapPort" v-on:keyup.enter="addNewAccount" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
-            <q-checkbox v-model="bNewAccountImapSsl" :disable="existingServerSelected" />
-          </q-item-section>
-          <q-item-section side>
-            <q-item-label>SSL</q-item-label>
+            <q-checkbox v-model="bNewAccountImapSsl" :disable="existingServerSelected"><q-item-label class="q-ml-sm">SSL</q-item-label></q-checkbox>
           </q-item-section>
         </q-item>
         <q-item v-if="bSecondStepOfAddAccount">
@@ -423,13 +420,10 @@
             <q-input outlined dense style="width: 50px;" v-model.number="iNewAccountSmtpPort" v-on:keyup.enter="addNewAccount" :disable="existingServerSelected" />
           </q-item-section>
           <q-item-section side>
-            <q-checkbox v-model="bNewAccountSmtpSsl" :disable="existingServerSelected" />
-          </q-item-section>
-          <q-item-section side>
-            <q-item-label>SSL</q-item-label>
+            <q-checkbox v-model="bNewAccountSmtpSsl" :disable="existingServerSelected"><q-item-label class="q-ml-sm">SSL</q-item-label></q-checkbox>
           </q-item-section>
         </q-item>
-        <q-item tag="label" v-ripple v-if="bSecondStepOfAddAccount">
+        <q-item tag="label" v-if="bSecondStepOfAddAccount">
           <q-item-section side center>
             <q-checkbox v-model="bNewAccountSmtpAuth" :disable="existingServerSelected" />
           </q-item-section>

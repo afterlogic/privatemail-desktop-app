@@ -30,7 +30,7 @@ export default {
         })
         oResponse.on('end', () => {
           let sData = aData.join('')
-          let oData = JSON.parse(sData)
+          let oData = sData !== '' ? JSON.parse(sData) : {}
           oEvent.sender.send('main-get-host', oData)
         })
 

@@ -152,6 +152,10 @@ export default {
     },
   },
 
+  mounted: function () {
+    this.startAsyncGetContacts()
+  },
+
   methods: {
     startAsyncGetContacts (bResetPage) {
       if (bResetPage) {

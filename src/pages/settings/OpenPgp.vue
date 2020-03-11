@@ -2,15 +2,15 @@
   <div>
     <div class="text-h4 q-mb-md non-selectable">Open PGP settings</div>
     <q-separator spaced />
-    <q-list class="non-selectable">
+    <q-list class="non-selectable" separator>
       <q-item>
         <q-item-section>
           <q-item-label caption>Be aware of "Allow autosave in Drafts" setting in Mail module. Turn it off if you don't want the server to store unencrypted drafts. You will still be able to save drafts manually.</q-item-label>
         </q-item-section>
       </q-item>
       <q-separator spaced />
-      <q-item-label header>Public keys</q-item-label>
-      <q-item v-ripple v-for="oKey in openPgpPublicKeys" :key="oKey.sId">
+      <q-item-label header class="text-h6">Public keys</q-item-label>
+      <q-item clickable v-for="oKey in openPgpPublicKeys" :key="oKey.sId" @click="viewKeys([oKey])">
         <q-item-section>
           <q-item-label>{{ oKey.sEmail }}</q-item-label>
         </q-item-section>
@@ -18,7 +18,7 @@
           <q-btn flat icon="visibility" @click="viewKeys([oKey])" />
         </q-item-section>
         <q-item-section side>
-          <q-btn flat icon="delete" @click="confirmDeleteKey(oKey)" />
+          <q-btn flat icon="delete" @click.stop="confirmDeleteKey(oKey)" />
         </q-item-section>
       </q-item>
       <q-item v-if="openPgpPublicKeys.length === 0">
@@ -27,16 +27,16 @@
         </q-item-section>
       </q-item>
 
-      <q-item-label header>Private keys</q-item-label>
-      <q-item v-ripple v-for="oKey in openPgpPrivateKeys" :key="oKey.sId">
+      <q-item-label header class="text-h6">Private keys</q-item-label>
+      <q-item clickable v-for="oKey in openPgpPrivateKeys" :key="oKey.sId" @click="enterPassword(oKey)">
         <q-item-section>
           <q-item-label>{{ oKey.sEmail }}</q-item-label>
         </q-item-section>
-        <q-item-section side >
+        <q-item-section side>
           <q-btn flat icon="visibility" @click="enterPassword(oKey)" />
         </q-item-section>
-        <q-item-section side >
-          <q-btn flat icon="delete" @click="confirmDeleteKey(oKey)" />
+        <q-item-section side>
+          <q-btn flat icon="delete" @click.stop="confirmDeleteKey(oKey)" />
         </q-item-section>
       </q-item>
       <q-item v-if="openPgpPrivateKeys.length === 0">
@@ -115,20 +115,26 @@
         <q-card-section>
           <div class="text-h6">Import key</div>
         </q-card-section>
-
         <q-item-label header v-if="keysToImport.length > 0">Text includes OpenPGP keys</q-item-label>
-        <q-item v-for="oKey in keysToImport" :key="oKey.sId" :disable="oKey.bDisabled">
-          <q-item-section side top>
-            <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ oKey.sEmail }}</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-item-label>{{ oKey.sAddInfo }}</q-item-label>
-          </q-item-section>
+        <q-card-section v-if="keysToImport.length > 0">
+          <q-list separator>
+            <q-item tag="label" v-for="oKey in keysToImport" :key="oKey.sId" :disable="oKey.bDisabled">
+              <q-item-section side top>
+                <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label lines="1">{{ oKey.sEmail }}</q-item-label>
+                <q-item-label lines="1" class="text-caption">{{ oKey.sAddInfo }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-item v-if="keysToImport.length > 0 && importHasExistingKeys">
+            <q-item-label caption >Keys which are already in the system are greyed out.</q-item-label>
         </q-item>
-        <q-item-label caption v-if="keysToImport.length > 0 && importHasExistingKeys">Keys which are already in the system are greyed out.</q-item-label>
+        
         <q-card-section v-if="keysToImport.length === 0">
           <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 500px; height: 300px;" />
         </q-card-section>

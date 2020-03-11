@@ -175,8 +175,8 @@ ipcMain.on('db-remove-all', (oEvent) => {
 
         fs.unlink(dbFullPath, (oUnlinkError) => {
           if (!oUnlinkError) {
-            oDbConnect = new sqlite3.Database(dbFullPath, (oDbCOnnectError) => {
-              if (oDbCOnnectError === null) {
+            oDbConnect = new sqlite3.Database(dbFullPath, (oDbConnectError) => {
+              if (oDbConnectError === null) {
                 mainDbManager.init(oDbConnect)
                 accountsDbManager.init(oDbConnect)
                 foldersDbManager.init(oDbConnect)
@@ -184,19 +184,19 @@ ipcMain.on('db-remove-all', (oEvent) => {
                 contactsDbManager.init(oDbConnect)
                 oEvent.sender.send('db-remove-all', { bRemoved: true })
               } else {
-                oEvent.sender.send('db-remove-all', { sError: 'DB error' })
+                oEvent.sender.send('db-remove-all', { sError: 'DB error: cannot connect' })
               }
             })
           } else {
-            oEvent.sender.send('db-remove-all', { sError: 'DB error' })
+            oEvent.sender.send('db-remove-all', { sError: 'DB error: cannot be removed' })
           }
         })
       } else {
-        oEvent.sender.send('db-remove-all', { sError: 'DB error' })
+        oEvent.sender.send('db-remove-all', { sError: 'DB error: cannot be closed' })
       }
     })
   } else {
-    oEvent.sender.send('db-remove-all', { sError: 'DB error' })
+    oEvent.sender.send('db-remove-all', { sError: 'DB error: no db connection' })
   }
 })
 

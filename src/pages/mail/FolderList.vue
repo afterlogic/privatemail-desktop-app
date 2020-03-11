@@ -11,9 +11,11 @@
 .folder-list {
   .q-chip {
     min-width: 2em;
-    justify-content: center;
     background: var(--q-color-primary);
     color: #fff;
+    .q-chip__content {
+      justify-content: center;
+    }
   }
   .q-item__section--avatar {
     min-width: 40px;

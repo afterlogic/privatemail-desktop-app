@@ -416,8 +416,10 @@ export default {
               let
                 aKeyUsersIds = oKey.getUserIds(),
                 sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0',
+                oKeyEmailParts = addressUtils.getEmailParts(sKeyEmail),
                 bHasSameKey = !!_.find(aOpenPgpKeys, function (oStoredKey) {
-                  return oStoredKey.sEmail === sKeyEmail && oStoredKey.bPublic === oKey.isPublic()
+                  let oStoredKeyEmailParts = addressUtils.getEmailParts(oStoredKey.sEmail)
+                  return oStoredKeyEmailParts.email === oKeyEmailParts.email && oStoredKey.bPublic === oKey.isPublic()
                 }),
                 sAddInfoLangKey = oKey.isPublic() ? '(%LENGTH%-bit, public)' : '(%LENGTH%-bit, private)',
                 bNoEmail = false // !addressUtils.isCorrectEmail(sKeyEmail)

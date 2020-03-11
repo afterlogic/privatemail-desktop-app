@@ -147,7 +147,7 @@
     </q-dialog>
 
     <q-dialog v-model="generateNewKeyDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable generate-new-key-dialog">
         <q-card-section>
           <div class="text-h6">Generate new key</div>
         </q-card-section>
@@ -202,7 +202,7 @@
 </template>
 
 <style>
-  .input-size {
+  .generate-new-key-dialog .input-size {
     width: 300px;
   }
 </style>

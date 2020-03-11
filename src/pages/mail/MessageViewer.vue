@@ -614,7 +614,7 @@ export default {
       if (oPublicFromKey) {
         let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicFromKey])
         if (sVerifiedData) {
-          this.text = sVerifiedData
+          this.text = sVerifiedData.replace(/\r\n/g, '<br />').replace(/\n/g, '<br />')
           this.isVerified = true
           this.verifyReport = 'Message was successfully verified.'
         } else {

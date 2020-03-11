@@ -132,9 +132,10 @@ export default {
       let oFolder = this.$store.getters['mail/getFolderByFullName'](this.message.Folder)
       let aAddressesCollection = []
       if (oFolder && (oFolder.Type === mailEnums.FolderType.Drafts || oFolder.Type === mailEnums.FolderType.Sent)) {
-        if (this.message.To && _.isArray(this.message.To['@Collection'])) {
-          aAddressesCollection = this.message.To['@Collection']
-        }
+        let aToCollection = this.message.To && _.isArray(this.message.To['@Collection']) ? this.message.To['@Collection'] : []
+        let aCcCollection = this.message.Cc && _.isArray(this.message.Cc['@Collection']) ? this.message.Cc['@Collection'] : []
+        let aBccCollection = this.message.Bcc && _.isArray(this.message.Bcc['@Collection']) ? this.message.Bcc['@Collection'] : []
+        aAddressesCollection = aToCollection.concat(aCcCollection, aBccCollection)
       } else {
         if (this.message.From && _.isArray(this.message.From['@Collection'])) {
           aAddressesCollection = this.message.From['@Collection']

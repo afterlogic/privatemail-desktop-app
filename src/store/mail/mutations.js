@@ -228,6 +228,13 @@ export function setMessagesDeleted (state, { aUids, oToFolder }) {
   }
 }
 
+export function setCurrentFolderEmpty (state) {
+  state.currentMessages = []
+  state.totalMessagesCount = 0
+  state.currentFolderList.Current.Count = 0
+  state.currentFolderList.Current.UnseenCount = 0
+}
+
 export function setMessageFlagged (state, { sUid, bFlagged }) {
   _.each(state.currentMessages, function (oMessage) {
     if (sUid === oMessage.Uid) {

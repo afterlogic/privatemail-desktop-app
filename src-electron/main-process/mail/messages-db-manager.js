@@ -493,4 +493,23 @@ export default {
       }
     })
   },
+
+  deleteAllMessages: function ({ iAccountId, sFolderFullName }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let aParams = [iAccountId, sFolderFullName]
+          oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ?', aParams, (oError) => {
+            if (oError) {
+              reject({ sMethod: 'deleteAllMessages', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'deleteAllMessages', sError: 'No DB connection' })
+      }
+    })
+  },
 }

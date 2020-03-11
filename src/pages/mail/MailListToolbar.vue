@@ -33,7 +33,24 @@
       <q-tooltip>Delete</q-tooltip>
     </span>
 
-    <span>
+    <span v-if=isSpamFolder>
+      <q-btn flat no-wrap color="primary" icon="delete_forever"
+        @click="emptySpam" />
+      <q-tooltip>Empty spam</q-tooltip>
+    </span>
+
+    <span v-if=isTrashFolder>
+      <q-btn flat no-wrap color="primary" icon="delete_forever"
+        @click="emptyTrash" />
+      <q-tooltip>Empty trash</q-tooltip>
+    </span>
+
+    <span v-if=isSpamFolder>
+      <q-btn flat color="primary" icon="check_circle_outline" :disable="checkedCount === 0" @click="moveMessagesToInbox" />
+      <q-tooltip>Not Spam</q-tooltip>
+    </span>
+
+    <span v-if="!isSpamFolder">
       <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam" />
       <q-tooltip>Spam</q-tooltip>
     </span>
@@ -52,6 +69,18 @@
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Delete" color="primary" @click="deleteMessagesPermanently" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="confirmDeleteAllPermanently" persistent>
+      <q-card>
+        <q-card-section class="row items-center">
+          <span class="q-ml-sm">All messages in this folder will be permanently deleted.</span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Ok" color="primary" @click="deleteAllMessagesPermanently" v-close-popup />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -85,6 +114,7 @@ export default {
   data () {
     return {
       confirmDeletePermanently: false,
+      confirmDeleteAllPermanently: false,
       iRefreshTimer: 0,
     }
   },
@@ -107,6 +137,12 @@ export default {
     },
     currentFolder () {
       return this.$store.getters['mail/getCurrentFolder']
+    },
+    isSpamFolder () {
+      return this.currentFolder && this.currentFolder.Type === mailEnums.FolderType.Spam
+    },
+    isTrashFolder () {
+      return this.currentFolder && this.currentFolder.Type === mailEnums.FolderType.Trash
     },
   },
 
@@ -144,9 +180,7 @@ export default {
       }
     },
     deleteMessages () {
-      if (this.currentFolder.Type === mailEnums.FolderType.Spam) {
-        this.deleteMessagesPermanently()
-      } else if (this.currentFolder.Type === mailEnums.FolderType.Trash) {
+      if (this.currentFolder.Type === mailEnums.FolderType.Spam || this.currentFolder.Type === mailEnums.FolderType.Trash) {
         this.confirmDeletePermanently = true
       } else {
         this.moveMessagesToTrash()
@@ -159,6 +193,19 @@ export default {
     moveMessagesToSpam () {
       let sSpamFullName = this.$store.getters['mail/getSpamFullName']
       this.moveMessagesToFolder(sSpamFullName)
+    },
+    moveMessagesToInbox () {
+      let sInboxFullName = this.$store.getters['mail/getInboxFullName']
+      this.moveMessagesToFolder(sInboxFullName)
+    },
+    emptySpam () {
+      this.confirmDeleteAllPermanently = true
+    },
+    emptyTrash () {
+      this.confirmDeleteAllPermanently = true
+    },
+    deleteAllMessagesPermanently () {
+      this.$store.dispatch('mail/asyncClearCurrentFolder')
     },
     moveMessagesToFolder (sFolder) {
       if (this.checkedCount > 0) {

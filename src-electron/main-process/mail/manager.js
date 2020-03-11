@@ -225,6 +225,30 @@ export default {
       })
     })
 
+    ipcMain.on('mail-empty-folder', (oEvent, { iAccountId, sFolderFullName, sApiHost, sAuthToken }) => {
+      appState.resetLastFoldersInfoTime(iAccountId)
+      appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'ClearFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderFullName,
+        },
+        fCallback: async (bResult, oError) => {
+          appState.resetLastFoldersInfoTime(iAccountId)
+          appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)
+          if (bResult) {
+            await foldersDbManager.deleteAllMessages({ iAccountId, sFolderFullName })
+            await messagesDbManager.deleteAllMessages({ iAccountId, sFolderFullName })
+          }
+          oEvent.sender.send('mail-empty-folder', { bResult, oError })
+        },
+      })
+    })
+
     ipcMain.on('mail-move-messages', (oEvent, { iAccountId, sFolderFullName, sToFolderFullName, aUids, sApiHost, sAuthToken }) => {
       appState.resetLastFoldersInfoTime(iAccountId)
       appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)

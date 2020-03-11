@@ -167,7 +167,7 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
 ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError }) => {
   store.commit('mail/setFoldersSyncing', false)
   if (oError || sError) {
-    notification.showError(errors.getText(oError, sError || 'Error occured while checking mail'))
+    notification.showError(errors.getText(oError, sError || 'Error occurred while checking mail'))
   } else {
     if (bHasChanges) {
       store.dispatch('mail/asyncGetFolderList', {})
@@ -231,7 +231,7 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
         if (sError || oError) {
           commit('setMessagesSyncing', false)
-          notification.showError(errors.getText(oError, sError || 'Error occured while getting messages'))
+          notification.showError(errors.getText(oError, sError || 'Error occurred while getting messages'))
         } else if (iAccountId === getters.getCurrentAccountId) {
           let bSameList = sFolderFullName === getters.getCurrentFolderFullName &&
                           iPage === getters.getCurrentPage &&
@@ -321,7 +321,7 @@ export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUi
   ipcRenderer.removeAllListeners('mail-delete-messages')
   ipcRenderer.on('mail-delete-messages', (event, { bResult, oError }) => {
     if (!bResult) {
-      notification.showError(errors.getText(oError, 'Error occured while deleting of message(s).'))
+      notification.showError(errors.getText(oError, 'Error occurred while deleting of message(s).'))
     }
     _refreshAfterGroupOperation ('mail-delete-messages', { aUids }, bResult)
   })
@@ -342,11 +342,33 @@ export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUi
   })
 }
 
+export function asyncClearCurrentFolder ({ state, commit, dispatch, getters }) {
+  ipcRenderer.removeAllListeners('mail-empty-folder')
+  ipcRenderer.on('mail-empty-folder', (event, { bResult, oError }) => {
+    if (!bResult) {
+      notification.showError(errors.getText(oError, 'Error occurred while emptying of folder.'))
+    }
+    _refreshAfterGroupOperation ('mail-empty-folder', { }, bResult)
+  })
+  commit('setCurrentFolderEmpty')
+  let oCurrentMessage = getters.getCurrentMessage
+  if (oCurrentMessage) {
+    commit('setCurrentMessage', null)
+  }
+  aOperationStarted['mail-empty-folder'] = { }
+  ipcRenderer.send('mail-empty-folder', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: getters.getCurrentAccountId,
+    sFolderFullName: getters.getCurrentFolderFullName,
+  })
+}
+
 export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters }, { aUids, sToFolderFullName }) {
   ipcRenderer.removeAllListeners('mail-move-messages')
   ipcRenderer.on('mail-move-messages', (event, { bResult, oError }) => {
     if (!bResult) {
-      notification.showError(errors.getText(oError, 'Error occured while moving of message(s).'))
+      notification.showError(errors.getText(oError, 'Error occurred while moving of message(s).'))
     }
     _refreshAfterGroupOperation ('mail-move-messages', { aUids, sToFolderFullName }, bResult)
   })

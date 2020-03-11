@@ -258,4 +258,10 @@ export default {
       }
     })
   },
+  
+  deleteAllMessages: function ({ iAccountId, sFolderFullName }) {
+    return new Promise((resolve, reject) => {
+      this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: [] }).then(resolve, reject)
+    })
+  },
 }

@@ -198,6 +198,11 @@ export default {
     checkboxAll: function (val, oldval) {
       this.$root.$emit('check-all-messages', val)
     },
+    checkedUids: function () {
+      if (this.checkedUids.length === 0) {
+        this.checkboxAll = false
+      }
+    },
     messages: function (val, oldVal) {
       var aCurrentUids = _.map(this.messages, function (oMessage) {
         return oMessage.Uid

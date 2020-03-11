@@ -114,6 +114,13 @@ export default {
     deleted: function () {
       if (this.checked) {
         this.$root.$emit('message-checked', this.message.Uid, !this.deleted)
+        if (this.message.Threads && this.message.Threads.length > 0) {
+          _.each(this.message.Threads, (oThreadMessage) => {
+            if (oThreadMessage.Deleted) {
+              this.$root.$emit('message-checked', oThreadMessage.Uid, false)
+            }
+          })
+        }
       }
     },
   },

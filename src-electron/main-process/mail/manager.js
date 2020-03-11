@@ -212,14 +212,14 @@ export default {
           if (bResult) {
             foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
               () => {
-                oEvent.sender.send('mail-delete-messages', { bResult, oError })
+                oEvent.sender.send('mail-delete-messages', { bResult, iAccountId, sFolderFullName, aUids, oError })
               },
               (oResult) => {
-                oEvent.sender.send('mail-delete-messages', oResult)
+                oEvent.sender.send('mail-delete-messages', _.extend({ iAccountId, sFolderFullName, aUids }, oResult))
               }
             )
           } else {
-            oEvent.sender.send('mail-delete-messages', { bResult, oError })
+            oEvent.sender.send('mail-delete-messages', { bResult, iAccountId, sFolderFullName, aUids, oError })
           }
         },
       })
@@ -244,7 +244,7 @@ export default {
             await foldersDbManager.deleteAllMessages({ iAccountId, sFolderFullName })
             await messagesDbManager.deleteAllMessages({ iAccountId, sFolderFullName })
           }
-          oEvent.sender.send('mail-empty-folder', { bResult, oError })
+          oEvent.sender.send('mail-empty-folder', { bResult, iAccountId, sFolderFullName, oError })
         },
       })
     })
@@ -269,14 +269,14 @@ export default {
           if (bResult) {
             foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
               () => {
-                oEvent.sender.send('mail-move-messages', { bResult, oError })
+                oEvent.sender.send('mail-move-messages', { bResult, iAccountId, sFolderFullName, sToFolderFullName, aUids, oError })
               },
               (oResult) => {
-                oEvent.sender.send('mail-move-messages', oResult)
+                oEvent.sender.send('mail-move-messages', _.assignIn({ iAccountId, sFolderFullName, sToFolderFullName, aUids }, oResult))
               }
             )
           } else {
-            oEvent.sender.send('mail-move-messages', { bResult, oError })
+            oEvent.sender.send('mail-move-messages', { bResult, iAccountId, sFolderFullName, sToFolderFullName, aUids, oError })
           }
         },
       })
@@ -313,7 +313,7 @@ export default {
               await foldersDbManager.setMessagesSeen({ iAccountId, sFolderFullName, aUids, bIsSeen })
             }
           }
-          oEvent.sender.send('mail-set-messages-seen', { bResult, oError })
+          oEvent.sender.send('mail-set-messages-seen', { bResult, iAccountId, sFolderFullName, aUids, bIsSeen, oError })
         },
       })
     })
@@ -339,7 +339,7 @@ export default {
             await messagesDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
             await foldersDbManager.setMessageFlagged({ iAccountId, sFolderFullName, sUid, bFlagged })
           }
-          oEvent.sender.send('mail-set-messages-flagged', { bResult, oError })
+          oEvent.sender.send('mail-set-messages-flagged', { bResult, iAccountId, sFolderFullName, sUid, bFlagged, oError })
         },
       })
     })

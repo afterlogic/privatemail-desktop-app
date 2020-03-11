@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron'
 import store from 'src/store'
+import moment from 'moment'
 import _ from 'lodash'
 
 import errors from 'src/utils/errors.js'
@@ -12,17 +13,41 @@ import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 
-let aOperationStarted = {}
-function _refreshAfterGroupOperation (sOperationName, oParameters, bResult) {
-  if (_.isEqual(aOperationStarted[sOperationName], oParameters)) {
-    delete aOperationStarted[sOperationName]
-    if (_.isEmpty(aOperationStarted)) {
-      if (bResult) {
-        store.dispatch('mail/asyncGetMessages', {})
-      }
-      store.dispatch('mail/asyncRefresh')
-    }
+let oAllStartedOperations = {}
+
+function _addStartedGroupOperation (sOperationName, oParameters) {
+  if (!_.isArray(oAllStartedOperations[sOperationName])) {
+    oAllStartedOperations[sOperationName] = []
   }
+  oAllStartedOperations[sOperationName].push({ oParameters, oTime: moment() })
+}
+
+function _removeStartedGroupOperation (sOperationName, oParameters, bResult) {
+  if (!_.isArray(oAllStartedOperations[sOperationName])) {
+    oAllStartedOperations[sOperationName] = []
+  }
+  oAllStartedOperations[sOperationName] = _.filter(oAllStartedOperations[sOperationName], function (oOperationData) {
+    let iDiff = moment().diff(oOperationData.oTime, 'seconds')
+    return !_.isEqual(oOperationData.oParameters, oParameters) && iDiff < 60
+  })
+  if (_.isEmpty(oAllStartedOperations[sOperationName])) {
+    delete oAllStartedOperations[sOperationName]
+  }
+  if (_.isEmpty(oAllStartedOperations)) {
+    if (bResult) {
+      store.dispatch('mail/asyncGetMessages', {})
+    }
+    store.dispatch('mail/asyncRefresh')
+  }
+}
+
+function _hasStartedGroupOperation (iAccountId, sFolderFullName) {
+  return !!_.find(oAllStartedOperations, (aStartedOperations) => {
+    return !!_.find(aStartedOperations, (oOperationData) => {
+      let iDiff = moment().diff(oOperationData.oTime, 'seconds')
+      return oOperationData.oParameters.iAccountId === iAccountId && oOperationData.oParameters.sFolderFullName === sFolderFullName && iDiff < 60
+    })
+  })
 }
 
 export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSettingsCallback) {
@@ -191,6 +216,26 @@ export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders)
   }
 }
 
+ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
+  if (!_hasStartedGroupOperation(iAccountId, sFolderFullName)) {
+    if (sError || oError) {
+      store.commit('mail/setMessagesSyncing', false)
+      notification.showError(errors.getText(oError, sError || 'Error occurred while getting messages'))
+    } else if (iAccountId === store.getters['mail/getCurrentAccountId']) {
+      let bSameList = sFolderFullName === store.getters['mail/getCurrentFolderFullName'] &&
+                      iPage === store.getters['mail/getCurrentPage'] &&
+                      sSearch === store.getters['mail/getCurrentSearch'] &&
+                      sFilter === store.getters['mail/getCurrentFilter']
+      if (bSameList) {
+        store.commit('mail/setMessagesSyncing', false)
+        store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
+        store.commit('mail/setCurrentMessages', aMessages)
+        store.commit('mail/setCurrentAdvancedSearch', oAdvancedSearch)
+      }
+    }
+  }
+})
+
 export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolderFullName, iPage, sSearch, sFilter }) {
   let oCurrentAccount = getters.getCurrentAccount
   if (store.getters['user/isAuthorized'] && oCurrentAccount) {
@@ -227,24 +272,6 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
 
       let oFolder = getters.getFolderByFullName(sFolderFullName)
 
-      ipcRenderer.removeAllListeners('mail-get-messages')
-      ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
-        if (sError || oError) {
-          commit('setMessagesSyncing', false)
-          notification.showError(errors.getText(oError, sError || 'Error occurred while getting messages'))
-        } else if (iAccountId === getters.getCurrentAccountId) {
-          let bSameList = sFolderFullName === getters.getCurrentFolderFullName &&
-                          iPage === getters.getCurrentPage &&
-                          sSearch === getters.getCurrentSearch &&
-                          sFilter === getters.getCurrentFilter
-          if (bSameList) {
-            commit('setMessagesSyncing', false)
-            commit('setCurrentMessagesTotalCount', iTotalCount)
-            commit('setCurrentMessages', aMessages)
-            commit('setCurrentAdvancedSearch', oAdvancedSearch)
-          }
-        }
-      })
       ipcRenderer.send('mail-get-messages', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
@@ -284,47 +311,52 @@ export function setCurrentMessage ({ commit, dispatch }, oMessage) {
   commit('setCurrentMessage', oMessage)
 }
 
+ipcRenderer.on('mail-set-messages-seen', (event, { bResult, iAccountId, sFolderFullName, aUids, bIsSeen, oError }) => {
+  _removeStartedGroupOperation('mail-set-messages-seen', { iAccountId, sFolderFullName, aUids, bIsSeen }, bResult)
+})
+
 export function asyncSetMessagesRead ({ state, commit, dispatch, getters }, { aUids, bIsSeen }) {
-  ipcRenderer.removeAllListeners('mail-set-messages-seen')
-  ipcRenderer.on('mail-set-messages-seen', (event, { bResult, oError }) => {
-    _refreshAfterGroupOperation ('mail-set-messages-seen', { aUids, bIsSeen }, bResult)
-  })
-  aOperationStarted['mail-set-messages-seen'] = { aUids, bIsSeen }
   commit('setMessagesRead', { aUids, bIsSeen })
+
+  let iAccountId = getters.getCurrentAccountId
+  let sFolderFullName = getters.getCurrentFolderFullName
+  _addStartedGroupOperation('mail-set-messages-seen', { iAccountId, sFolderFullName, aUids, bIsSeen })
+
   ipcRenderer.send('mail-set-messages-seen', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
+    iAccountId,
+    sFolderFullName,
     aUids,
     bIsSeen,
   })
 }
 
 export function asyncSetAllMessagesRead ({ state, commit, dispatch, getters }) {
-  ipcRenderer.removeAllListeners('mail-set-messages-seen')
-  ipcRenderer.on('mail-set-messages-seen', (event, { bResult, oError }) => {
-    _refreshAfterGroupOperation ('mail-set-messages-seen', {}, bResult)
-  })
-  aOperationStarted['mail-set-messages-seen'] = { }
   commit('setAllMessagesRead')
+
+  let iAccountId = getters.getCurrentAccountId
+  let sFolderFullName = getters.getCurrentFolderFullName
+  let bIsSeen = true
+  _addStartedGroupOperation('mail-set-messages-seen', { iAccountId, sFolderFullName, aUids: undefined, bIsSeen })
+
   ipcRenderer.send('mail-set-messages-seen', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
-    bIsSeen: true,
+    iAccountId,
+    sFolderFullName,
+    bIsSeen,
   })
 }
 
+ipcRenderer.on('mail-delete-messages', (event, { bResult, iAccountId, sFolderFullName, aUids, oError }) => {
+  if (!bResult) {
+    notification.showError(errors.getText(oError, 'Error occurred while deleting of message(s).'))
+  }
+  _removeStartedGroupOperation('mail-delete-messages', { iAccountId, sFolderFullName, aUids }, bResult)
+})
+
 export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUids }) {
-  ipcRenderer.removeAllListeners('mail-delete-messages')
-  ipcRenderer.on('mail-delete-messages', (event, { bResult, oError }) => {
-    if (!bResult) {
-      notification.showError(errors.getText(oError, 'Error occurred while deleting of message(s).'))
-    }
-    _refreshAfterGroupOperation ('mail-delete-messages', { aUids }, bResult)
-  })
   commit('setMessagesDeleted', {
     aUids,
   })
@@ -332,46 +364,54 @@ export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUi
   if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
     commit('setCurrentMessage', null)
   }
-  aOperationStarted['mail-delete-messages'] = { aUids }
+
+  let iAccountId = getters.getCurrentAccountId
+  let sFolderFullName = getters.getCurrentFolderFullName
+  _addStartedGroupOperation('mail-delete-messages', { iAccountId, sFolderFullName, aUids })
+
   ipcRenderer.send('mail-delete-messages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
+    iAccountId,
+    sFolderFullName,
     aUids,
   })
 }
 
+ipcRenderer.on('mail-empty-folder', (event, { bResult, iAccountId, sFolderFullName, oError }) => {
+  if (!bResult) {
+    notification.showError(errors.getText(oError, 'Error occurred while emptying of folder.'))
+  }
+  _removeStartedGroupOperation('mail-empty-folder', { iAccountId, sFolderFullName }, bResult)
+})
+
 export function asyncClearCurrentFolder ({ state, commit, dispatch, getters }) {
-  ipcRenderer.removeAllListeners('mail-empty-folder')
-  ipcRenderer.on('mail-empty-folder', (event, { bResult, oError }) => {
-    if (!bResult) {
-      notification.showError(errors.getText(oError, 'Error occurred while emptying of folder.'))
-    }
-    _refreshAfterGroupOperation ('mail-empty-folder', { }, bResult)
-  })
   commit('setCurrentFolderEmpty')
   let oCurrentMessage = getters.getCurrentMessage
   if (oCurrentMessage) {
     commit('setCurrentMessage', null)
   }
-  aOperationStarted['mail-empty-folder'] = { }
+
+  let iAccountId = getters.getCurrentAccountId
+  let sFolderFullName = getters.getCurrentFolderFullName
+  _addStartedGroupOperation('mail-empty-folder', { iAccountId, sFolderFullName })
+
   ipcRenderer.send('mail-empty-folder', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
+    iAccountId,
+    sFolderFullName,
   })
 }
 
+ipcRenderer.on('mail-move-messages', (event, { bResult, iAccountId, sFolderFullName, sToFolderFullName, aUids, oError }) => {
+  if (!bResult) {
+    notification.showError(errors.getText(oError, 'Error occurred while moving of message(s).'))
+  }
+  _removeStartedGroupOperation('mail-move-messages', { iAccountId, sFolderFullName, sToFolderFullName, aUids }, bResult)
+})
+
 export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters }, { aUids, sToFolderFullName }) {
-  ipcRenderer.removeAllListeners('mail-move-messages')
-  ipcRenderer.on('mail-move-messages', (event, { bResult, oError }) => {
-    if (!bResult) {
-      notification.showError(errors.getText(oError, 'Error occurred while moving of message(s).'))
-    }
-    _refreshAfterGroupOperation ('mail-move-messages', { aUids, sToFolderFullName }, bResult)
-  })
   commit('setMessagesDeleted', {
     aUids,
     oToFolder: getters.getFolderByFullName(sToFolderFullName),
@@ -380,29 +420,37 @@ export function asyncMoveMessagesToFolder ({ state, commit, dispatch, getters },
   if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
     commit('setCurrentMessage', null)
   }
-  aOperationStarted['mail-move-messages'] = { aUids, sToFolderFullName }
+
+  let iAccountId = getters.getCurrentAccountId
+  let sFolderFullName = getters.getCurrentFolderFullName
+  _addStartedGroupOperation('mail-move-messages', { iAccountId, sFolderFullName, sToFolderFullName, aUids })
+
   ipcRenderer.send('mail-move-messages', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
+    iAccountId,
+    sFolderFullName,
     sToFolderFullName,
     aUids,
   })
 }
 
+ipcRenderer.on('mail-set-messages-flagged', (event, { bResult, iAccountId, sFolderFullName, sUid, bFlagged, oError }) => {
+  _removeStartedGroupOperation('mail-set-messages-flagged', { iAccountId, sFolderFullName, sUid, bFlagged }, bResult)
+})
+
 export function asyncSetMessageFlagged ({ state, commit, dispatch, getters }, { sUid, bFlagged }) {
-  ipcRenderer.removeAllListeners('mail-set-messages-flagged')
-  ipcRenderer.on('mail-set-messages-flagged', (event, { bResult, oError }) => {
-    _refreshAfterGroupOperation ('mail-set-messages-flagged', { sUid, bFlagged }, bResult)
-  })
   commit('setMessageFlagged', { sUid, bFlagged })
-  aOperationStarted['mail-set-messages-flagged'] = { sUid, bFlagged }
+
+  let iAccountId = getters.getCurrentAccountId
+  let sFolderFullName = getters.getCurrentFolderFullName
+  _addStartedGroupOperation('mail-set-messages-flagged', { iAccountId, sFolderFullName, sUid, bFlagged })
+
   ipcRenderer.send('mail-set-messages-flagged', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
-    iAccountId: getters.getCurrentAccountId,
-    sFolderFullName: getters.getCurrentFolderFullName,
+    iAccountId,
+    sFolderFullName,
     sUid,
     bFlagged,
   })

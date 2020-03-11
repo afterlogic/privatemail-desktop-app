@@ -772,7 +772,6 @@ export default {
       }
     },
     existingServerSelected () {
-      console.log('oNewAccountServer', this.oNewAccountServer)
       if (this.existingServerSelected) {
         let oServer = this.oNewAccountServer.value
         this.sNewAccountImapServer = oServer.sIncomingServer

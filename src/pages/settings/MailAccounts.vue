@@ -783,7 +783,7 @@ export default {
         this.bNewAccountSmtpSsl = oServer.bOutgoingUseSsl
         let sSmtpAuthTypeUseUserCredentials = '2'
         let sSmtpAuthTypeNoAuthentication = '0'
-        this.bNewAccountSmtpAuth = sSmtpAuthTypeUseUserCredentials === '0'
+        this.bNewAccountSmtpAuth = sSmtpAuthTypeUseUserCredentials === oServer.sSmtpAuthType
       } else {
         this.sNewAccountImapServer = ''
         this.iNewAccountImapPort = 143

@@ -2,6 +2,7 @@
     <q-dialog
       v-model="dialog"
       persistent
+      content-class="compose-dialog"
       :seamless="maximizedToggle"
       :maximized="maximizedToggle"
       transition-show="slide-up"
@@ -312,7 +313,10 @@
                   <q-tooltip>Pick Files</q-tooltip>
                 </q-btn>
               </div>
-              <q-separator />
+              <div class="col-auto">
+                <q-separator />
+              </div>
+              
               <div class="attachments-uploader col column full-height full-width">
                 <q-uploader
                     style="max-height: initial"
@@ -369,15 +373,15 @@
                                 <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }} / </span>{{ attach.getProgressPercent() }}%
                               </q-item-label>
                             </q-item-section>
-                            <q-item-section
+                            <q-item-section side 
                               v-if="attach.sThumbnailLink"
-                              thumbnail
-                              class="gt-xs"
+                              class="gt-xs thumb"
+                              
                             >
                               <img :src="sApiHost + '/' + attach.sThumbnailLink">
                             </q-item-section>
 
-                            <q-item-section top side>
+                            <q-item-section  side>
                               <q-btn
                                 v-if="attach.iProgressPercent === 100"
                                 class="gt-xs"
@@ -454,6 +458,18 @@
   }
   .q-uploader__list {
     padding: 0px;
+    overflow: hidden;
+
+    .thumb {
+      width: 100px;
+      max-height: 80px;
+      justify-content: flex-start;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+      }
+    }
   }
   .q-uploader__dnd {
     outline: 0px;
@@ -464,18 +480,23 @@
   }
 }
 
-.q-dialog__inner--maximized {
-  align-items: flex-end;
-  justify-content: flex-end;
-
-  & > div {
-    height: 60px;
-    width: 500px;
-    max-height: 100vh;
-    max-width: 100vw;
-    border-radius: 0 !important;
+.compose-dialog {
+  .q-dialog__inner > div {
+    overflow: hidden;
   }
-} 
+  .q-dialog__inner--maximized {
+    align-items: flex-end;
+    justify-content: flex-end;
+
+    & > div {
+      height: 60px;
+      width: 500px;
+      max-height: 100vh;
+      max-width: 100vw;
+      border-radius: 0 !important;
+    }
+  } 
+}
 
 .arrowless {
   .q-btn-dropdown__arrow {

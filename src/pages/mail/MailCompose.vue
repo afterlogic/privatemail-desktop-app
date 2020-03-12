@@ -714,13 +714,13 @@ export default {
     getRecipientOptions (sSearch, update, abort, sOptionsName, sSelectName) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let sEncodedSearch = textUtils.encodeHtml(sSearch)
-        let bHasExactlySearch = false
+        let iExactlySearchIndex = -1
         let aOptions = []
-        _.each(aContacts, function (oContactData) {
+        _.each(aContacts, function (oContactData, iIndex) {
           let oContact = new cContact(oContactData)
           let sEncodedFull = textUtils.encodeHtml(oContact.getFull())
           if (sEncodedSearch === sEncodedFull) {
-            bHasExactlySearch = true
+            iExactlySearchIndex = iIndex
           }
           aOptions.push({
             label: sEncodedFull,
@@ -729,7 +729,7 @@ export default {
             short: oContact.FullName || oContact.ViewEmail,
           })
         })
-        let bAddFirstOption = sEncodedSearch !== '' && !bHasExactlySearch
+        let bAddFirstOption = sEncodedSearch !== '' && iExactlySearchIndex === -1
         if (bAddFirstOption) {
           let oEmailParts = addressUtils.getEmailParts(sSearch)
           aOptions.unshift({
@@ -744,6 +744,9 @@ export default {
           if (bAddFirstOption) {
             await this.$nextTick()
             this.$refs[sSelectName].setOptionIndex(0)
+          } else if (iExactlySearchIndex >= 0) {
+            await this.$nextTick()
+            this.$refs[sSelectName].setOptionIndex(iExactlySearchIndex)
           }
         })
       })

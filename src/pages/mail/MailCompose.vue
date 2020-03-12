@@ -306,7 +306,7 @@
                 </q-uploader>
               </div>
             </div>
-            <div class="col-auto q-pa-md column full-height" style="min-width: 350px;">
+            <div class="col-auto q-py-md q-pr-md column full-height" style="min-width: 350px;">
               <div class="col-auto column items-center">
                 <q-btn no-wrap no-caps unelevated icon="attachment" @click="pickFiles">
                   <q-tooltip>Pick Files</q-tooltip>
@@ -314,10 +314,9 @@
               </div>
               <q-separator />
               <div class="attachments-uploader col column full-height full-width">
-              <!-- <q-scroll-area class="attachments-uploader col column full-height full-width test"> -->
                 <q-uploader
                     style="max-height: initial"
-                    class="col full-height"
+                    class="col full-height full-width"
                     flat
                     ref="uploader"
                     multiple
@@ -434,8 +433,7 @@
                       </q-list> -->
                     </template>
                   </q-uploader>
-            </div>
-              <!-- </q-scroll-area> -->
+              </div>
             </div>
           </div>
         </div>

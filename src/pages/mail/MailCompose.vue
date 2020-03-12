@@ -1152,7 +1152,11 @@ export default {
       this.clearAutosaveTimer()
       if (this.dialog && mailSettings.bAllowAutosaveInDrafts && mailSettings.iAutoSaveIntervalSeconds > 0) {
         this.iAutosaveTimer = setTimeout(() => {
-          this.save()
+          if (this.isMessageDataChanged()) {
+            this.save()
+          } else {
+            this.setAutosaveTimer()
+          }
         }, mailSettings.iAutoSaveIntervalSeconds * 1000)
       }
     },

@@ -42,6 +42,7 @@ export default {
       )
     } else {
       oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
+      this._refreshMessagesInNotCurrentFolders(iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
     }
   },
 

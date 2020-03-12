@@ -204,16 +204,19 @@ export function setAllMessagesRead (state) {
 }
 
 export function setMessagesDeleted (state, { aUids, oToFolder }) {
+  let iDeletedCount = 0
   let iUnseenDeletedCount = 0
   _.each(state.currentMessages, function (oMessage) {
     if (aUids.indexOf(oMessage.Uid) >= 0) {
       oMessage.Deleted = true
+      iDeletedCount++
       if (!oMessage.IsSeen) {
         iUnseenDeletedCount++
       }
     }
     _.each(oMessage.Threads, function (oThreadMessage) {
       if (aUids.indexOf(oThreadMessage.Uid) >= 0) {
+        iDeletedCount++
         oThreadMessage.Deleted = true
         if (!oThreadMessage.IsSeen) {
           iUnseenDeletedCount++
@@ -221,6 +224,8 @@ export function setMessagesDeleted (state, { aUids, oToFolder }) {
       }
     })
   })
+  let iCount = state.currentFolderList.Current.Count - iDeletedCount
+  state.currentFolderList.Current.Count = iCount > 0 ? iCount : 0
   let iUnseenCount = state.currentFolderList.Current.UnseenCount - iUnseenDeletedCount
   state.currentFolderList.Current.UnseenCount = iUnseenCount > 0 ? iUnseenCount : 0
   if (oToFolder) {

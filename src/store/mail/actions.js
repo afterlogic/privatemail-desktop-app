@@ -231,6 +231,17 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
         store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
         store.commit('mail/setCurrentMessages', aMessages)
         store.commit('mail/setCurrentAdvancedSearch', oAdvancedSearch)
+        let oCurrentMessage = store.getters['mail/getCurrentMessage']
+        if (oCurrentMessage) {
+          let bListHasCurrentMessage = !!_.find(aMessages, function (oMessage) {
+            return oMessage.Uid === oCurrentMessage.Uid || !!_.find(oMessage.Threads, function (oThreadMessage) {
+              return oThreadMessage.Uid === oCurrentMessage.Uid
+            })
+          })
+          if (!bListHasCurrentMessage) {
+            store.commit('mail/setCurrentMessage', null)
+          }
+        }
       }
     }
   }

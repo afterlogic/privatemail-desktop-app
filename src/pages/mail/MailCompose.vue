@@ -75,7 +75,7 @@
           </q-btn>
         </q-toolbar>
       </div>
-      <div class="column no-wrap bg-white non-selectable" style="min-width: 1100px;" v-show="!maximizedToggle">
+      <div class="column no-wrap bg-white non-selectable" style="width: 90%; max-width: initial; height: 90%; " v-show="!maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />
@@ -94,7 +94,7 @@
         </q-toolbar>
         <div class="col">
           <div class="row full-height full-width">
-            <div class="col column">
+            <div class="col column full-height">
               <div class="col-auto">
                 <q-list>
                   <q-item v-if="allIdentities.length > 1">
@@ -237,8 +237,11 @@
                   },
                 }" -->
               </div>
-              <div class="col q-pa-md full-width"> 
-                <q-editor v-model="editortext" ref="editor" height="400px" class="full-height"
+              <div class="col q-pa-md full-width "> 
+                <q-editor class="full-height"
+                  ref="editor" 
+                  v-model="editortext"
+                  height="calc(100% - 32px)"
                   :disable="disableEditor"
                   :toolbar="editorToolbar"
                   :fonts="{
@@ -303,14 +306,15 @@
                 </q-uploader>
               </div>
             </div>
-            <div class="col-auto q-pa-md column" style="min-width: 400px;">
-              <div class="col-auto items-center">
-                <q-btn no-wrap no-caps unelevated type="a" icon="attachment" @click="pickFiles">
+            <div class="col-auto q-pa-md column full-height" style="min-width: 350px;">
+              <div class="col-auto column items-center">
+                <q-btn no-wrap no-caps unelevated icon="attachment" @click="pickFiles">
                   <q-tooltip>Pick Files</q-tooltip>
                 </q-btn>
-                <q-separator />
               </div>
-              <q-scroll-area class="col column full-height full-width">
+              <q-separator />
+              <div class="attachments-uploader col column full-height full-width">
+              <!-- <q-scroll-area class="attachments-uploader col column full-height full-width test"> -->
                 <q-uploader
                     style="max-height: initial"
                     class="col full-height"
@@ -325,7 +329,7 @@
                     @failed="onFileUploadFailed"
                   >
                     <template v-slot:header="scope">
-                      <div class="row no-wrap items-center q-pa-sm q-gutter-xs" style="opacity: 0; height: 0px;">
+                      <div class="" style="opacity: 0; height: 0px;">
                         <!-- <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
                           <q-tooltip>Clear All</q-tooltip>
                         </q-btn>
@@ -351,42 +355,44 @@
                         </q-btn> -->
                       </div>
                     </template>
-                    <template v-slot:list="scope" class="ull-height">
-                      <q-list separator>
-                        <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath || attach.sHash">
-                          <q-item-section>
-                            <q-item-label class="full-width ellipsis">
-                              {{ attach.sFileName }}
-                            </q-item-label>
-                            <q-item-label caption>
-                              Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
-                            </q-item-label>
-                            <q-item-label caption>
-                              <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }} / </span>{{ attach.getProgressPercent() }}%
-                            </q-item-label>
-                          </q-item-section>
-                          <q-item-section
-                            v-if="attach.sThumbnailLink"
-                            thumbnail
-                            class="gt-xs"
-                          >
-                            <img :src="sApiHost + '/' + attach.sThumbnailLink">
-                          </q-item-section>
-
-                          <q-item-section top side>
-                            <q-btn
-                              v-if="attach.iProgressPercent === 100"
+                    <template v-slot:list="scope" class="full-height">
+                      <q-scroll-area class="full-height full-width">
+                        <q-list separator>
+                          <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath || attach.sHash">
+                            <q-item-section>
+                              <q-item-label class="full-width ellipsis">
+                                {{ attach.sFileName }}
+                              </q-item-label>
+                              <q-item-label caption>
+                                Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
+                              </q-item-label>
+                              <q-item-label caption>
+                                <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }} / </span>{{ attach.getProgressPercent() }}%
+                              </q-item-label>
+                            </q-item-section>
+                            <q-item-section
+                              v-if="attach.sThumbnailLink"
+                              thumbnail
                               class="gt-xs"
-                              size="12px"
-                              flat
-                              dense
-                              round
-                              icon="delete"
-                              @click="removeAttachment(scope, attach)"
-                            />
-                          </q-item-section>
-                        </q-item>
-                      </q-list>
+                            >
+                              <img :src="sApiHost + '/' + attach.sThumbnailLink">
+                            </q-item-section>
+
+                            <q-item-section top side>
+                              <q-btn
+                                v-if="attach.iProgressPercent === 100"
+                                class="gt-xs"
+                                size="12px"
+                                flat
+                                dense
+                                round
+                                icon="delete"
+                                @click="removeAttachment(scope, attach)"
+                              />
+                            </q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-scroll-area>
                       <!-- <q-list separator>
 
                         <q-item v-for="file in scope.files" :key="file.name">
@@ -428,7 +434,8 @@
                       </q-list> -->
                     </template>
                   </q-uploader>
-              </q-scroll-area>
+            </div>
+              <!-- </q-scroll-area> -->
             </div>
           </div>
         </div>
@@ -439,8 +446,24 @@
 </template>
 
 <style lang="scss">
-.q-uploader__header {
-  background: none;
+.attachments-uploader {
+  .q-uploader {
+    border-radius: 0px;
+  }
+  .q-uploader__header {
+    background: none;
+    display:none;
+  }
+  .q-uploader__list {
+    padding: 0px;
+  }
+  .q-uploader__dnd {
+    outline: 0px;
+    top: 5px;
+    background: rgba(#fffdd6, 0.5);
+    border: 2px dashed #e2da36;
+    border-radius: 5px;
+  }
 }
 
 .q-dialog__inner--maximized {

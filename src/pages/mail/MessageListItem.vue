@@ -130,28 +130,26 @@ export default {
     },
     fromTo () {
       let oFolder = this.$store.getters['mail/getFolderByFullName'](this.message.Folder)
-      let aAddressesCollection = []
+      let sFullEmails = ''
+      let aFullEmails = []
       if (oFolder && (oFolder.Type === mailEnums.FolderType.Drafts || oFolder.Type === mailEnums.FolderType.Sent)) {
-        let aToCollection = this.message.To && _.isArray(this.message.To['@Collection']) ? this.message.To['@Collection'] : []
-        let aCcCollection = this.message.Cc && _.isArray(this.message.Cc['@Collection']) ? this.message.Cc['@Collection'] : []
-        let aBccCollection = this.message.Bcc && _.isArray(this.message.Bcc['@Collection']) ? this.message.Bcc['@Collection'] : []
-        aAddressesCollection = aToCollection.concat(aCcCollection, aBccCollection)
+        sFullEmails = typesUtils.pString(this.message.To) + '\n' + typesUtils.pString(this.message.Cc) + '\n' + typesUtils.pString(this.message.To)
       } else {
-        if (this.message.From && _.isArray(this.message.From['@Collection'])) {
-          aAddressesCollection = this.message.From['@Collection']
-        }
+        sFullEmails = typesUtils.pString(this.message.From)
       }
+      aFullEmails = sFullEmails.split('\n')
 
       let sCurrentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
 
-      return _.map(aAddressesCollection, function (oAddress) {
-        if (sCurrentAccountEmail === oAddress.Email) {
+      return _.map(aFullEmails, function (sFullEmail) {
+        let oEmailParts = addressUtils.getEmailParts(sFullEmail)
+        if (sCurrentAccountEmail === oEmailParts.email) {
           return 'me'
         }
-        if (typesUtils.isNonEmptyString(oAddress.DisplayName)) {
-          return oAddress.DisplayName
+        if (typesUtils.isNonEmptyString(oEmailParts.name)) {
+          return oEmailParts.name
         }
-        return oAddress.Email
+        return oEmailParts.email
       }).join(', ')
     },
     selected () {
@@ -174,11 +172,10 @@ export default {
         sDraftFolder = (oCurrentFolderList && oCurrentFolderList.Drafts) ? oCurrentFolderList.Drafts.FullName : ''
 
       if (this.message.Folder === sDraftFolder) {
-        let aFromAddresses = _.isArray(this.message.From['@Collection']) ? this.message.From['@Collection'] : []
         let oComposeParams = {
           aDraftInfo: this.message.DraftInfo,
           sDraftUid: this.message.Uid,
-          oIdentity: composeUtils.getIdentityForCompose(aFromAddresses),
+          oIdentity: composeUtils.getIdentityForCompose(this.message.From),
           aToContacts: messageUtils.getContactsToSend(this.message.To),
           aCcContacts: messageUtils.getContactsToSend(this.message.Cc),
           aBccContacts: messageUtils.getContactsToSend(this.message.Bcc),

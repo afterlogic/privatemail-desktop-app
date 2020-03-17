@@ -112,28 +112,28 @@
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
           <div class="non-selectable" v-if="!showDetails">
-            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
             →
-            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" :min="true" />
-            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" :min="true" />
-            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
           </div>
           <div v-if="showDetails">
             <div style="clear: both;">
               <span class="non-selectable">From: </span>
-              <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.Full" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
             </div>
             <div v-if="to.length > 0">
               <span class="non-selectable">To: </span>
-              <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.Full" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
             </div>
             <div v-if="cc.length > 0">
               <span class="non-selectable">Cc: </span>
-              <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.Full" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
             </div>
             <div v-if="bcc.length > 0">
               <span class="non-selectable">Bcc: </span>
-              <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.Full" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
             </div>
             <div>
               <span class="non-selectable">Date: </span>
@@ -476,71 +476,45 @@ export default {
       this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
       this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
 
-      let aFrom = []
+      this.from = []
+      this.to = []
+      this.cc = []
+      this.bcc = []
       if (this.message) {
-        let oFrom = this.message.From
-        _.each(oFrom ? oFrom['@Collection'] : [], function (oAddress) {
-          aFrom.push({
-            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-            Email: oAddress.Email,
-            Name: oAddress.DisplayName,
-          })
+        let aFullEmails = _.compact(typesUtils.pString(this.message.From).split('\n'))
+        this.from = _.map(aFullEmails, function (sFullEmail) {
+          return addressUtils.getEmailParts(sFullEmail)
         })
-      }
-      this.from = aFrom
 
-      let aTo = []
-      if (this.message) {
-        let aAddresses = this.message.To ? this.message.To['@Collection'] : []
-        _.each(aAddresses, function (oAddress) {
-          aTo.push({
-            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-            Email: oAddress.Email,
-            Name: oAddress.DisplayName,
-          })
+        aFullEmails = _.compact(typesUtils.pString(this.message.To).split('\n'))
+        this.to = _.map(aFullEmails, function (sFullEmail) {
+          return addressUtils.getEmailParts(sFullEmail)
         })
-      }
-      this.to = aTo
 
-      let aCc = []
-      if (this.message) {
-        let aAddresses = this.message.Cc ? this.message.Cc['@Collection'] : []
-        _.each(aAddresses, function (oAddress) {
-          aCc.push({
-            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-            Email: oAddress.Email,
-            Name: oAddress.DisplayName,
-          })
+        aFullEmails = _.compact(typesUtils.pString(this.message.Cc).split('\n'))
+        this.cc = _.map(aFullEmails, function (sFullEmail) {
+          return addressUtils.getEmailParts(sFullEmail)
         })
-      }
-      this.cc = aCc
 
-      let aBcc = []
-      if (this.message) {
-        let aAddresses = this.message.Bcc ? this.message.Bcc['@Collection'] : []
-        _.each(aAddresses, function (oAddress) {
-          aBcc.push({
-            Full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-            Email: oAddress.Email,
-            Name: oAddress.DisplayName,
-          })
+        aFullEmails = _.compact(typesUtils.pString(this.message.Bcc).split('\n'))
+        this.bcc = _.map(aFullEmails, function (sFullEmail) {
+          return addressUtils.getEmailParts(sFullEmail)
         })
       }
-      this.bcc = aBcc
 
       let aFromEmails = _.map(this.from, function (oFromAddr) {
-        return oFromAddr.Email
+        return oFromAddr.email
       })
       let aToEmails = _.map(this.to, function (oToAddr) {
-        return oToAddr.Email
+        return oToAddr.email
       })
       let aCcEmails = _.map(this.cc, function (oCcAddr) {
-        return oCcAddr.Email
+        return oCcAddr.email
       })
       let aBccEmails = _.map(this.bcc, function (oBccAddr) {
-        return oBccAddr.Email
+        return oBccAddr.email
       })
-      let aEmails = _.uniq(_.union(aFromEmails, aToEmails, aCcEmails, aBccEmails))
+      let aEmails = _.union(aFromEmails, aToEmails, aCcEmails, aBccEmails)
       this.$store.dispatch('contacts/asyncGetContactsByEmails', aEmails)
     },
     onEditorEnter: function (oEvent) {

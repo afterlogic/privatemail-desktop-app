@@ -119,12 +119,15 @@ function createWindow () {
 
   oDbConnect = new sqlite3.Database(dbFullPath, (oError) => {
     if (oError === null) {
-      mainDbManager.init(oDbConnect, version).then(function () {
-        accountsDbManager.init(oDbConnect)
-        foldersDbManager.init(oDbConnect)
-        messagesDbManager.init(oDbConnect)
-        contactsDbManager.init(oDbConnect)
-      })
+      mainDbManager.init(oDbConnect, version, mainWindow).then(
+        () => {
+          accountsDbManager.init(oDbConnect)
+          foldersDbManager.init(oDbConnect)
+          messagesDbManager.init(oDbConnect)
+          contactsDbManager.init(oDbConnect)
+        },
+        () => {}
+      )
     }
   })
 

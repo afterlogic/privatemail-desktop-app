@@ -25,9 +25,9 @@ let Settings = {
  */
 function _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity) {
   let
-    aToContacts = oMessage.To && _.isArray(oMessage.To['@Collection']) ? messageUtils.getContactsToSend(oMessage.To) : [],
-    aCcContacts = oMessage.Cc && _.isArray(oMessage.Cc['@Collection']) ? messageUtils.getContactsToSend(oMessage.Cc) : [],
-    aBccContacts = oMessage.Bcc && _.isArray(oMessage.Bcc['@Collection']) ? messageUtils.getContactsToSend(oMessage.Bcc) : [],
+    aToContacts = messageUtils.getContactsToSend(oMessage.To),
+    aCcContacts = messageUtils.getContactsToSend(oMessage.Cc),
+    aBccContacts = messageUtils.getContactsToSend(oMessage.Bcc),
     aAllContacts = _.filter(_.union(aToContacts, aCcContacts, aBccContacts), function (oAddress) {
       return oCurrentAccount.sEmail !== oAddress.email && (!oFetcherOrIdentity || oFetcherOrIdentity.Email !== oAddress.email)
     })
@@ -287,7 +287,8 @@ export default {
     return sForwardBody
   },
 
-  getIdentityForCompose: function (aAddresses) {
+  getIdentityForCompose: function (sFullEmailsFromServer) {
+    let aFullEmails = typesUtils.isNonEmptyString(sFullEmailsFromServer) ? sFullEmailsFromServer.split('\n') : []
     let oCurrentAccount = store.getters['mail/getCurrentAccount']
     let aAliases = oCurrentAccount ? oCurrentAccount.aAliases : []
     let aIdentities = store.getters['mail/getCurrentIdentities']
@@ -297,16 +298,18 @@ export default {
     let oWithMatchingEmail = null
     _.each(aAllIdentities, function (oIdentity) {
       if (oCompleteMatch === null) {
-        let oFoundAddress = _.find(aAddresses, function (oAddress) {
-          return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase() && oAddress.DisplayName.toLowerCase() === oIdentity.sFriendlyName.toLowerCase()
+        let oFoundAddress = _.find(aFullEmails, function (sFullEmail) {
+          let oEmailParts = addressUtils.getEmailParts(sFullEmail)
+          return oEmailParts.email.toLowerCase() === oIdentity.sEmail.toLowerCase() && oEmailParts.name.toLowerCase() === oIdentity.sFriendlyName.toLowerCase()
         })
         if (oFoundAddress) {
           oCompleteMatch = oIdentity
         }
       }
       if (oWithMatchingEmail === null) {
-        let oFoundAddress = _.find(aAddresses, function (oAddress) {
-          return oAddress.Email.toLowerCase() === oIdentity.sEmail.toLowerCase()
+        let oFoundAddress = _.find(aFullEmails, function (sFullEmail) {
+          let oEmailParts = addressUtils.getEmailParts(sFullEmail)
+          return oEmailParts.email.toLowerCase() === oIdentity.sEmail.toLowerCase()
         })
         if (oFoundAddress) {
           oWithMatchingEmail = oIdentity
@@ -342,10 +345,10 @@ export default {
         sInReplyTo: oMessage.MessageId,
         sReferences: this.getReplyReferences(oMessage),
       },
-      oReplyTo = oMessage.ReplyTo
-
-    if (!oReplyTo || !typesUtils.isNonEmptyArray(oReplyTo['@Collection'])) {
       oReplyTo = oMessage.From
+
+    if (typesUtils.isNonEmptyString(oMessage.ReplyTo)) {
+      oReplyTo = oMessage.ReplyTo
     }
 
     // if (!sReplyText || sReplyText === '') {
@@ -356,16 +359,20 @@ export default {
     if (sReplyType === mailEnums.ReplyType.Forward) {
       oReplyData.sText = sReplyText + this.getForwardMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity)
     } else if (sReplyType === mailEnums.ReplyType.Resend) {
-      let aAddresses = _.isArray(oMessage.From['@Collection']) ? oMessage.From['@Collection'] : []
-      oReplyData.oIdentity = this.getIdentityForCompose(aAddresses)
+      oReplyData.oIdentity = this.getIdentityForCompose(oMessage.From)
       oReplyData.sText = sOrigText
       oReplyData.aCcContacts = messageUtils.getContactsToSend(oMessage.Cc)
       oReplyData.aBccContacts = messageUtils.getContactsToSend(oMessage.Bcc)
     } else {
-      let aToCollection = _.isArray(oMessage.To['@Collection']) ? oMessage.To['@Collection'] : []
-      let aCcCollection = _.isArray(oMessage.Cc['@Collection']) ? oMessage.Cc['@Collection'] : []
-      let aAddresses = _.union(aToCollection, aCcCollection)
-      oReplyData.oIdentity = this.getIdentityForCompose(aAddresses)
+      let sAddresses = oMessage.To
+      if (typesUtils.isNonEmptyString(sAddresses)) {
+        if (typesUtils.isNonEmptyString(oMessage.Cc)) {
+          sAddresses += '\n' + oMessage.Cc
+        }
+      } else {
+        sAddresses = oMessage.Cc
+      }
+      oReplyData.oIdentity = this.getIdentityForCompose(sAddresses)
 
       oReplyData.sText = sReplyText + this.getReplyMessageBody(sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
     }

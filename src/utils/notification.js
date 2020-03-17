@@ -5,7 +5,10 @@ import _ from 'lodash'
 let fDismissLoading = null
 
 export default {
-  showError (message) {
+  showError (message, timeout) {
+    if (!_.isInteger(timeout)) {
+      timeout = 10000
+    }
     Notify.create({
       color: 'red',
       textColor: 'white',
@@ -14,7 +17,7 @@ export default {
       position: 'top-right',
       avatar: null,
       multiLine: false, // if multiLine=true then close button is displayed at the bottom
-      timeout: 10000,
+      timeout,
       actions: [{ icon: 'close', color: 'white' }],
     })
   },

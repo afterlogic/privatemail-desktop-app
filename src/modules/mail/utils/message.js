@@ -69,46 +69,39 @@ export default {
     return sReSubject
   },
 
-  getContactsToSend: function (oAddressesFromServer) {
-    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+  getContactsToSend: function (sFullEmailsFromServer) {
+    let aFullEmails = typesUtils.isNonEmptyString(sFullEmailsFromServer) ? sFullEmailsFromServer.split('\n') : []
 
-    let aContacts = _.map(aCollection, function (oAddress) {
-      return {
-        full: addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email),
-        email: oAddress.Email,
-        name: oAddress.DisplayName,
-        id: 'rand_' + Math.round(Math.random() * 10000),
-      }
+    let aContacts = _.map(aFullEmails, function (sFullEmail) {
+      let oEmailParts = addressUtils.getEmailParts(sFullEmail)
+      oEmailParts.id = 'rand_' + Math.round(Math.random() * 10000)
+      return oEmailParts
     })
 
     return aContacts
   },
 
-  getFullAddress: function (oAddressesFromServer) {
-    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
-
-    let aAddresses = _.map(aCollection, function (oAddress) {
-      return addressUtils.getFullEmail(oAddress.DisplayName, oAddress.Email)
-    })
-
-    return aAddresses.join(', ')
+  getFullAddress: function (sFullEmailsFromServer) {
+    return typesUtils.isNonEmptyString(sFullEmailsFromServer) ? sFullEmailsFromServer.split('\n') : []
   },
 
-  getFirstAddressEmail: function (oAddressesFromServer) {
-    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+  getFirstAddressEmail: function (sFullEmailsFromServer) {
+    let aFullEmails = typesUtils.isNonEmptyString(sFullEmailsFromServer) ? sFullEmailsFromServer.split('\n') : []
 
-    if (aCollection.length > 0) {
-      return aCollection[0].Email
+    if (aFullEmails.length > 0) {
+      let oEmailParts = addressUtils.getEmailParts(aFullEmails[0])
+      return oEmailParts.email
     }
 
     return ''
   },
 
-  getFirstAddressName: function (oAddressesFromServer) {
-    let aCollection = oAddressesFromServer && _.isArray(oAddressesFromServer['@Collection']) ? oAddressesFromServer['@Collection'] : []
+  getFirstAddressName: function (sFullEmailsFromServer) {
+    let aFullEmails = typesUtils.isNonEmptyString(sFullEmailsFromServer) ? sFullEmailsFromServer.split('\n') : []
 
-    if (aCollection.length > 0) {
-      return aCollection[0].DisplayName
+    if (aFullEmails.length > 0) {
+      let oEmailParts = addressUtils.getEmailParts(aFullEmails[0])
+      return oEmailParts.name
     }
 
     return ''

@@ -1,8 +1,8 @@
 <template>
   <q-chip unelevated :class="{'found_contact': !!contact, 'no_contact': !contact}">
     <!-- TODO add @mouseover="openCardPopup(true)" @mouseout="openCardPopup(false)" to the root element to make the card visible by hovering -->
-    <span v-if="!min">{{ addr.Full }}</span>
-    <span v-if="min">{{ (currentAccountEmail === addr.Email) ? 'me' : (addr.Name || addr.Email) }}</span>
+    <span v-if="!min">{{ addr.fullEmail }}</span>
+    <span v-if="min">{{ (currentAccountEmail === addr.email) ? 'me' : (addr.name || addr.email) }}</span>
     <q-btn size="8px" unelevated dense rounded color="primary" v-if="!contact" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -8px;" >
       <q-icon size="12px" color="white" name="add" />
     </q-btn>
@@ -181,7 +181,7 @@ import contactsEnums from 'src/modules/contacts/enums.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
-  name: 'ContactFields',
+  name: 'ContactCard',
 
   props: ['addr', 'min'],
 
@@ -204,7 +204,7 @@ export default {
   computed: {
     contact: function () {
       let oContacts = this.$store.getters['contacts/getContactsByEmail']
-      let oContact = oContacts[this.addr.Email]
+      let oContact = oContacts[this.addr.email]
       return oContact
     },
     currentAccountEmail: function () {
@@ -282,7 +282,7 @@ export default {
       }
     },
     openCreateContactPopup () {
-      let oEmailParts = addressUtils.getEmailParts(this.addr.Full)
+      let oEmailParts = addressUtils.getEmailParts(this.addr.fullEmail)
       this.bSaving = false
       this.sNewContactDisplayName = oEmailParts.name
       this.sNewContactEmail = oEmailParts.email

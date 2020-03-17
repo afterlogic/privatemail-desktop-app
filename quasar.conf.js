@@ -81,6 +81,7 @@ module.exports = function (ctx) {
         'QUploader',
         'QUploaderAddTrigger',
         'QFile',
+        'QSpinnerGears',
       ],
 
       directives: [
@@ -90,7 +91,8 @@ module.exports = function (ctx) {
 
       // Quasar plugins
       plugins: [
-        'Notify'
+        'Notify',
+        'Loading',
       ]
     },
 

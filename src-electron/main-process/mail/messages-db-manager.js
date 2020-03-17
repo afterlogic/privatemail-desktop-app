@@ -3,18 +3,16 @@ import moment from 'moment'
 
 import dbHelper from '../utils/db-helper.js'
 
-import textUtils from '../../../src/utils/text.js'
 import typesUtils from '../../../src/utils/types.js'
-
-import messagesManager from './messages-manager.js'
 
 let oDb = null
 
 let aMessageDbMap = [
   {Name: 'AccountId', DbName: 'account_id', Type: 'INTEGER'},
   {Name: 'Attachments', DbName: 'attachments', Type: 'TEXT', IsObject: true},
-  {Name: 'Bcc', DbName: 'bcc_addr', Type: 'TEXT', IsObject: true},
-  {Name: 'Cc', DbName: 'cc_addr', Type: 'TEXT', IsObject: true},
+  {Name: 'AttachmentsSearch', DbName: 'attachments_search', Type: 'TEXT'},
+  {Name: 'Bcc', DbName: 'bcc_addr', Type: 'TEXT'},
+  {Name: 'Cc', DbName: 'cc_addr', Type: 'TEXT'},
   {Name: 'Custom', DbName: 'custom', Type: 'TEXT', IsArray: true},
   {Name: 'Deleted', DbName: 'deleted', Type: 'INTEGER', IsBool: true},
   {Name: 'DownloadAsEmlUrl', DbName: 'download_as_eml_url', Type: 'TEXT'},
@@ -23,7 +21,7 @@ let aMessageDbMap = [
   {Name: 'Folder', DbName: 'folder', Type: 'TEXT'},
   {Name: 'FoundedCIDs', DbName: 'founded_cids', Type: 'TEXT', IsArray: true},
   {Name: 'FoundedContentLocationUrls', DbName: 'founded_content_location_urls', Type: 'TEXT', IsArray: true},
-  {Name: 'From', DbName: 'from_addr', Type: 'TEXT', IsObject: true}, // "from" word is reserved in sql
+  {Name: 'From', DbName: 'from_addr', Type: 'TEXT'}, // "from" word is reserved in sql
   {Name: 'HasAttachments', DbName: 'has_attachments', Type: 'INTEGER', IsBool: true},
   {Name: 'HasExternals', DbName: 'has_externals', Type: 'INTEGER', IsBool: true},
   {Name: 'HasIcalAttachment', DbName: 'has_ical_attachment', Type: 'INTEGER', IsBool: true},
@@ -44,17 +42,17 @@ let aMessageDbMap = [
   {Name: 'ReadingConfirmationAddressee', DbName: 'reading_confirmation_addressee', Type: 'TEXT'},
   {Name: 'ReceivedOrDateTimeStampInUTC', DbName: 'received_or_date_timestamp_in_utc', Type: 'INTEGER'},
   {Name: 'References', DbName: 'references_list', Type: 'TEXT'}, // "references" word is reserved in sql
-  {Name: 'ReplyTo', DbName: 'reply_to_addr', Type: 'TEXT', IsObject: true},
+  {Name: 'ReplyTo', DbName: 'reply_to_addr', Type: 'TEXT'},
   {Name: 'Rtl', DbName: 'rtl', Type: 'INTEGER', IsBool: true},
   {Name: 'Safety', DbName: 'safety', Type: 'INTEGER', IsBool: true},
-  {Name: 'Sender', DbName: 'sender_addr', Type: 'TEXT', IsObject: true},
+  {Name: 'Sender', DbName: 'sender_addr', Type: 'TEXT'},
   {Name: 'Sensitivity', DbName: 'sensitivity', Type: 'INTEGER'},
   {Name: 'Size', DbName: 'size', Type: 'INTEGER'},
   {Name: 'Subject', DbName: 'subject', Type: 'TEXT'},
   {Name: 'TextSize', DbName: 'text_size', Type: 'INTEGER'},
   {Name: 'Threads', DbName: 'threads', Type: 'TEXT', IsArray: true},
   {Name: 'TimeStampInUTC', DbName: 'timestamp_in_utc', Type: 'INTEGER'},
-  {Name: 'To', DbName: 'to_addr', Type: 'TEXT', IsObject: true},
+  {Name: 'To', DbName: 'to_addr', Type: 'TEXT'},
   {Name: 'Truncated', DbName: 'truncated', Type: 'INTEGER', IsBool: true},
   {Name: 'Uid', DbName: 'uid', Type: 'INTEGER'},
   {Name: 'PartialFlagged', DbName: 'partial_flagged', Type: 'INTEGER', IsBool: true},
@@ -223,7 +221,8 @@ export default {
               }
             })
           } else {
-            aWhere.push('(from_addr LIKE ? OR to_addr LIKE ? OR cc_addr LIKE ? OR subject LIKE ?)')
+            aWhere.push('(from_addr LIKE ? OR to_addr LIKE ? OR cc_addr LIKE ? OR subject LIKE ? OR attachments_search LIKE ?)')
+            aParams.push('%' + sSearch + '%')
             aParams.push('%' + sSearch + '%')
             aParams.push('%' + sSearch + '%')
             aParams.push('%' + sSearch + '%')
@@ -338,10 +337,7 @@ export default {
               sQuestions = aMessageDbMap.map(function () { return '?' }).join(',')
               let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
               _.each(aMessages, function (oMessage) {
-                oMessage.AccountId = iAccountId
-                if (!typesUtils.isNonEmptyString(oMessage.PlainRaw) && typesUtils.isNonEmptyString(oMessage.Html)) {
-                  oMessage.PlainRaw = textUtils.htmlToPlain(oMessage.Html)
-                }
+                dbHelper.prepareMessageFields(oMessage, iAccountId)
                 let aParams = dbHelper.prepareInsertParams(oMessage, aMessageDbMap)
                 oStatement.run(aParams)
               })

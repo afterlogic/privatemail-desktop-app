@@ -104,7 +104,7 @@ export default {
               if (typeof(oRow && oRow.version) === 'string') {
                 sPrevAppVersion = semver.valid(oRow.version) || '0.0.0'
               }
-              if (sPrevAppVersion !== sAppVersion) {
+              if (sPrevAppVersion !== '0.0.0' && sPrevAppVersion !== sAppVersion) {
                 // apply db changes
                 let bFinished = false
                 oMigrationStatus.iStartedTime = moment().unix()

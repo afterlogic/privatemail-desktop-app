@@ -102,8 +102,14 @@ export default {
                 },
                 fCallback: (aMessagesFromServer, oError) => {
                   if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
-                    messagesDbManager.setMessages({ iAccountId, aMessages: aMessagesFromServer })
-                    resolve(_.union(aMessages, aMessagesFromServer))
+                    messagesDbManager.setMessages({ iAccountId, aMessages: aMessagesFromServer }).then(
+                      (aPreparedMessagesFromServer) => {
+                        resolve(_.union(aMessages, aPreparedMessagesFromServer))
+                      },
+                      (oResult) => {
+                        reject(oResult)
+                      }
+                    )
                   } else {
                     reject({ sMethod: 'getMessagesByUids', oError, aMessagesFromServer })
                   }

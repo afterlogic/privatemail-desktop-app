@@ -72,8 +72,10 @@ export default {
   prepareMessageFields: function (oMessage, iAccountId) {
     oMessage.AccountId = iAccountId
 
-    if (!typesUtils.isNonEmptyString(oMessage.PlainRaw) && typesUtils.isNonEmptyString(oMessage.Html)) {
-      oMessage.PlainRaw = textUtils.htmlToPlain(oMessage.Html)
+    if (typesUtils.isNonEmptyString(oMessage.HtmlRaw)) {
+      oMessage.TextSearch = textUtils.htmlToTextSearch(oMessage.HtmlRaw)
+    } else if (typesUtils.isNonEmptyString(oMessage.PlainRaw)) {
+      oMessage.TextSearch = oMessage.PlainRaw
     }
 
     let aAttachmentsSearch = []

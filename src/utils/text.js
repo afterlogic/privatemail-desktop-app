@@ -45,4 +45,21 @@ export default {
       .replace(/&amp;/g, '&')
       .replace(/&quot;/g, '"')
   },
+
+  htmlToTextSearch: function (sHtml) {
+    return sHtml
+      .replace(/([^>]{1})<div>/gi, '$1 ')
+      .replace(/<style[^>]*>[^<]*<\/style>/gi, ' ')
+      .replace(/<br *\/{0,1}>/gi, '\n')
+      .replace(/<\/p>/gi, ' ')
+      .replace(/<\/div>/gi, ' ')
+      .replace(/<a [^>]*href="([^"]*?)"[^>]*>(.*?)<\/a>/gi, '$2 ($1)')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+  },
 }

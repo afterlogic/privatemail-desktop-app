@@ -93,44 +93,92 @@ function _getMigratedAttachmentsSearch (sAttachments) {
   return aAttachmentsSearch.join('\n')
 }
 
+function _unescapeHTML (str) {
+  let htmlEntities = {
+    nbsp: ' ',
+    cent: '¢',
+    pound: '£',
+    yen: '¥',
+    euro: '€',
+    copy: '©',
+    reg: '®',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    amp: '&',
+    apos: '\'',
+  }
+
+  return str.replace(/\&([^;]+);/g, function (entity, entityCode) {
+    let match
+
+    if (entityCode in htmlEntities) {
+      return htmlEntities[entityCode]
+      /*eslint no-cond-assign: 0*/
+    } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
+      return String.fromCharCode(parseInt(match[1], 16))
+      /*eslint no-cond-assign: 0*/
+    } else if (match = entityCode.match(/^#(\d+)$/)) {
+      return String.fromCharCode(~~match[1])
+    } else {
+      return entity
+    }
+  })
+}
+
 export default {
   start: function (oDb) {
     return new Promise((resolve, reject) => {
       oDb.serialize(() => {
-        oDb.run('ALTER TABLE messages ADD COLUMN attachments_search TEXT', [], (oError) => {
-          if (oError) {
-            _logMigrationError('Error while adding attachments_search field', oError)
-          }
-          oDb.run('DROP TABLE IF EXISTS messages_copy', [], (oError) => {
-            if (oError) {
-              _logMigrationError('Error while droping messages_copy table', oError)
-              reject({ sError: 'Error while droping messages_copy table', oError })
-            } else {
-              oDb.run('CREATE TABLE messages_copy AS SELECT * FROM messages WHERE 0', [], (oError) => {
-                if (oError) {
-                  _logMigrationError('Error while creating messages_copy table', oError)
-                  reject({ sError: 'Error while creating messages_copy table', oError })
-                } else {
-                  oDb.all(
-                    'SELECT * FROM messages',
-                    [],
-                    (oError, aRows) => {
-                      if (oError) {
-                        _logMigrationError('oError selecting from messages table', oError)
-                        reject({ sError: 'oError selecting from messages table', oError })
-                      } else if (!_.isArray(aRows)) {
-                        _logMigrationError('oError selecting from messages table: aRows is not an array')
-                        reject({ sError: 'oError selecting from messages table' })
-                      } else {
-                        dbManager.updateMigrationStatus({ iApproximateTimeSeconds: Math.round(aRows.length / 90), iStartedTime: moment().unix()})
-                        this._copyMessageDataToClone(oDb, aRows).then(resolve, reject)
+        this._addColumns(oDb).then(
+          () => {
+            oDb.run('DROP TABLE IF EXISTS messages_copy', [], (oError) => {
+              if (oError) {
+                _logMigrationError('Error while droping messages_copy table', oError)
+                reject({ sError: 'Error while droping messages_copy table', oError })
+              } else {
+                oDb.run('CREATE TABLE messages_copy AS SELECT * FROM messages WHERE 0', [], (oError) => {
+                  if (oError) {
+                    _logMigrationError('Error while creating messages_copy table', oError)
+                    reject({ sError: 'Error while creating messages_copy table', oError })
+                  } else {
+                    oDb.all(
+                      'SELECT * FROM messages',
+                      [],
+                      (oError, aRows) => {
+                        if (oError) {
+                          _logMigrationError('oError selecting from messages table', oError)
+                          reject({ sError: 'oError selecting from messages table', oError })
+                        } else if (!_.isArray(aRows)) {
+                          _logMigrationError('oError selecting from messages table: aRows is not an array')
+                          reject({ sError: 'oError selecting from messages table' })
+                        } else {
+                          dbManager.updateMigrationStatus({ iApproximateTimeSeconds: Math.round(aRows.length / 90), iStartedTime: moment().unix()})
+                          this._copyMessageDataToClone(oDb, aRows).then(resolve, reject)
+                        }
                       }
-                    }
-                  )
-                }
-              })
-            }
-          })
+                    )
+                  }
+                })
+              }
+            })
+          }
+        )
+      })
+    })
+  },
+
+  _addColumns: function (oDb) {
+    return new Promise((resolve, reject) => {
+      oDb.run('ALTER TABLE messages ADD COLUMN attachments_search TEXT', [], (oError) => {
+        if (oError) {
+          _logMigrationError('Error while adding attachments_search field', oError)
+        }
+        oDb.run('ALTER TABLE messages ADD COLUMN text_search TEXT', [], (oError) => {
+          if (oError) {
+            _logMigrationError('Error while adding text_search field', oError)
+          }
+          resolve()
         })
       })
     })
@@ -181,6 +229,7 @@ export default {
           sensitivity,
           size,
           subject,
+          text_search,
           text_size,
           threads,
           timestamp_in_utc,
@@ -189,11 +238,12 @@ export default {
           uid,
           partial_flagged,
           thread_has_unread
-          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
         let iStatementsCount = 0
         _.each(aRows, (oRow) => {
           if (_.isObject(oRow)) {
             iStatementsCount++
+            let sTextSearch = _unescapeHTML(oRow.plain_raw)
             let sBccAddr = _getMigratedAddress(oRow.bcc_addr)
             let sCcAddr = _getMigratedAddress(oRow.cc_addr)
             let sFromAddr = _getMigratedAddress(oRow.from_addr)
@@ -243,6 +293,7 @@ export default {
               oRow.sensitivity,
               oRow.size,
               oRow.subject,
+              sTextSearch,
               oRow.text_size,
               oRow.threads,
               oRow.timestamp_in_utc,

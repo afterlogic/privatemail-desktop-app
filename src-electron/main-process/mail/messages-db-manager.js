@@ -49,6 +49,7 @@ let aMessageDbMap = [
   {Name: 'Sensitivity', DbName: 'sensitivity', Type: 'INTEGER'},
   {Name: 'Size', DbName: 'size', Type: 'INTEGER'},
   {Name: 'Subject', DbName: 'subject', Type: 'TEXT'},
+  {Name: 'TextSearch', DbName: 'text_search', Type: 'TEXT'},
   {Name: 'TextSize', DbName: 'text_size', Type: 'INTEGER'},
   {Name: 'Threads', DbName: 'threads', Type: 'TEXT', IsArray: true},
   {Name: 'TimeStampInUTC', DbName: 'timestamp_in_utc', Type: 'INTEGER'},
@@ -188,7 +189,7 @@ export default {
                     break
                   case 'text:':
                   case 'body:':
-                    aWhere.push('plain_raw LIKE ?')
+                    aWhere.push('text_search LIKE ?')
                     aParams.push('%' + sValue + '%')
                     oAdvancedSearch.Text = sValue
                     break
@@ -345,7 +346,7 @@ export default {
                 if (oError) {
                   reject({ sMethod: 'setMessages', oError })
                 } else {
-                  resolve()
+                  resolve(aMessages)
                 }
               })
             }

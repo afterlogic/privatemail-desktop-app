@@ -91,4 +91,21 @@ export default {
     }
     return {}
   },
+
+  pStringToJson: function (sValue) {
+    let oResult = null
+    if (this.isNonEmptyString(sValue)) {
+      try {
+        oResult = JSON.parse(sValue)
+      } catch (oError) {
+        const log = require('electron-log')
+        log.error('Error while parsing JSON: ' + sValue)
+        log.error(oError)
+      }
+      if (!_.isObject(oResult)) {
+        oResult = null
+      }
+    }
+    return oResult
+  },
 }

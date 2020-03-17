@@ -1269,8 +1269,8 @@ export default {
       let oAttach = oFile ? _.find(this.attachments, (oTmpAttach) => {
         return oTmpAttach.sLocalPath === oFile.path
       }) : null
-      let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
       if (oAttach) {
+        let oResponse = typesUtils.pStringToJson(xhr.responseText)
         if (oResponse && oResponse.Result && oResponse.Result.Attachment) {
           oAttach.parseDataFromServer(oResponse.Result.Attachment)
           oAttach.onUploadComplete()
@@ -1291,7 +1291,7 @@ export default {
         return oTmpAttach.sLocalPath === oFile.path
       }) : null
       if (oAttach) {
-        let oResponse = typesUtils.isNonEmptyString(xhr.responseText) ? JSON.parse(xhr.responseText) : null
+        let oResponse = typesUtils.pStringToJson(xhr.responseText)
         notification.showError(errors.getText(oResponse, 'Error occurred while uploading file'))
         oAttach.onUploadFailed()
       }

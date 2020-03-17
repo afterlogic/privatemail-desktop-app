@@ -60,12 +60,12 @@ export default {
 
         oResponse.on('end', () => {
           let sData = aData.join('')
-          let oData = sData !== '' ? JSON.parse(sData) : {}
+          let oData = typesUtils.pStringToJson(sData)
           aRequestsNumbers = _.without(aRequestsNumbers, iRequestNumber)
           // console.log('webApi response', aRequestsNumbers.length, oData)
-          let oResult = oData.Result
+          let oResult = oData && oData.Result
           let oError = null
-          if (!oResult && (oData.ErrorCode || oData.ErrorMessage)) {
+          if (!oResult && oData && (oData.ErrorCode || oData.ErrorMessage)) {
             oError = {
               ErrorCode: oData.ErrorCode,
               ErrorMessage: oData.ErrorMessage,

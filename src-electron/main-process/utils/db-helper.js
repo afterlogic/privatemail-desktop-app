@@ -37,10 +37,9 @@ export default {
           if (oItemDbField.IsBool) {
             oItem[oItemDbField.Name] = !!mDbItem
           } else if (oItemDbField.IsArray || oItemDbField.IsObject) {
-            let mValue = oItemDbField.IsArray ? [] : null
-            let sValue = mDbItem
-            if (typesUtils.isNonEmptyString(sValue)) {
-              mValue = JSON.parse(sValue)
+            let mValue = typesUtils.pStringToJson(mDbItem)
+            if (!_.isObject(mValue) || _.isEmpty(mValue)) {
+              mValue = oItemDbField.IsArray ? [] : null
             }
             oItem[oItemDbField.Name] = mValue
           } else {

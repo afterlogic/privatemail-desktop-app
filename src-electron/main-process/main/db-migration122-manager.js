@@ -16,7 +16,6 @@ function _logMigrationError (sError, mData) {
   }
 }
 
-let bCatchedLogged = false
 let bResultHasObjectLogged = false
 let bAddressWithoutCollectionLogged = false
 let bAddressNotObjectLogged = false
@@ -24,15 +23,7 @@ let bAddressNotStringLogged = false
 
 function _getMigratedAddress (sAddress) {
   if (typesUtils.isNonEmptyString(sAddress)) {
-    let oAddress = undefined
-    try {
-      oAddress = JSON.parse(sAddress)
-    } catch (oError) {
-      if (!bCatchedLogged) {
-        bCatchedLogged = true
-        _logMigrationError('Parse address error: catched ' + sAddress, oError)
-      }
-    }
+    let oAddress = typesUtils.pStringToJson(sAddress)
     if (_.isObject(oAddress)) {
       if (_.isEmpty(oAddress)) {
         return ''
@@ -81,8 +72,8 @@ function _getMigratedAddress (sAddress) {
 function _getMigratedAttachmentsSearch (sAttachments) {
   let aAttachmentsSearch = []
   if (typesUtils.isNonEmptyString(sAttachments)) {
-    let oAttachments = JSON.parse(sAttachments)
-    if (_.isObject(oAttachments) && _.isArray(oAttachments['@Collection'])) {
+    let oAttachments = typesUtils.pStringToJson(sAttachments)
+    if (typesUtils.isNotNullObject(oAttachments) && _.isArray(oAttachments['@Collection'])) {
       _.each(oAttachments['@Collection'], (oAttachData) => {
         if (!oAttachData.IsLinked) {
           aAttachmentsSearch.push(oAttachData.FileName)

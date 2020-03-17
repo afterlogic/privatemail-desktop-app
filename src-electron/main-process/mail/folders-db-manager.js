@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import typesUtils from '../../../src/utils/types.js'
+
 let oDb = null
 
 export default {
@@ -50,7 +52,7 @@ export default {
             if (oError) {
               reject({ sMethod: 'getFolders', oError })
             } else if (oRow && typeof oRow.list === 'string' && oRow.list !== '') {
-              oFolderList = JSON.parse(oRow.list)
+              oFolderList = typesUtils.pStringToJson(oRow.list)
             }
           }, function(oError) {
             if (oError) {
@@ -95,7 +97,7 @@ export default {
             if (oError) {
               reject({ sMethod: 'getMessagesInfo', oError })
             } else if (oRow && typeof oRow.messages_info === 'string' && oRow.messages_info !== '') {
-              aMessagesInfo = JSON.parse(oRow.messages_info)
+              aMessagesInfo = typesUtils.pStringToJson(oRow.messages_info)
             }
           }, function(oError) {
             if (oError) {

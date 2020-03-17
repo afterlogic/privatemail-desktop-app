@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import axios from 'axios'
+
+import typesUtils from '../../../src/utils/types.js'
 
 import mainDbManager from './db-manager.js'
 
@@ -30,7 +31,7 @@ export default {
         })
         oResponse.on('end', () => {
           let sData = aData.join('')
-          let oData = sData !== '' ? JSON.parse(sData) : {}
+          let oData = typesUtils.pStringToJson(sData) || {}
           oEvent.sender.send('main-get-host', oData)
         })
 

@@ -6,6 +6,8 @@ import cryptoHelper from '../utils/crypto-helper.js'
 
 import dbMigration122Manager from './db-migration122-manager.js'
 
+import typesUtils from '../../../src/utils/types.js'
+
 let oDb = null
 let oMainWindow = null
 
@@ -159,11 +161,13 @@ export default {
               reject({ sMethod: 'getUserData', oError, oMigrationStatus })
             } else {
               let sData = typeof(oRow && oRow.data) === 'string' ? oRow.data : ''
-              let oUserData = sData !== '' ? JSON.parse(sData) : {}
+              let oUserData = typesUtils.pStringToJson(sData)
               if (typeof(oUserData && oUserData.user && oUserData.user.authToken) === 'string') {
                 oUserData.user.authToken = cryptoHelper.decrypt(oUserData.user.authToken)
               }
-              oUserData.oMigrationStatus = oMigrationStatus
+              if (typesUtils.isNotNullObject(oUserData)) {
+                oUserData.oMigrationStatus = oMigrationStatus
+              }
               resolve(oUserData)
             }
           })

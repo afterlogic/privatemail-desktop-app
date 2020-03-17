@@ -74,11 +74,18 @@
                             </q-icon>
                           </template>
                         </q-input>
+                        <span @click.stop.prevent="focusAttachments" style="margin-top: 16px; display: inline-block;">
+                          <q-input outlined dense bg-color="white" class="cursor-none"
+                            label="Attachment name" ref="advSearchAttachments" v-model="advSearchAttachments"
+                            :disable=advSearchDisableAttachments
+                            @keyup.enter.stop.prevent="advancedSearch"
+                          />
+                        </span>
                       </div>
                     </div>
                     <div class="row q-px-md q-pb-lg justify-end">
                       <div class="q-px-lg ">
-                        <q-btn unelevated label="Search" color="primary" @click="advancedSearch"></q-btn>
+                        <q-btn unelevated label="Search" color="primary" @click="advancedSearch" style="margin-top: 16px;"></q-btn>
                       </div>
                     </div>
                   </q-expansion-item>
@@ -148,6 +155,7 @@ export default {
       advSearchSinceDate: '',
       advSearchTillDate: '',
       advSearchHasAttachments: false,
+      advSearchAttachments: '',
     }
   },
 
@@ -180,6 +188,9 @@ export default {
     advancedSearchData () {
       return this.$store.getters['mail/getCurrentAdvancedSearch']
     },
+    advSearchDisableAttachments () {
+      return !this.advSearchHasAttachments
+    },
   },
 
   watch: {
@@ -194,6 +205,7 @@ export default {
       this.advSearchSinceDate = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Since)
       this.advSearchTillDate = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Till)
       this.advSearchHasAttachments = typesUtils.pBool(this.advancedSearchData && this.advancedSearchData.HasAttachments)
+      this.advSearchAttachments = typesUtils.pString(this.advancedSearchData && this.advancedSearchData.Attachments)
     },
     checkboxAll: function (val, oldval) {
       this.$root.$emit('check-all-messages', val)
@@ -230,13 +242,23 @@ export default {
         aSearch.push('date:' + this.advSearchSinceDate + '/' + this.advSearchTillDate)
       }
       if (this.advSearchHasAttachments) {
-        aSearch.push('has:attachments')
+        if (typesUtils.isNonEmptyString(this.advSearchAttachments)) {
+          aSearch.push('attachments:' + this.advSearchAttachments)
+        } else {
+          aSearch.push('has:attachments')
+        }
       }
       this.searchInputText = aSearch.join(' ')
 
       this.$refs.advSearchExpansion.hide()
 
       this.search()
+    },
+    focusAttachments () {
+      this.advSearchHasAttachments = true
+      setTimeout(() => {
+      this.$refs.advSearchAttachments.focus()
+      }, 10)
     },
     search: function () {
       this.$store.dispatch('mail/asyncGetMessages', {

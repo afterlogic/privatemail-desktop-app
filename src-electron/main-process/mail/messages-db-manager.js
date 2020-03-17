@@ -152,7 +152,7 @@ export default {
         let oAdvancedSearch = {}
 
         if (typesUtils.isNonEmptyString(sSearch)) {
-          let aWords = ['from:', 'subject:', 'to:', 'email:', 'text:', 'body:', 'date:', 'has:']
+          let aWords = ['from:', 'subject:', 'to:', 'email:', 'text:', 'body:', 'date:', 'has:', 'attachments:']
           let aPatterns = _.map(aWords, function (sWord) {
             return '\\b' + sWord
           })
@@ -217,6 +217,12 @@ export default {
                       aWhere.push('has_attachments = true')
                       oAdvancedSearch.HasAttachments = true
                     }
+                    break
+                  case 'attachments:':
+                    aWhere.push('attachments_search LIKE ?')
+                    aParams.push('%' + sValue + '%')
+                    oAdvancedSearch.HasAttachments = true
+                    oAdvancedSearch.Attachments = sValue
                     break
                 }
               }

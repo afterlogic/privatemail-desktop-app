@@ -277,32 +277,63 @@ export default {
 
   getMessagesByUids: function ({ iAccountId, sFolderFullName, aUids }) {
     return new Promise((resolve, reject) => {
-      if (oDb && oDb.open) {
-        if (typesUtils.isNonEmptyArray(aUids)) {
-          let aWhere = ['account_id = ?', 'folder = ?']
-          let aParams = [iAccountId, sFolderFullName]
-  
-          aUids = aUids.slice(0, 997) // TODO
-          let sQuestions = aUids.map(() => { return '?' }).join(',')
-          aWhere.push('uid IN (' + sQuestions + ')')
-          aParams = aParams.concat(aUids)
-          oDb.all(
-            'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
-            aParams,
-            (oError, aRows) => {
-              if (oError) {
-                reject({ sMethod: 'getMessagesByUids', oError })
-              } else {
-                let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
-                resolve(aMessages)
-              }
+      if (typesUtils.isNonEmptyArray(aUids)) {
+        if (oDb && oDb.open) {
+          oDb.serialize(async () => {
+            let aMessages = []
+            let bError = false
+            let iChunkLen = 998
+            for (let iIndex = 0, iCount = aUids.length; iIndex < iCount; iIndex += iChunkLen) {
+              let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
+              await this._getMessagesLessThan998ByUids(iAccountId, sFolderFullName, aUidsChunk).then(
+                (aMessagesChunk) => {
+                  if (_.isArray(aMessagesChunk)) {
+                    aMessages = aMessages.concat(aMessagesChunk)
+                  }
+                },
+                (oResult) => {
+                  bError = true
+                  reject(oResult)
+                }
+              )
             }
-          )
+            if (!bError) {
+              resolve(aMessages)
+            }
+          })
         } else {
-          reject({ sMethod: 'getMessagesByUids', sError: 'No UIDs to retrieve' })
+          reject({ sMethod: 'getMessagesByUids', sError: 'No DB connection' })
         }
       } else {
-        reject({ sMethod: 'getMessagesByUids', sError: 'No DB connection' })
+        reject({ sMethod: 'getMessagesByUids', sError: 'No UIDs to retrieve' })
+      }
+    })
+  },
+
+  _getMessagesLessThan998ByUids: function (iAccountId, sFolderFullName, aUids) {
+    return new Promise((resolve, reject) => {
+      if (typesUtils.isNonEmptyArray(aUids)) {
+        let aWhere = ['account_id = ?', 'folder = ?']
+        let aParams = [iAccountId, sFolderFullName]
+
+        aUids = aUids.slice(0, 997)
+        let sQuestions = aUids.map(() => { return '?' }).join(',')
+        aWhere.push('uid IN (' + sQuestions + ')')
+        aParams = aParams.concat(aUids)
+        oDb.all(
+          'SELECT * FROM messages WHERE ' + aWhere.join(' AND '),
+          aParams,
+          (oError, aRows) => {
+            if (oError) {
+              reject({ sMethod: 'getMessagesByUids', oError })
+            } else {
+              let aMessages = dbHelper.prepareDataFromDb(aRows, aMessageDbMap)
+              resolve(aMessages)
+            }
+          }
+        )
+      } else {
+        resolve([])
       }
     })
   },
@@ -331,19 +362,14 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
-          aMessages = typesUtils.isNonEmptyArray(aMessages) ? aMessages.slice(0, 997) : [] // TODO
           let sFolderFullName = typesUtils.isNonEmptyArray(aMessages) ? aMessages[0].Folder : ''
           let aUids = aMessages.map((oMessage) => { return oMessage.Uid })
-          let sQuestions = aUids.map(() => { return '?' }).join(',')
-          let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
-          oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
-            if (oError) {
-              reject({ sMethod: 'setMessages', oError })
-            } else {
+          this.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+            () => {
               let sFieldsDbNames = _.map(aMessageDbMap, (oMessageDbFieldData) => {
                 return oMessageDbFieldData.DbName
               }).join(', ')
-              sQuestions = aMessageDbMap.map(() => { return '?' }).join(',')
+              let sQuestions = aMessageDbMap.map(() => { return '?' }).join(',')
               let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
               _.each(aMessages, (oMessage) => {
                 dbHelper.prepareMessageFields(oMessage, iAccountId)
@@ -357,8 +383,11 @@ export default {
                   resolve(aMessages)
                 }
               })
+            },
+            (oResult) => {
+              reject(oResult)
             }
-          })
+          )
         })
       } else {
         reject({ sMethod: 'setMessages', sError: 'No DB connection' })
@@ -477,25 +506,47 @@ export default {
   },
 
   deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+    return new Promise(async (resolve, reject) => {
+      let bError = false
+      if (typesUtils.isNonEmptyArray(aUids)) {
+        let iChunkLen = 997
+        for (let iIndex = 0, iCount = aUids.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
+          let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
+          await this._deleteMessagesLessThan998(iAccountId, sFolderFullName, aUidsChunk).then(
+            () => {},
+            (oResult) => {
+              bError = true
+              reject(oResult)
+            }
+          )
+        }
+      }
+      if (!bError) {
+        resolve()
+      }
+    })
+  },
+
+  _deleteMessagesLessThan998: function (iAccountId, sFolderFullName, aUids) {
     return new Promise((resolve, reject) => {
       if (aUids.length === 0) {
         resolve()
       }
       else if (oDb && oDb.open) {
         oDb.serialize(() => {
-          aUids = aUids.slice(0, 997) // TODO
+          aUids = aUids.slice(0, 997)
           let sQuestions = aUids.map(() => { return '?' }).join(',')
           let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
           oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
             if (oError) {
-              reject({ sMethod: 'deleteMessages', oError })
+              reject({ sMethod: 'deleteMessagesLessThan998', oError })
             } else {
               resolve()
             }
           })
         })
       } else {
-        reject({ sMethod: 'deleteMessages', sError: 'No DB connection' })
+        reject({ sMethod: 'deleteMessagesLessThan998', sError: 'No DB connection' })
       }
     })
   },

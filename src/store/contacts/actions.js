@@ -94,6 +94,7 @@ ipcRenderer.on('contacts-get-contacts', (event, { aContacts, iCount, oRequestPar
       store.commit('contacts/setContacts', _.map(aContacts, function (oContactData) {
         return new CContact(oContactData)
       }))
+      store.dispatch('contacts/setCurrentContactByUUID', store.getters['contacts/getCurrentContactUUID'])
       store.commit('contacts/setContactsCount', iCount)
       store.commit('contacts/setHasChanges', false)
       store.commit('contacts/setLoading', false)

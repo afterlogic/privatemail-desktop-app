@@ -600,8 +600,9 @@ export default {
     },
     async decrypt () {
       let oPrivateCurrentKey = this.getPrivateCurrentKey()
-      let oPublicCurrentKey = this.getPublicCurrentKey()
-      let aPublicKeys = oPublicCurrentKey ? [oPublicCurrentKey] : []
+      let sFromEmail = messageUtils.getFirstAddressEmail(this.message.From)
+      let oPublicFromKey = this.getPublicKeyByEmail(sFromEmail)
+      let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
       if (oPrivateCurrentKey) {
         let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerify(this.message.PlainRaw, oPrivateCurrentKey, this.privateKeyPass, aPublicKeys)
         if (sDecryptedData) {

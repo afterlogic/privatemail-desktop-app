@@ -64,8 +64,8 @@ export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
     if (oDb && oDb.open) {
-      oDb.serialize(function() {
-        let aMessageDbFields = _.map(aMessageDbMap, function (oMessageDbFieldData) {
+      oDb.serialize(() => {
+        let aMessageDbFields = _.map(aMessageDbMap, (oMessageDbFieldData) => {
           return oMessageDbFieldData.DbName + ' ' + oMessageDbFieldData.Type
         })
         let sMessageDbFields = aMessageDbFields.join(', ')
@@ -83,7 +83,7 @@ export default {
             iAccountId,
           ]
           oStatement.run(aParams)
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'removeAccount', oError })
             } else {
@@ -153,13 +153,13 @@ export default {
 
         if (typesUtils.isNonEmptyString(sSearch)) {
           let aWords = ['from:', 'subject:', 'to:', 'email:', 'text:', 'body:', 'date:', 'has:', 'attachments:']
-          let aPatterns = _.map(aWords, function (sWord) {
+          let aPatterns = _.map(aWords, (sWord) => {
             return '\\b' + sWord
           })
           let rPattern = new RegExp('(' + aPatterns.join('|') + ')', 'g')
           let aContent = sSearch.split(rPattern)
           if (aContent.length > 2) {
-            _.each(aContent, function (sItem, iIndex) {
+            _.each(aContent, (sItem, iIndex) => {
               let bOdd = !!(iIndex % 2)
               if (bOdd && aContent.length > iIndex + 1) {
                 let sValue = _.trim(aContent[iIndex + 1])
@@ -256,7 +256,7 @@ export default {
             oDb.all(
               'SELECT * FROM messages WHERE ' + aWhere.join(' AND ') + ' ORDER BY timestamp_in_utc COLLATE NOCASE DESC LIMIT ? OFFSET ?',
               aParams,
-              function (oError, aRows) {
+              (oError, aRows) => {
                 if (oError) {
                   reject({ sMethod: 'getFilteredMessages', oError })
                 } else {
@@ -282,6 +282,7 @@ export default {
           let aWhere = ['account_id = ?', 'folder = ?']
           let aParams = [iAccountId, sFolderFullName]
   
+          aUids = aUids.slice(0, 997) // TODO
           let sQuestions = aUids.map(() => { return '?' }).join(',')
           aWhere.push('uid IN (' + sQuestions + ')')
           aParams = aParams.concat(aUids)
@@ -311,7 +312,7 @@ export default {
       if (oDb && oDb.open) {
         oDb
           .prepare('SELECT * FROM messages WHERE account_id = ? AND folder = ? AND uid = ?', iAccountId, sFolderFullName, sMessageUid)
-          .get(function (oError, oRow) {
+          .get((oError, oRow) => {
             if (oError) {
               reject({ sMethod: 'getMessage', oError })
             } else {
@@ -330,25 +331,26 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
+          aMessages = typesUtils.isNonEmptyArray(aMessages) ? aMessages.slice(0, 997) : [] // TODO
           let sFolderFullName = typesUtils.isNonEmptyArray(aMessages) ? aMessages[0].Folder : ''
-          let aUids = aMessages.map(function (oMessage) { return oMessage.Uid })
-          let sQuestions = aUids.map(function () { return '?' }).join(',')
+          let aUids = aMessages.map((oMessage) => { return oMessage.Uid })
+          let sQuestions = aUids.map(() => { return '?' }).join(',')
           let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
           oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
             if (oError) {
               reject({ sMethod: 'setMessages', oError })
             } else {
-              let sFieldsDbNames = _.map(aMessageDbMap, function (oMessageDbFieldData) {
+              let sFieldsDbNames = _.map(aMessageDbMap, (oMessageDbFieldData) => {
                 return oMessageDbFieldData.DbName
               }).join(', ')
-              sQuestions = aMessageDbMap.map(function () { return '?' }).join(',')
+              sQuestions = aMessageDbMap.map(() => { return '?' }).join(',')
               let oStatement = oDb.prepare('INSERT INTO messages (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
-              _.each(aMessages, function (oMessage) {
+              _.each(aMessages, (oMessage) => {
                 dbHelper.prepareMessageFields(oMessage, iAccountId)
                 let aParams = dbHelper.prepareInsertParams(oMessage, aMessageDbMap)
                 oStatement.run(aParams)
               })
-              oStatement.finalize(function (oError) {
+              oStatement.finalize((oError) => {
                 if (oError) {
                   reject({ sMethod: 'setMessages', oError })
                 } else {
@@ -369,7 +371,7 @@ export default {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
           let oStatement = oDb.prepare('UPDATE messages SET is_answered = ?, is_flagged = ?, is_forwarded = ?, is_seen = ? WHERE account_id = ? AND folder = ? AND uid = ?')
-          _.each(aMessages, function (oMessage) {
+          _.each(aMessages, (oMessage) => {
             let aParams = [
               oMessage.IsAnswered,
               oMessage.IsFlagged,
@@ -381,7 +383,7 @@ export default {
             ]
             oStatement.run(aParams)
           })
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'setMessagesFlags', oError })
             } else {
@@ -400,7 +402,7 @@ export default {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
           let oStatement = oDb.prepare('UPDATE messages SET is_seen = ? WHERE account_id = ? AND folder = ? AND uid = ?')
-          _.each(aUids, function (sUid) {
+          _.each(aUids, (sUid) => {
             let aParams = [
               bIsSeen,
               iAccountId,
@@ -409,7 +411,7 @@ export default {
             ]
             oStatement.run(aParams)
           })
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'setMessagesSeen', oError })
             } else {
@@ -434,7 +436,7 @@ export default {
             sFolderFullName,
           ]
           oStatement.run(aParams)
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'setAllMessagesSeen', oError })
             } else {
@@ -460,7 +462,7 @@ export default {
             sUid,
           ]
           oStatement.run(aParams)
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'setMessageFlagged', oError })
             } else {
@@ -481,7 +483,8 @@ export default {
       }
       else if (oDb && oDb.open) {
         oDb.serialize(() => {
-          let sQuestions = aUids.map(function () { return '?' }).join(',')
+          aUids = aUids.slice(0, 997) // TODO
+          let sQuestions = aUids.map(() => { return '?' }).join(',')
           let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
           oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
             if (oError) {

@@ -109,7 +109,7 @@ export default {
         oParameters: { 'Storage': sStorage, 'Uids': aUuidsNew },
         fCallback: (aContactsFromApi, oError) => {
           if (typesUtils.isNonEmptyArray(aContactsFromApi)) {
-            contactsDbManager.setContacts({ aContacts: aContactsFromApi }).then(
+            contactsDbManager.setContacts({ sStorage, aContacts: aContactsFromApi }).then(
               () => {
                 oEvent.sender.send('contacts-refresh', { bHasChanges: true, sStorage })
               },
@@ -181,10 +181,10 @@ export default {
               if (typesUtils.isNonEmptyArray(aStoragesCtagsFromApi)) {
 
                 // Update storage list in database.
-                let aStoragesFromDb = _.map(aStoragesCtagsFromDb, function (oStorage) {
+                let aStoragesFromDb = _.map(aStoragesCtagsFromDb, (oStorage) =>{
                   return oStorage.Storage
                 })
-                let aStoragesFromApi = _.map(aStoragesCtagsFromApi, function (oStorage) {
+                let aStoragesFromApi = _.map(aStoragesCtagsFromApi, (oStorage) => {
                   return oStorage.Id
                 })
                 if (!_.isEqual(aStoragesFromDb.sort(), aStoragesFromApi.sort())) {
@@ -199,8 +199,8 @@ export default {
 
                 // Check storages CTag and update contacts info if necessary.
                 let aStoragesToRefresh = []
-                _.each(aStoragesCtagsFromApi, function (oStorageCtagFromApi) {
-                  let oStorageCtagFromDb = _.find(aStoragesCtagsFromDb, function (oTmpStorageCtagFromDb) {
+                _.each(aStoragesCtagsFromApi, (oStorageCtagFromApi) => {
+                  let oStorageCtagFromDb = _.find(aStoragesCtagsFromDb, (oTmpStorageCtagFromDb) => {
                     return oTmpStorageCtagFromDb.Storage === oStorageCtagFromApi.Id
                   })
                   if (!oStorageCtagFromDb || oStorageCtagFromDb.CTag !== oStorageCtagFromApi.CTag) {
@@ -211,7 +211,7 @@ export default {
                 })
                 if (aStoragesToRefresh.length !== 0) {
                   // Get contacts info for every storage with modified CTag.
-                  _.each(aStoragesToRefresh, function (sStorageToRefresh) {
+                  _.each(aStoragesToRefresh, (sStorageToRefresh) => {
                     _refreshContactsInfo (oEvent, { sApiHost, sAuthToken, sStorage: sStorageToRefresh })
                   })
                 }
@@ -245,7 +245,7 @@ export default {
           if (mResult && (mResult.UUID === oContactToSave.UUID || bNewContact)) {
             oContactToSave.ETag = mResult.ETag
             oContactToSave.UUID = mResult.UUID
-            contactsDbManager.setContacts({ aContacts: [oContactToSave], bCreateInfo: bNewContact })
+            contactsDbManager.setContacts({ sStorage: oContactToSave.Storage, aContacts: [oContactToSave], bCreateInfo: bNewContact })
             .then(
               () => {
                 oEvent.sender.send('contacts-save-contact', { oContactWithUpdatedETag: oContactToSave })

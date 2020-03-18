@@ -118,17 +118,17 @@ export default {
   init: function (oDbConnect) {
     oDb = oDbConnect
     if (oDb) {
-      oDb.serialize(function() {
+      oDb.serialize(() => {
         oDb.run('CREATE TABLE IF NOT EXISTS contacts_storages (storage TEXT, ctag INTEGER)')
         oDb.run('CREATE TABLE IF NOT EXISTS contacts_info (storage TEXT, uuid TEXT, etag TEXT)')
 
-        let aContactsFields = _.map(aContactDbMap, function (oContactDbFields) {
+        let aContactsFields = _.map(aContactDbMap, (oContactDbFields) => {
           return oContactDbFields.DbName + ' ' + oContactDbFields.Type
         })
         let sContactsFields = aContactsFields.join(', ')
         oDb.run('CREATE TABLE IF NOT EXISTS contacts (' + sContactsFields + ')')
 
-        let aGroupsFields = _.map(aGroupDbMap, function (oGroupDbFields) {
+        let aGroupsFields = _.map(aGroupDbMap, (oGroupDbFields) => {
           return oGroupDbFields.DbName + ' ' + oGroupDbFields.Type
         })
         let sGroupsFields = aGroupsFields.join(', ')
@@ -142,12 +142,12 @@ export default {
       if (oDb && oDb.open) {
         oDb.all('SELECT storage FROM contacts_storages',
         [],
-        function(oError, aRows) {
+        (oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getStorages', oError })
             } else {
               let aStorages = []
-              _.each(aRows, function (oRow) {
+              _.each(aRows, (oRow) => {
                 if (typesUtils.isNonEmptyObject(oRow) && typesUtils.isNonEmptyString(oRow.storage)) {
                   aStorages.push(oRow.storage)
                 }
@@ -167,12 +167,12 @@ export default {
       if (oDb && oDb.open) {
         oDb.all('SELECT storage, ctag FROM contacts_storages',
         [],
-        function(oError, aRows) {
+        (oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getStoragesCtags', oError })
             } else {
               let aStoragesCtags = []
-              _.each(aRows, function (oRow) {
+              _.each(aRows, (oRow) => {
                 if (typesUtils.isNonEmptyObject(oRow) && typesUtils.isNonEmptyString(oRow.storage)) {
                   aStoragesCtags.push({
                     Storage: oRow.storage,
@@ -193,17 +193,17 @@ export default {
   setStorages: function ({ aStorages }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function() {
+        oDb.serialize(() => {
           let oStatement = oDb.prepare('DELETE FROM contacts_storages')
           oStatement.run()
           oStatement.finalize()
         })
 
-        let sQuestions = aStorages.map(function(){ return '(?)' }).join(',')
+        let sQuestions = aStorages.map(() => { return '(?)' }).join(',')
         oDb.all(
           'INSERT INTO contacts_storages (storage) VALUES ' + sQuestions,
           aStorages,
-          function(oError) {
+          (oError) => {
             if (oError) {
               reject({ sMethod: 'setStorages', oError })
             } else {
@@ -221,15 +221,15 @@ export default {
     let aOldGroups = _.cloneDeep(aGroupsFromDb)
     let aNewGroups = _.cloneDeep(aGroupsFromApi)
     let bEqual = true
-    _.each(aNewGroups, function (oNewGroup) {
-      let oOldGroupIndex = _.findIndex(aOldGroups, function (oGroup) {
+    _.each(aNewGroups, (oNewGroup) => {
+      let oOldGroupIndex = _.findIndex(aOldGroups, (oGroup) => {
         return oGroup.EntityId === oNewGroup.EntityId
       })
       if (oOldGroupIndex === -1) {
         bEqual = false
       } else {
         let oOldGroup = aOldGroups[oOldGroupIndex]
-        _.each(aGroupDbMap, function (oDbField) {
+        _.each(aGroupDbMap, (oDbField) => {
           bEqual = bEqual && (oNewGroup[oDbField.Name] === oOldGroup[oDbField.Name])
         })
         if (bEqual) {
@@ -251,7 +251,7 @@ export default {
       if (oDb && oDb.open) {
         oDb.all('SELECT * FROM contacts_groups ORDER BY name COLLATE NOCASE ASC',
         [],
-        function(oError, aRows) {
+        (oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getGroups', oError })
             } else {
@@ -269,22 +269,22 @@ export default {
   setGroups: function ({ aGroups }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function() {
+        oDb.serialize(() => {
           let oStatement = oDb.prepare('DELETE FROM contacts_groups')
           oStatement.run()
           oStatement.finalize()
         })
 
-        let sFieldsDbNames = _.map(aGroupDbMap, function (oGroupDbField) {
+        let sFieldsDbNames = _.map(aGroupDbMap, (oGroupDbField) => {
           return oGroupDbField.DbName
         }).join(', ')
-        let sQuestions = aGroupDbMap.map(function(){ return '?' }).join(',')
+        let sQuestions = aGroupDbMap.map(() => { return '?' }).join(',')
         let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
-        _.each(aGroups, function (oGroup) {
+        _.each(aGroups, (oGroup) => {
           let aParams = dbHelper.prepareInsertParams(oGroup, aGroupDbMap)
           oStatement.run(aParams)
         })
-        oStatement.finalize(function (oError) {
+        oStatement.finalize((oError) => {
           if (oError) {
             reject({ sMethod: 'setGroups', oError })
           } else {
@@ -300,21 +300,21 @@ export default {
   setGroup: function ({ oGroup }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function () {
+        oDb.serialize(() => {
           let oStatement = oDb.prepare('DELETE FROM contacts_groups WHERE uuid = ?')
           oStatement.run([oGroup.UUID])
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'setGroups', oError })
             } else {
-              let sFieldsDbNames = _.map(aGroupDbMap, function (oGroupDbField) {
+              let sFieldsDbNames = _.map(aGroupDbMap, (oGroupDbField) => {
                 return oGroupDbField.DbName
               }).join(', ')
-              let sQuestions = aGroupDbMap.map(function () { return '?' }).join(',')
+              let sQuestions = aGroupDbMap.map(() => { return '?' }).join(',')
               let aParams = dbHelper.prepareInsertParams(oGroup, aGroupDbMap)
               let oStatement = oDb.prepare('INSERT INTO contacts_groups (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
               oStatement.run(aParams)
-              oStatement.finalize(function (oError) {
+              oStatement.finalize((oError) => {
                 if (oError) {
                   reject({ sMethod: 'setGroups', oError })
                 } else {
@@ -333,10 +333,10 @@ export default {
   deleteGroup: function ({ sUUID }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function () {
+        oDb.serialize(() => {
           let oStatement = oDb.prepare('DELETE FROM contacts_groups WHERE uuid = ?')
           oStatement.run([sUUID])
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'deleteGroup', oError })
             } else {
@@ -356,12 +356,12 @@ export default {
       if (oDb && oDb.open) {
         oDb
           .prepare('SELECT uuid, etag FROM contacts_info WHERE storage = ?', sStorage)
-          .all(function(oError, aRows) {
+          .all((oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getContactsInfo', oError })
             } else {
               let aInfo = []
-              _.each(aRows, function (oRow) {
+              _.each(aRows, (oRow) => {
                 if (typesUtils.isNonEmptyObject(oRow) && typesUtils.isNonEmptyString(oRow.uuid)) {
                   aInfo.push({
                     'UUID': oRow.uuid,
@@ -371,7 +371,7 @@ export default {
               })
               oDb
               .prepare('SELECT ctag FROM contacts_storages WHERE storage = ?', sStorage)
-              .get(function(oError, oRow) {
+              .get((oError, oRow) => {
                 if (oError) {
                   reject({ sMethod: 'getContactsInfo', oError })
                 } else {
@@ -391,46 +391,93 @@ export default {
     })
   },
 
+  _deleteContactsByUuids: function (sStorage, aUuids, bWithInfo) {
+    return new Promise(async (resolve, reject) => {
+      if (typesUtils.isNonEmptyArray(aUuids)) {
+        let iChunkLen = 998
+        for (let iIndex = 0, iUidsCount = aUuids.length; iIndex < iUidsCount; iIndex += iChunkLen) {
+          let aUuidsChunk = aUuids.slice(iIndex, iIndex + iChunkLen)
+          await this._deleteContactsLessThan999ByUuids(sStorage, aUuidsChunk, bWithInfo).then(
+            () => {},
+            () => {}
+          )
+        }
+      }
+      resolve()
+    })
+  },
+
+  _deleteContactsLessThan999ByUuids: function (sStorage, aUuids, bWithInfo) {
+    return new Promise((resolve, reject) => {
+      aUuids = aUuids.slice(0, 999)
+      let sQuestions = aUuids.map(() => { return '?' }).join(',')
+      let aParams = [sStorage].concat(aUuids)
+      if (bWithInfo) {
+        oDb.run('DELETE FROM contacts_info WHERE storage=? AND uuid IN (' + sQuestions + ')', aParams, (oError) => {
+          if (oError) {
+            reject({ sMethod: '_deleteContactsLessThan1000ByUuids', oError })
+          } else {
+            oDb.run('DELETE FROM contacts WHERE storage=? AND uuid IN (' + sQuestions + ')', aParams, (oError) => {
+              if (oError) {
+                reject({ sMethod: '_deleteContactsLessThan1000ByUuids', oError })
+              } else {
+                resolve()
+              }
+            })
+          }
+        })
+      } else {
+        oDb.run('DELETE FROM contacts WHERE storage=? AND uuid IN (' + sQuestions + ')', aParams, (oError) => {
+          if (oError) {
+            reject({ sMethod: '_deleteContactsLessThan1000ByUuids', oError })
+          } else {
+            resolve()
+          }
+        })
+      }
+    })
+  },
+
   setContactsInfo: function ({ sStorage, oContactsInfoFromDb, oContactsInfoFromApi }) {
     return new Promise((resolve, reject) => {
-      function _deleteContactsByUuids (aUuids) {
-        let sQuestions = aUuids.map(function(){ return '?' }).join(',')
-        oDb.run('DELETE FROM contacts_info WHERE uuid IN (' + sQuestions + ')', aUuids)
-        oDb.run('DELETE FROM contacts WHERE uuid IN (' + sQuestions + ')', aUuids)
-      }
-
       function _addContactsInfo (sStorage, aContactsInfo) {
         let oStatement = oDb.prepare('INSERT INTO contacts_info (storage, uuid, etag) VALUES (?, ?, ?)')
-        _.each(aContactsInfo, function (oContactInfo) {
-          oStatement.run(sStorage, oContactInfo.UUID, oContactInfo.ETag)
+        _.each(aContactsInfo, (oContactInfo) => {
+          oStatement.run([sStorage, oContactInfo.UUID, oContactInfo.ETag])
         })
         oStatement.finalize()
       }
 
       if (oDb && oDb.open) {
-        oDb.serialize(function() {
+        oDb.serialize(() => {
           let
             aDiffNew = _.differenceWith(oContactsInfoFromApi.Info, oContactsInfoFromDb.Info, _.isEqual),
-            aUuidsNew = _.map(aDiffNew, function (oInfo) {
+            aUuidsNew = _.map(aDiffNew, (oInfo) => {
               return oInfo.UUID
             }),
             aDiffOld = _.differenceWith(oContactsInfoFromDb.Info, oContactsInfoFromApi.Info, _.isEqual),
-            aUuidsOld = _.map(aDiffOld, function (oInfo) {
+            aUuidsOld = _.map(aDiffOld, (oInfo) => {
               return oInfo.UUID
             })
-          _deleteContactsByUuids(aUuidsOld)
-          _addContactsInfo(sStorage, aDiffNew)
 
-          oDb
-            .prepare('UPDATE contacts_storages SET ctag = ? WHERE storage = ?', oContactsInfoFromApi.CTag, sStorage)
-            .run()
-            .finalize(function (oError) {
-              if (oError) {
-                reject({ sMethod: 'setContactsInfo', oError })
-              } else {
-                resolve(aUuidsNew)
-              }
-            })
+          this._deleteContactsByUuids(sStorage, aUuidsOld, true).then(
+            () => {
+              _addContactsInfo(sStorage, aDiffNew)
+              oDb
+                .prepare('UPDATE contacts_storages SET ctag = ? WHERE storage = ?', oContactsInfoFromApi.CTag, sStorage)
+                .run()
+                .finalize((oError) => {
+                  if (oError) {
+                    reject({ sMethod: 'setContactsInfo', oError })
+                  } else {
+                    resolve(aUuidsNew)
+                  }
+                })
+              },
+            (oResult) => {
+              reject(oResult)
+            }
+          )
         })
       } else {
         reject({ sMethod: 'setContactsInfo', sError: 'No DB connection' })
@@ -443,12 +490,12 @@ export default {
       if (oDb && oDb.open) {
         oDb.all('SELECT uuid FROM contacts WHERE storage = ?',
         [sStorage],
-        function(oError, aRows) {
+        (oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getContactsUidsByUids', oError })
             } else {
               let aUuids = []
-              _.each(aRows, function (oRow) {
+              _.each(aRows, (oRow) => {
                 if (typesUtils.isNonEmptyObject(oRow) && typesUtils.isNonEmptyString(oRow.uuid)) {
                   aUuids.push(oRow.uuid)
                 }
@@ -463,35 +510,39 @@ export default {
     })
   },
 
-  setContacts: function ({ aContacts, bCreateInfo }) {
+  setContacts: function ({ sStorage, aContacts, bCreateInfo }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function() {
-          let aUuids = aContacts.map(function(oContact){ return oContact.UUID })
-          let sQuestions = aUuids.map(function(){ return '?' }).join(',')
-          oDb.run('DELETE FROM contacts WHERE uuid IN (' + sQuestions + ')', aUuids)
-
-          let sFieldsDbNames = _.map(aContactDbMap, function (oContactDbField) {
-            return oContactDbField.DbName
-          }).join(', ')
-          sQuestions = aContactDbMap.map(function(){ return '?' }).join(',')
-          let oStatement = oDb.prepare('INSERT INTO contacts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
-          let oInfoStatement = oDb.prepare('INSERT INTO contacts_info (storage, uuid, etag) VALUES (?, ?, ?)')
-          _.each(aContacts, function (oContact) {
-            let aParams = dbHelper.prepareInsertParams(oContact, aContactDbMap)
-            oStatement.run(aParams)
-            if (bCreateInfo) {
-              oInfoStatement.run([oContact.Storage, oContact.UUID, oContact.ETag])
+        oDb.serialize(() => {
+          let aUuids = aContacts.map((oContact)=> { return oContact.UUID })
+          this._deleteContactsByUuids(sStorage, aUuids, false).then(
+            () => {
+              let sFieldsDbNames = _.map(aContactDbMap, (oContactDbField) => {
+                return oContactDbField.DbName
+              }).join(', ')
+              let sQuestions = aContactDbMap.map(() => { return '?' }).join(',')
+              let oStatement = oDb.prepare('INSERT INTO contacts (' + sFieldsDbNames + ') VALUES (' + sQuestions + ')')
+              let oInfoStatement = oDb.prepare('INSERT INTO contacts_info (storage, uuid, etag) VALUES (?, ?, ?)')
+              _.each(aContacts, (oContact) => {
+                let aParams = dbHelper.prepareInsertParams(oContact, aContactDbMap)
+                oStatement.run(aParams)
+                if (bCreateInfo) {
+                  oInfoStatement.run([oContact.Storage, oContact.UUID, oContact.ETag])
+                }
+              })
+              oStatement.finalize((oError) => {
+                if (oError) {
+                  reject({ sMethod: 'setContacts', oError })
+                } else {
+                  resolve()
+                }
+              })
+              oInfoStatement.finalize()
+            },
+            (oResult) => {
+              reject(oResult)
             }
-          })
-          oStatement.finalize(function (oError) {
-            if (oError) {
-              reject({ sMethod: 'setContacts', oError })
-            } else {
-              resolve()
-            }
-          })
-          oInfoStatement.finalize()
+          )
         })
       } else {
         reject({ sMethod: 'setContacts', sError: 'No DB connection' })
@@ -507,7 +558,7 @@ export default {
           let iCount = typesUtils.pInt(oRow && oRow.count)
           oDb.all(sSql,
             aParams,
-            function(oError, aRows) {
+            (oError, aRows) => {
                 if (oError) {
                   reject({ sMethod: 'getContacts', oError })
                 } else {
@@ -529,13 +580,14 @@ export default {
   getContactsByEmails: function ({ aEmails }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        let aWhere = _.map(aEmails, function () { return 'view_email = ?' })
+        aEmails = aEmails.slice(0, 998) // TODO
+        let aWhere = _.map(aEmails, () => { return 'view_email = ?' })
         let aParams = (['collected']).concat(aEmails)
         let sSql = 'SELECT * FROM contacts WHERE storage != ? AND (' + aWhere.join(' OR ') + ')'
         oDb.all(
           sSql,
           aParams,
-          function(oError, aRows) {
+          (oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getContactsByEmails', oError })
             } else {
@@ -560,7 +612,7 @@ export default {
         oDb.all(
           sSql,
           ['%' + sSearch + '%', '%' + sSearch + '%'],
-          function(oError, aRows) {
+          (oError, aRows) => {
             if (oError) {
               reject({ sMethod: 'getFrequentlyUsedContacts', oError })
             } else {
@@ -578,12 +630,15 @@ export default {
   deleteContacts: function ({ sStorage, aContactsUUIDs }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
-          let aParams = ([sStorage]).concat(aContactsUUIDs)
-          oDb.run('DELETE FROM contacts_info WHERE storage = ? AND uuid IN (' + sQuestions + ')', aParams)
-          oDb.run('DELETE FROM contacts WHERE storage = ? AND uuid IN (' + sQuestions + ')', aParams)
-          resolve()
+        oDb.serialize(() => {
+          this._deleteContactsByUuids(sStorage, aContactsUUIDs, true).then(
+            () => {
+              resolve()
+            },
+            (oResult) => {
+              reject(oResult)
+            },
+          )
         })
       } else {
         reject({ sMethod: 'deleteContacts', sError: 'No DB connection' })
@@ -594,17 +649,18 @@ export default {
   addContactsToGroup: function ({ sGroupUUID, aContacts, aContactsUUIDs }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
+        oDb.serialize(() => {
+          aContactsUUIDs = aContactsUUIDs.slice(0, 998) // TODO
+          let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
           let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
-          _.each(aContacts, function (oContact) {
-            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.union(oContact.GroupUUIDs, [sGroupUUID])}, _.filter(aContactDbMap, function (oContactDbMap) {
+          _.each(aContacts, (oContact) => {
+            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.union(oContact.GroupUUIDs, [sGroupUUID])}, _.filter(aContactDbMap, (oContactDbMap) => {
               return oContactDbMap.DbName === 'group_uuids'
             }))
             aParams = aParams.concat(aContactsUUIDs)
             oStatement.run(aParams)
           })
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'addContactsToGroup', oError })
             } else {
@@ -621,17 +677,18 @@ export default {
   removeContactsFromGroup: function ({ sGroupUUID, aContacts, aContactsUUIDs }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
+        oDb.serialize(() => {
+          aContactsUUIDs = aContactsUUIDs.slice(0, 998) // TODO
+          let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
           let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
-          _.each(aContacts, function (oContact) {
-            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.without(oContact.GroupUUIDs, sGroupUUID)}, _.filter(aContactDbMap, function (oContactDbMap) {
+          _.each(aContacts, (oContact) => {
+            let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.without(oContact.GroupUUIDs, sGroupUUID)}, _.filter(aContactDbMap, (oContactDbMap) => {
               return oContactDbMap.DbName === 'group_uuids'
             }))
             aParams = aParams.concat(aContactsUUIDs)
             oStatement.run(aParams)
           })
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'removeContactsFromGroup', oError })
             } else {
@@ -648,13 +705,14 @@ export default {
   updateSharedContacts: function ({ sStorage, aContactsUUIDs }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(function () {
-          let sQuestions = aContactsUUIDs.map(function(){ return '?' }).join(',')
+        oDb.serialize(() => {
+          aContactsUUIDs = aContactsUUIDs.slice(0, 998) // TODO
+          let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
           let oStatement = oDb.prepare('UPDATE contacts SET storage=? WHERE uuid IN (' + sQuestions + ')')
           let sNewStorage = sStorage === 'personal' ? 'shared' : 'personal'
           let aParams = ([sNewStorage]).concat(aContactsUUIDs)
           oStatement.run(aParams)
-          oStatement.finalize(function (oError) {
+          oStatement.finalize((oError) => {
             if (oError) {
               reject({ sMethod: 'removeContactsFromGroup', oError })
             } else {

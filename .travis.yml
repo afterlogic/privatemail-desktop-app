@@ -1,16 +1,16 @@
 dist: trusty
-sudo: false
 language: node_js
 node_js:
 - 10
 install:
 - npm install
-- cd ./installers/linux && npm install
+- cd ./installers/linux
+- npm install
+- cd ../../
+- ls
 script:
 - npm run build:app
 - node ./installers/linux/build.js
 after_success: 
-- ./travis.sh -t upload
-env:
-  global:
-  - PRODUCT_NAME=webmail-pro-privaterouter
+- ls
+- ls ./installers/linux/dist

@@ -13,4 +13,4 @@ script:
 - node ./installers/linux/build.js
 after_success: 
 - ls
-- ls ./installers/linux/dist
+- ls ./dist

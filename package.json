@@ -33,7 +33,7 @@
       ]
     },
     "linux": {
-      "executableName": "privatemail",
+      "executableName": "PrivateMailDesktop",
       "target": [
         "AppImage",
         "deb"

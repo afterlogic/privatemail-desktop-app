@@ -91,7 +91,7 @@
                   </q-expansion-item>
                 </div>
                 <div class="col">
-                  <q-scroll-area class="full-height">
+                  <q-scroll-area ref="messageListScrollArea" class="full-height">
                     <message-list />
                   </q-scroll-area>
                 </div>
@@ -120,6 +120,7 @@
 import { ipcRenderer } from 'electron'
 
 import errors from 'src/utils/errors.js'
+import listManage from 'src/utils/listManage.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
@@ -191,6 +192,9 @@ export default {
     advSearchDisableAttachments () {
       return !this.advSearchHasAttachments
     },
+    currentMessage () {
+      return this.$store.getters['mail/getCurrentMessage']
+    },
   },
 
   watch: {
@@ -220,6 +224,9 @@ export default {
         return oMessage.Uid
       })
       this.checkedUids = _.intersection(this.checkedUids, aCurrentUids)
+    },
+    currentMessage () {
+      this.scrollToSelectedMessage(false)
     },
   },
 
@@ -286,9 +293,38 @@ export default {
     },
     initSubscriptions () {
       this.$root.$on('message-checked', this.onMessageChecked)
+      document.addEventListener('keydown', this.onArrowKeysDown)
     },
     destroySubscriptions () {
       this.$root.$off('message-checked', this.onMessageChecked)
+      document.removeEventListener('keydown', this.onArrowKeysDown)
+    },
+    onArrowKeysDown (oEvent) {
+      if (!oEvent.altKey && !oEvent.ctrlKey && (oEvent.keyCode === 38 || oEvent.keyCode === 40) && this.currentMessage) {
+        let iCurrentMessageIndex = _.findIndex(this.messages, (oMessage) => {
+          return oMessage.Uid === this.currentMessage.Uid
+        })
+        let iNewMessageIndex = -1
+        if (oEvent.keyCode === 38) { // up
+          iNewMessageIndex = iCurrentMessageIndex - 1
+        }
+        if (oEvent.keyCode === 40) { // down
+          iNewMessageIndex = iCurrentMessageIndex + 1
+        }
+        if (iNewMessageIndex >= 0 && iNewMessageIndex < this.messages.length) {
+          let oNewMessage = this.messages[iNewMessageIndex]
+          this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
+        }
+      }
+      oEvent.preventDefault()
+    },
+    scrollToSelectedMessage (bMoveOnTop) {
+      if (this.$refs.messageListScrollArea && this.currentMessage ) {
+        let iCurrentMessageIndex = _.findIndex(this.messages, (oMessage) => {
+          return oMessage.Uid === this.currentMessage.Uid
+        })
+        listManage.scrollToSelectedItem(this.$refs.messageListScrollArea, iCurrentMessageIndex, this.messages.length, bMoveOnTop)
+      }
     },
     // clearAllUserData () {
     //   let sApiHost = this.$store.getters['main/getApiHost']
@@ -318,6 +354,7 @@ export default {
         }
       })
     }
+    this.scrollToSelectedMessage(true)
   },
 
   beforeDestroy() {

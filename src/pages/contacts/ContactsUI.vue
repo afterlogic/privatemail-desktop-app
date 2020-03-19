@@ -16,7 +16,7 @@
         </template>
 
         <template v-slot:after>
-          <q-splitter v-model="splitterMessageModel" separator-class="main-split-separator">
+          <q-splitter v-model="splitterContactModel" separator-class="main-split-separator">
             <template v-slot:before>
               <div class="column full-height bg-white text-grey-8 panel-rounded">
                 <div class="col-auto">
@@ -34,7 +34,7 @@
                   </q-toolbar>
                 </div>
                 <div class="col">
-                  <q-scroll-area class="full-height">
+                  <q-scroll-area ref="contactListScrollArea" class="full-height">
                     <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange"/>
                   </q-scroll-area>
                 </div>
@@ -86,14 +86,16 @@ import GroupView from './GroupView.vue'
 import GroupEditView from './GroupEditView.vue'
 
 import Pagination from '../Pagination.vue'
-// import ContactCreateView from './__oldContactCreateView.vue'
 import GroupCreateView from './GroupCreateView.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
+import listManage from 'src/utils/listManage.js'
+
 export default {
   name: 'ContactsUI',
+
   components: {
     GroupList,
     ContactsList,
@@ -105,33 +107,24 @@ export default {
     GroupEditView,
 
     Pagination,
-    // ContactCreateView,
     GroupCreateView,
   },
+
   data () {
     return {
       splitterFolderModel: 20,
-      splitterMessageModel: 50,
+      splitterContactModel: 50,
       allChecked: false,
       searchInputText: '',
     }
   },
-  watch: {
-    currentStorage: function () {
-      this.searchInputText = ''
-      this.search()
-    },
-    currentGroupUUID: function () {
-      this.searchInputText = ''
-      this.search()
-    },
-    searchText: function () {
-      this.searchInputText = this.searchText
-    },
-  },
+
   computed: {
     editMode () {
       return this.$store.getters['contacts/isCurrentContactEditMode']
+    },
+    contacts () {
+      return this.$store.getters['contacts/getContacts'].list
     },
     currentContact () {
       return this.$store.getters['contacts/getCurrentContact']
@@ -171,6 +164,33 @@ export default {
       return this.$store.getters['contacts/getSearchText']
     },
   },
+
+  watch: {
+    currentStorage: function () {
+      this.searchInputText = ''
+      this.search()
+    },
+    currentGroupUUID: function () {
+      this.searchInputText = ''
+      this.search()
+    },
+    searchText: function () {
+      this.searchInputText = this.searchText
+    },
+    currentContact () {
+      this.scrollToSelectedContact(false)
+    },
+  },
+
+  mounted: function () {
+    this.initSubscriptions()
+    this.scrollToSelectedContact(true)
+  },
+
+  beforeDestroy() {
+    this.destroySubscriptions()
+  },
+
   methods: {
     createContact() {
       this.$store.commit('contacts/changeStateForCreatingContact', true)
@@ -185,6 +205,39 @@ export default {
     },
     search () {
       this.$store.commit('contacts/setSearchText', this.searchInputText)
+    },
+    initSubscriptions () {
+      document.addEventListener('keydown', this.onArrowKeysDown)
+    },
+    destroySubscriptions () {
+      document.removeEventListener('keydown', this.onArrowKeysDown)
+    },
+    onArrowKeysDown (oEvent) {
+      if (!oEvent.altKey && !oEvent.ctrlKey && (oEvent.keyCode === 38 || oEvent.keyCode === 40) && this.currentContact) {
+        let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
+          return oContact.UUID === this.currentContact.UUID
+        })
+        let iNewContactIndex = -1
+        if (oEvent.keyCode === 38) { // up
+          iNewContactIndex = iСurrentContactIndex - 1
+        }
+        if (oEvent.keyCode === 40) { // down
+          iNewContactIndex = iСurrentContactIndex + 1
+        }
+        if (iNewContactIndex >= 0 && iNewContactIndex < this.contacts.length) {
+          let oNewContact = this.contacts[iNewContactIndex]
+          this.$store.dispatch('contacts/setCurrentContactByUUID', oNewContact.UUID)
+        }
+      }
+      oEvent.preventDefault()
+    },
+    scrollToSelectedContact (bMoveOnTop) {
+      if (this.$refs.contactListScrollArea && this.currentContact ) {
+        let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
+          return oContact.UUID === this.currentContact.UUID
+        })
+        listManage.scrollToSelectedItem(this.$refs.contactListScrollArea, iСurrentContactIndex, this.contacts.length, bMoveOnTop)
+      }
     },
   },
 }

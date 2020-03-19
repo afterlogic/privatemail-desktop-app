@@ -1,10 +1,14 @@
 const createInstaller = require('electron-installer-debian')
 
+const oPackageJsonData = require('../../package.json')
+const sVersion = oPackageJsonData.version
+const sBuild = oPackageJsonData.buildNumber
+
 const oOptions = {
   src: '../../dist/electron/PrivateMail-linux-x64',
   dest: 'dist/',
   arch: 'amd64',
-  name: 'privatemail_installer',
+  name: 'privatemail-' + sVersion + '(' + sBuild + ')' + '-installer',
   productName: 'privatemail',
   icon: '../../src-electron/icons/linux-512x512.png',
 }

@@ -237,7 +237,7 @@ export default {
               fCallback: (aMessagesInfoFromServer, oError) => {
                 if (appState.isLastMessagesInfoTime(iAccountId, sFolderFullName, sLastMessagesInfoTime)) {
                   let { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve } = this._updateMessagesInfo(aMessagesInfoFromDb, aMessagesInfoFromServer)
-                  this.deleteMessages({ iAccountId, sFolderFullName, aUids: aUidsToDelete }).then(
+                  this.deleteMessages(iAccountId, sFolderFullName, aUidsToDelete).then(
                     () => {
                       this._syncMessages({ iAccountId, sFolderFullName, aMessagesInfoToSync }).then(
                         () => {
@@ -275,7 +275,7 @@ export default {
     })
   },
 
-  deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+  deleteMessages: function (iAccountId, sFolderFullName, aUids) {
     return new Promise((resolve, reject) => {
       if (!_.isArray(aUids)) {
         reject({ sMethod: 'deleteMessages', sError: 'aUids is not an Array' })
@@ -284,9 +284,9 @@ export default {
         resolve()
       }
       else {
-        foldersDbManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+        foldersDbManager.deleteMessages(iAccountId, sFolderFullName, aUids).then(
           () => {
-            messagesDbManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(resolve, reject)
+            messagesDbManager.deleteMessages(iAccountId, sFolderFullName, aUids).then(resolve, reject)
           }, reject)
       }
     })
@@ -304,7 +304,7 @@ export default {
         let aUids = _.map(aMessagesInfoToSync, function (oMessageInfo) {
           return oMessageInfo.uid
         })
-        messagesDbManager.getMessagesByUids({ iAccountId, sFolderFullName, aUids }).then(
+        messagesDbManager.getMessagesByUids(iAccountId, sFolderFullName, aUids).then(
           (aMessages) => {
             _.each(aMessages, (oMessage) => {
               let oMessageInfo = _.find(aMessagesInfoToSync, (oTmpMessageInfo) => {
@@ -326,7 +326,7 @@ export default {
   },
 
   _retrieveMessages: function ({ iAccountId, sFolderFullName, aUids, sApiHost, sAuthToken }) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if (!_.isArray(aUids)) {
         reject({ sMethod: '_retrieveMessages', sError: 'aUids is not an Array' })
       }
@@ -334,14 +334,14 @@ export default {
         resolve()
       }
       else {
-        messagesDbManager.getMessagesUidsByUids({ iAccountId, sFolderFullName, aUids }).then(
+        messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUids).then(
           async (aUidsFromDb) => {
             if (!_.isArray(aUidsFromDb)) {
               aUidsFromDb = []
             }
             let aUidsNotInDb = _.difference(aUids, aUidsFromDb)
             let iChunkLen = 50
-            for (let iIndex = 0, iUidsCount = aUidsNotInDb.length; iIndex < iUidsCount; iIndex += iChunkLen) {
+            for (let iIndex = 0, iCount = aUidsNotInDb.length; iIndex < iCount; iIndex += iChunkLen) {
               let aUidsChunk = aUidsNotInDb.slice(iIndex, iIndex + iChunkLen)
               await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: aUidsChunk, sApiHost, sAuthToken })
             }

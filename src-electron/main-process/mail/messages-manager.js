@@ -85,7 +85,7 @@ export default {
       } else if (aUids.length === 0) {
         resolve([])
       } else {
-        messagesDbManager.getMessagesByUids({ iAccountId, sFolderFullName, aUids }).then(
+        messagesDbManager.getMessagesByUids(iAccountId, sFolderFullName, aUids).then(
           (aMessages) => {
             let aFoundUids = _.map(aMessages, (oTmpMessage) => { return oTmpMessage.Uid })
             let aNotFoundUids = _.difference(aUids, aFoundUids)

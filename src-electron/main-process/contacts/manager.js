@@ -57,8 +57,8 @@ export default {
       contactsDbManager.getStorages({}).then(
         (aStoragesFromDb) => {
           if (typesUtils.isNonEmptyArray(aStoragesFromDb)) {
-            contactsDbManager.getContactsByEmails({ aEmails }).then(
-              ({ aContacts }) => {
+            contactsDbManager.getContactsByEmails(aEmails).then(
+              (aContacts) => {
                 oEvent.sender.send('contacts-get-contacts-by-emails', { aEmails, aContacts })
               },
               (oError) => {
@@ -304,7 +304,7 @@ export default {
             .then(
               () => {
                 if (bCreateGroup && typesUtils.isNonEmptyArray(oGroupToSave.Contacts) && typesUtils.isNonEmptyArray(aContacts)) {
-                  contactsDbManager.addContactsToGroup({ sGroupUUID: oGroupToSave.UUID, aContacts, aContactsUUIDs: oGroupToSave.Contacts })
+                  contactsDbManager.addContactsToGroup(oGroupToSave.UUID, aContacts)
                   .then(
                     () => {
                       oEvent.sender.send('contacts-save-group', { bSaved: true, iAddedContactsCount: aContacts.length })
@@ -362,7 +362,7 @@ export default {
         oParameters: { GroupUUID: sGroupUUID, ContactUUIDs: aContactsUUIDs },
         fCallback: (mResult, oError) => {
           if (mResult) {
-            contactsDbManager.addContactsToGroup({ sGroupUUID, aContacts, aContactsUUIDs })
+            contactsDbManager.addContactsToGroup(sGroupUUID, aContacts)
             .then(
               () => {
                 oEvent.sender.send('contacts-add-contacts-to-group', { bAdded: true })
@@ -387,7 +387,7 @@ export default {
         oParameters: { GroupUUID: sGroupUUID, ContactUUIDs: aContactsUUIDs },
         fCallback: (mResult, oError) => {
           if (mResult) {
-            contactsDbManager.removeContactsFromGroup({ sGroupUUID, aContacts, aContactsUUIDs })
+            contactsDbManager.removeContactsFromGroup(sGroupUUID, aContacts)
             .then(
               () => {
                 oEvent.sender.send('contacts-remove-contacts-from-group', { bRemoved: true })
@@ -412,7 +412,7 @@ export default {
         oParameters: { UUIDs: aContactsUUIDs },
         fCallback: (mResult, oError) => {
           if (mResult) {
-            contactsDbManager.updateSharedContacts({ sStorage, aContactsUUIDs })
+            contactsDbManager.updateSharedContacts(sStorage, aContactsUUIDs)
             .then(
               () => {
                 oEvent.sender.send('contacts-update-shared-contacts', { bUpdateSharedContacts: true })

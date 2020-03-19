@@ -12,7 +12,7 @@ import messagesManager from './messages-manager.js'
 import messagesDbManager from './messages-db-manager.js'
 
 export default {
-  _refreshMessagesInNotCurrentFolders: async function (iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+  _refreshMessagesInNotCurrentFolders: function (iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
     _.each(aChangedFolders, async function (oTmpFolder) {
       if (oTmpFolder.FullName !== sCurrentFolderFullName) {
         await foldersManager.refreshMessagesInfo(iAccountId, bUseThreading, oTmpFolder.FullName, oTmpFolder.Type, sApiHost, sAuthToken)
@@ -20,7 +20,7 @@ export default {
     })
   },
 
-  _deleteFoldersInformation: async function (iAccountId, aFoldersToDelete) {
+  _deleteFoldersInformation: function (iAccountId, aFoldersToDelete) {
     _.each(aFoldersToDelete, async function (oTmpFolder) {
       await foldersDbManager.deleteMessagesInfo({ iAccountId, sFolderFullName: oTmpFolder.FullName })
     })
@@ -211,7 +211,7 @@ export default {
           appState.resetLastFoldersInfoTime(iAccountId)
           appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)
           if (bResult) {
-            foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+            foldersManager.deleteMessages(iAccountId, sFolderFullName, aUids).then(
               () => {
                 oEvent.sender.send('mail-delete-messages', { bResult, iAccountId, sFolderFullName, aUids, oError })
               },
@@ -268,7 +268,7 @@ export default {
           appState.resetLastFoldersInfoTime(iAccountId)
           appState.resetLastMessagesInfoTime(iAccountId, sFolderFullName)
           if (bResult) {
-            foldersManager.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+            foldersManager.deleteMessages(iAccountId, sFolderFullName, aUids).then(
               () => {
                 oEvent.sender.send('mail-move-messages', { bResult, iAccountId, sFolderFullName, sToFolderFullName, aUids, oError })
               },

@@ -238,7 +238,7 @@ export default {
     })
   },
   
-  deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
+  deleteMessages: function (iAccountId, sFolderFullName, aUids) {
     return new Promise((resolve, reject) => {
       if (aUids.length === 0) {
         resolve()

@@ -393,33 +393,39 @@ export default {
 
   _deleteContactsByUuids: function (sStorage, aUuids, bWithInfo) {
     return new Promise(async (resolve, reject) => {
+      let bError = false
       if (typesUtils.isNonEmptyArray(aUuids)) {
         let iChunkLen = 998
-        for (let iIndex = 0, iUidsCount = aUuids.length; iIndex < iUidsCount; iIndex += iChunkLen) {
+        for (let iIndex = 0, iCount = aUuids.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
           let aUuidsChunk = aUuids.slice(iIndex, iIndex + iChunkLen)
           await this._deleteContactsLessThan999ByUuids(sStorage, aUuidsChunk, bWithInfo).then(
             () => {},
-            () => {}
+            (oResult) => {
+              bError = true
+              reject(oResult)
+            }
           )
         }
       }
-      resolve()
+      if (!bError) {
+        resolve()
+      }
     })
   },
 
   _deleteContactsLessThan999ByUuids: function (sStorage, aUuids, bWithInfo) {
     return new Promise((resolve, reject) => {
-      aUuids = aUuids.slice(0, 999)
+      aUuids = aUuids.slice(0, 998)
       let sQuestions = aUuids.map(() => { return '?' }).join(',')
       let aParams = [sStorage].concat(aUuids)
       if (bWithInfo) {
         oDb.run('DELETE FROM contacts_info WHERE storage=? AND uuid IN (' + sQuestions + ')', aParams, (oError) => {
           if (oError) {
-            reject({ sMethod: '_deleteContactsLessThan1000ByUuids', oError })
+            reject({ sMethod: '_deleteContactsByUuids', oError })
           } else {
             oDb.run('DELETE FROM contacts WHERE storage=? AND uuid IN (' + sQuestions + ')', aParams, (oError) => {
               if (oError) {
-                reject({ sMethod: '_deleteContactsLessThan1000ByUuids', oError })
+                reject({ sMethod: '_deleteContactsByUuids', oError })
               } else {
                 resolve()
               }
@@ -429,7 +435,7 @@ export default {
       } else {
         oDb.run('DELETE FROM contacts WHERE storage=? AND uuid IN (' + sQuestions + ')', aParams, (oError) => {
           if (oError) {
-            reject({ sMethod: '_deleteContactsLessThan1000ByUuids', oError })
+            reject({ sMethod: '_deleteContactsByUuids', oError })
           } else {
             resolve()
           }
@@ -577,28 +583,57 @@ export default {
     })
   },
 
-  getContactsByEmails: function ({ aEmails }) {
+  getContactsByEmails: function (aEmails) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        aEmails = aEmails.slice(0, 998) // TODO
-        let aWhere = _.map(aEmails, () => { return 'view_email = ?' })
-        let aParams = (['collected']).concat(aEmails)
-        let sSql = 'SELECT * FROM contacts WHERE storage != ? AND (' + aWhere.join(' OR ') + ')'
-        oDb.all(
-          sSql,
-          aParams,
-          (oError, aRows) => {
-            if (oError) {
-              reject({ sMethod: 'getContactsByEmails', oError })
-            } else {
-              let aContacts = dbHelper.prepareDataFromDb(aRows, aContactDbMap)
-              resolve({ aContacts })
+        oDb.serialize(async () => {
+          let aContacts = []
+          let bError = false
+          if (typesUtils.isNonEmptyArray(aEmails)) {
+            let iChunkLen = 998
+            for (let iIndex = 0, iCount = aEmails.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
+              let aEmailsChunk = aEmails.slice(iIndex, iIndex + iChunkLen)
+              await this._getContactsLessThan999ByEmails(aEmailsChunk).then(
+                (aContactsChunk) => {
+                  if (_.isArray(aContactsChunk)) {
+                    aContacts = aContacts.concat(aContactsChunk)
+                  }
+                },
+                (oResult) => {
+                  bError = true
+                  reject(oResult)
+                }
+              )
             }
           }
-        )
+          if (!bError) {
+            resolve(aContacts)
+          }
+        })
       } else {
         reject({ sMethod: 'getContactsByEmails', sError: 'No DB connection' })
       }
+    })
+  },
+
+  _getContactsLessThan999ByEmails: function (aEmails) {
+    return new Promise((resolve, reject) => {
+      aEmails = aEmails.slice(0, 998)
+      let aWhere = _.map(aEmails, () => { return 'view_email = ?' })
+      let aParams = (['collected']).concat(aEmails)
+      let sSql = 'SELECT * FROM contacts WHERE storage != ? AND (' + aWhere.join(' OR ') + ')'
+      oDb.all(
+        sSql,
+        aParams,
+        (oError, aRows) => {
+          if (oError) {
+            reject({ sMethod: 'getContactsByEmails', oError })
+          } else {
+            let aContacts = dbHelper.prepareDataFromDb(aRows, aContactDbMap)
+            resolve(aContacts)
+          }
+        }
+      )
     })
   },
 
@@ -646,18 +681,16 @@ export default {
     })
   },
 
-  addContactsToGroup: function ({ sGroupUUID, aContacts, aContactsUUIDs }) {
+  addContactsToGroup: function (sGroupUUID, aContactsToAdd) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
-          aContactsUUIDs = aContactsUUIDs.slice(0, 998) // TODO
-          let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
-          let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
-          _.each(aContacts, (oContact) => {
+          let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid=?')
+          _.each(aContactsToAdd, (oContact) => {
             let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.union(oContact.GroupUUIDs, [sGroupUUID])}, _.filter(aContactDbMap, (oContactDbMap) => {
               return oContactDbMap.DbName === 'group_uuids'
             }))
-            aParams = aParams.concat(aContactsUUIDs)
+            aParams = aParams.concat([oContact.UUID])
             oStatement.run(aParams)
           })
           oStatement.finalize((oError) => {
@@ -674,18 +707,16 @@ export default {
     })
   },
 
-  removeContactsFromGroup: function ({ sGroupUUID, aContacts, aContactsUUIDs }) {
+  removeContactsFromGroup: function (sGroupUUID, aContactsToRemove) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
-          aContactsUUIDs = aContactsUUIDs.slice(0, 998) // TODO
-          let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
-          let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid IN (' + sQuestions + ')')
-          _.each(aContacts, (oContact) => {
+          let oStatement = oDb.prepare('UPDATE contacts SET group_uuids=? WHERE uuid=?')
+          _.each(aContactsToRemove, (oContact) => {
             let aParams = dbHelper.prepareInsertParams({ GroupUUIDs: _.without(oContact.GroupUUIDs, sGroupUUID)}, _.filter(aContactDbMap, (oContactDbMap) => {
               return oContactDbMap.DbName === 'group_uuids'
             }))
-            aParams = aParams.concat(aContactsUUIDs)
+            aParams = aParams.concat([oContact.UUID])
             oStatement.run(aParams)
           })
           oStatement.finalize((oError) => {
@@ -702,27 +733,49 @@ export default {
     })
   },
 
-  updateSharedContacts: function ({ sStorage, aContactsUUIDs }) {
+  updateSharedContacts: function (sStorage, aContactsUUIDs) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
-        oDb.serialize(() => {
-          aContactsUUIDs = aContactsUUIDs.slice(0, 998) // TODO
-          let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
-          let oStatement = oDb.prepare('UPDATE contacts SET storage=? WHERE uuid IN (' + sQuestions + ')')
-          let sNewStorage = sStorage === 'personal' ? 'shared' : 'personal'
-          let aParams = ([sNewStorage]).concat(aContactsUUIDs)
-          oStatement.run(aParams)
-          oStatement.finalize((oError) => {
-            if (oError) {
-              reject({ sMethod: 'removeContactsFromGroup', oError })
-            } else {
-              resolve()
+        oDb.serialize(async () => {
+          let bError = false
+          if (typesUtils.isNonEmptyArray(aContactsUUIDs)) {
+            let iChunkLen = 998
+            for (let iIndex = 0, iCount = aContactsUUIDs.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
+              let aContactsUUIDsChunk = aContactsUUIDs.slice(iIndex, iIndex + iChunkLen)
+              await this._updateLessThan999SharedContacts(sStorage, aContactsUUIDsChunk).then(
+                () => {},
+                (oResult) => {
+                  bError = true
+                  reject(oResult)
+                }
+              )
             }
-          })
+          }
+          if (!bError) {
+            resolve()
+          }
         })
       } else {
-        reject({ sMethod: 'removeContactsFromGroup', sError: 'No DB connection' })
+        reject({ sMethod: 'updateSharedContacts', sError: 'No DB connection' })
       }
+    })
+  },
+
+  _updateLessThan999SharedContacts: function (sStorage, aContactsUUIDs) {
+    return new Promise((resolve, reject) => {
+      aContactsUUIDs = aContactsUUIDs.slice(0, 998)
+      let sQuestions = aContactsUUIDs.map(() => { return '?' }).join(',')
+      let oStatement = oDb.prepare('UPDATE contacts SET storage=? WHERE uuid IN (' + sQuestions + ')')
+      let sNewStorage = sStorage === 'personal' ? 'shared' : 'personal'
+      let aParams = ([sNewStorage]).concat(aContactsUUIDs)
+      oStatement.run(aParams)
+      oStatement.finalize((oError) => {
+        if (oError) {
+          reject({ sMethod: 'updateSharedContacts', oError })
+        } else {
+          resolve()
+        }
+      })
     })
   },
 }

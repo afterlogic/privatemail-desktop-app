@@ -97,49 +97,61 @@ export default {
     })
   },
 
-  getMessagesUidsByUids: function ({ iAccountId, sFolderFullName, aUids }) {
-    return new Promise(async (resolve, reject) => {
-      let aUidsFromDb = []
-      let iChunkLen = 997
-      for (let iIndex = 0, iUidsCount = aUids.length; iIndex < iUidsCount; iIndex += iChunkLen) {
-        let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
-        let aUidsFromDbChunk = await this._getMessagesUidsLessThan998ByUids({ iAccountId, sFolderFullName, aUids: aUidsChunk })
-        if (_.isArray(aUidsFromDbChunk)) {
-          aUidsFromDb = aUidsFromDb.concat(aUidsFromDbChunk)
-        }
+  getMessagesUidsByUids: function (iAccountId, sFolderFullName, aUids) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(async () => {
+          let aUidsFromDb = []
+          let bError = false
+          let iChunkLen = 997
+          for (let iIndex = 0, iCount = aUids.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
+            let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
+            await this._getMessagesUidsLessThan998ByUids({ iAccountId, sFolderFullName, aUids: aUidsChunk }).then(
+              (aUidsFromDbChunk) => {
+                if (_.isArray(aUidsFromDbChunk)) {
+                  aUidsFromDb = aUidsFromDb.concat(aUidsFromDbChunk)
+                }
+              },
+              (oResult) => {
+                bError = true
+                reject(oResult)
+              }
+            )
+          }
+          if (!bError) {
+            resolve(aUidsFromDb)
+          }
+        })
+      } else {
+        reject({ sMethod: 'getMessagesUidsByUids', sError: 'No DB connection' })
       }
-      resolve(aUidsFromDb)
     })
   },
 
   _getMessagesUidsLessThan998ByUids: function ({ iAccountId, sFolderFullName, aUids }) {
     return new Promise((resolve, reject) => {
-      if (oDb && oDb.open) {
-        aUids = aUids.slice(0, 997)
-        if (typesUtils.isNonEmptyArray(aUids)) {
-          let aWhere = ['account_id = ?', 'folder = ?']
-          let aParams = [iAccountId, sFolderFullName]
-          let sQuestions = aUids.map(() => { return '?' }).join(',')
-          aWhere.push('uid IN (' + sQuestions + ')')
-          aParams = aParams.concat(aUids)
-          oDb.all(
-            'SELECT uid FROM messages WHERE ' + aWhere.join(' AND '),
-            aParams,
-            (oError, aRows) => {
-              if (oError) {
-                reject({ sMethod: 'getMessagesUidsByUids', oError })
-              } else {
-                resolve(_.map(aRows, (oRow) => {
-                  return oRow.uid
-                }))
-              }
+      aUids = aUids.slice(0, 997)
+      if (typesUtils.isNonEmptyArray(aUids)) {
+        let aWhere = ['account_id = ?', 'folder = ?']
+        let aParams = [iAccountId, sFolderFullName]
+        let sQuestions = aUids.map(() => { return '?' }).join(',')
+        aWhere.push('uid IN (' + sQuestions + ')')
+        aParams = aParams.concat(aUids)
+        oDb.all(
+          'SELECT uid FROM messages WHERE ' + aWhere.join(' AND '),
+          aParams,
+          (oError, aRows) => {
+            if (oError) {
+              reject({ sMethod: 'getMessagesUidsByUids', oError })
+            } else {
+              resolve(_.map(aRows, (oRow) => {
+                return oRow.uid
+              }))
             }
-          )
-        } else {
-          reject({ sMethod: 'getMessagesUidsByUids', sError: 'No UIDs to retrieve' })
-        }
+          }
+        )
       } else {
-        reject({ sMethod: 'getMessagesUidsByUids', sError: 'No DB connection' })
+        reject({ sMethod: 'getMessagesUidsByUids', sError: 'No UIDs to retrieve' })
       }
     })
   },
@@ -275,15 +287,15 @@ export default {
     })
   },
 
-  getMessagesByUids: function ({ iAccountId, sFolderFullName, aUids }) {
+  getMessagesByUids: function (iAccountId, sFolderFullName, aUids) {
     return new Promise((resolve, reject) => {
       if (typesUtils.isNonEmptyArray(aUids)) {
         if (oDb && oDb.open) {
           oDb.serialize(async () => {
             let aMessages = []
             let bError = false
-            let iChunkLen = 998
-            for (let iIndex = 0, iCount = aUids.length; iIndex < iCount; iIndex += iChunkLen) {
+            let iChunkLen = 997
+            for (let iIndex = 0, iCount = aUids.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
               let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
               await this._getMessagesLessThan998ByUids(iAccountId, sFolderFullName, aUidsChunk).then(
                 (aMessagesChunk) => {
@@ -364,7 +376,7 @@ export default {
         oDb.serialize(() => {
           let sFolderFullName = typesUtils.isNonEmptyArray(aMessages) ? aMessages[0].Folder : ''
           let aUids = aMessages.map((oMessage) => { return oMessage.Uid })
-          this.deleteMessages({ iAccountId, sFolderFullName, aUids }).then(
+          this.deleteMessages(iAccountId, sFolderFullName, aUids).then(
             () => {
               let sFieldsDbNames = _.map(aMessageDbMap, (oMessageDbFieldData) => {
                 return oMessageDbFieldData.DbName
@@ -505,24 +517,30 @@ export default {
     })
   },
 
-  deleteMessages: function ({ iAccountId, sFolderFullName, aUids }) {
-    return new Promise(async (resolve, reject) => {
-      let bError = false
-      if (typesUtils.isNonEmptyArray(aUids)) {
-        let iChunkLen = 997
-        for (let iIndex = 0, iCount = aUids.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
-          let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
-          await this._deleteMessagesLessThan998(iAccountId, sFolderFullName, aUidsChunk).then(
-            () => {},
-            (oResult) => {
-              bError = true
-              reject(oResult)
+  deleteMessages: function (iAccountId, sFolderFullName, aUids) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(async () => {
+          let bError = false
+          if (typesUtils.isNonEmptyArray(aUids)) {
+            let iChunkLen = 997
+            for (let iIndex = 0, iCount = aUids.length; iIndex < iCount && bError === false; iIndex += iChunkLen) {
+              let aUidsChunk = aUids.slice(iIndex, iIndex + iChunkLen)
+              await this._deleteMessagesLessThan998(iAccountId, sFolderFullName, aUidsChunk).then(
+                () => {},
+                (oResult) => {
+                  bError = true
+                  reject(oResult)
+                }
+              )
             }
-          )
-        }
-      }
-      if (!bError) {
-        resolve()
+          }
+          if (!bError) {
+            resolve()
+          }
+        })
+      } else {
+        reject({ sMethod: 'deleteMessages', sError: 'No DB connection' })
       }
     })
   },
@@ -531,22 +549,17 @@ export default {
     return new Promise((resolve, reject) => {
       if (aUids.length === 0) {
         resolve()
-      }
-      else if (oDb && oDb.open) {
-        oDb.serialize(() => {
-          aUids = aUids.slice(0, 997)
-          let sQuestions = aUids.map(() => { return '?' }).join(',')
-          let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
-          oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
-            if (oError) {
-              reject({ sMethod: 'deleteMessagesLessThan998', oError })
-            } else {
-              resolve()
-            }
-          })
-        })
       } else {
-        reject({ sMethod: 'deleteMessagesLessThan998', sError: 'No DB connection' })
+        aUids = aUids.slice(0, 997)
+        let sQuestions = aUids.map(() => { return '?' }).join(',')
+        let aParams = ([iAccountId, sFolderFullName]).concat(aUids)
+        oDb.run('DELETE FROM messages WHERE account_id = ? AND folder = ? AND uid IN (' + sQuestions + ')', aParams, (oError) => {
+          if (oError) {
+            reject({ sMethod: 'deleteMessages', oError })
+          } else {
+            resolve()
+          }
+        })
       }
     })
   },

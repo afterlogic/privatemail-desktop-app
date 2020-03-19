@@ -10,7 +10,11 @@ install:
 - ls
 script:
 - npm run build:app
-- node ./installers/linux/build.js
+- cd ./installers/linux
+- node ./build.js
+- cd ../../
 after_success: 
 - ls
 - ls ./dist
+- ls ./installers/linux/dist
+

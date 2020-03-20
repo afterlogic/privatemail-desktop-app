@@ -214,7 +214,7 @@ export default {
     },
     onKeydown (oKeyboardEvent) {
       let iKeyCode = oKeyboardEvent.keyCode
-      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey) {
+      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && !oKeyboardEvent.shiftKey) {
         if (this.currentContact && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
           let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
             return oContact.UUID === this.currentContact.UUID

@@ -101,7 +101,7 @@
               </div>
             </template>
             <template v-slot:after>
-              <MessageViewer class=" panel-rounded" />
+              <MessageViewer class="panel-rounded" ref="messageViewer" />
             </template>
           </q-splitter>
         </template>
@@ -380,7 +380,7 @@ export default {
     },
     onKeydown (oKeyboardEvent) {
       let iKeyCode = oKeyboardEvent.keyCode
-      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey) {
+      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && !oKeyboardEvent.shiftKey) {
         if (this.currentMessage && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
           let aUids = this.getMessageUidList()
           let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
@@ -415,6 +415,11 @@ export default {
             this.$refs.mailListToolbar.deleteMessages()
           }
           oKeyboardEvent.preventDefault()
+        }
+      }
+      if (iKeyCode === 13 && oKeyboardEvent.ctrlKey && !oKeyboardEvent.altKey && !oKeyboardEvent.shiftKey) { // ctrl+enter
+        if (this.$refs.messageViewer && _.isFunction(this.$refs.messageViewer.sendQuickReply)) {
+          this.$refs.messageViewer.sendQuickReply()
         }
       }
     },

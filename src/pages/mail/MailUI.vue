@@ -24,7 +24,7 @@
             <template v-slot:before>
               <div class="column no-wrap full-height bg-white text-grey-8 panel-rounded" style="overflow: hidden">
                 <div class="col-auto">
-                  <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" />
+                  <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" ref="mailListToolbar" />
                   <q-expansion-item
                     expand-separator
                     icon="mail"
@@ -380,23 +380,42 @@ export default {
     },
     onKeydown (oKeyboardEvent) {
       let iKeyCode = oKeyboardEvent.keyCode
-      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && (iKeyCode === 38 || iKeyCode === 40) && this.currentMessage) {
-        let aUids = this.getMessageUidList()
-        let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
-          return iUid === this.currentMessage.Uid
-        })
-        let iNewMessageIndex = -1
-        if (iKeyCode === 38) { // up
-          iNewMessageIndex = iCurrentMessageUidIndex - 1
+      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey) {
+        if (this.currentMessage && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
+          let aUids = this.getMessageUidList()
+          let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
+            return iUid === this.currentMessage.Uid
+          })
+          let iNewMessageIndex = -1
+          switch (iKeyCode) {
+            case 34: // page down
+            case 35: // end
+              iNewMessageIndex = aUids.length - 1
+              break
+            case 33: // page up
+            case 36: // home
+              iNewMessageIndex = 0
+              break
+            case 38: // up
+              iNewMessageIndex = iCurrentMessageUidIndex - 1
+              break
+            case 40: // down
+              iNewMessageIndex = iCurrentMessageUidIndex + 1
+              break
+          }
+          if (iNewMessageIndex >= 0 && iNewMessageIndex < aUids.length) {
+            let oNewMessage = this.getMessageByUid(aUids[iNewMessageIndex])
+            this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
+          }
+          oKeyboardEvent.preventDefault()
         }
-        if (iKeyCode === 40) { // down
-          iNewMessageIndex = iCurrentMessageUidIndex + 1
+
+        if (iKeyCode === 46) { // delete
+          if (this.$refs.mailListToolbar && _.isFunction(this.$refs.mailListToolbar.deleteMessages)) {
+            this.$refs.mailListToolbar.deleteMessages()
+          }
+          oKeyboardEvent.preventDefault()
         }
-        if (iNewMessageIndex >= 0 && iNewMessageIndex < aUids.length) {
-          let oNewMessage = this.getMessageByUid(aUids[iNewMessageIndex])
-          this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
-        }
-        oKeyboardEvent.preventDefault()
       }
     },
     scrollToSelectedMessage (bMoveOnTop) {

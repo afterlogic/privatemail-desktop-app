@@ -33,7 +33,7 @@
                     </q-input>
                   </q-toolbar>
                 </div>
-                <div class="col">
+                <div class="col" @keydown="onKeydown">
                   <q-scroll-area ref="contactListScrollArea" class="full-height">
                     <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange"/>
                   </q-scroll-area>
@@ -91,7 +91,7 @@ import GroupCreateView from './GroupCreateView.vue'
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
 
-import listManage from 'src/utils/listManage.js'
+import hotkeys from 'src/utils/hotkeys.js'
 
 export default {
   name: 'ContactsUI',
@@ -183,12 +183,7 @@ export default {
   },
 
   mounted: function () {
-    this.initSubscriptions()
     this.scrollToSelectedContact(true)
-  },
-
-  beforeDestroy() {
-    this.destroySubscriptions()
   },
 
   methods: {
@@ -206,48 +201,44 @@ export default {
     search () {
       this.$store.commit('contacts/setSearchText', this.searchInputText)
     },
-    initSubscriptions () {
-      document.addEventListener('keydown', this.onKeydown)
-    },
-    destroySubscriptions () {
-      document.removeEventListener('keydown', this.onKeydown)
-    },
     onKeydown (oKeyboardEvent) {
-      let iKeyCode = oKeyboardEvent.keyCode
-      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && !oKeyboardEvent.shiftKey) {
-        if (this.currentContact && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
-          let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
-            return oContact.UUID === this.currentContact.UUID
-          })
-          let iNewContactIndex = -1
-          switch (iKeyCode) {
-            case 34: // page down
-            case 35: // end
-              iNewContactIndex = this.contacts.length - 1
-              break
-            case 33: // page up
-            case 36: // home
-              iNewContactIndex = 0
-              break
-            case 38: // up
-              iNewContactIndex = iСurrentContactIndex - 1
-              break
-            case 40: // down
-              iNewContactIndex = iСurrentContactIndex + 1
-              break
+      if (!hotkeys.isTextFieldFocused()) {
+        let iKeyCode = oKeyboardEvent.keyCode
+        if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && !oKeyboardEvent.shiftKey) {
+          if (this.currentContact && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
+            let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
+              return oContact.UUID === this.currentContact.UUID
+            })
+            let iNewContactIndex = -1
+            switch (iKeyCode) {
+              case 34: // page down
+              case 35: // end
+                iNewContactIndex = this.contacts.length - 1
+                break
+              case 33: // page up
+              case 36: // home
+                iNewContactIndex = 0
+                break
+              case 38: // up
+                iNewContactIndex = iСurrentContactIndex - 1
+                break
+              case 40: // down
+                iNewContactIndex = iСurrentContactIndex + 1
+                break
+            }
+            if (iNewContactIndex >= 0 && iNewContactIndex < this.contacts.length) {
+              let oNewContact = this.contacts[iNewContactIndex]
+              this.$store.dispatch('contacts/setCurrentContactByUUID', oNewContact.UUID)
+            }
+            oKeyboardEvent.preventDefault()
           }
-          if (iNewContactIndex >= 0 && iNewContactIndex < this.contacts.length) {
-            let oNewContact = this.contacts[iNewContactIndex]
-            this.$store.dispatch('contacts/setCurrentContactByUUID', oNewContact.UUID)
-          }
-          oKeyboardEvent.preventDefault()
-        }
 
-        if (iKeyCode === 46) { // delete
-          if (this.$refs.contactsListToolbar && _.isFunction(this.$refs.contactsListToolbar.askDeleteContacts)) {
-            this.$refs.contactsListToolbar.askDeleteContacts()
+          if (iKeyCode === 46) { // delete
+            if (this.$refs.contactsListToolbar && _.isFunction(this.$refs.contactsListToolbar.askDeleteContacts)) {
+              this.$refs.contactsListToolbar.askDeleteContacts()
+            }
+            oKeyboardEvent.preventDefault()
           }
-          oKeyboardEvent.preventDefault()
         }
       }
     },
@@ -256,7 +247,7 @@ export default {
         let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
           return oContact.UUID === this.currentContact.UUID
         })
-        listManage.scrollToSelectedItem(this.$refs.contactListScrollArea, iСurrentContactIndex, this.contacts.length, bMoveOnTop)
+        hotkeys.scrollToSelectedItem(this.$refs.contactListScrollArea, iСurrentContactIndex, this.contacts.length, bMoveOnTop)
       }
     },
   },

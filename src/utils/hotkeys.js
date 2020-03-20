@@ -1,5 +1,5 @@
-let listManage = {
-  scrollToSelectedItem: function (oScrollArea, iCurrentItemIndex, iItemsCount, bMoveOnTop) {
+let hotkeys = {
+  scrollToSelectedItem (oScrollArea, iCurrentItemIndex, iItemsCount, bMoveOnTop) {
     if (oScrollArea) {
       let
         iOffset = 20,
@@ -19,6 +19,17 @@ let listManage = {
       }
     }
   },
+
+  isTextFieldFocused () {
+    let
+      mTag = document && document.activeElement ? document.activeElement : null,
+      mTagName = mTag ? mTag.tagName : null,
+      mTagType = mTag && mTag.type ? mTag.type.toLowerCase() : null,
+      mContentEditable = mTag ? mTag.contentEditable : null
+
+    return ('INPUT' === mTagName && (mTagType === 'text' || mTagType === 'password' || mTagType === 'email' || mTagType === 'search')) ||
+      'TEXTAREA' === mTagName || 'IFRAME' === mTagName || mContentEditable === 'true'
+  },
 }
 
-export default listManage
+export default hotkeys

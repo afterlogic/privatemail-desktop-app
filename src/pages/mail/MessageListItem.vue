@@ -175,12 +175,14 @@ export default {
 
   methods: {
     selectMessage: function (oMouseEvent) {
-      if (oMouseEvent.ctrlKey) {
-        this.checked = true
-      } else if (oMouseEvent.shiftKey) {
-        this.$root.$emit('message-shift-checked', this.message.Uid)
-      } else {
-        this.$store.dispatch('mail/setCurrentMessage', this.message)
+      if (oMouseEvent && oMouseEvent.isTrusted) {
+        if (oMouseEvent.ctrlKey) {
+          this.checked = true
+        } else if (oMouseEvent.shiftKey) {
+          this.$root.$emit('message-shift-checked', this.message.Uid)
+        } else {
+          this.$store.dispatch('mail/setCurrentMessage', this.message)
+        }
       }
     },
     dblClickHandler: function () {

@@ -90,7 +90,7 @@
                     </div>
                   </q-expansion-item>
                 </div>
-                <div class="col">
+                <div class="col" @keydown="onKeydown">
                   <q-scroll-area ref="messageListScrollArea" class="full-height non-selectable">
                     <message-list />
                   </q-scroll-area>
@@ -120,7 +120,7 @@
 import { ipcRenderer } from 'electron'
 
 import errors from 'src/utils/errors.js'
-import listManage from 'src/utils/listManage.js'
+import hotkeys from 'src/utils/hotkeys.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
@@ -327,12 +327,10 @@ export default {
     initSubscriptions () {
       this.$root.$on('message-shift-checked', this.onMessageShiftChecked)
       this.$root.$on('message-checked', this.onMessageChecked)
-      document.addEventListener('keydown', this.onKeydown)
     },
     destroySubscriptions () {
       this.$root.$off('message-shift-checked', this.onMessageShiftChecked)
       this.$root.$off('message-checked', this.onMessageChecked)
-      document.removeEventListener('keydown', this.onKeydown)
     },
     onMessageShiftChecked (iUid) {
       let aUids = this.getMessageUidList()
@@ -379,52 +377,50 @@ export default {
       return oFoundMessage
     },
     onKeydown (oKeyboardEvent) {
-      let iKeyCode = oKeyboardEvent.keyCode
-      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && !oKeyboardEvent.shiftKey) {
-        if (this.currentMessage && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
-          let aUids = this.getMessageUidList()
-          let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
-            return iUid === this.currentMessage.Uid
-          })
-          let iNewMessageIndex = -1
-          switch (iKeyCode) {
-            case 34: // page down
-            case 35: // end
-              iNewMessageIndex = aUids.length - 1
-              break
-            case 33: // page up
-            case 36: // home
-              iNewMessageIndex = 0
-              break
-            case 38: // up
-              iNewMessageIndex = iCurrentMessageUidIndex - 1
-              break
-            case 40: // down
-              iNewMessageIndex = iCurrentMessageUidIndex + 1
-              break
+      if (!hotkeys.isTextFieldFocused()) {
+        let iKeyCode = oKeyboardEvent.keyCode
+        if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && !oKeyboardEvent.shiftKey) {
+          if (this.currentMessage && (iKeyCode === 33 || iKeyCode === 34 || iKeyCode === 35 || iKeyCode === 36 || iKeyCode === 38 || iKeyCode === 40)) {
+            let aUids = this.getMessageUidList()
+            let iCurrentMessageUidIndex = aUids.indexOf(this.currentMessage.Uid)
+            let iNewMessageIndex = -1
+            switch (iKeyCode) {
+              case 34: // page down
+              case 35: // end
+                iNewMessageIndex = aUids.length - 1
+                break
+              case 33: // page up
+              case 36: // home
+                iNewMessageIndex = 0
+                break
+              case 38: // up
+                iNewMessageIndex = iCurrentMessageUidIndex - 1
+                break
+              case 40: // down
+                iNewMessageIndex = iCurrentMessageUidIndex + 1
+                break
+            }
+            if (iNewMessageIndex >= 0 && iNewMessageIndex < aUids.length) {
+              let oNewMessage = this.getMessageByUid(aUids[iNewMessageIndex])
+              this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
+            }
+            oKeyboardEvent.preventDefault()
           }
-          if (iNewMessageIndex >= 0 && iNewMessageIndex < aUids.length) {
-            let oNewMessage = this.getMessageByUid(aUids[iNewMessageIndex])
-            this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
-          }
-          oKeyboardEvent.preventDefault()
-        }
 
-        if (iKeyCode === 46) { // delete
-          if (this.$refs.mailListToolbar && _.isFunction(this.$refs.mailListToolbar.deleteMessages)) {
-            this.$refs.mailListToolbar.deleteMessages()
+          if (iKeyCode === 46) { // delete
+            if (this.$refs.mailListToolbar && _.isFunction(this.$refs.mailListToolbar.deleteMessages)) {
+              this.$refs.mailListToolbar.deleteMessages()
+            }
+            oKeyboardEvent.preventDefault()
           }
-          oKeyboardEvent.preventDefault()
         }
       }
     },
     scrollToSelectedMessage (bMoveOnTop) {
       if (this.$refs.messageListScrollArea && this.currentMessage ) {
         let aUids = this.getMessageUidList()
-        let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
-          return iUid === this.currentMessage.Uid
-        })
-        listManage.scrollToSelectedItem(this.$refs.messageListScrollArea, iCurrentMessageUidIndex, aUids.length, bMoveOnTop)
+        let iCurrentMessageUidIndex = aUids.indexOf(this.currentMessage.Uid)
+        hotkeys.scrollToSelectedItem(this.$refs.messageListScrollArea, iCurrentMessageUidIndex, aUids.length, bMoveOnTop)
       }
     },
     // clearAllUserData () {

@@ -170,26 +170,33 @@ export default {
       this.$store.dispatch('contacts/asyncGetContacts')
     },
     setCurrentContactByUUID(sUUID, oMouseEvent) {
-      if (oMouseEvent && oMouseEvent.ctrlKey) {
-        this.aCheckedList = _.union(this.aCheckedList, [sUUID])
-      } else if (oMouseEvent && oMouseEvent.shiftKey) {
-        let aUuids = _.map(this.contacts, function (oContact) {
-          return oContact.UUID
-        })
-        let iLastCheckedIndex = aUuids.indexOf(this.sLastCheckedUuid)
-        let iCurrCheckedIndex = aUuids.indexOf(sUUID)
-        if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
-          let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
-          let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
-          let aUidsToCheck = aUuids.slice(iStartIndex, iEndIndex + 1)
-          if (aUidsToCheck.length > 0) {
-            this.aCheckedList = _.union(this.aCheckedList, aUidsToCheck)
+      if (oMouseEvent) {
+        if (oMouseEvent.isTrusted) {
+          if (oMouseEvent.ctrlKey) {
+            this.aCheckedList = _.union(this.aCheckedList, [sUUID])
+          } else if (oMouseEvent.shiftKey) {
+            let aUuids = _.map(this.contacts, function (oContact) {
+              return oContact.UUID
+            })
+            let iLastCheckedIndex = aUuids.indexOf(this.sLastCheckedUuid)
+            let iCurrCheckedIndex = aUuids.indexOf(sUUID)
+            if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
+              let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
+              let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
+              let aUidsToCheck = aUuids.slice(iStartIndex, iEndIndex + 1)
+              if (aUidsToCheck.length > 0) {
+                this.aCheckedList = _.union(this.aCheckedList, aUidsToCheck)
+              }
+            }
+          } else {
+            this.$store.dispatch('contacts/setCurrentContactByUUID', sUUID)
           }
+          this.sLastCheckedUuid = sUUID
         }
       } else {
         this.$store.dispatch('contacts/setCurrentContactByUUID', sUUID)
+        this.sLastCheckedUuid = sUUID
       }
-      this.sLastCheckedUuid = sUUID
     },
     isChecked(sUUID) {
       return this.aCheckedList.indexOf(sUUID) !== -1

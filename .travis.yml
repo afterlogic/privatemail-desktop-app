@@ -16,6 +16,7 @@ script:
 after_success: 
 - ls
 - ls ./dist
+- ls ./dist/electron
 - ls ./installers/linux/dist
 - ls ./dist/electron/PrivateMail-linux-x64
 

@@ -10,13 +10,14 @@ install:
 - cd ./installers/linux
 - npm install
 - cd ../../
-- ls
 script:
 - npm run build:app
 - cd ./installers/linux
 - node ./build.js
 - cd ../../
 after_success: 
+- chmod +x ./travis.sh
+- ./travis.sh -t upload-linux-package
 - ls
 - ls ./dist
 - ls ./dist/electron

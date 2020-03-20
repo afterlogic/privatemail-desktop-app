@@ -220,7 +220,8 @@ module.exports = function (ctx) {
           "target": [
             "AppImage",
             "deb"
-          ]
+          ],
+          "executableName": "privatemail"
         }
       }
     }

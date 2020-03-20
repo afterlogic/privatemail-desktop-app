@@ -190,7 +190,7 @@ module.exports = function (ctx) {
 
         // OS X / Mac App Store
         appBundleId: 'com.afterlogic.privatemail',
-        executableName: 'PrivateMailDesktop1',
+        // executableName: 'privatemail', //package.json > name will be used
         productName: 'PrivateMail',
         name: 'PrivateMail'
 
@@ -202,28 +202,28 @@ module.exports = function (ctx) {
         // win32metadata: { ... }
       },
 
-      builder: {
+      // builder: {
         // https://www.electron.build/configuration/configuration
 
         // appId: 'privatemail-desktop'
-        "appId": "com.afterlogic.privatemail",
-        "productName": "PrivateMail",
-        "mac": {
-          "category": "public.app-category.social-networking"
-        },
-        "win": {
-          "target": [
-            "nsis"
-          ]
-        },
-        "linux": {
-          "target": [
-            "AppImage",
-            "deb"
-          ],
-          "executableName": "PrivateMailDesktop2"
-        }
-      }
+        // "appId": "com.afterlogic.privatemail",
+        // "productName": "PrivateMail",
+        // "mac": {
+          // "category": "public.app-category.social-networking"
+        // },
+        // "win": {
+          // "target": [
+            // "nsis"
+          // ]
+        // },
+        // "linux": {
+          // "target": [
+            // "AppImage",
+            // "deb"
+          // ],
+          // "executableName": "privatemail"
+        // }
+      // }
     }
   }
 }

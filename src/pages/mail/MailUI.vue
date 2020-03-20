@@ -101,7 +101,7 @@
               </div>
             </template>
             <template v-slot:after>
-              <MessageViewer class="panel-rounded" ref="messageViewer" />
+              <MessageViewer class="panel-rounded" />
             </template>
           </q-splitter>
         </template>
@@ -415,11 +415,6 @@ export default {
             this.$refs.mailListToolbar.deleteMessages()
           }
           oKeyboardEvent.preventDefault()
-        }
-      }
-      if (iKeyCode === 13 && oKeyboardEvent.ctrlKey && !oKeyboardEvent.altKey && !oKeyboardEvent.shiftKey) { // ctrl+enter
-        if (this.$refs.messageViewer && _.isFunction(this.$refs.messageViewer.sendQuickReply)) {
-          this.$refs.messageViewer.sendQuickReply()
         }
       }
     },

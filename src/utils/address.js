@@ -36,7 +36,7 @@ let addressUtils = {
   },
 
   /**
-   * Obtains Recipient-object which include "name", "email" and "fullEmail" fields from string.
+   * Obtains Recipient-object which include "name", "email" and "full" fields from string.
    * @param {string} sFullEmail String includes only name, only email or both name and email.
    * @param {boolean} bIgnoreQuotesInName
    * @return {Object}
@@ -73,7 +73,7 @@ let addressUtils = {
     return {
       'name': sName,
       'email': sEmail,
-      'fullEmail': addressUtils.getFullEmail(sName, sEmail),
+      'full': addressUtils.getFullEmail(sName, sEmail),
     }
   },
 

@@ -1,7 +1,7 @@
 <template>
   <q-chip unelevated :class="{'found_contact': !!contact, 'no_contact': !contact}">
     <!-- TODO add @mouseover="openCardPopup(true)" @mouseout="openCardPopup(false)" to the root element to make the card visible by hovering -->
-    <span v-if="!min">{{ addr.fullEmail }}</span>
+    <span v-if="!min">{{ addr.full }}</span>
     <span v-if="min">{{ (currentAccountEmail === addr.email) ? 'me' : (addr.name || addr.email) }}</span>
     <q-btn size="8px" unelevated dense rounded color="primary" v-if="!contact" @click="openCreateContactPopup" style="margin-left: 10px; margin-right: -8px;" >
       <q-icon size="12px" color="white" name="add" />
@@ -282,7 +282,7 @@ export default {
       }
     },
     openCreateContactPopup () {
-      let oEmailParts = addressUtils.getEmailParts(this.addr.fullEmail)
+      let oEmailParts = addressUtils.getEmailParts(this.addr.full)
       this.bSaving = false
       this.sNewContactDisplayName = oEmailParts.name
       this.sNewContactEmail = oEmailParts.email

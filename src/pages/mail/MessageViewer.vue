@@ -112,28 +112,28 @@
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
           <div class="non-selectable" v-if="!showDetails">
-            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.full" :addr="oAddr" :min="true" />
             →
-            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
-            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
-            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.fullEmail" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.full" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.full" :addr="oAddr" :min="true" />
+            <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.full" :addr="oAddr" :min="true" />
           </div>
           <div v-if="showDetails">
             <div style="clear: both;">
               <span class="non-selectable">From: </span>
-              <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in from" :key="'from_' + oAddr.full" :addr="oAddr" :min="false" />
             </div>
             <div v-if="to.length > 0">
               <span class="non-selectable">To: </span>
-              <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in to" :key="'to_' + oAddr.full" :addr="oAddr" :min="false" />
             </div>
             <div v-if="cc.length > 0">
               <span class="non-selectable">Cc: </span>
-              <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in cc" :key="'cc_' + oAddr.full" :addr="oAddr" :min="false" />
             </div>
             <div v-if="bcc.length > 0">
               <span class="non-selectable">Bcc: </span>
-              <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.fullEmail" :addr="oAddr" :min="false" />
+              <ContactCard v-for="oAddr in bcc" :key="'bcc_' + oAddr.full" :addr="oAddr" :min="false" />
             </div>
             <div>
               <span class="non-selectable">Date: </span>

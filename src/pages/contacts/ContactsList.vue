@@ -4,13 +4,13 @@
       <span class="pannel-hint--link" @click="clearSearch">Clear search</span>
       <div class="pannel-hint">Search results for "{{ searchText }}" in contacts:</div>
     </template>
-    <template v-if="contacts.list.length === 0">
+    <template v-if="contacts.length === 0">
       <div class="pannel-hint" v-if="!contactsSyncing">No contacts</div>
       <div class="pannel-hint" v-if="contactsSyncing">Loading contact list...</div>
     </template>
     <q-list>
-      <div v-for="contact in contacts.list" :key="contact.UUID">
-        <q-item clickable v-ripple class="contact-list-item q-py-md" @click="setCurrentContactByUUID(contact.UUID)" 
+      <div v-for="contact in contacts" :key="contact.UUID" class="non-selectable">
+        <q-item clickable v-ripple class="contact-list-item q-py-md" @click="function (oMouseEvent) { setCurrentContactByUUID(contact.UUID, oMouseEvent) }" 
             :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
@@ -67,6 +67,8 @@ export default {
     return {
       page: 1,
       perPage: 20,
+
+      sLastCheckedUuid: '',
     }
   },
 
@@ -97,7 +99,7 @@ export default {
     allChecked: function () {
       if (this.allChecked) {
         let aContactsUUIDsList = []
-        this.contacts.list.forEach(element => {
+        this.contacts.forEach(element => {
           aContactsUUIDsList.push(element.UUID)
         })
         this.aCheckedList = aContactsUUIDsList
@@ -106,7 +108,7 @@ export default {
       }
     },
     aCheckedList: function () {
-      if (this.aCheckedList.length === this.contacts.list.length && this.contacts.list.lenght) {
+      if (this.aCheckedList.length === this.contacts.length && this.contacts.lenght) {
         this.$emit('allCheckChanged', true)
       } else if (this.aCheckedList.length === 0) {
         this.$emit('allCheckChanged', false)
@@ -131,14 +133,18 @@ export default {
       return this.$store.getters['contacts/getHasChanges']
     },
     contacts () {
-      return this.$store.getters['contacts/getContacts']
+      return this.$store.getters['contacts/getContacts'].list
     },
     aCheckedList: {
       get () {
         return this.$store.getters['contacts/getCheckedContacts']
       },
-      set (value) {
-        this.$store.commit('contacts/setCheckedContacts', value)
+      set (aNewCheckedContacts) {
+        let aUuidsDiff = _.difference(aNewCheckedContacts, this.aCheckedList)
+        if (aUuidsDiff.length === 1) {
+          this.sLastCheckedUuid = aUuidsDiff[0]
+        }
+        this.$store.commit('contacts/setCheckedContacts', aNewCheckedContacts)
       },
     },
     currentPage () {
@@ -163,11 +169,30 @@ export default {
       }
       this.$store.dispatch('contacts/asyncGetContacts')
     },
-    setCurrentContactByUUID(UUID) {
-      this.$store.dispatch('contacts/setCurrentContactByUUID', UUID)
+    setCurrentContactByUUID(sUUID, oMouseEvent) {
+      if (oMouseEvent && oMouseEvent.ctrlKey) {
+        this.aCheckedList = _.union(this.aCheckedList, [sUUID])
+      } else if (oMouseEvent && oMouseEvent.shiftKey) {
+        let aUuids = _.map(this.contacts, function (oContact) {
+          return oContact.UUID
+        })
+        let iLastCheckedIndex = aUuids.indexOf(this.sLastCheckedUuid)
+        let iCurrCheckedIndex = aUuids.indexOf(sUUID)
+        if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
+          let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
+          let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
+          let aUidsToCheck = aUuids.slice(iStartIndex, iEndIndex + 1)
+          if (aUidsToCheck.length > 0) {
+            this.aCheckedList = _.union(this.aCheckedList, aUidsToCheck)
+          }
+        }
+      } else {
+        this.$store.dispatch('contacts/setCurrentContactByUUID', sUUID)
+      }
+      this.sLastCheckedUuid = sUUID
     },
-    isChecked(UUID) {
-      return !!_.find(this.aCheckedList, (el) => el === UUID)
+    isChecked(sUUID) {
+      return this.aCheckedList.indexOf(sUUID) !== -1
     },
     clearSearch () {
       this.$store.commit('contacts/setSearchText', '')

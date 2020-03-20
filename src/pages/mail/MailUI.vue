@@ -91,7 +91,7 @@
                   </q-expansion-item>
                 </div>
                 <div class="col">
-                  <q-scroll-area ref="messageListScrollArea" class="full-height">
+                  <q-scroll-area ref="messageListScrollArea" class="full-height non-selectable">
                     <message-list />
                   </q-scroll-area>
                 </div>
@@ -157,6 +157,8 @@ export default {
       advSearchTillDate: '',
       advSearchHasAttachments: false,
       advSearchAttachments: '',
+
+      iLastCheckedUid: null,
     }
   },
 
@@ -226,11 +228,15 @@ export default {
       this.checkedUids = _.intersection(this.checkedUids, aCurrentUids)
     },
     currentMessage () {
-      this.scrollToSelectedMessage(false)
+      if (this.currentMessage) {
+        this.iLastCheckedUid = this.currentMessage.Uid
+        this.scrollToSelectedMessage(false)
+      }
     },
   },
 
   mounted () {
+    this.iLastCheckedUid = null
     this.searchInputText = this.searchText
     this.initSubscriptions()
     let bAuthorized = this.$store.getters['user/isAuthorized']
@@ -310,20 +316,36 @@ export default {
     openNewMessageCompose () {
       this.openCompose({})
     },
-    onMessageChecked (sUid, bChecked) {
+    onMessageChecked (iUid, bChecked) {
       if (bChecked) {
-        this.checkedUids = _.union(this.checkedUids, [sUid])
+        this.iLastCheckedUid = iUid
+        this.checkedUids = _.union(this.checkedUids, [iUid])
       } else {
-        this.checkedUids = _.without(this.checkedUids, sUid)
+        this.checkedUids = _.without(this.checkedUids, iUid)
       }
     },
     initSubscriptions () {
+      this.$root.$on('message-shift-checked', this.onMessageShiftChecked)
       this.$root.$on('message-checked', this.onMessageChecked)
       document.addEventListener('keydown', this.onKeydown)
     },
     destroySubscriptions () {
+      this.$root.$off('message-shift-checked', this.onMessageShiftChecked)
       this.$root.$off('message-checked', this.onMessageChecked)
       document.removeEventListener('keydown', this.onKeydown)
+    },
+    onMessageShiftChecked (iUid) {
+      let aUids = this.getMessageUidList()
+      let iLastCheckedIndex = aUids.indexOf(this.iLastCheckedUid)
+      let iCurrCheckedIndex = aUids.indexOf(iUid)
+      if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
+        let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
+        let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
+        let aUidsToCheck = aUids.slice(iStartIndex, iEndIndex + 1)
+        if (aUidsToCheck.length > 0) {
+          this.$root.$emit('check-messages-by-uids', aUidsToCheck)
+        }
+      }
     },
     getMessageUidList () {
       let aUids = []
@@ -337,14 +359,14 @@ export default {
       })
       return aUids
     },
-    getMessageByUid (sUid) {
+    getMessageByUid (iUid) {
       let oFoundMessage = null
       _.each(this.messages, (oMessage) => {
-        if (oMessage.Uid === sUid) {
+        if (oMessage.Uid === iUid) {
           oFoundMessage = oMessage
         } else if (_.isArray(oMessage.Threads) && oMessage.ThreadOpened) {
           _.each(oMessage.Threads, (oThreadMessage) => {
-            if (oThreadMessage.Uid === sUid) {
+            if (oThreadMessage.Uid === iUid) {
               oFoundMessage = oThreadMessage
               return false // break each
             }
@@ -360,8 +382,8 @@ export default {
       let iKeyCode = oKeyboardEvent.keyCode
       if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && (iKeyCode === 38 || iKeyCode === 40) && this.currentMessage) {
         let aUids = this.getMessageUidList()
-        let iCurrentMessageUidIndex = _.findIndex(aUids, (sUid) => {
-          return sUid === this.currentMessage.Uid
+        let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
+          return iUid === this.currentMessage.Uid
         })
         let iNewMessageIndex = -1
         if (iKeyCode === 38) { // up
@@ -380,8 +402,8 @@ export default {
     scrollToSelectedMessage (bMoveOnTop) {
       if (this.$refs.messageListScrollArea && this.currentMessage ) {
         let aUids = this.getMessageUidList()
-        let iCurrentMessageUidIndex = _.findIndex(aUids, (sUid) => {
-          return sUid === this.currentMessage.Uid
+        let iCurrentMessageUidIndex = _.findIndex(aUids, (iUid) => {
+          return iUid === this.currentMessage.Uid
         })
         listManage.scrollToSelectedItem(this.$refs.messageListScrollArea, iCurrentMessageUidIndex, aUids.length, bMoveOnTop)
       }

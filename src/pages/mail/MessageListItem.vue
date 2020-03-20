@@ -175,13 +175,13 @@ export default {
 
   methods: {
     selectMessage: function (oMouseEvent) {
-      // if (oMouseEvent.ctrlKey) {
-      //   this.checked = true
-      // } else if (oMouseEvent.shiftKey) {
-
-      // } else {
+      if (oMouseEvent.ctrlKey) {
+        this.checked = true
+      } else if (oMouseEvent.shiftKey) {
+        this.$root.$emit('message-shift-checked', this.message.Uid)
+      } else {
         this.$store.dispatch('mail/setCurrentMessage', this.message)
-      // }
+      }
     },
     dblClickHandler: function () {
       let
@@ -219,14 +219,21 @@ export default {
     onCheckAllMessages (bChecked) {
       this.checked = bChecked
     },
+    onCheckMessagesByUids (aUidsToCheck) {
+      if (aUidsToCheck.indexOf(this.message.Uid) !== -1) {
+        this.checked = true
+      }
+    },
     onParentMessageChecked (bChecked) {
       this.checked = bChecked
     },
     initSubscriptions () {
+      this.$root.$on('check-messages-by-uids', this.onCheckMessagesByUids)
       this.$root.$on('check-all-messages', this.onCheckAllMessages)
       this.$parent.$on('parent-message-checked', this.onParentMessageChecked)
     },
     destroySubscriptions () {
+      this.$root.$off('check-messages-by-uids', this.onCheckMessagesByUids)
       this.$root.$off('check-all-messages', this.onCheckAllMessages)
       this.$parent.$off('parent-message-checked', this.onParentMessageChecked)
     },

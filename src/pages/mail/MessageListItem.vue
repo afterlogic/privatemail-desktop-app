@@ -95,15 +95,18 @@ import messageUtils from 'src/modules/mail/utils/message.js'
 
 export default {
   name: 'MessageListItem',
+
   props: [
     'message',
   ],
+
   data () {
     return {
       checked: false,
       threadOpened: false,
     }
   },
+
   watch: {
     checked: function () {
       this.$root.$emit('message-checked', this.message.Uid, this.checked)
@@ -124,6 +127,7 @@ export default {
       }
     },
   },
+
   computed: {
     deleted () {
       return this.message.Deleted
@@ -159,12 +163,25 @@ export default {
       return dateUtils.getShortDate(this.message.TimeStampInUTC, false)
     },
   },
-  mounted: function () {
+
+  mounted () {
+    this.message.ThreadOpened = this.threadOpened
     this.initSubscriptions()
   },
+
+  beforeDestroy() {
+    this.destroySubscriptions()
+  },
+
   methods: {
-    selectMessage: function () {
-      this.$store.dispatch('mail/setCurrentMessage', this.message)
+    selectMessage: function (oMouseEvent) {
+      // if (oMouseEvent.ctrlKey) {
+      //   this.checked = true
+      // } else if (oMouseEvent.shiftKey) {
+
+      // } else {
+        this.$store.dispatch('mail/setCurrentMessage', this.message)
+      // }
     },
     dblClickHandler: function () {
       let
@@ -197,6 +214,7 @@ export default {
     },
     toggleThread: function () {
       this.threadOpened = !this.threadOpened
+      this.message.ThreadOpened = this.threadOpened
     },
     onCheckAllMessages (bChecked) {
       this.checked = bChecked
@@ -212,9 +230,6 @@ export default {
       this.$root.$off('check-all-messages', this.onCheckAllMessages)
       this.$parent.$off('parent-message-checked', this.onParentMessageChecked)
     },
-  },
-  beforeDestroy() {
-    this.destroySubscriptions()
   },
 }
 </script>

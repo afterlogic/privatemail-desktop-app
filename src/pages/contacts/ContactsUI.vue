@@ -207,29 +207,30 @@ export default {
       this.$store.commit('contacts/setSearchText', this.searchInputText)
     },
     initSubscriptions () {
-      document.addEventListener('keydown', this.onArrowKeysDown)
+      document.addEventListener('keydown', this.onKeydown)
     },
     destroySubscriptions () {
-      document.removeEventListener('keydown', this.onArrowKeysDown)
+      document.removeEventListener('keydown', this.onKeydown)
     },
-    onArrowKeysDown (oEvent) {
-      if (!oEvent.altKey && !oEvent.ctrlKey && (oEvent.keyCode === 38 || oEvent.keyCode === 40) && this.currentContact) {
+    onKeydown (oKeyboardEvent) {
+      let iKeyCode = oKeyboardEvent.keyCode
+      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && (iKeyCode === 38 || iKeyCode === 40) && this.currentContact) {
         let iСurrentContactIndex = _.findIndex(this.contacts, (oContact) => {
           return oContact.UUID === this.currentContact.UUID
         })
         let iNewContactIndex = -1
-        if (oEvent.keyCode === 38) { // up
+        if (iKeyCode === 38) { // up
           iNewContactIndex = iСurrentContactIndex - 1
         }
-        if (oEvent.keyCode === 40) { // down
+        if (iKeyCode === 40) { // down
           iNewContactIndex = iСurrentContactIndex + 1
         }
         if (iNewContactIndex >= 0 && iNewContactIndex < this.contacts.length) {
           let oNewContact = this.contacts[iNewContactIndex]
           this.$store.dispatch('contacts/setCurrentContactByUUID', oNewContact.UUID)
         }
+        oKeyboardEvent.preventDefault()
       }
-      oEvent.preventDefault()
     },
     scrollToSelectedContact (bMoveOnTop) {
       if (this.$refs.contactListScrollArea && this.currentContact ) {

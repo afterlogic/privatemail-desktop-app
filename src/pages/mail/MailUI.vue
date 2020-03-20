@@ -124,10 +124,10 @@ import listManage from 'src/utils/listManage.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
-import FolderList from "./FolderList.vue"
-import MessageList from "./MessageList.vue"
-import MailListToolbar from "./MailListToolbar.vue"
-import MessageViewer from "./MessageViewer.vue"
+import FolderList from './FolderList.vue'
+import MessageList from './MessageList.vue'
+import MailListToolbar from './MailListToolbar.vue'
+import MessageViewer from './MessageViewer.vue'
 import Pagination from '../Pagination.vue'
 
 export default {
@@ -230,6 +230,32 @@ export default {
     },
   },
 
+  mounted () {
+    this.searchInputText = this.searchText
+    this.initSubscriptions()
+    let bAuthorized = this.$store.getters['user/isAuthorized']
+    if (!this.currentAccount && bAuthorized) {
+      this.$store.dispatch('mail/asyncGetSettings', (oError) => {
+        let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
+        if (this.currentAccount) {
+          if (sCurrentPath !== '/mail') {
+            this.$router.push({ path: '/mail' })
+          }
+        } else {
+          notification.showError(errors.getText(oError, 'Error occurred while getting settings'))
+          if (sCurrentPath !== '/login') {
+            this.$router.push({ path: '/login' })
+          }
+        }
+      })
+    }
+    this.scrollToSelectedMessage(true)
+  },
+
+  beforeDestroy () {
+    this.destroySubscriptions()
+  },
+
   methods: {
     advancedSearch: function () {
       let aSearch = []
@@ -293,37 +319,71 @@ export default {
     },
     initSubscriptions () {
       this.$root.$on('message-checked', this.onMessageChecked)
-      document.addEventListener('keydown', this.onArrowKeysDown)
+      document.addEventListener('keydown', this.onKeydown)
     },
     destroySubscriptions () {
       this.$root.$off('message-checked', this.onMessageChecked)
-      document.removeEventListener('keydown', this.onArrowKeysDown)
+      document.removeEventListener('keydown', this.onKeydown)
     },
-    onArrowKeysDown (oEvent) {
-      if (!oEvent.altKey && !oEvent.ctrlKey && (oEvent.keyCode === 38 || oEvent.keyCode === 40) && this.currentMessage) {
-        let iCurrentMessageIndex = _.findIndex(this.messages, (oMessage) => {
-          return oMessage.Uid === this.currentMessage.Uid
+    getMessageUidList () {
+      let aUids = []
+      _.each(this.messages, (oMessage) => {
+        aUids.push(oMessage.Uid)
+        if (_.isArray(oMessage.Threads) && oMessage.ThreadOpened) {
+          _.each(oMessage.Threads, (oThreadMessage) => {
+            aUids.push(oThreadMessage.Uid)
+          })
+        }
+      })
+      return aUids
+    },
+    getMessageByUid (sUid) {
+      let oFoundMessage = null
+      _.each(this.messages, (oMessage) => {
+        if (oMessage.Uid === sUid) {
+          oFoundMessage = oMessage
+        } else if (_.isArray(oMessage.Threads) && oMessage.ThreadOpened) {
+          _.each(oMessage.Threads, (oThreadMessage) => {
+            if (oThreadMessage.Uid === sUid) {
+              oFoundMessage = oThreadMessage
+              return false // break each
+            }
+          })
+        }
+        if (oFoundMessage) {
+          return false // break each
+        }
+      })
+      return oFoundMessage
+    },
+    onKeydown (oKeyboardEvent) {
+      let iKeyCode = oKeyboardEvent.keyCode
+      if (!oKeyboardEvent.altKey && !oKeyboardEvent.ctrlKey && (iKeyCode === 38 || iKeyCode === 40) && this.currentMessage) {
+        let aUids = this.getMessageUidList()
+        let iCurrentMessageUidIndex = _.findIndex(aUids, (sUid) => {
+          return sUid === this.currentMessage.Uid
         })
         let iNewMessageIndex = -1
-        if (oEvent.keyCode === 38) { // up
-          iNewMessageIndex = iCurrentMessageIndex - 1
+        if (iKeyCode === 38) { // up
+          iNewMessageIndex = iCurrentMessageUidIndex - 1
         }
-        if (oEvent.keyCode === 40) { // down
-          iNewMessageIndex = iCurrentMessageIndex + 1
+        if (iKeyCode === 40) { // down
+          iNewMessageIndex = iCurrentMessageUidIndex + 1
         }
-        if (iNewMessageIndex >= 0 && iNewMessageIndex < this.messages.length) {
-          let oNewMessage = this.messages[iNewMessageIndex]
+        if (iNewMessageIndex >= 0 && iNewMessageIndex < aUids.length) {
+          let oNewMessage = this.getMessageByUid(aUids[iNewMessageIndex])
           this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
         }
+        oKeyboardEvent.preventDefault()
       }
-      oEvent.preventDefault()
     },
     scrollToSelectedMessage (bMoveOnTop) {
       if (this.$refs.messageListScrollArea && this.currentMessage ) {
-        let iCurrentMessageIndex = _.findIndex(this.messages, (oMessage) => {
-          return oMessage.Uid === this.currentMessage.Uid
+        let aUids = this.getMessageUidList()
+        let iCurrentMessageUidIndex = _.findIndex(aUids, (sUid) => {
+          return sUid === this.currentMessage.Uid
         })
-        listManage.scrollToSelectedItem(this.$refs.messageListScrollArea, iCurrentMessageIndex, this.messages.length, bMoveOnTop)
+        listManage.scrollToSelectedItem(this.$refs.messageListScrollArea, iCurrentMessageUidIndex, aUids.length, bMoveOnTop)
       }
     },
     // clearAllUserData () {
@@ -333,32 +393,6 @@ export default {
     //   this.$store.dispatch('main/clearAll')
     //   this.$router.push({ path: '/login' })
     // },
-  },
-
-  mounted: function () {
-    this.searchInputText = this.searchText
-    this.initSubscriptions()
-    let bAuthorized = this.$store.getters['user/isAuthorized']
-    if (!this.currentAccount && bAuthorized) {
-      this.$store.dispatch('mail/asyncGetSettings', (oError) => {
-        let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
-        if (this.currentAccount) {
-          if (sCurrentPath !== '/mail') {
-            this.$router.push({ path: '/mail' })
-          }
-        } else {
-          notification.showError(errors.getText(oError, 'Error occurred while getting settings'))
-          if (sCurrentPath !== '/login') {
-            this.$router.push({ path: '/login' })
-          }
-        }
-      })
-    }
-    this.scrollToSelectedMessage(true)
-  },
-
-  beforeDestroy() {
-    this.destroySubscriptions()
   },
 }
 </script>

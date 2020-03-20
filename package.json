@@ -1,5 +1,5 @@
 {
-  "name": "PrivateMailDesktop",
+  "name": "PrivateMailDesktop4",
   "version": "1.2.2",
   "buildNumber": "2",
   "description": "Collaboration multiplatform desktop app",
@@ -33,7 +33,7 @@
       ]
     },
     "linux": {
-      "executableName": "PrivateMailDesktop",
+      "executableName": "PrivateMailDesktop3",
       "target": [
         "AppImage",
         "deb"

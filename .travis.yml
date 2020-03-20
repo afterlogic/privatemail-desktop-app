@@ -2,8 +2,10 @@ dist: trusty
 language: node_js
 node_js:
 - 10
+before_install:
+- sudo apt-get update
 install:
-- apt-get install fakeroot
+- sudo apt-get install fakeroot
 - npm install
 - cd ./installers/linux
 - npm install

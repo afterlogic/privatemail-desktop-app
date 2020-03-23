@@ -6,7 +6,7 @@
         :clickable="folder.IsSelectable && folder.Exists && folder.IsSubscribed"
         :v-ripple="folder.IsSelectable && folder.Exists && folder.IsSubscribed"
         :style="{ paddingLeft: 16 + level * 20 + 'px' }"
-        :class="{active: currentFolderFullName === folder.FullName}"
+        :class="{active: currentFolderFullName === folder.FullName && !isStarredFilter}"
         @click="selectFolder(folder.FullName)"
     >
       <q-item-section avatar>
@@ -29,6 +29,20 @@
     </q-item>
     <template v-if="folder.SubFolders">
       <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></FolderListItem>
+    </template>
+    <template v-if="showStarred">
+      <q-item
+        clickable v-ripple
+        :class="{active: currentFolderFullName === folder.FullName && isStarredFilter}"
+        @click="selectFolder('Starred')"
+      >
+        <q-item-section avatar>
+          <q-icon name="star" color="orange" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label lines="1">Starred</q-item-label>
+        </q-item-section>
+      </q-item>
     </template>
   </div>
 </template>
@@ -66,14 +80,29 @@ export default {
     showTotalCount () {
       return this.folder.Type === mailEnums.FolderType.Drafts && this.folder.Count > 0
     },
+    showStarred () {
+      return this.folder.Type === mailEnums.FolderType.Inbox
+    },
+    isStarredFilter () {
+      return this.$store.getters['mail/getCurrentFilter'] === 'flagged'
+    },
   },
 
   methods: {
     selectFolder: function (folderFullName) {
-      if (_.isFunction(this.$parent.selectFolder)) {
-        this.$parent.selectFolder(folderFullName)
-      } else if (_.isFunction(this.$parent.$parent.selectFolder)) {
-        this.$parent.$parent.selectFolder(folderFullName)
+      if (folderFullName === 'Starred') {
+        this.$store.dispatch('mail/asyncGetMessages', {
+          sFolderFullName: this.folder.FullName,
+          iPage: 1,
+          sSearch: '',
+          sFilter: 'flagged',
+        })
+      } else {
+        if (_.isFunction(this.$parent.selectFolder)) {
+          this.$parent.selectFolder(folderFullName)
+        } else if (_.isFunction(this.$parent.$parent.selectFolder)) {
+          this.$parent.$parent.selectFolder(folderFullName)
+        }
       }
     },
     showUnreadMessages: function () {

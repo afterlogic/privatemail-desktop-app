@@ -5,7 +5,7 @@
         <span class="pannel-hint--link non-selectable" @click="showAllMessages">Clear search</span>
         <div class="pannel-hint non-selectable">Search results for <b>{{ currentSearch }}</b> in {{ folderName }} folder:</div>
       </template>
-      <template v-if="currentFilter !== ''">
+      <template v-if="currentFilter === 'unseen'">
         <span class="pannel-hint--link non-selectable" @click="showAllMessages">View all messages</span>
         <div class="pannel-hint non-selectable">Unread messages in {{ folderName }} folder:</div>
       </template>

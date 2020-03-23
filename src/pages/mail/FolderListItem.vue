@@ -37,7 +37,7 @@
         @click="selectFolder('Starred')"
       >
         <q-item-section avatar>
-          <q-icon name="star" color="orange" />
+          <q-icon name="star" :color="folder.FlaggedCount ? 'orange' : 'grey'" />
         </q-item-section>
         <q-item-section>
           <q-item-label lines="1">Starred</q-item-label>

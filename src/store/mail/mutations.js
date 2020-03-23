@@ -241,20 +241,34 @@ export function setCurrentFolderEmpty (state) {
 }
 
 export function setMessageFlagged (state, { sUid, bFlagged }) {
+  let oFoundMessage = null
   _.each(state.currentMessages, function (oMessage) {
     if (sUid === oMessage.Uid) {
-      oMessage.IsFlagged = bFlagged
+      oFoundMessage = oMessage
+      return false // break each
     } else if (typesUtils.isNonEmptyArray(oMessage.Threads)) {
       let bPartialFlagged = false
       _.each(oMessage.Threads, function (oThreadMessage) {
         if (sUid === oThreadMessage.Uid) {
-          oThreadMessage.IsFlagged = bFlagged
+          oFoundMessage = oThreadMessage
+          return false // break each
         }
         bPartialFlagged = bPartialFlagged || oThreadMessage.IsFlagged
       })
+      if (oFoundMessage) {
+        return false // break each
+      }
       oMessage.PartialFlagged = bPartialFlagged
     }
   })
+  if (oFoundMessage && oFoundMessage.IsFlagged !== bFlagged) {
+    oFoundMessage.IsFlagged = bFlagged
+    if (bFlagged) {
+      state.currentFolderList.Current.FlaggedCount++
+    } else {
+      state.currentFolderList.Current.FlaggedCount--
+    }
+  }
 }
 
 export function setCurrentMessage (state, oMessage) {

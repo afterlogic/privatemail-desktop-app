@@ -2,6 +2,9 @@ import _ from 'lodash'
 
 import typesUtils from '../../../src/utils/types.js'
 
+import foldersManager from './folders-manager.js'
+import messagesDbManager from './messages-db-manager.js'
+
 let oDb = null
 
 export default {
@@ -46,22 +49,32 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(function() {
-          let oStatement = oDb.prepare('SELECT list FROM folders WHERE acct_id = ?')
-          let oFolderList = null
-          oStatement.each(iAccountId, function(oError, oRow) {
-            if (oError) {
-              reject({ sMethod: 'getFolders', oError })
-            } else if (oRow && typeof oRow.list === 'string' && oRow.list !== '') {
-              oFolderList = typesUtils.pStringToJson(oRow.list)
-            }
-          }, function(oError) {
-            if (oError) {
-              reject({ sMethod: 'getFolders', oError })
-            } else {
-              resolve(oFolderList)
-            }
-          })
-          oStatement.finalize()
+          oDb
+            .prepare('SELECT list FROM folders WHERE acct_id = ?', iAccountId)
+            .get((oError, oRow) => {
+              if (oError) {
+                reject({ sMethod: 'getFolders', oError })
+              } else if (oRow && typeof oRow.list === 'string' && oRow.list !== '') {
+                let oFolderList = typesUtils.pStringToJson(oRow.list)
+                let oInbox = foldersManager.getInboxFolder(oFolderList)
+                if (oInbox) {
+                  messagesDbManager.getStarredMessagesCount(iAccountId, oInbox.FullName).then(
+                    (iFlaggedCount) => {
+                      oInbox.FlaggedCount = iFlaggedCount
+                      resolve(oFolderList)
+                    },
+                    (oResult) => {
+                      resolve(oFolderList)
+                    },
+                  )
+                } else {
+                  resolve(oFolderList)
+                }
+              } else {
+                resolve(null)
+              }
+            })
+            .finalize()
         })
       } else {
         reject({ sMethod: 'getFolders', sError: 'No DB connection' })

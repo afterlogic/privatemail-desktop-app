@@ -350,6 +350,25 @@ export default {
     })
   },
 
+  getStarredMessagesCount: function (iAccountId, sFolderFullName) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb
+          .prepare('SELECT COUNT(*) AS count FROM messages WHERE account_id = ? AND folder = ? AND is_flagged = ?', iAccountId, sFolderFullName, true)
+          .get((oError, oRow) => {
+            if (oError) {
+              reject({ sMethod: 'getStarredMessagesCount', oError })
+            } else {
+              resolve(oRow.count)
+            }
+          })
+          .finalize()
+      } else {
+        reject({ sMethod: 'getStarredMessagesCount', sError: 'No DB connection' })
+      }
+    })
+  },
+
   getMessage: function ({ iAccountId, sFolderFullName, sMessageUid }) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

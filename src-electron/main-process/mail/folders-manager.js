@@ -164,6 +164,22 @@ export default {
     return _recursive(oFolderList && oFolderList.Tree || {})
   },
 
+  getInboxFolder: function (oFolderList) {
+    function _recursive(oFoldersTree) {
+      let oFoundFolder = null
+      _.each(oFoldersTree, (oFolder) => {
+        if (oFolder.Type === mailEnums.FolderType.Inbox) {
+          oFoundFolder = oFolder
+          return false // break each
+        } else {
+          oFoundFolder = _recursive(oFolder.SubFolders)
+        }
+      })
+      return oFoundFolder
+    }
+    return _recursive(oFolderList && oFolderList.Tree || {})
+  },
+
   _getUseThreadingForFolder: function (iFolderType) {
     let bUseThreading = true
     if (iFolderType === mailEnums.FolderType.Drafts || iFolderType === mailEnums.FolderType.Spam || iFolderType === mailEnums.FolderType.Trash) {

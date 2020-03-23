@@ -234,9 +234,20 @@ export default {
                 Search: '',
                 Filter: '',
               },
-              fCallback: (aMessagesInfoFromServer, oError) => {
+              fCallback: async (aMessagesInfoFromServer, oError) => {
                 if (appState.isLastMessagesInfoTime(iAccountId, sFolderFullName, sLastMessagesInfoTime)) {
-                  let { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve } = this._updateMessagesInfo(aMessagesInfoFromDb, aMessagesInfoFromServer)
+                  let 
+                    aUidsToDelete = [],
+                    aMessagesInfoToSync = [],
+                    aUidsToRetrieve = []
+                  await this._updateMessagesInfo(iAccountId, sFolderFullName, aMessagesInfoFromDb, aMessagesInfoFromServer).then(
+                    (oResult) => {
+                      aUidsToDelete = oResult.aUidsToDelete
+                      aMessagesInfoToSync = oResult.aMessagesInfoToSync
+                      aUidsToRetrieve = oResult.aUidsToRetrieve
+                    },
+                    () => {}
+                  )
                   this.deleteMessages(iAccountId, sFolderFullName, aUidsToDelete).then(
                     () => {
                       this._syncMessages({ iAccountId, sFolderFullName, aMessagesInfoToSync }).then(
@@ -416,37 +427,48 @@ export default {
     }
     return []
   },
-  
-  _updateMessagesInfo: function (aOldMessagesInfo, aNewMessagesInfo) {
-    let aAllNewMessagesInfo = this._getAllMessagesInfo(aNewMessagesInfo)
-    let aUidsToRetrieve = []
-    let aMessagesInfoToSync = []
-    let aUidsToDelete = []
-    if (!_.isArray(aOldMessagesInfo)) {
-      aUidsToRetrieve = _.map(aAllNewMessagesInfo, (oMessageInfo) => {
-        return oMessageInfo.uid
-      })
-    } else {
-      let aAllOldMessagesInfo = this._getAllMessagesInfo(aOldMessagesInfo)
-      _.each(aAllNewMessagesInfo, (oNewInfo) => {
-        let iOldInfoIndex = _.findIndex(aAllOldMessagesInfo, (oOldInfo) => {
-          return oNewInfo.uid === oOldInfo.uid
+
+  _updateMessagesInfo (iAccountId, sFolderFullName, aOldMessagesInfo, aNewMessagesInfo) {
+    return new Promise(async (resolve, reject) => {
+      let aAllNewMessagesInfo = this._getAllMessagesInfo(aNewMessagesInfo)
+      let aUidsToRetrieve = []
+      let aMessagesInfoToSync = []
+      let aUidsToDelete = []
+      let aUidsToCheck = []
+      if (!_.isArray(aOldMessagesInfo)) {
+        aUidsToRetrieve = _.map(aAllNewMessagesInfo, (oMessageInfo) => {
+          return oMessageInfo.uid
         })
-        if (iOldInfoIndex === -1) {
-          aUidsToRetrieve.push(oNewInfo.uid)
-        } else {
-          let oOldInfo = aAllOldMessagesInfo[iOldInfoIndex]
-          if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
-            aMessagesInfoToSync.push(oNewInfo)
+      } else {
+        let aAllOldMessagesInfo = this._getAllMessagesInfo(aOldMessagesInfo)
+        _.each(aAllNewMessagesInfo, (oNewInfo) => {
+          let iOldInfoIndex = _.findIndex(aAllOldMessagesInfo, (oOldInfo) => {
+            return oNewInfo.uid === oOldInfo.uid
+          })
+          if (iOldInfoIndex === -1) {
+            aUidsToRetrieve.push(oNewInfo.uid)
+          } else {
+            aUidsToCheck.push(oNewInfo.uid)
+            let oOldInfo = aAllOldMessagesInfo[iOldInfoIndex]
+            if (!_.isEqual(oNewInfo.flags, oOldInfo.flags)) {
+              aMessagesInfoToSync.push(oNewInfo)
+            }
+            aAllOldMessagesInfo.splice(iOldInfoIndex, 1)
           }
-          aAllOldMessagesInfo.splice(iOldInfoIndex, 1);
-        }
-      })
-  
-      aUidsToDelete = _.map(aAllOldMessagesInfo, (oMessageInfo) => {
-        return oMessageInfo.uid
-      })
-    }
-    return { aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve }
+        })
+        await messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUidsToCheck).then(
+          (aUidsFromDb) => {
+            let aUidsNotInDb = _.difference(aUidsToCheck, aUidsFromDb)
+            aUidsToRetrieve = _.union(aUidsToRetrieve, aUidsNotInDb)
+          },
+          () => {}
+        )
+
+        aUidsToDelete = _.map(aAllOldMessagesInfo, (oMessageInfo) => {
+          return oMessageInfo.uid
+        })
+      }
+      resolve({ aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve })
+    })
   }
 }

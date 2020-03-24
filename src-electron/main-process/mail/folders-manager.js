@@ -157,6 +157,9 @@ export default {
           return false // break each
         } else if ((0 === sFolderFullName.indexOf(oFolder.FullName)) && oFolder.SubFolders) {
           oFoundFolder = _recursive(oFolder.SubFolders)
+          if (oFoundFolder) {
+            return false // break each
+          }
         }
       })
       return oFoundFolder
@@ -370,7 +373,7 @@ export default {
             let iChunkLen = 50
             for (let iIndex = 0, iCount = aUidsNotInDb.length; iIndex < iCount; iIndex += iChunkLen) {
               let aUidsChunk = aUidsNotInDb.slice(iIndex, iIndex + iChunkLen)
-              await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: aUidsChunk, sApiHost, sAuthToken })
+              await this._retrievePartOfMessages({ iAccountId, sFolderFullName, aUids: aUidsChunk, sApiHost, sAuthToken }).then(()=>{}, ()=>{})
             }
             resolve()
           },
@@ -391,25 +394,37 @@ export default {
         resolve()
       }
       else {
-        let oParameters = {
-          AccountID: iAccountId,
-          Folder: sFolderFullName,
-          Uids: aUids,
-        }
-        webApi.sendRequest({
-          sApiHost,
-          sAuthToken,
-          sModule: 'Mail',
-          sMethod: 'GetMessagesBodies',
-          oParameters,
-          fCallback: (aMessagesFromServer, oError) => {
-            if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
-              messagesDbManager.setMessages({ iAccountId, aMessages: aMessagesFromServer }).then(resolve, reject)
+        messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUids).then(
+          (aUidsFromDb) => {
+            let aUidsNotInDb = _.difference(aUids, aUidsFromDb)
+            if (aUidsNotInDb.length === 0) {
+              resolve()
             } else {
-              reject({ sMethod: '_retrieveMessages', oError })
+              let oParameters = {
+                AccountID: iAccountId,
+                Folder: sFolderFullName,
+                Uids: aUidsNotInDb,
+              }
+              webApi.sendRequest({
+                sApiHost,
+                sAuthToken,
+                sModule: 'Mail',
+                sMethod: 'GetMessagesBodies',
+                oParameters,
+                fCallback: (aMessagesFromServer, oError) => {
+                  if (aMessagesFromServer && _.isArray(aMessagesFromServer)) {
+                    messagesDbManager.setMessages({ iAccountId, aMessages: aMessagesFromServer }).then(resolve, reject)
+                  } else {
+                    reject({ sMethod: '_retrieveMessages', oError })
+                  }
+                },
+              })
             }
           },
-        })
+          (oResult) => {
+            reject(oResult)
+          }
+        )
       }
     })
   },
@@ -455,6 +470,13 @@ export default {
         aUidsToRetrieve = _.map(aAllNewMessagesInfo, (oMessageInfo) => {
           return oMessageInfo.uid
         })
+        await messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUidsToRetrieve).then(
+          (aUidsFromDb) => {
+            let aUidsNotInDb = _.difference(aUidsToRetrieve, aUidsFromDb)
+            aUidsToRetrieve = aUidsNotInDb
+          },
+          () => {}
+        )
       } else {
         let aAllOldMessagesInfo = this._getAllMessagesInfo(aOldMessagesInfo)
         _.each(aAllNewMessagesInfo, (oNewInfo) => {
@@ -472,6 +494,14 @@ export default {
             aAllOldMessagesInfo.splice(iOldInfoIndex, 1)
           }
         })
+
+        await messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUidsToRetrieve).then(
+          (aUidsFromDb) => {
+            let aUidsNotInDb = _.difference(aUidsToRetrieve, aUidsFromDb)
+            aUidsToRetrieve = aUidsNotInDb
+          },
+          () => {}
+        )
         await messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUidsToCheck).then(
           (aUidsFromDb) => {
             let aUidsNotInDb = _.difference(aUidsToCheck, aUidsFromDb)

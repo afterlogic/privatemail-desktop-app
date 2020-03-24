@@ -12,21 +12,21 @@ import messagesManager from './messages-manager.js'
 import messagesDbManager from './messages-db-manager.js'
 
 export default {
-  _refreshMessagesInNotCurrentFolders: function (iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
-    _.each(aChangedFolders, async function (oTmpFolder) {
+  async _refreshMessagesInNotCurrentFolders (iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+    for (const oTmpFolder of aChangedFolders) {
       if (oTmpFolder.FullName !== sCurrentFolderFullName) {
-        await foldersManager.refreshMessagesInfo(iAccountId, bUseThreading, oTmpFolder.FullName, oTmpFolder.Type, sApiHost, sAuthToken)
+        await foldersManager.refreshMessagesInfo(iAccountId, bUseThreading, oTmpFolder.FullName, oTmpFolder.Type, sApiHost, sAuthToken).then(()=>{}, ()=>{})
       }
-    })
+    }
   },
 
-  _deleteFoldersInformation: function (iAccountId, aFoldersToDelete) {
-    _.each(aFoldersToDelete, async function (oTmpFolder) {
-      await foldersDbManager.deleteMessagesInfo({ iAccountId, sFolderFullName: oTmpFolder.FullName })
-    })
+  async _deleteFoldersInformation (iAccountId, aFoldersToDelete) {
+    for (const oTmpFolder of aFoldersToDelete) {
+      await foldersDbManager.deleteMessagesInfo({ iAccountId, sFolderFullName: oTmpFolder.FullName }).then(()=>{}, ()=>{})
+    }
   },
 
-  refreshMessagesInFolders: function (oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+  _refreshMessagesInFolders (oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
     let oCurrentFolder = _.find(aChangedFolders, function (oTmpFolder) {
       return oTmpFolder.FullName === sCurrentFolderFullName
     })
@@ -103,7 +103,7 @@ export default {
                 let aChangedFolders = foldersManager.refreshFoldersInformation(oFolderList, oResult.Counts)
                 if (aChangedFolders.length > 0) {
                   foldersDbManager.setFolders(iAccountId, oFolderList)
-                  this.refreshMessagesInFolders(oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+                  this._refreshMessagesInFolders(oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
                 } else {
                   oEvent.sender.send('mail-refresh', { bHasChanges: false, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
                 }

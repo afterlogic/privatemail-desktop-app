@@ -18,11 +18,5 @@ script:
 - cd ../../
 after_success: 
 - chmod +x ./travis.sh
-- ./travis.sh -t upload-linux-package
-- ls
-- ls ./dist
-- ls ./dist/electron
-- ls ./installers/linux/dist
-- ls ./dist/electron/PrivateMail-linux-x64
-
-
+- ./travis.sh -t upload-deb-package
+- ./travis.sh -t upload-rpm-package

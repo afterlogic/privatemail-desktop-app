@@ -50,10 +50,20 @@ if [ "$TASK" = "test" ]; then
   fi
 fi
 
-if [ "$TASK" = "upload-linux-package" ]; then
+if [ "$TASK" = "upload-deb-package" ]; then
 	cd ${DIR}
 	
-	FILENAME=`basename ./installers/linux/dist/*.*`
+	FILENAME=`basename ./installers/linux/dist/*.deb`
+		
+	echo UPLOAD INSTALLER FILE: "${FILENAME}"
+	
+	curl -v --ftp-create-dirs --retry 6 -T ./installers/linux/dist/${FILENAME} -u ${FTP_USER}:${FTP_PASSWORD} ftp://afterlogic.com/
+fi
+
+if [ "$TASK" = "upload-rpm-package" ]; then
+	cd ${DIR}
+	
+	FILENAME=`basename ./installers/linux/dist/*.rpm`
 		
 	echo UPLOAD INSTALLER FILE: "${FILENAME}"
 	

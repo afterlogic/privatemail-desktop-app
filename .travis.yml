@@ -6,6 +6,7 @@ before_install:
 - sudo apt-get update
 install:
 - sudo apt-get install fakeroot
+- sudo apt-get install rpm
 - npm install
 - cd ./installers/linux
 - npm install

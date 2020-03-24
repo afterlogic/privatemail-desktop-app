@@ -3,6 +3,7 @@
   "version": "1.3.0",
   "buildNumber": "2",
   "description": "Collaboration multiplatform desktop app",
+  "license": "commercial",
   "productName": "PrivateMail Desktop",
   "cordovaId": "org.cordova.quasar.app",
   "author": "Afterlogic Dev Team <support@afterlogic.com>",

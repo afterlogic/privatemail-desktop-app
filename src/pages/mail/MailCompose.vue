@@ -59,6 +59,124 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="selfDestructingEmailDialog" persistent>
+        <q-card class="q-px-sm non-selectable">
+          <q-card-section>
+            <div class="text-h6">Send a self-destructing secure email</div>
+          </q-card-section>
+
+          <q-item>
+            <q-item-section>
+              <q-item-label caption>OpenPGP supports plain text only. Click OK to remove all the formatting and continue. Also, attachments cannot be encrypted or signed.</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item>
+            <q-item-section>
+              <q-item-label>Recipient:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-select
+                dense outlined style="width: 350px;"
+                use-input input-debounce="0"
+                ref="selfDestructingRecipientSelect"
+                v-model="selfDestructingRecipient" :options="selfDestructingRecipientOptions"
+                @filter="getSelfDestructingRecipientOptionsOptions"
+              >
+                <template v-slot:selected>
+                  <span>
+                    <q-item v-if="selfDestructingRecipient">
+                      <q-item-section class="non-selectable">
+                        <q-item-label v-html="selfDestructingRecipient.label" />
+                      </q-item-section>
+                      <q-item-section avatar v-if="selfDestructingRecipient.key">
+                        <q-icon color="primary" name="vpn_key" />
+                      </q-item-section>
+                    </q-item>
+                  </span>
+                </template>
+                <template v-slot:no-option>
+                  <q-item>
+                    <q-item-section class="text-grey">
+                      No results
+                    </q-item-section>
+                  </q-item>
+                </template>
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                    <q-item-section class="non-selectable">
+                      <q-item-label v-html="scope.opt.label" />
+                    </q-item-section>
+                    <q-item-section avatar v-if="scope.opt.key">
+                      <q-icon color="primary" name="vpn_key" />
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+            </q-item-section>
+          </q-item>
+
+          <q-item style="padding-top: 0; margin-top: -14px;">
+            <q-item-section>
+              <q-item-label caption v-if="!selfDestructingRecipient">Please select recipient first.</q-item-label>
+              <q-item-label caption v-if="selfDestructingRecipient && !selfDestructingRecipient.key">Selected recipient has no PGP public key. The key based encryption is not allowed.</q-item-label>
+              <q-item-label caption v-if="selfDestructingRecipient && selfDestructingRecipient.key">Selected recipient has PGP public key. The message can be encrypted using this key.</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item>
+            <q-item-section>
+              <q-item-label>Message lifetime:</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-select dense outlined v-model="selfDestructingLifetime" :options="selfDestructingLifetimeOptions" style="width: 350px;"></q-select>
+            </q-item-section>
+          </q-item>
+
+          <q-item :disable="!selfDestructingRecipient">
+            <q-item-section>
+              <q-item-label>Encryption type:</q-item-label>
+            </q-item-section>
+            <q-item-section side style="flex-direction: row; justify-content: flex-start;" class="q-gutter-sm">
+              <q-radio :disable="!selfDestructingRecipient || !selfDestructingRecipient.key" v-model="selfDestructingEncryptType" val="key" label="Key based" />
+              <q-radio :disable="!selfDestructingRecipient" v-model="selfDestructingEncryptType" val="password" label="Password based" />
+            </q-item-section>
+          </q-item>
+
+          <q-item style="padding-bottom: 0; margin-bottom: -14px;">
+            <q-item-section>
+              <q-item-label v-if="selfDestructingEncryptType === 'password'" caption>The Password based encryption will be used.</q-item-label>
+              <q-item-label v-if="selfDestructingEncryptType === 'key'" caption>The Key based encryption will be used.</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item tag="label" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'">
+            <q-item-section side top>
+              <q-checkbox v-model="selfDestructingAddSignature" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Add digital signature</q-item-label>
+            </q-item-section>
+            <q-item-section v-if="selfDestructingAddSignature" side>
+              <q-item-label>Password:</q-item-label>
+            </q-item-section>
+            <q-item-section v-if="selfDestructingAddSignature" side>
+              <q-input type="password" outlined dense v-model="selfDestructingSignaturePassword" />
+            </q-item-section>
+          </q-item>
+          <q-item style="padding-top: 0; margin-top: -14px;">
+            <q-item-section>
+              <q-item-label v-if="selfDestructingAddSignature" caption>Will sign the data with your private key.</q-item-label>
+              <q-item-label v-if="!selfDestructingAddSignature" caption>Will not sign the data.</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-card-actions align="right">
+            <q-btn flat label="Encrypt" v-if="selfDestructingRecipient" color="primary" @click="sendSelfDestructingSecureEmail" />
+            <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
       <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-toolbar-title @dblclick="maximizedToggle = false">
@@ -82,6 +200,7 @@
           <q-btn flat icon="save" label="Save" @click="save" />
           <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
           <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
+          <!-- <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" /> -->
           <q-space />
           <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
             <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
@@ -589,6 +708,19 @@ export default {
       ccAddrOptions: [],
       selectedBccAddr: null,
       bccAddrOptions: [],
+
+      selfDestructingEmailDialog: false,
+      selfDestructingRecipient: '',
+      selfDestructingRecipientOptions: [],
+      selfDestructingLifetime: { label: '24 hrs', value: 24 },
+      selfDestructingLifetimeOptions: [
+        { label: '24 hrs', value: 24 },
+        { label: '72 hrs', value: 72 },
+        { label: '7 days', value: 168 }
+      ],
+      selfDestructingEncryptType: '',
+      selfDestructingAddSignature: false,
+      selfDestructingSignaturePassword: '',
     }
   },
 
@@ -737,6 +869,16 @@ export default {
         this.$refs.bccAddrSelect.updateInputValue('')
       }
     },
+    selfDestructingEncryptType () {
+      this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key'
+    },
+    selfDestructingRecipient () {
+      if (this.selfDestructingRecipient) {
+        this.selfDestructingEncryptType = 'password'
+      } else {
+        this.selfDestructingEncryptType = ''
+      }
+    },
   },
 
   beforeDestroy: function () {
@@ -744,6 +886,63 @@ export default {
   },
 
   methods: {
+    getSelfDestructingRecipientOptionsOptions (sSearch, update, abort) {
+      ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
+        let sFromEmail = this.selectedIdentity ? this.selectedIdentity.value.sEmail : ''
+        console.log('getOpenPgpKeys', this.$store.getters['main/getOpenPgpKeys'])
+        let aPublicKeys = _.filter(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
+          return oKey.bPublic && oKey.sEmail !== sFromEmail
+        })
+        console.log('aPublicKeys', aPublicKeys)
+        let sEncodedSearch = textUtils.encodeHtml(sSearch)
+        let iExactlySearchIndex = -1
+        let aOptions = []
+        _.each(aContacts, function (oContactData, iIndex) {
+          let oContact = new cContact(oContactData)
+          if (oContact.ViewEmail !== sFromEmail) {
+            let sEncodedFull = textUtils.encodeHtml(oContact.getFull())
+            if (sEncodedSearch === sEncodedFull) {
+              iExactlySearchIndex = iIndex
+            }
+            aOptions.push({
+              label: sEncodedFull,
+              value: 'id_' + oContact.EntityId,
+              full: oContact.getFull(),
+              short: oContact.FullName || oContact.ViewEmail,
+              email: oContact.ViewEmail,
+              key: !!_.find(aPublicKeys, function (oKey) {
+                return oKey.sEmail === oContact.ViewEmail
+              })
+            })
+          }
+        })
+        let bAddFirstOption = sEncodedSearch !== '' && iExactlySearchIndex === -1
+        if (bAddFirstOption) {
+          let oEmailParts = addressUtils.getEmailParts(sSearch)
+          aOptions.unshift({
+            label: sEncodedSearch,
+            value: 'rand_' + Math.round(Math.random() * 10000),
+            full: sSearch,
+            short: oEmailParts.name || oEmailParts.email,
+            email: oEmailParts.email,
+            key: !!_.find(aPublicKeys, function (oKey) {
+              return oKey.sEmail === oEmailParts.email
+            })
+          })
+        }
+        update(async () => {
+          this.selfDestructingRecipientOptions = aOptions
+          if (bAddFirstOption) {
+            await this.$nextTick()
+            this.$refs.selfDestructingRecipientSelect.setOptionIndex(0)
+          } else if (iExactlySearchIndex >= 0) {
+            await this.$nextTick()
+            this.$refs.selfDestructingRecipientSelect.setOptionIndex(iExactlySearchIndex)
+          }
+        })
+      })
+      ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch })
+    },
     getToAddrOptions (sSearch, update, abort) {
       this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions', 'toAddrSelect')
     },
@@ -769,6 +968,7 @@ export default {
             value: 'id_' + oContact.EntityId,
             full: oContact.getFull(),
             short: oContact.FullName || oContact.ViewEmail,
+            email: oContact.ViewEmail,
           })
         })
         let bAddFirstOption = sEncodedSearch !== '' && iExactlySearchIndex === -1
@@ -779,6 +979,7 @@ export default {
             value: 'rand_' + Math.round(Math.random() * 10000),
             full: sSearch,
             short: oEmailParts.name || oEmailParts.email,
+            email: oEmailParts.email,
           })
         }
         update(async () => {
@@ -1050,6 +1251,7 @@ export default {
             label: textUtils.encodeHtml(oContactData.full),
             value: 'id_' + oContactData.id,
             short: oContactData.name || oContactData.email,
+            email: oContactData.email,
           }
         })
       } else {
@@ -1062,6 +1264,7 @@ export default {
             label: textUtils.encodeHtml(oContactData.full),
             value: 'id_' + oContactData.id,
             short: oContactData.name || oContactData.email,
+            email: oContactData.email,
           }
         })
       } else {
@@ -1074,6 +1277,7 @@ export default {
             label: textUtils.encodeHtml(oContactData.full),
             value: 'id_' + oContactData.id,
             short: oContactData.name || oContactData.email,
+            email: oContactData.email,
           }
         })
       } else {
@@ -1312,6 +1516,21 @@ export default {
         this.save()
       }
       this.closeCompose()
+    },
+    openSelfDestructingEmailDialog () {
+      if (typesUtils.isNonEmptyArray(this.selectedToAddr)) {
+        let oRecipient = this.selectedToAddr[0]
+        oRecipient.key = !!_.find(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
+          return oKey.bPublic && oKey.sEmail === oRecipient.email
+        })
+        this.selfDestructingRecipient = oRecipient
+      } else {
+        this.selfDestructingRecipient = ''
+      }
+      this.selfDestructingEmailDialog = true
+    },
+    sendSelfDestructingSecureEmail () {
+      console.log('sendSelfDestructingSecureEmail')
     },
   },
 }

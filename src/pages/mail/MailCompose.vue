@@ -837,15 +837,12 @@ export default {
       this.setSelectedIdentity()
     },
     selectedIdentity () {
-      let re = /<div data-anchor=\"signature\">.*?<\/div>/
+      let re = composeUtils.getSignatureRegexp()
       let bSignatureFound = !!this.editortext.match(re)
       if (bSignatureFound) {
         let oIdentity = this.selectedIdentity && this.selectedIdentity.value
-        if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
-          this.editortext = this.editortext.replace(re, '<div data-anchor="signature">' + oIdentity.sSignature + '</div>')
-        } else {
-          this.editortext = this.editortext.replace(re, '<div data-anchor="signature"></div>')
-        }
+        let sSignature = oIdentity && oIdentity.bUseSignature ? typesUtils.pString(oIdentity.sSignature, '') : ''
+        this.editortext = this.editortext.replace(re, composeUtils.getTagWrappedSignature(sSignature))
       }
     },
     selectedToAddr (aAddr, aPrevAddr) {
@@ -1293,8 +1290,8 @@ export default {
         this.editortext = sText
       } else {
         let oIdentity = this.selectedIdentity && this.selectedIdentity.value
-        let sSignature = oIdentity && oIdentity.bUseSignature ? oIdentity.sSignature : ''
-        this.editortext = '<br><br><div data-anchor="signature">' + sSignature + '</div>'
+        let sSignature = oIdentity && oIdentity.bUseSignature ? typesUtils.pString(oIdentity.sSignature, '') : ''
+        this.editortext = '<br><br>' + composeUtils.getTagWrappedSignature(sSignature)
       }
 
       this.attachments = []

@@ -379,7 +379,7 @@ export default {
         let oIdentity = this.$store.getters['mail/getCurrentDefaultIdentity']
         let sReplyText = this.replyText
         if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
-          sReplyText += '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
+          sReplyText += '<br><br><div>' + oIdentity.sSignature + '</div>'
         }
         let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, sReplyText, this.draftUid)
         oComposeReplyParams.oCurrentAccount = this.currentAccount
@@ -414,7 +414,7 @@ export default {
         let oIdentity = this.$store.getters['mail/getCurrentDefaultIdentity']
         let sReplyText = this.replyText
         if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
-          sReplyText += '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
+          sReplyText += '<br><br><div>' + oIdentity.sSignature + '</div>'
         }
         let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, mailEnums.ReplyType.ReplyAll, this.currentAccount, null, false, sReplyText, this.draftUid)
         oComposeReplyParams.oCurrentAccount = this.currentAccount
@@ -537,9 +537,8 @@ export default {
     openFullReplyForm: function (iReplyType) {
       let oIdentity = this.$store.getters['mail/getCurrentDefaultIdentity']
       let sReplyText = this.replyText
-      if (oIdentity && oIdentity.bUseSignature && oIdentity.sSignature !== '') {
-        sReplyText += '<br><br><div data-anchor="signature">' + oIdentity.sSignature + '</div>'
-      }
+      let sSignature = oIdentity && oIdentity.bUseSignature ? typesUtils.pString(oIdentity.sSignature, '') : ''
+      sReplyText += '<br><br>' + composeUtils.getTagWrappedSignature(sSignature)
       let oComposeReplyParams = composeUtils.getReplyDataFromMessage(this.text, this.message, iReplyType, this.currentAccount, null, false, sReplyText, this.draftUid)
       this.openCompose(oComposeReplyParams)
       this.clearQuickReplyData()

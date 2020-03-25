@@ -61,6 +61,10 @@ export default {
         //   Routing.replaceHashWithoutMessageUid(oParameters.DraftUid)
         // }
       }
+
+      oParameters.Text = oParameters.Text.split('<div data-anchor="signature">').join('<div>')
+      oParameters.Text = oParameters.Text.split('<!--signature end--></div>').join('</div>')
+
       notification.showLoading(sLoadingMessage)
       webApi.sendRequest({
         sModule: 'Mail',
@@ -212,22 +216,12 @@ export default {
     return sReSubject
   },
 
-  /**
-   * @param {Object} oCurrentAccount
-   * @param {Object} oFetcherOrIdentity
-   * @param {boolean} bPasteSignatureAnchor
-   * @return {string}
-   */
-  getSignatureText: function (oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
-  {
-    return ''
-    // let sSignature = this.getClearSignature(oCurrentAccount, oFetcherOrIdentity)
+  getSignatureRegexp () {
+    return /<div data-anchor=\"signature\">.*?<!--signature end--><\/div>/
+  },
 
-    // if (bPasteSignatureAnchor) {
-    //   return '<div data-anchor="signature">' + sSignature + '</div>'
-    // }
-
-    // return '<div>' + sSignature + '</div>'
+  getTagWrappedSignature (sSignature) {
+    return '<div data-anchor="signature">' + sSignature + '<!--signature end--></div>'
   },
 
   /**
@@ -241,17 +235,11 @@ export default {
   getReplyMessageBody: function (sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor)
   {
     let
-      // sReplyTitle = textUtils.i18n('%MODULENAME%/TEXT_REPLY_MESSAGE', {
-      //   'DATE': dateUtils.getDate(oMessage.TimeStampInUTC),
-      //   'TIME': dateUtils.getTime(oMessage.TimeStampInUTC),
-      //   'SENDER': textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.From))
-      // }),
       sReplyTitle = ('On %DATE% at %TIME%, %SENDER% wrote:')
         .replace('%DATE%', dateUtils.getDate(oMessage.TimeStampInUTC))
         .replace('%TIME%', dateUtils.getTime(oMessage.TimeStampInUTC))
         .replace('%SENDER%', textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.From))),
-      sReplyBody = '<br /><br />' + this.getSignatureText(oCurrentAccount, oFetcherOrIdentity, bPasteSignatureAnchor) + '<br /><br />' +
-        '<div data-anchor="reply-title">' + sReplyTitle + '</div><blockquote>' + sOrigText + '</blockquote>'
+      sReplyBody = '<br /><br /><div data-anchor="reply-title">' + sReplyTitle + '</div><blockquote>' + sOrigText + '</blockquote>'
 
     return sReplyBody
   },
@@ -266,23 +254,14 @@ export default {
   getForwardMessageBody: function (sOrigText, oMessage, oCurrentAccount, oFetcherOrIdentity) {
     let
       sCcAddr = textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.Cc)),
-      // sCcPart = (sCcAddr !== '') ? textUtils.i18n('%MODULENAME%/TEXT_FORWARD_MESSAGE_CCPART', {'CCADDR': sCcAddr}) : '',
       sCcPart = (sCcAddr !== '') ? ('CC: %CCADDR%<br />').replace('%CCADDR%', sCcAddr) : '',
-      // sForwardTitle = textUtils.i18n('%MODULENAME%/TEXT_FORWARD_MESSAGE', {
-      //   'FROMADDR': textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.From)),
-      //   'TOADDR': textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.To)),
-      //   'CCPART': sCcPart,
-      //   'FULLDATE': dateUtils.getFullDate(oMessage.TimeStampInUTC),
-      //   'SUBJECT': textUtils.encodeHtml(oMessage.Subject)
-      // }),
       sForwardTitle = ('---- Original Message ----<br />From: %FROMADDR%<br />To: %TOADDR%<br />%CCPART%Sent: %FULLDATE%<br />Subject: %SUBJECT%<br />')
         .replace('%FROMADDR%', textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.From)))
         .replace('%TOADDR%', textUtils.encodeHtml(messageUtils.getFullAddress(oMessage.To)))
         .replace('%CCPART%', sCcPart)
         .replace('%FULLDATE%', dateUtils.getFullDate(oMessage.TimeStampInUTC))
         .replace('%SUBJECT%', textUtils.encodeHtml(oMessage.Subject)),
-      sForwardBody = '<br /><br />' + this.getSignatureText(oCurrentAccount, oFetcherOrIdentity, true) + '<br /><br />' + 
-        '<div data-anchor="reply-title">' + sForwardTitle + '</div><br /><br />' + sOrigText
+      sForwardBody = '<br /><br /><div data-anchor="reply-title">' + sForwardTitle + '</div><br /><br />' + sOrigText
 
     return sForwardBody
   },

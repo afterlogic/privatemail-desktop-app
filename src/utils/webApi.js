@@ -76,22 +76,33 @@ export default {
   },
 
   downloadByUrl: function (sDownloadUrl, sFileName) {
-    let url = store.getters['main/getApiHost'] + '/' + sDownloadUrl
+    let sUrl = store.getters['main/getApiHost'] + '/' + sDownloadUrl
 
-    let sAuthToken = store.getters['user/getAuthToken']
-    let oHeaders = {}
-    if (sAuthToken) {
-      oHeaders['Authorization'] = 'Bearer ' + sAuthToken
-    }
+    // Use this part if cookie is set
+    let oIframe = document.createElement('iframe')
+    oIframe.setAttribute('style', 'display: none;')
+    document.body.appendChild(oIframe)
+    oIframe.setAttribute('src', sUrl);
 
-    axios({
-      method: 'get',
-      url,
-      headers: oHeaders,
-      responseType: 'blob',
-    })
-      .then((oResponse) => {
-        saveAs(oResponse.data, sFileName)
-      })
+    setTimeout(function () {
+      oIframe.parentNode.removeChild(oIframe)
+    }, 60000)
+
+    // // Use this part if cookie is NOT set
+    // let sAuthToken = store.getters['user/getAuthToken']
+    // let oHeaders = {}
+    // if (sAuthToken) {
+    //   oHeaders['Authorization'] = 'Bearer ' + sAuthToken
+    // }
+
+    // axios({
+    //   method: 'get',
+    //   url: sUrl,
+    //   headers: oHeaders,
+    //   responseType: 'blob',
+    // })
+    //   .then((oResponse) => {
+    //     saveAs(oResponse.data, sFileName)
+    //   })
   },
 }

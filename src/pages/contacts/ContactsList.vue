@@ -10,7 +10,7 @@
     </template>
     <q-list>
       <div v-for="contact in contacts" :key="contact.UUID" class="non-selectable">
-        <q-item clickable v-ripple class="contact-list-item q-py-md" @click="function (oMouseEvent) { setCurrentContactByUUID(contact.UUID, oMouseEvent) }" 
+        <q-item v-if="!contact.Deleted" clickable v-ripple class="contact-list-item q-py-md" @click="function (oMouseEvent) { setCurrentContactByUUID(contact.UUID, oMouseEvent) }" 
             :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
@@ -34,7 +34,7 @@
               <q-icon v-else-if="contact.Storage === 'team'" color="grey-4" name="business_center" />
           </q-item-section>
         </q-item>
-        <q-separator :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid }" />
+        <q-separator v-if="!contact.Deleted" :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid }" />
       </div>
     </q-list>
   </div>

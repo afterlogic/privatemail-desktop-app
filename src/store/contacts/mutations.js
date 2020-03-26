@@ -45,6 +45,14 @@ export function setContactsPerPage(state, iPerPage) {
   state.contactsPerPage = iPerPage
 }
 
+export function markContactsDeleted(state, aContactsUUIDs) {
+  _.each(state.contacts.list, function (oContact) {
+    if (_.indexOf(aContactsUUIDs, oContact.UUID) !== -1) {
+      oContact.Deleted = true
+    }
+  })
+}
+
 export function setSearchText(state, sSearchText) {
   state.searchText = sSearchText
 }

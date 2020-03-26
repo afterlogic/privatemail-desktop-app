@@ -200,7 +200,6 @@ export default {
     },
     onDeleteContacts (oEvent, { bDeleted, oError }) {
       if (bDeleted) {
-        this.$store.commit('contacts/setCheckedContacts', [])
         this.$store.commit('contacts/setHasChanges', true)
         notification.showReport('Contact(s) have been deleted successfully')
       } else {
@@ -294,6 +293,8 @@ export default {
         sStorage: this.currentStorage,
         aContactsUUIDs: this.checkedContacts,
       })
+      this.$store.commit('contacts/markContactsDeleted', this.checkedContacts)
+      this.$store.commit('contacts/setCheckedContacts', [])
     },
     emailToContacts () {
       let aAllContacts = this.$store.getters['contacts/getContacts'].list
@@ -316,7 +317,6 @@ export default {
     },
     onUpdateSharedContacts (oEvent, { bUpdateSharedContacts, oError }) {
       if (bUpdateSharedContacts) {
-        this.$store.commit('contacts/setCheckedContacts', [])
         this.$store.commit('contacts/setHasChanges', true)
         if (this.currentStorage === 'personal') {
           notification.showReport('Contact(s) have been shared successfully')
@@ -338,6 +338,8 @@ export default {
         sStorage: this.currentStorage,
         aContactsUUIDs: this.checkedContacts,
       })
+      this.$store.commit('contacts/markContactsDeleted', this.checkedContacts)
+      this.$store.commit('contacts/setCheckedContacts', [])
     },
     dummyAction () {
       notification.showReport('Coming soon')

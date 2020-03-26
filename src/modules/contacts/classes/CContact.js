@@ -54,6 +54,8 @@ function CContact(data) {
   this['DavContacts::VCardUID'] = ''
   this.GroupUUIDs = []
 
+  this.Deleted = false
+
   this.parse(data)
 }
 

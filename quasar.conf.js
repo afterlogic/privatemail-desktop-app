@@ -189,13 +189,19 @@ module.exports = function (ctx) {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
 
         // OS X / Mac App Store
-        appBundleId: 'com.afterlogic.privatemail',
+        appBundleId: 'com.PrivateRouter.PrivateMailDesktop',
         // executableName: 'privatemail', //package.json > name will be used
         productName: 'PrivateMail',
-        name: 'PrivateMail' //should be equal to package.json > name
+        name: 'PrivateMail', //should be equal to package.json > name
 
         // appCategoryType: '',
-        // osxSign: '',
+        osxSign: true,
+        osxNotarize: {
+          appBundleId: 'com.PrivateRouter.PrivateMailDesktop',
+          // appPath: '',
+          appleId: 'support@afterlogic.com',
+          appleIdPassword: ''
+        }
         // protocol: 'myapp://path',
 
         // Windows only

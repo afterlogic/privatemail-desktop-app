@@ -12,6 +12,8 @@ import accountsDbManager from './mail/accounts-db-manager.js'
 import foldersDbManager from './mail/folders-db-manager.js'
 import messagesDbManager from './mail/messages-db-manager.js'
 
+import openpgpManager from './openpgp/manager.js'
+
 import contactsManager from './contacts/manager.js'
 import contactsDbManager from './contacts/db-manager.js'
 
@@ -241,4 +243,5 @@ ipcMain.on('core-get-appdata', (oEvent, { sApiHost, sAuthToken }) => {
 
 mainManager.initSubscriptions()
 mailManager.initSubscriptions()
+openpgpManager.initSubscriptions()
 contactsManager.initSubscriptions()

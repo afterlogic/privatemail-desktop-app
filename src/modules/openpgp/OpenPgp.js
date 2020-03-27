@@ -1,4 +1,6 @@
+import store from 'src/store'
 import _ from 'lodash'
+
 const openpgp = require('openpgp')
 
 import addressUtils from 'src/utils/address.js'
@@ -410,5 +412,139 @@ COpenPgp.prototype.signAndEncrypt = async function (sData, aPublicKeys, oPrivate
     return { sError }
   }
 }
+
+// COpenPgp.prototype.getPrivateCurrentKey = function () {
+//   let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+//   let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
+//     let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+//     return !oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
+//   })
+//   if (aPublicCurrentKey.length > 0) {
+//     return aPublicCurrentKey[0]
+//   } else {
+//     notification.showError('No private key found for ' + this.currentAccount.sEmail + ' user.')
+//     return null
+//   }
+// },
+
+// COpenPgp.prototype.getPublicCurrentKey = function () {
+//   let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+//   let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
+//     let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+//     return oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
+//   })
+//   if (aPublicCurrentKey.length > 0) {
+//     return aPublicCurrentKey[0]
+//   } else {
+//     return null
+//   }
+// }
+
+COpenPgp.prototype.getPrivateKeyByEmail = function (sEmail) {
+  let aOpenPgpKeys = store.getters['main/getOpenPgpKeys']
+  let aPrivateKeys = _.filter(aOpenPgpKeys, (oKey) => {
+    let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+    return !oKey.bPublic && oKeyEmail.email === sEmail
+  })
+  if (aPrivateKeys.length > 0) {
+    return aPrivateKeys[0]
+  } else {
+    return null
+  }
+}
+
+COpenPgp.prototype.getPublicKeyByEmail = function (sEmail) {
+  let aOpenPgpKeys = store.getters['main/getOpenPgpKeys']
+  let aPublicKeys = _.filter(aOpenPgpKeys, (oKey) => {
+    let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+    return oKey.bPublic && oKeyEmail.email === sEmail
+  })
+  if (aPublicKeys.length > 0) {
+    return aPublicKeys[0]
+  } else {
+    return null
+  }
+}
+
+COpenPgp.prototype.generatePassword = function () {
+  let sPassword = ''
+
+  if (window.crypto) {
+    let oPassword = window.crypto.getRandomValues(new Uint8Array(10))
+    sPassword = btoa(String.fromCharCode.apply(null, oPassword))
+    sPassword = sPassword.replace(/[^A-Za-z0-9]/g, '')
+  } else {
+    const sSymbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!;%:?*()_+='
+    for (let i = 0; i < this.iPasswordLength; i++) {
+      sPassword += sSymbols.charAt(Math.floor(Math.random() * sSymbols.length))
+    }
+  }
+
+  return sPassword
+}
+
+COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sSignPassword) {
+  let
+    sPassword = '',
+    bIsBlob = mData instanceof Blob,
+    oOptions = {}
+
+  if (bIsBlob) {
+    let oBuffer = await new Response(mData).arrayBuffer()
+    oOptions.message = openpgp.message.fromBinary(new Uint8Array(oBuffer))
+    oOptions.armor = false
+    mData = null
+    oBuffer = null
+  } else {
+    oOptions.message = openpgp.message.fromText(mData)
+  }
+
+  if (bPasswordBasedEncryption) {
+    sPassword = this.generatePassword()
+    oOptions.passwords = [sPassword]
+  } else {
+    let aPublicKeys = []
+    let oPrincipalPublicKey = this.getPublicKeyByEmail(sPrincipalsEmail)
+    if (oPrincipalPublicKey) {
+      aPublicKeys.push(oPrincipalPublicKey)
+    } else {
+      return { sError: 'No public key found for ' + sPrincipalsEmail + ' user.' }
+    }
+    let oUserPublicKey = this.getPublicKeyByEmail(sUserEmail)
+    if (oUserPublicKey) {
+      aPublicKeys.push(oUserPublicKey)
+    }
+    oOptions.publicKeys = await this.convertToNativeKeys(aPublicKeys)
+  }
+
+  if (bSign && !bPasswordBasedEncryption) {
+    let oPrivateUserKey = this.getPrivateKeyByEmail(sUserEmail)
+    if (oPrivateUserKey) {
+      let { bVerified, oOpenPgpKey, sError } = await this.verifyKeyPassword(oPrivateUserKey, sSignPassword)
+      if (bVerified && oOpenPgpKey) {
+        oOptions.privateKeys = [oOpenPgpKey]
+      } else {
+        return { sError }
+      }
+    } else {
+      return { sError: 'No private key found for ' + sUserEmail + ' user.' }
+    }
+  }
+
+  try {
+    let oPgpResult = await openpgp.encrypt(oOptions)
+    if (oPgpResult && (oPgpResult.data || bIsBlob && oPgpResult.message)) {
+      return {
+        sEncryptedData: bIsBlob ? oPgpResult.message.packets.write() : oPgpResult.data,
+        sPassword,
+      }
+    } else {
+      return { sError: 'An error occurred during encrypting the data.', oPgpResult }
+    }
+  } catch (oError) {
+    return { sError: 'An error occurred during encrypting the data (' + oError.message + ').', oPgpResult }
+  }
+}
+
 
 export default new COpenPgp()

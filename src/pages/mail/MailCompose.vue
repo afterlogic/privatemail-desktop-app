@@ -60,30 +60,35 @@
       </q-dialog>
 
       <q-dialog v-model="selfDestructingEmailDialog" persistent>
-        <q-card class="q-px-sm non-selectable">
-          <q-card-section>
+        <q-card class="q-px-sm">
+          <q-card-section class="non-selectable">
             <div class="text-h6">Send a self-destructing secure email</div>
           </q-card-section>
 
-          <q-item>
+          <q-item class="non-selectable">
             <q-item-section>
-              <q-item-label caption>OpenPGP supports plain text only. Click OK to remove all the formatting and continue. Also, attachments cannot be encrypted or signed.</q-item-label>
+              <q-item-label caption>The Self-destructing secure messages support plain text only. All the formatting will be removed. Also, attachments cannot be encrypted and will be removed from the message.</q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-item>
+          <q-item class="non-selectable">
             <q-item-section>
               <q-item-label>Recipient:</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-select
+              <q-item-label v-if="selfDestructingShowPassword !== ''" disable>{{selfDestructingRecipient.full}}</q-item-label>
+              <q-select v-if="selfDestructingShowPassword === ''"
                 dense outlined style="width: 350px;"
-                use-input input-debounce="0"
+                use-input input-debounce="0" fill-input hide-selected
                 ref="selfDestructingRecipientSelect"
                 v-model="selfDestructingRecipient" :options="selfDestructingRecipientOptions"
                 @filter="getSelfDestructingRecipientOptionsOptions"
+                @input-value="checkSelfDestructingRecipient"
               >
-                <template v-slot:selected>
+                <template v-if="selfDestructingRecipient && selfDestructingRecipient.key" v-slot:append>
+                  <q-icon color="primary" name="vpn_key" />
+                </template>
+                <!-- <template v-slot:selected>
                   <span>
                     <q-item v-if="selfDestructingRecipient">
                       <q-item-section class="non-selectable">
@@ -94,7 +99,7 @@
                       </q-item-section>
                     </q-item>
                   </span>
-                </template>
+                </template> -->
                 <template v-slot:no-option>
                   <q-item>
                     <q-item-section class="text-grey">
@@ -105,7 +110,7 @@
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                     <q-item-section class="non-selectable">
-                      <q-item-label v-html="scope.opt.label" />
+                      <q-item-label v-html="scope.opt.encodedLabel" />
                     </q-item-section>
                     <q-item-section avatar v-if="scope.opt.key">
                       <q-icon color="primary" name="vpn_key" />
@@ -116,7 +121,7 @@
             </q-item-section>
           </q-item>
 
-          <q-item style="padding-top: 0; margin-top: -14px;">
+          <q-item class="non-selectable" style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''">
             <q-item-section>
               <q-item-label caption v-if="!selfDestructingRecipient">Please select recipient first.</q-item-label>
               <q-item-label caption v-if="selfDestructingRecipient && !selfDestructingRecipient.key">Selected recipient has no PGP public key. The key based encryption is not allowed.</q-item-label>
@@ -124,16 +129,24 @@
             </q-item-section>
           </q-item>
 
-          <q-item>
+          <q-item v-if="selfDestructingShowPassword === ''" class="non-selectable">
             <q-item-section>
               <q-item-label>Message lifetime:</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-select dense outlined v-model="selfDestructingLifetime" :options="selfDestructingLifetimeOptions" style="width: 350px;"></q-select>
+              <q-select dense outlined v-model="selfDestructingLifetime" :options="selfDestructingLifetimeOptions" style="width: 350px;">
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                    <q-item-section class="non-selectable">
+                      <q-item-label v-html="scope.opt.label" />
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
             </q-item-section>
           </q-item>
 
-          <q-item :disable="!selfDestructingRecipient">
+          <q-item :disable="!selfDestructingRecipient" v-if="selfDestructingShowPassword === ''" class="non-selectable">
             <q-item-section>
               <q-item-label>Encryption type:</q-item-label>
             </q-item-section>
@@ -143,17 +156,17 @@
             </q-item-section>
           </q-item>
 
-          <q-item style="padding-bottom: 0; margin-bottom: -14px;">
+          <q-item style="padding-bottom: 0; margin-bottom: -14px;" v-if="selfDestructingShowPassword === '' && selfDestructingRecipient" class="non-selectable">
             <q-item-section>
               <q-item-label v-if="selfDestructingEncryptType === 'password'" caption>The Password based encryption will be used.</q-item-label>
               <q-item-label v-if="selfDestructingEncryptType === 'key'" caption>The Key based encryption will be used.</q-item-label>
             </q-item-section>
           </q-item>
-          <q-item tag="label" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'">
+          <q-item tag="label" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" v-if="selfDestructingShowPassword === ''">
             <q-item-section side top>
               <q-checkbox v-model="selfDestructingAddSignature" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" />
             </q-item-section>
-            <q-item-section>
+            <q-item-section class="non-selectable">
               <q-item-label>Add digital signature</q-item-label>
             </q-item-section>
             <q-item-section v-if="selfDestructingAddSignature" side>
@@ -163,16 +176,37 @@
               <q-input type="password" outlined dense v-model="selfDestructingSignaturePassword" />
             </q-item-section>
           </q-item>
-          <q-item style="padding-top: 0; margin-top: -14px;">
+          <q-item style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''" class="non-selectable">
             <q-item-section>
               <q-item-label v-if="selfDestructingAddSignature" caption>Will sign the data with your private key.</q-item-label>
               <q-item-label v-if="!selfDestructingAddSignature" caption>Will not sign the data.</q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-card-actions align="right">
+          <q-card-actions align="right" v-if="selfDestructingShowPassword === ''" class="non-selectable">
             <q-btn flat label="Encrypt" v-if="selfDestructingRecipient" color="primary" @click="sendSelfDestructingSecureEmail" />
             <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          </q-card-actions>
+
+          <q-item v-if="selfDestructingShowPassword !== ''">
+            <q-item-section>
+              <span class="rounded-borders q-pa-md bg-grey-2">
+              <q-item-label class="h6 non-selectable">Encrypted message password:</q-item-label>
+              <q-item-label lines="2" class="text-bold">{{ selfDestructingShowPassword }}</q-item-label>
+              </span>
+            </q-item-section>
+            <q-item-section side>
+            </q-item-section>
+          </q-item>
+
+          <q-item v-if="selfDestructingShowPassword !== ''" class="non-selectable">
+            <q-item-section>
+              <q-item-label caption>The password must be sent using a different channel. Store the password somewhere. You will not be able to recover it otherwise.</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-card-actions align="right" v-if="selfDestructingShowPassword !== ''" class="non-selectable">
+            <q-btn flat label="Ok" v-if="selfDestructingRecipient" color="primary" v-close-popup />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -200,7 +234,7 @@
           <q-btn flat icon="save" label="Save" @click="save" />
           <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
           <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
-          <!-- <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" /> -->
+          <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" />
           <q-space />
           <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
             <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
@@ -636,6 +670,7 @@
 
 <script>
 import { ipcRenderer } from 'electron'
+import moment from 'moment-timezone'
 
 import addressUtils from 'src/utils/address.js'
 import errors from 'src/utils/errors.js'
@@ -644,6 +679,8 @@ import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 import webApi from 'src/utils/webApi'
 
+import coreSettings from 'src/modules/core/settings.js'
+
 import cAttachment from 'src/modules/mail/classes/cAttachment.js'
 import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import cAlias from 'src/modules/mail/classes/cAlias.js'
@@ -651,6 +688,7 @@ import composeUtils from 'src/modules/mail/utils/compose.js'
 import mailSettings from 'src/modules/mail/settings.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+import openpgpSettings from 'src/modules/openpgp/settings.js'
 
 import cContact from 'src/modules/contacts/classes/CContact.js'
 
@@ -721,6 +759,7 @@ export default {
       selfDestructingEncryptType: '',
       selfDestructingAddSignature: false,
       selfDestructingSignaturePassword: '',
+      selfDestructingShowPassword: '',
     }
   },
 
@@ -883,14 +922,19 @@ export default {
   },
 
   methods: {
+    checkSelfDestructingRecipient (sNewValue) {
+      if (this.selfDestructingRecipient && this.selfDestructingRecipient.label !== sNewValue) {
+        this.selfDestructingRecipient = null
+      }
+    },
     getSelfDestructingRecipientOptionsOptions (sSearch, update, abort) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let sFromEmail = this.selectedIdentity ? this.selectedIdentity.value.sEmail : ''
-        console.log('getOpenPgpKeys', this.$store.getters['main/getOpenPgpKeys'])
         let aPublicKeys = _.filter(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
-          return oKey.bPublic && oKey.sEmail !== sFromEmail
+          let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+          return oKey.bPublic && oKeyEmail.email !== sFromEmail
         })
-        console.log('aPublicKeys', aPublicKeys)
+        let aEmailsToExclude = []
         let sEncodedSearch = textUtils.encodeHtml(sSearch)
         let iExactlySearchIndex = -1
         let aOptions = []
@@ -901,32 +945,51 @@ export default {
             if (sEncodedSearch === sEncodedFull) {
               iExactlySearchIndex = iIndex
             }
+            let bKey = !!_.find(aPublicKeys, function (oKey) {
+              let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+              return oKeyEmail.email === oContact.ViewEmail
+            })
             aOptions.push({
-              label: sEncodedFull,
+              encodedLabel: sEncodedFull,
               value: 'id_' + oContact.EntityId,
-              full: oContact.getFull(),
+              label: oContact.getFull(),
               short: oContact.FullName || oContact.ViewEmail,
               email: oContact.ViewEmail,
-              key: !!_.find(aPublicKeys, function (oKey) {
-                return oKey.sEmail === oContact.ViewEmail
-              })
+              key: bKey
             })
+            if (bKey) {
+              aEmailsToExclude.push(oContact.ViewEmail)
+            }
           }
         })
         let bAddFirstOption = sEncodedSearch !== '' && iExactlySearchIndex === -1
         if (bAddFirstOption) {
           let oEmailParts = addressUtils.getEmailParts(sSearch)
           aOptions.unshift({
-            label: sEncodedSearch,
+            encodedLabel: sEncodedSearch,
             value: 'rand_' + Math.round(Math.random() * 10000),
-            full: sSearch,
+            label: sSearch,
             short: oEmailParts.name || oEmailParts.email,
             email: oEmailParts.email,
             key: !!_.find(aPublicKeys, function (oKey) {
-              return oKey.sEmail === oEmailParts.email
+              let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+              return oKeyEmail.email === oEmailParts.email
             })
           })
         }
+        _.each(aPublicKeys, (oKey) => {
+          let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+          if (oKey.sEmail.indexOf(sSearch) !== -1 && _.indexOf(aEmailsToExclude, oKeyEmail.email) === -1) {
+            aOptions.push({
+              encodedLabel: textUtils.encodeHtml(oKeyEmail.full),
+              value: 'keyid_' + oKey.sId,
+              label: oKeyEmail.full,
+              short: oKeyEmail.name || oKeyEmail.email,
+              email: oKeyEmail.email,
+              key: true
+            })
+          }
+        })
         update(async () => {
           this.selfDestructingRecipientOptions = aOptions
           if (bAddFirstOption) {
@@ -1517,17 +1580,130 @@ export default {
     openSelfDestructingEmailDialog () {
       if (typesUtils.isNonEmptyArray(this.selectedToAddr)) {
         let oRecipient = this.selectedToAddr[0]
-        oRecipient.key = !!_.find(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
-          return oKey.bPublic && oKey.sEmail === oRecipient.email
-        })
-        this.selfDestructingRecipient = oRecipient
+        this.selfDestructingRecipient = {
+          encodedLabel: oRecipient.label,
+          value: oRecipient.value,
+          label: oRecipient.full,
+          short: oRecipient.short,
+          email: oRecipient.email,
+          key: !!_.find(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
+            return oKey.bPublic && oKey.sEmail === oRecipient.email
+          })
+        }
       } else {
-        this.selfDestructingRecipient = ''
+        this.selfDestructingRecipient = null
       }
+      this.selfDestructingShowPassword = ''
       this.selfDestructingEmailDialog = true
     },
-    sendSelfDestructingSecureEmail () {
-      console.log('sendSelfDestructingSecureEmail')
+    async createSelfDestrucPublicLink (sSubject, sData, sRecipientEmail, sEncryptionBasedMode, iLifetimeHrs) {
+      const oPromiseCreateSelfDestrucPublicLink = new Promise( (resolve, reject) => {
+        ipcRenderer.once('openpgp-create-self-destruc-public-link', (oEvent, { oResult, oError }) => {
+          if (oResult && oResult.link) {
+            resolve(oResult.link)
+          } else {
+            reject(new Error(errors.getText(oError, 'Error on public link creation')))
+          }
+        })
+        ipcRenderer.send('openpgp-create-self-destruc-public-link', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          sSubject,
+          sData,
+          sRecipientEmail,
+          sEncryptionBasedMode,
+          iLifetimeHrs,
+        })
+      })
+
+      try {
+        return { sLink: await oPromiseCreateSelfDestrucPublicLink }
+      } catch (oError) {
+        return { sError: oError && oError.message ? oError.message : 'Error on public link creation' }
+      }
+    },
+    async sendSelfDestructingSecureEmail () {
+      this.isEncrypting = true
+      let sUserEmail = this.currentAccount ? this.currentAccount.sEmail : ''
+      const { sEncryptedData, sPassword, sError } = await OpenPgp.encryptData(
+        this.getPlainEditorText(),
+        sUserEmail,
+        this.selfDestructingRecipient.email,
+        this.selfDestructingEncryptType === 'password',
+        this.selfDestructingAddSignature,
+        this.selfDestructingSignaturePassword
+      )
+      if (typesUtils.isNonEmptyString(sError)) {
+        notification.showError(sError)
+      } else {
+        //create link
+        let { sLink, sError } = await this.createSelfDestrucPublicLink(
+          this.subjectText, sEncryptedData,
+          this.selfDestructingRecipient.email,
+          this.selfDestructingEncryptType,
+          this.selfDestructingLifetime.value
+        )
+        if (typesUtils.isNonEmptyString(sError) || !typesUtils.isNonEmptyString(sLink)) {
+          notification.showError(sError || 'Could not create public link.')
+        } else {
+          const sFullLink = this.$store.getters['main/getApiHost'] + sLink + '#' + openpgpSettings.sSelfDestructMessageHash
+
+          //compose message
+          const sSubject = 'The secure message was shared with you'
+          let sBody = ''
+          let sBrowserTimezone = moment.tz.guess()
+          let sServerTimezone = coreSettings.sTimezone
+          let sCurrentTime = moment.tz(new Date(), sBrowserTimezone || sServerTimezone).format('MMM D, YYYY HH:mm [GMT] ZZ')
+
+          if (this.selfDestructingRecipient.key) {//encrypt message with key
+            if (sPassword) {
+              sBody = 'Hello,%BR%%EMAIL% user sent you a self-destructing secure email.%BR%You can read it by the following link: %URL%%BR%The message is password-protected. The password is: %PASSWORD%%BR%The message will be accessible for %HOURS% hours starting from %CREATING_TIME_GMT%'
+              sBody = sBody
+                          .replace(/%URL%/g, sFullLink)
+                          .replace(/%BR%/g, '\r\n')
+                          .replace(/%PASSWORD%/g, sPassword)
+                          .replace(/%EMAIL%/g, sUserEmail)
+                          .replace(/%HOURS%/g, this.selfDestructingLifetime.value)
+                          .replace(/%CREATING_TIME_GMT%/g, sCurrentTime)
+            } else {
+              sBody = 'Hello,%BR%%EMAIL% user sent you a self-destructing secure email.%BR%You can read it by the following link: %URL%%BR%The message will be accessible for %HOURS% hours starting from %CREATING_TIME_GMT%'
+              sBody = sBody
+                          .replace(/%URL%/g, sFullLink)
+                          .replace(/%BR%/g, '\r\n')
+                          .replace(/%EMAIL%/g, sUserEmail)
+                          .replace(/%HOURS%/g, this.selfDestructingLifetime.value)
+                          .replace(/%CREATING_TIME_GMT%/g, sCurrentTime)
+            }
+            this.subjectText = sSubject
+            this.editortext = sBody
+            this.selectedToAddr = [this.selfDestructingRecipient]
+            if (this.selfDestructingAddSignature) {
+              this.signAndEncrypt()
+            } else {
+              this.encrypt()
+            }
+            this.selfDestructingEmailDialog = false
+          } else {
+            //send not encrypted message
+            //if the recipient does not have a key, the message can only be encrypted with a password 
+            if (sPassword) {
+              sBody = 'Hello,%BR%%EMAIL% user sent you a self-destructing secure email.%BR%You can read it by the following link: <a href=\"%URL%\">%URL%</a>%BR%The message will be accessible for %HOURS% hours starting from %CREATING_TIME_GMT%'
+              sBody = sBody
+                          .replace(/%URL%/g, sFullLink)
+                          .replace(/%BR%/g, '<br>')
+                          .replace(/%EMAIL%/g, sUserEmail)
+                          .replace(/%HOURS%/g, this.selfDestructingLifetime.value)
+                          .replace(/%CREATING_TIME_GMT%/g, sCurrentTime)
+              this.selfDestructingShowPassword = sPassword
+              this.subjectText = sSubject
+              this.editortext = sBody
+              this.plainText = false
+              this.selectedToAddr = [this.selfDestructingRecipient]
+            }
+          }
+        }
+      }
+      this.isEncrypting = false
     },
   },
 }

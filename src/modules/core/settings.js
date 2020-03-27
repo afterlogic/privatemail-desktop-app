@@ -4,6 +4,7 @@ function CSettings () {
   this.bUserSelectsDateFormat = false
   this.iTimeFormat = 0 // 24 hours
   this.sDateFormat = 'DD Month YYYY'
+  this.sTimezone = ''
 
   this.iAutoRefreshIntervalMinutes = 0
 }
@@ -13,6 +14,7 @@ CSettings.prototype.parse = function (oData, oWebclientData) {
     this.bUserSelectsDateFormat = typesUtils.pBool(oData.UserSelectsDateFormat, this.bUserSelectsDateFormat)
     this.setTimeFormat(oData.TimeFormat)
     this.sDateFormat = typesUtils.pString(oData.DateFormat, this.sDateFormat)
+    this.sTimezone = typesUtils.pString(oData.Timezone, this.sTimezone)
   }
 
   if (oWebclientData) {

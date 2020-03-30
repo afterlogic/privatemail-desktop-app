@@ -217,7 +217,7 @@ export default {
                   resolve(aMessagesInfo)
                   foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo }).then(
                     () => {
-                      this._markFolderWithoutChanges({ iAccountId, sFolderFullName })
+                      this._markFolderHasChanges(iAccountId, sFolderFullName, false).then(() => {}, () => {})
                     }
                   )
                 } else {
@@ -239,6 +239,7 @@ export default {
       let sLastMessagesInfoTime = appState.setLastMessagesInfoTime(iAccountId, sFolderFullName)
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfoFromDb) => {
+          this._markFolderHasChanges(iAccountId, sFolderFullName, false).then(() => {}, () => {})
             webApi.sendRequest({
               sApiHost,
               sAuthToken,
@@ -254,7 +255,10 @@ export default {
                 Filter: '',
               },
               fCallback: async (aMessagesInfoFromServer, oError) => {
-                if (appState.isLastMessagesInfoTime(iAccountId, sFolderFullName, sLastMessagesInfoTime)) {
+                if (!_.isArray(aMessagesInfoFromServer)) {
+                  this._markFolderHasChanges(iAccountId, sFolderFullName, true).then(() => {}, () => {})
+                  reject(oError)
+                } else if (appState.isLastMessagesInfoTime(iAccountId, sFolderFullName, sLastMessagesInfoTime)) {
                   let 
                     aUidsToDelete = [],
                     aMessagesInfoToSync = [],
@@ -265,7 +269,9 @@ export default {
                       aMessagesInfoToSync = oResult.aMessagesInfoToSync
                       aUidsToRetrieve = oResult.aUidsToRetrieve
                     },
-                    () => {}
+                    () => {
+                      this._markFolderHasChanges(iAccountId, sFolderFullName, true).then(() => {}, () => {})
+                    }
                   )
                   this.deleteMessages(iAccountId, sFolderFullName, aUidsToDelete).then(
                     () => {
@@ -276,7 +282,7 @@ export default {
                               foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: aMessagesInfoFromServer }).then(
                                 () => {
                                   let bHasChanges = typesUtils.isNonEmptyArray(aUidsToDelete) || typesUtils.isNonEmptyArray(aMessagesInfoToSync) || typesUtils.isNonEmptyArray(aUidsToRetrieve)
-                                  this._markFolderWithoutChanges({ iAccountId, sFolderFullName }).then(
+                                  this._markFolderHasChanges(iAccountId, sFolderFullName, false).then(
                                     () => {
                                       resolve(bHasChanges)
                                     },
@@ -429,14 +435,14 @@ export default {
     })
   },
 
-  _markFolderWithoutChanges: function ({ iAccountId, sFolderFullName }) {
+  _markFolderHasChanges: function (iAccountId, sFolderFullName, bHasChanges) {
     return new Promise((resolve, reject) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
           if (oFolderList && oFolderList.Tree) {
             let oFolder = this.getFolder(oFolderList, sFolderFullName)
             if (oFolder) {
-              oFolder.HasChanges = false
+              oFolder.HasChanges = bHasChanges
             }
             foldersDbManager.setFolders(iAccountId, oFolderList).then(resolve, reject)
           }

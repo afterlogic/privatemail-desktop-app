@@ -5,6 +5,7 @@ import moment from 'moment'
 import cryptoHelper from '../utils/crypto-helper.js'
 
 import dbMigration122Manager from './db-migration122-manager.js'
+import dbMigration131Manager from './db-migration131-manager.js'
 
 import typesUtils from '../../../src/utils/types.js'
 
@@ -18,6 +19,32 @@ let aVersionChangesData = [
     Version: '1.2.2',
     Handler: async function () {
       await dbMigration122Manager.start(oDb).then(
+        () => {},
+        (mResult) => {
+          if (mResult.sError || mResult.oError) {
+            let sError = mResult.sError || ''
+            if (sError) {
+              if (mResult.oError) {
+                sError += ' (' + mResult.oError.message + ')'
+              }
+            } else if (mResult.oError) {
+              sError += mResult.oError.message
+            }
+            oMigrationStatus.sError = sError
+          } else {
+            oMigrationStatus.sError = mResult.message
+          }
+          if (oMainWindow) {
+            oMainWindow.webContents.send('main-migration', oMigrationStatus)
+          }
+        },
+      )
+    },
+  },
+  {
+    Version: '1.3.1',
+    Handler: async function () {
+      await dbMigration131Manager.start(oDb).then(
         () => {},
         (mResult) => {
           if (mResult.sError || mResult.oError) {
@@ -98,7 +125,8 @@ export default {
         oDb.serialize(function() {
           oDb.run('CREATE TABLE IF NOT EXISTS user_data (data TEXT)')
           oDb.run('CREATE TABLE IF NOT EXISTS app_data (version TEXT)')
-          oDb
+          if (sAppVersion) {
+            oDb
             .prepare('SELECT version FROM app_data')
             .get(async (oError, oRow) => {
               const semver = require('semver')
@@ -106,9 +134,9 @@ export default {
               if (typeof(oRow && oRow.version) === 'string') {
                 sPrevAppVersion = semver.valid(oRow.version) || '0.0.0'
               }
+              let oSetVersionStatement = (!oRow) ? oDb.prepare('INSERT INTO app_data (version) VALUES (?)', sAppVersion) : oDb.prepare('UPDATE app_data SET version = ?', sAppVersion)
               if (sPrevAppVersion !== '0.0.0' && sPrevAppVersion !== sAppVersion) {
                 // apply db changes
-                let bFinished = false
                 oMigrationStatus.iStartedTime = moment().unix()
                 oMainWindow.webContents.send('main-migration', oMigrationStatus)
                 for (let i = 0; i < aVersionChangesData.length; i++) {
@@ -118,41 +146,36 @@ export default {
                     await oData.Handler()
                   }
                 }
-                bFinished = true
                 oMigrationStatus.bFinished = true
                 oMainWindow.webContents.send('main-migration', oMigrationStatus)
 
                 if (!oMigrationStatus.sError && !oMigrationStatus.oError) {
                   // save new version to db
-                  if (!oRow) {
-                    oDb
-                      .prepare('INSERT INTO app_data (version) VALUES (?)', sAppVersion)
-                      .run()
-                      .finalize(resolve)
-                  } else {
-                    oDb
-                      .prepare('UPDATE app_data SET version = ?', sAppVersion)
-                      .run()
-                      .finalize(resolve)
-                  }
+                  oSetVersionStatement.run().finalize(resolve)
                 } else {
                   reject()
                 }
+              } else if (sPrevAppVersion !== sAppVersion) {
+                oSetVersionStatement.run().finalize(resolve)
               } else {
                 resolve()
               }
             })
             .finalize()
+          } else {
+            resolve()
+          }
         })
       }
     })
   },
 
+  getMigrationStatus () {
+    return oMigrationStatus
+  },
+
   getUserData: function () {
     return new Promise((resolve, reject) => {
-      if (oMainWindow && !_.isEmpty(oMigrationStatus)) {
-        oMainWindow.webContents.send('main-migration', oMigrationStatus)
-      }
       if (oDb && oDb.open) {
         oDb
           .prepare('SELECT data FROM user_data')
@@ -179,11 +202,11 @@ export default {
   },
 
   saveUserData: function (oUserData) {
-    if (typeof(oUserData && oUserData.user && oUserData.user.authToken) === 'string') {
-      oUserData.user.authToken = cryptoHelper.encrypt(oUserData.user.authToken)
-    }
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
+        if (typeof(oUserData && oUserData.user && oUserData.user.authToken) === 'string') {
+          oUserData.user.authToken = cryptoHelper.encrypt(oUserData.user.authToken)
+        }
         oDb.serialize(function() {
           let oStatement = oDb.prepare('DELETE FROM user_data')
           oStatement.run()
@@ -202,7 +225,6 @@ export default {
             )
           })
         })
-
       } else {
         reject({ sMethod: 'saveUserData', sError: 'No DB connection' })
       }

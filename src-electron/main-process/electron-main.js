@@ -182,7 +182,7 @@ ipcMain.on('db-remove-all', (oEvent) => {
           if (!oUnlinkError) {
             oDbConnect = new sqlite3.Database(dbFullPath, (oDbConnectError) => {
               if (oDbConnectError === null) {
-                mainDbManager.init(oDbConnect)
+                mainDbManager.init(oDbConnect, version, mainWindow)
                 accountsDbManager.init(oDbConnect)
                 foldersDbManager.init(oDbConnect)
                 messagesDbManager.init(oDbConnect)

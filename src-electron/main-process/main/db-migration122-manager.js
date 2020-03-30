@@ -2,6 +2,7 @@ import moment from 'moment'
 
 import _ from 'lodash'
 
+import textUtils from '../../../src/utils/text.js'
 import typesUtils from '../../../src/utils/types.js'
 
 import dbManager from './db-manager.js'
@@ -82,39 +83,6 @@ function _getMigratedAttachmentsSearch (sAttachments) {
     }
   }
   return aAttachmentsSearch.join('\n')
-}
-
-function _unescapeHTML (str) {
-  let htmlEntities = {
-    nbsp: ' ',
-    cent: '¢',
-    pound: '£',
-    yen: '¥',
-    euro: '€',
-    copy: '©',
-    reg: '®',
-    lt: '<',
-    gt: '>',
-    quot: '"',
-    amp: '&',
-    apos: '\'',
-  }
-
-  return str.replace(/\&([^;]+);/g, function (entity, entityCode) {
-    let match
-
-    if (entityCode in htmlEntities) {
-      return htmlEntities[entityCode]
-      /*eslint no-cond-assign: 0*/
-    } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
-      return String.fromCharCode(parseInt(match[1], 16))
-      /*eslint no-cond-assign: 0*/
-    } else if (match = entityCode.match(/^#(\d+)$/)) {
-      return String.fromCharCode(~~match[1])
-    } else {
-      return entity
-    }
-  })
 }
 
 export default {
@@ -234,7 +202,7 @@ export default {
         _.each(aRows, (oRow) => {
           if (_.isObject(oRow)) {
             iStatementsCount++
-            let sTextSearch = _unescapeHTML(oRow.plain_raw)
+            let sTextSearch = textUtils.unescapeHTMLSymbols(oRow.plain_raw)
             let sBccAddr = _getMigratedAddress(oRow.bcc_addr)
             let sCcAddr = _getMigratedAddress(oRow.cc_addr)
             let sFromAddr = _getMigratedAddress(oRow.from_addr)

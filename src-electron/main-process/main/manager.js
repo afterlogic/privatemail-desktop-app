@@ -6,6 +6,10 @@ import mainDbManager from './db-manager.js'
 
 export default {
   initSubscriptions: function () {
+    ipcMain.on('main-migration', (oEvent) => {
+      oEvent.sender.send('main-migration', mainDbManager.getMigrationStatus())
+    })
+
     ipcMain.on('main-get-user-data', (oEvent) => {
       mainDbManager.getUserData().then(
         (oUserData) => {
@@ -18,7 +22,7 @@ export default {
     })
 
     ipcMain.on('main-save-user-data', (oEvent, oUserData) => {
-      mainDbManager.saveUserData(oUserData)
+        mainDbManager.saveUserData(oUserData).then(() => {}, () => {})
     })
 
     ipcMain.on('main-get-host', (oEvent, { sEmail }) => {

@@ -56,10 +56,39 @@ export default {
       .replace(/<a [^>]*href="([^"]*?)"[^>]*>(.*?)<\/a>/gi, '$2 ($1)')
       .replace(/<[^>]*>/g, '')
       .replace(/&nbsp;/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
       .replace(/\s+/g, ' ')
+  },
+
+  unescapeHTMLSymbols (sText) {
+    let htmlEntities = {
+      nbsp: ' ',
+      cent: '¢',
+      pound: '£',
+      yen: '¥',
+      euro: '€',
+      copy: '©',
+      reg: '®',
+      lt: '<',
+      gt: '>',
+      quot: '"',
+      amp: '&',
+      apos: '\'',
+    }
+
+    return sText.replace(/\&([^;]+);/g, function (entity, entityCode) {
+      let match
+
+      if (entityCode in htmlEntities) {
+        return htmlEntities[entityCode]
+        /*eslint no-cond-assign: 0*/
+      } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
+        return String.fromCharCode(parseInt(match[1], 16))
+        /*eslint no-cond-assign: 0*/
+      } else if (match = entityCode.match(/^#(\d+)$/)) {
+        return String.fromCharCode(~~match[1])
+      } else {
+        return entity
+      }
+    })
   },
 }

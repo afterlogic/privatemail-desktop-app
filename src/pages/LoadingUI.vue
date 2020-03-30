@@ -47,45 +47,55 @@ export default {
     })
     ipcRenderer.on('main-migration', (event, oMigrationInfo) => {
       this.oMigrationInfo = oMigrationInfo
-      this.showMigrationInfo()
+      if (_.isObject(this.oMigrationInfo) && !_.isEmpty(this.oMigrationInfo)) {
+        this.showMigrationInfo()
+        if (this.oMigrationInfo.bFinished) {
+          this.getUserData()
+        }
+      } else {
+        this.getUserData()
+      }
     })
-    ipcRenderer.once('main-get-user-data', (event, oUserData) => {
-      if (!this.oMigrationInfo.sError) {
-        if (oUserData) {
-          this.$store.commit('main/setDataFromServer', oUserData.main)
-          this.$store.commit('user/setDataFromServer', oUserData.user)
-          let bAuthorized = this.$store.getters['user/isAuthorized']
-          if (bAuthorized) {
-            if (!this.currentAccount) {
-              this.$store.dispatch('mail/asyncGetSettings', () => {
-                let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
-                if (this.currentAccount) {
-                  if (sCurrentPath !== '/mail') {
-                    ipcRenderer.send('init', { sApiHost: this.$store.getters['main/getApiHost'], sAuthToken: this.$store.getters['user/getAuthToken'] })
-                    this.$router.push({ path: '/mail' })
+    ipcRenderer.send('main-migration')
+  },
+
+  methods: {
+    getUserData () {
+      ipcRenderer.once('main-get-user-data', (event, oUserData) => {
+        if (!this.oMigrationInfo.sError) {
+          if (oUserData) {
+            this.$store.commit('main/setDataFromServer', oUserData.main)
+            this.$store.commit('user/setDataFromServer', oUserData.user)
+            let bAuthorized = this.$store.getters['user/isAuthorized']
+            if (bAuthorized) {
+              if (!this.currentAccount) {
+                this.$store.dispatch('mail/asyncGetSettings', () => {
+                  let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
+                  if (this.currentAccount) {
+                    if (sCurrentPath !== '/mail') {
+                      ipcRenderer.send('init', { sApiHost: this.$store.getters['main/getApiHost'], sAuthToken: this.$store.getters['user/getAuthToken'] })
+                      this.$router.push({ path: '/mail' })
+                    }
+                  } else {
+                    if (sCurrentPath !== '/login') {
+                      this.$router.push({ path: '/login' })
+                    }
                   }
-                } else {
-                  if (sCurrentPath !== '/login') {
-                    this.$router.push({ path: '/login' })
-                  }
-                }
-              })
+                })
+              } else {
+                ipcRenderer.send('init', { sApiHost: this.$store.getters['main/getApiHost'], sAuthToken: this.$store.getters['user/getAuthToken'] })
+                this.$router.push({ path: '/mail' })
+              }
             } else {
-              ipcRenderer.send('init', { sApiHost: this.$store.getters['main/getApiHost'], sAuthToken: this.$store.getters['user/getAuthToken'] })
-              this.$router.push({ path: '/mail' })
+              this.$router.push({ path: '/login' })
             }
           } else {
             this.$router.push({ path: '/login' })
           }
-        } else {
-          this.$router.push({ path: '/login' })
         }
-      }
-    })
-    ipcRenderer.send('main-get-user-data')
-  },
-
-  methods: {
+      })
+      ipcRenderer.send('main-get-user-data')
+    },
     showMigrationInfo () {
       clearTimeout(this.iTimeout)
       let { iStartedTime, iApproximateTimeSeconds, bFinished, sError } = this.oMigrationInfo

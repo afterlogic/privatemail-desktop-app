@@ -71,8 +71,8 @@ export default {
   prepareMessageFields: function (oMessage, iAccountId) {
     oMessage.AccountId = iAccountId
 
-    if (typesUtils.isNonEmptyString(oMessage.HtmlRaw)) {
-      oMessage.TextSearch = textUtils.htmlToTextSearch(oMessage.HtmlRaw)
+    if (typesUtils.isNonEmptyString(oMessage.Html)) {
+      oMessage.TextSearch = textUtils.unescapeHTMLSymbols(textUtils.htmlToTextSearch(oMessage.Html))
     } else if (typesUtils.isNonEmptyString(oMessage.PlainRaw)) {
       oMessage.TextSearch = oMessage.PlainRaw
     }

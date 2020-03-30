@@ -190,27 +190,46 @@ export default {
     })
   },
 
-  setStorages: function ({ aStorages }) {
+  setStorages: function (aStoragesFromApi, aStoragesFromDb) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         oDb.serialize(() => {
-          let oStatement = oDb.prepare('DELETE FROM contacts_storages')
-          oStatement.run()
-          oStatement.finalize()
-        })
+          let aStoragesToAdd = _.difference(aStoragesFromApi, aStoragesFromDb)
+          let aStoragesToRemove = _.difference(aStoragesFromDb, aStoragesFromApi)
 
-        let sQuestions = aStorages.map(() => { return '(?)' }).join(',')
-        oDb.all(
-          'INSERT INTO contacts_storages (storage) VALUES ' + sQuestions,
-          aStorages,
-          (oError) => {
-            if (oError) {
-              reject({ sMethod: 'setStorages', oError })
+          function _insertStorages () {
+            if (aStoragesToAdd.length > 0) {
+              let sQuestions = aStoragesToAdd.map(() => { return '(?)' }).join(',')
+              oDb.all(
+                'INSERT INTO contacts_storages (storage) VALUES ' + sQuestions,
+                aStoragesToAdd,
+                (oError) => {
+                  if (oError) {
+                    reject({ sMethod: 'setStorages', oError })
+                  } else {
+                    resolve()
+                  }
+                }
+              )
             } else {
               resolve()
             }
           }
-        )
+
+          if (aStoragesToRemove.length > 0) {
+            let sQuestions = aStoragesToRemove.map(() => { return '?' }).join(',')
+            oDb.run('DELETE FROM contacts_storages WHERE storage IN (' + sQuestions + ')', aStoragesToRemove, (oError) => {
+              if (oError) {
+                reject({ sMethod: 'setStorages', oError })
+              } else {
+                _insertStorages()
+              }
+            })
+          } else {
+            _insertStorages()
+          }
+        })
+
       } else {
         reject({ sMethod: 'setStorages', sError: 'No DB connection' })
       }

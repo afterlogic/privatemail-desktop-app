@@ -189,7 +189,7 @@ export default {
                 })
                 if (!_.isEqual(aStoragesFromDb.sort(), aStoragesFromApi.sort())) {
                   oEvent.sender.send('contacts-get-storages', { aStorages: aStoragesFromApi })
-                  contactsDbManager.setStorages({ aStorages: aStoragesFromApi }).then(
+                  contactsDbManager.setStorages(aStoragesFromApi, aStoragesFromDb).then(
                     () => {},
                     (oError) => {
                       oEvent.sender.send('contacts-refresh', { oError })

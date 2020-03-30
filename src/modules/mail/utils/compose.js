@@ -35,10 +35,10 @@ function _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity) {
 }
 
 export default {
-  sendMessage: function ({oCurrentAccount, oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
+  sendMessage: function ({oCurrentAccount, oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}, fCallback) {
     if (this.verifyDataForSending(sToAddr, sCcAddr, sBccAddr)) {
       let
-        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
+        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}),
         sSentFolder = oCurrentFolderList.Sent ? oCurrentFolderList.Sent.FullName : '',
         sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
         sCurrEmail = oCurrentAccount.sEmail,
@@ -80,9 +80,9 @@ export default {
     }
   },
 
-  saveMessage: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}, fCallback) {
+  saveMessage: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}, fCallback) {
     let
-      oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments}),
+      oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}),
       sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
       sLoadingMessage = 'Saving...' // textUtils.i18n('%MODULENAME%/INFO_SAVING')
 
@@ -151,7 +151,7 @@ export default {
     return oAttachments
   },
 
-  getSendSaveParameters: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments}) {
+  getSendSaveParameters: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}) {
     let
       oAttachments = this.convertAttachmentsForSending(aAttachments),
       oParameters = null
@@ -173,7 +173,7 @@ export default {
       'Subject': typesUtils.pString(sSubject),
       'Text': typesUtils.pString(sText),
       'IsHtml': !typesUtils.pBool(bPlainText),
-      // 'Importance': this.selectedImportance(),
+      'Importance': typesUtils.pInt(iImportance, 3),
       // 'SendReadingConfirmation': this.sendReadingConfirmation(),
       'Attachments': oAttachments,
       'InReplyTo': typesUtils.pString(sInReplyTo),

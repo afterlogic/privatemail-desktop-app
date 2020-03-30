@@ -232,6 +232,25 @@
         <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
           <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
           <q-btn flat icon="save" label="Save" @click="save" />
+          <q-btn-dropdown flat icon-color="grey" text-color="white" icon="priority_high" label="Importance">
+            <q-list class="non-selectable">
+              <q-item clickable :class="iImportance === 5 ? 'bg-grey-3' : ''" v-close-popup @click="setImportance(5)">
+                <q-item-section>
+                  <q-item-label>Low</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item clickable :class="iImportance === 3 ? 'bg-grey-3' : ''" v-close-popup @click="setImportance(3)">
+                <q-item-section>
+                  <q-item-label>Normal</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item clickable :class="iImportance === 1 ? 'bg-grey-3' : ''" v-close-popup @click="setImportance(1)">
+                <q-item-section>
+                  <q-item-label>High</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
           <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
           <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
           <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" />
@@ -719,6 +738,7 @@ export default {
       editortextBeforePgp: '',
       disableRecipients: false,
       subjectText: '',
+      iImportance: 3,
 
       draftInfo: [],
       draftUid: '',
@@ -922,6 +942,9 @@ export default {
   },
 
   methods: {
+    setImportance (iImportance) {
+      this.iImportance = iImportance
+    },
     checkSelfDestructingRecipient (sNewValue) {
       if (this.selfDestructingRecipient && this.selfDestructingRecipient.label !== sNewValue) {
         this.selfDestructingRecipient = null
@@ -1210,6 +1233,7 @@ export default {
         aDraftInfo: this.draftInfo,
         sInReplyTo: this.inReplyTo,
         sReferences: this.references,
+        iImportance: this.iImportance,
       }
     },
     isMessageDataChanged () {
@@ -1442,6 +1466,7 @@ export default {
       this.draftInfo = typesUtils.pArray(aDraftInfo)
       this.inReplyTo = typesUtils.pString(sInReplyTo)
       this.references = typesUtils.pString(sReferences)
+      this.iImportance = 3
 
       this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddrComputed)
       this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddrComputed)

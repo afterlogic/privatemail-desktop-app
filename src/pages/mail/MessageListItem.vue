@@ -10,8 +10,14 @@
 
       <q-item-section>
         <q-item-label lines="1" class="text-body2">{{fromTo}}</q-item-label>
-        <q-item-label lines="1" v-if="message.Subject" class="text-body1">{{message.Subject}}</q-item-label>
-        <q-item-label v-else lines="1" class="nodata text-body1 non-selectable">No subject</q-item-label>
+        <q-item-label lines="1" v-if="message.Subject" class="text-body1">
+          <q-icon v-if="message.Importance === 1" name="priority_high" />
+          {{message.Subject}}
+        </q-item-label>
+        <q-item-label v-else lines="1" class="nodata text-body1 non-selectable">
+          <q-icon v-if="message.Importance === 1" color="grey-8" name="priority_high" />
+          No subject
+        </q-item-label>
       </q-item-section>
 
       <q-item-section side>

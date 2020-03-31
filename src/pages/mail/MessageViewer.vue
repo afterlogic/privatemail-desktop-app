@@ -644,7 +644,7 @@ export default {
           sSubject: 'Return Receipt (displayed)',
           sText,
           sConfirmFolder: this.message.Folder,
-          sConfirmUid: this.message.Uid,
+          iConfirmUid: this.message.Uid,
         }
         composeUtils.sendMessage(oComposeReplyParams, (oResult, oError) => {
           if (oResult) {

@@ -35,10 +35,10 @@ function _getReplyAllCcContacts(oMessage, oCurrentAccount, oFetcherOrIdentity) {
 }
 
 export default {
-  sendMessage: function ({oCurrentAccount, oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}, fCallback) {
+  sendMessage: function ({oCurrentAccount, oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, sConfirmUid}, fCallback) {
     if (this.verifyDataForSending(sToAddr, sCcAddr, sBccAddr)) {
       let
-        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}),
+        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, sConfirmUid}),
         sSentFolder = oCurrentFolderList.Sent ? oCurrentFolderList.Sent.FullName : '',
         sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
         sCurrEmail = oCurrentAccount.sEmail,
@@ -80,9 +80,9 @@ export default {
     }
   },
 
-  saveMessage: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}, fCallback) {
+  saveMessage: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, sConfirmUid}, fCallback) {
     let
-      oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}),
+      oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, sConfirmUid}),
       sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
       sLoadingMessage = 'Saving...' // textUtils.i18n('%MODULENAME%/INFO_SAVING')
 
@@ -116,14 +116,13 @@ export default {
 
   verifyDataForSending: function (sToAddr, sCcAddr, sBccAddr) {
     let
-      aToIncorrect = addressUtils.getIncorrectEmailsFromAddressString(sToAddr),
-      aCcIncorrect = addressUtils.getIncorrectEmailsFromAddressString(sCcAddr),
-      aBccIncorrect = addressUtils.getIncorrectEmailsFromAddressString(sBccAddr),
+      aToIncorrect = typesUtils.isNonEmptyString(sCcAddr) ? addressUtils.getIncorrectEmailsFromAddressString(sToAddr) : [],
+      aCcIncorrect = typesUtils.isNonEmptyString(sCcAddr) ? addressUtils.getIncorrectEmailsFromAddressString(sCcAddr) : [],
+      aBccIncorrect = typesUtils.isNonEmptyString(sCcAddr) ? addressUtils.getIncorrectEmailsFromAddressString(sBccAddr) : [],
       aIncorrect = _.union(aToIncorrect, aCcIncorrect, aBccIncorrect),
       aEncodedIncorrect = _.map(aIncorrect, function (sIncorrect) {
         return textUtils.encodeHtml(sIncorrect)
       }),
-      // sWarning = textUtils.i18n('%MODULENAME%/ERROR_INPUT_CORRECT_EMAILS') + ' ' + aEncodedIncorrect.join(', ')
       sWarning = 'Please specify correct emails. Incorrect emails: ' + aEncodedIncorrect.join(', ')
 
     if (aIncorrect.length > 0) {
@@ -151,7 +150,7 @@ export default {
     return oAttachments
   },
 
-  getSendSaveParameters: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance}) {
+  getSendSaveParameters: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, sDraftUid, bPlainText, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, sConfirmUid}) {
     let
       oAttachments = this.convertAttachmentsForSending(aAttachments),
       oParameters = null
@@ -174,10 +173,15 @@ export default {
       'Text': typesUtils.pString(sText),
       'IsHtml': !typesUtils.pBool(bPlainText),
       'Importance': typesUtils.pInt(iImportance, 3),
-      // 'SendReadingConfirmation': this.sendReadingConfirmation(),
+      'SendReadingConfirmation': typesUtils.pBool(bReadingConfirmation, false),
       'Attachments': oAttachments,
       'InReplyTo': typesUtils.pString(sInReplyTo),
       'References': typesUtils.pString(sReferences),
+    }
+
+    if (typesUtils.isNonEmptyString(sConfirmFolder) && typesUtils.isNonEmptyString(sConfirmUid)) {
+      oParameters.ConfirmFolder = sConfirmFolder
+      oParameters.ConfirmUid = sConfirmUid
     }
 
     // _.each(this.toolbarControllers(), function (oController) {

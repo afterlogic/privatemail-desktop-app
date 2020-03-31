@@ -6,6 +6,16 @@
       <div class="sub-hint">Click any message in the list to preview it here or double-click to view it full size.</div>
     </div>
     <div class="column full-height" v-if="message !== null">
+      <div class="q-pa-md pgp-notification-panel non-selectable" v-if="askSenderNotification">
+        <template>
+          <div class="q-mb-md hint">
+            The sender of this message has asked to be notified when you receive this message.
+          </div>
+          <div class="row">
+            <q-btn unelevated outline color="primary" label="Notify the sender" @click="notifySender" />
+          </div>
+        </template>
+      </div>
       <div class="q-pa-md pgp-notification-panel non-selectable" v-if="message.HasExternals && !bExternalPicturesShown">
         <template>
           <div class="q-mb-md hint">
@@ -268,10 +278,12 @@
 </style>
 
 <script>
-import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+import { ipcRenderer } from 'electron'
 
 import addressUtils from 'src/utils/address'
 import dateUtils from 'src/utils/date'
+import errors from 'src/utils/errors.js'
+import notification from 'src/utils/notification.js'
 import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
@@ -280,10 +292,10 @@ import cAttachment from 'src/modules/mail/classes/cAttachment.js'
 import composeUtils from 'src/modules/mail/utils/compose.js'
 import messageUtils from 'src/modules/mail/utils/message.js'
 import mailEnums from 'src/modules/mail/enums.js'
-import errors from 'src/utils/errors.js'
-import notification from 'src/utils/notification.js'
 
 import ContactCard from 'src/pages/contacts/ContactCard.vue'
+
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 
 export default {
   name: 'MessageViewer',
@@ -358,6 +370,10 @@ export default {
     isEnableSaving () {
       return typesUtils.isNonEmptyString(this.replyText)
     },
+    askSenderNotification () {
+      return this.message && typesUtils.isNonEmptyString(this.message.ReadingConfirmationAddressee) &&
+              this.message.ReadingConfirmationAddressee !== this.currentAccount.sEmail
+    }
   },
 
   watch: {
@@ -616,6 +632,34 @@ export default {
     showExternalPictures () {
       this.text = messageUtils.getTextWithExternalPictures(this.text)
       this.bExternalPicturesShown = true
+    },
+    notifySender () {
+      if (this.askSenderNotification) {
+        let sText = 'This is a Return Receipt for the mail that you sent to %EMAIL% with subject \"%SUBJECT%\".\r\n\r\nNote: This Return Receipt only acknowledges that the message was displayed on the recipient\'s computer.\r\nThere is no guarantee that the recipient has read or understood the message contents.'
+        sText = sText.replace(/%EMAIL%/g, this.currentAccount.sEmail).replace(/%SUBJECT%/g, this.message.Subject)
+        let oComposeReplyParams = {
+          oCurrentAccount: this.currentAccount,
+          oCurrentFolderList: this.currentFolderList,
+          sToAddr: this.message.ReadingConfirmationAddressee,
+          sSubject: 'Return Receipt (displayed)',
+          sText,
+          sConfirmFolder: this.message.Folder,
+          sConfirmUid: this.message.Uid,
+        }
+        composeUtils.sendMessage(oComposeReplyParams, (oResult, oError) => {
+          if (oResult) {
+            notification.showReport('Your message has been sent.')
+            ipcRenderer.send('mail-message-remove-confirm-addressee', {
+              iAccountId: this.message.AccountId,
+              sFolderFullName: this.message.Folder,
+              sUid: this.message.Uid,
+            })
+            this.$store.commit('mail/removeCurrentMessageReadingConfirmAddressee')
+          } else {
+            notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+          }
+        })
+      }
     },
     dummyAction() {
       notification.showReport('Coming soon')

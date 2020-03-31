@@ -197,6 +197,8 @@ export default {
         sDraftFolder = (oCurrentFolderList && oCurrentFolderList.Drafts) ? oCurrentFolderList.Drafts.FullName : ''
 
       if (this.message.Folder === sDraftFolder) {
+        console.log('this.message', this.message)
+        console.log('this.message.ReadingConfirmation', this.message.ReadingConfirmation)
         let oComposeParams = {
           aDraftInfo: this.message.DraftInfo,
           sDraftUid: this.message.Uid,
@@ -210,6 +212,8 @@ export default {
           aAttachments: this.message.Attachments && _.isArray(this.message.Attachments['@Collection']) ? this.message.Attachments['@Collection'] : [],
           sInReplyTo: this.message.InReplyTo,
           sReferences: this.message.References,
+          iImportance: this.message.Importance,
+          bReadingConfirmation: typesUtils.isNonEmptyString(this.message.ReadingConfirmationAddressee),
         }
         this.openCompose(oComposeParams)
       }

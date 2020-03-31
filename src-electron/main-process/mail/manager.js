@@ -345,6 +345,17 @@ export default {
       })
     })
 
+    ipcMain.on('mail-message-remove-confirm-addressee', (oEvent, { iAccountId, sFolderFullName, sUid }) => {
+      messagesDbManager.removeMessageConfirmAddressee({ iAccountId, sFolderFullName, sUid }).then(
+        () => {
+          oEvent.sender.send('mail-message-remove-confirm-addressee', { bResult: true })
+        },
+        (oResult) => {
+          oEvent.sender.send('mail-message-remove-confirm-addressee', oResult)
+        }
+      )
+    })
+
     ipcMain.on('mail-save-account-settings', (oEvent, { iAccountId, bUseThreading, bSaveRepliesToCurrFolder, sApiHost, sAuthToken }) => {
       webApi.sendRequest({
         sApiHost,

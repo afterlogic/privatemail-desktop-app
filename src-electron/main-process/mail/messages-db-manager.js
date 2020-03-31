@@ -536,6 +536,31 @@ export default {
     })
   },
 
+  removeMessageConfirmAddressee: function ({ iAccountId, sFolderFullName, sUid }) {
+    return new Promise((resolve, reject) => {
+      if (oDb && oDb.open) {
+        oDb.serialize(() => {
+          let oStatement = oDb.prepare('UPDATE messages SET reading_confirmation_addressee = \'\' WHERE account_id = ? AND folder = ? AND uid = ?')
+          let aParams = [
+            iAccountId,
+            sFolderFullName,
+            sUid,
+          ]
+          oStatement.run(aParams)
+          oStatement.finalize((oError) => {
+            if (oError) {
+              reject({ sMethod: 'removeMessageConfirmAddressee', oError })
+            } else {
+              resolve()
+            }
+          })
+        })
+      } else {
+        reject({ sMethod: 'removeMessageConfirmAddressee', sError: 'No DB connection' })
+      }
+    })
+  },
+
   deleteMessages: function (iAccountId, sFolderFullName, aUids) {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {

@@ -278,6 +278,12 @@ export function setCurrentMessage (state, oMessage) {
   }
 }
 
+export function removeCurrentMessageReadingConfirmAddressee (state, payload) {
+  if (state.currentMessage) {
+    state.currentMessage.ReadingConfirmationAddressee = ''
+  }
+}
+
 export function setCurrentFolder (state, payload) {
   state.currentFolderList.Current = state.currentFolderList.Flat[payload]
 }

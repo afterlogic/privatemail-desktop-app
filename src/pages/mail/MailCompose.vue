@@ -251,6 +251,7 @@
               </q-item>
             </q-list>
           </q-btn-dropdown>
+          <q-btn flat :icon="bReadingConfirmation ? 'check_box' : 'check_box_outline_blank'" label="Reading confirmation" @click="triggerReadingConfirmation" />
           <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
           <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
           <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" />
@@ -739,6 +740,7 @@ export default {
       disableRecipients: false,
       subjectText: '',
       iImportance: 3,
+      bReadingConfirmation: false,
 
       draftInfo: [],
       draftUid: '',
@@ -944,6 +946,9 @@ export default {
   methods: {
     setImportance (iImportance) {
       this.iImportance = iImportance
+    },
+    triggerReadingConfirmation () {
+      this.bReadingConfirmation = !this.bReadingConfirmation
     },
     checkSelfDestructingRecipient (sNewValue) {
       if (this.selfDestructingRecipient && this.selfDestructingRecipient.label !== sNewValue) {
@@ -1234,6 +1239,7 @@ export default {
         sInReplyTo: this.inReplyTo,
         sReferences: this.references,
         iImportance: this.iImportance,
+        bReadingConfirmation: this.bReadingConfirmation,
       }
     },
     isMessageDataChanged () {
@@ -1321,7 +1327,7 @@ export default {
         }
       }
     },
-    async openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences }) {
+    async openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences, iImportance, bReadingConfirmation }) {
       this.allowInsertImage = mailSettings.bAllowInsertImage
       this.selectedIdentity = oIdentity ? {
         label: textUtils.encodeHtml(oIdentity.getFull()),
@@ -1466,7 +1472,8 @@ export default {
       this.draftInfo = typesUtils.pArray(aDraftInfo)
       this.inReplyTo = typesUtils.pString(sInReplyTo)
       this.references = typesUtils.pString(sReferences)
-      this.iImportance = 3
+      this.iImportance = typesUtils.pInt(iImportance, 3)
+      this.bReadingConfirmation = typesUtils.pBool(bReadingConfirmation, false)
 
       this.isCcShowed = typesUtils.isNonEmptyString(this.ccAddrComputed)
       this.isBccShowed = typesUtils.isNonEmptyString(this.bccAddrComputed)

@@ -143,11 +143,11 @@ export default {
       let sFullEmails = ''
       let aFullEmails = []
       if (oFolder && (oFolder.Type === mailEnums.FolderType.Drafts || oFolder.Type === mailEnums.FolderType.Sent)) {
-        sFullEmails = typesUtils.pString(this.message.To) + '\n' + typesUtils.pString(this.message.Cc) + '\n' + typesUtils.pString(this.message.To)
+        sFullEmails = typesUtils.pString(this.message.To) + '\n' + typesUtils.pString(this.message.Cc) + '\n' + typesUtils.pString(this.message.Bcc)
       } else {
         sFullEmails = typesUtils.pString(this.message.From)
       }
-      aFullEmails = sFullEmails.split('\n')
+      aFullEmails = _.compact(_.uniq(sFullEmails.split('\n')))
 
       let sCurrentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
 

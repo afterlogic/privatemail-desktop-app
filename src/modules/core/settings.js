@@ -6,6 +6,7 @@ function CSettings () {
   this.sDateFormat = 'DD Month YYYY'
   this.sTimezone = ''
 
+  this.bAllowDesktopNotifications = false
   this.iAutoRefreshIntervalMinutes = 0
 }
 
@@ -18,22 +19,21 @@ CSettings.prototype.parse = function (oData, oWebclientData) {
   }
 
   if (oWebclientData) {
-      this.setAutoRefreshIntervalMinutes(oWebclientData.AutoRefreshIntervalMinutes)
+    this.setAllowDesktopNotifications(oWebclientData.AllowDesktopNotifications)
+    this.setAutoRefreshIntervalMinutes(oWebclientData.AutoRefreshIntervalMinutes)
   }
 }
 
 CSettings.prototype.setTimeFormat = function (iTimeFormat) {
-  iTimeFormat = typesUtils.pInt(iTimeFormat, this.iTimeFormat)
-  if (iTimeFormat !== this.iTimeFormat) {
-    this.iTimeFormat = iTimeFormat
-  }
+  this.iTimeFormat = typesUtils.pInt(iTimeFormat, this.iTimeFormat)
+}
+
+CSettings.prototype.setAllowDesktopNotifications = function (bAllowDesktopNotifications) {
+  this.bAllowDesktopNotifications = typesUtils.pBool(bAllowDesktopNotifications, this.bAllowDesktopNotifications)
 }
 
 CSettings.prototype.setAutoRefreshIntervalMinutes = function (iAutoRefreshIntervalMinutes) {
-  iAutoRefreshIntervalMinutes = typesUtils.pInt(iAutoRefreshIntervalMinutes, this.iAutoRefreshIntervalMinutes)
-  if (iAutoRefreshIntervalMinutes !== this.iAutoRefreshIntervalMinutes) {
-    this.iAutoRefreshIntervalMinutes = iAutoRefreshIntervalMinutes
-  }
+  this.iAutoRefreshIntervalMinutes = typesUtils.pInt(iAutoRefreshIntervalMinutes, this.iAutoRefreshIntervalMinutes)
 }
 
 export default new CSettings()

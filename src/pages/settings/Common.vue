@@ -64,7 +64,7 @@
         </q-item-section>
       </q-item>
 
-      <!-- <q-item tag="label" v-ripple>
+      <q-item tag="label" v-ripple>
         <q-item-section side top>
           <q-checkbox v-model="bAllowDesktopNotifications" />
         </q-item-section>
@@ -72,7 +72,7 @@
         <q-item-section>
           <q-item-label>Enable desktop notifications</q-item-label>
         </q-item-section>
-      </q-item> -->
+      </q-item>
     </q-list>
     <q-separator spaced />
     <div class="q-pa-md">
@@ -176,6 +176,7 @@ export default {
   mounted () {
     this.themeValue = this.$store.state.main.theme
     this.iTimeFormat = coreSettings.iTimeFormat
+    this.bAllowDesktopNotifications = coreSettings.bAllowDesktopNotifications
     this.oAutoRefreshIntervalMinutes = _.find(this.aAutoRefreshIntervalMinutesList, function (oAutoRefreshIntervalMinutes) {
       return coreSettings.iAutoRefreshIntervalMinutes === oAutoRefreshIntervalMinutes.value
     }) || null
@@ -198,12 +199,13 @@ export default {
         oParameters: {
           TimeFormat: this.iTimeFormat,
           AutoRefreshIntervalMinutes: this.oAutoRefreshIntervalMinutes ? this.oAutoRefreshIntervalMinutes.value : 0,
-          // AllowDesktopNotifications: this.bAllowDesktopNotifications,
+          AllowDesktopNotifications: this.bAllowDesktopNotifications,
         },
         fCallback: (bResult, oError) => {
           this.bSaving = false
           if (bResult) {
             coreSettings.setTimeFormat(this.iTimeFormat)
+            coreSettings.setAllowDesktopNotifications(this.bAllowDesktopNotifications)
             coreSettings.setAutoRefreshIntervalMinutes(this.oAutoRefreshIntervalMinutes ? this.oAutoRefreshIntervalMinutes.value : 0)
             notification.showReport('Settings have been updated successfully.')
           } else {

@@ -189,6 +189,30 @@ export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
   }
 }
 
+ipcRenderer.on('mail-new-unseen-messages', (event, { iAccountId, sFolderFullName, aNewUnseenMessages }) => {
+  if (_.isObject(Notification) && coreSettings.bAllowDesktopNotifications) {
+    let oCurrentAccount = store.getters['mail/getCurrentAccount']
+    let iCurrentAccountId = oCurrentAccount ? oCurrentAccount.iAccountId : 0
+    if (typesUtils.isNonEmptyArray(aNewUnseenMessages) && iCurrentAccountId === iAccountId && store.getters['mail/getInboxFullName'] === sFolderFullName) {
+      let sTitle = 'You have %COUNT% new message(s)'
+      sTitle = sTitle.replace(/%COUNT%/g, aNewUnseenMessages.length)
+      let sBody = ''
+      if (aNewUnseenMessages.length === 1) {
+        sBody = 'Subject: ' + aNewUnseenMessages[0].Subject
+        sBody += '\r\nFrom: ' + aNewUnseenMessages[0].From.split('\n').join(', ')
+      }
+      let oNotification = new Notification(sTitle, {
+        body: sBody
+      })
+      oNotification.onclick = () => {
+        store.dispatch('mail/setCurrentFolder', sFolderFullName)
+        store.dispatch('mail/setCurrentMessage', aNewUnseenMessages[0])
+        ipcRenderer.send('app-move-on-top')
+      }
+    }
+  }
+})
+
 ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder, sFolderFullName, oError, sError }) => {
   store.commit('mail/setFoldersSyncing', false)
   if (oError || sError) {

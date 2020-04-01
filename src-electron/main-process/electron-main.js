@@ -109,12 +109,13 @@ function createWindow () {
     webPreferences: {
       nodeIntegration: true,
     },
+    focusable: true,
   })
-  
+
   // doesn't work on Mac
   // Check this ELECTRON_FORCE_WINDOW_MENU_BAR on Linux
   if (process.env.PROD) {
-	mainWindow.removeMenu(); 
+    mainWindow.removeMenu()
   }
 
   mainWindow.loadURL(process.env.APP_URL)
@@ -164,6 +165,12 @@ ipcMain.on('init', (oEvent, { sApiHost, sAuthToken }) => {
 
 ipcMain.on('logout', (oEvent, { sApiHost }) => {
   session.defaultSession.cookies.remove(sApiHost, 'AuthToken')
+})
+
+ipcMain.on('app-move-on-top', (oEvent) => {
+  if (mainWindow && !mainWindow.isFocused()) {
+    mainWindow.focus()
+  }
 })
 
 ipcMain.on('db-remove-all', (oEvent) => {

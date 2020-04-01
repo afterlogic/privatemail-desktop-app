@@ -12,10 +12,10 @@ import messagesManager from './messages-manager.js'
 import messagesDbManager from './messages-db-manager.js'
 
 export default {
-  async _refreshMessagesInNotCurrentFolders (iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
+  async _refreshMessagesInNotCurrentFolders (oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken) {
     for (const oTmpFolder of aChangedFolders) {
       if (oTmpFolder.FullName !== sCurrentFolderFullName) {
-        await foldersManager.refreshMessagesInfo(iAccountId, bUseThreading, oTmpFolder.FullName, oTmpFolder.Type, sApiHost, sAuthToken).then(()=>{}, ()=>{})
+        await foldersManager.refreshMessagesInfo(oEvent, iAccountId, bUseThreading, oTmpFolder.FullName, oTmpFolder.Type, sApiHost, sAuthToken).then(()=>{}, ()=>{})
       }
     }
   },
@@ -31,10 +31,10 @@ export default {
       return oTmpFolder.FullName === sCurrentFolderFullName
     })
     if (oCurrentFolder) {
-      foldersManager.refreshMessagesInfo(iAccountId, bUseThreading, sCurrentFolderFullName, oCurrentFolder.Type, sApiHost, sAuthToken).then(
+      foldersManager.refreshMessagesInfo(oEvent, iAccountId, bUseThreading, sCurrentFolderFullName, oCurrentFolder.Type, sApiHost, sAuthToken).then(
         (bHasChangesInCurrentFolder) => {
           oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder, sFolderFullName: sCurrentFolderFullName })
-          this._refreshMessagesInNotCurrentFolders(iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+          this._refreshMessagesInNotCurrentFolders(oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
         },
         (oResult) => {
           oEvent.sender.send('mail-refresh', oResult)
@@ -42,7 +42,7 @@ export default {
       )
     } else {
       oEvent.sender.send('mail-refresh', { bHasChanges: true, bHasChangesInCurrentFolder: false, sFolderFullName: sCurrentFolderFullName })
-      this._refreshMessagesInNotCurrentFolders(iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
+      this._refreshMessagesInNotCurrentFolders(oEvent, iAccountId, bUseThreading, aChangedFolders, sCurrentFolderFullName, sApiHost, sAuthToken)
     }
   },
 
@@ -63,7 +63,7 @@ export default {
               let oNewFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFoldersFromDb, aFoldersToRetrieve, aFoldersToDelete)
               foldersDbManager.setFolders(iAccountId, oNewFolderList).then(
                 () => {
-                  this._refreshMessagesInNotCurrentFolders(iAccountId, bUseThreading, aFoldersToRetrieve, '', sApiHost, sAuthToken)
+                  this._refreshMessagesInNotCurrentFolders(oEvent, iAccountId, bUseThreading, aFoldersToRetrieve, '', sApiHost, sAuthToken)
                   this._deleteFoldersInformation(iAccountId, aFoldersToDelete)
                   this._refreshFoldersInformationFromServer(oEvent, iAccountId, bUseThreading, aFoldersToRefresh, sCurrentFolderFullName, sApiHost, sAuthToken)
                 },

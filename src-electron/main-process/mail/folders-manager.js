@@ -1,3 +1,4 @@
+import { app } from 'electron'
 import _ from 'lodash'
 
 import appState from '../utils/app-state.js'
@@ -234,7 +235,7 @@ export default {
     })
   },
 
-  refreshMessagesInfo: function (iAccountId, bUseThreading, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
+  refreshMessagesInfo: function (oEvent, iAccountId, bUseThreading, sFolderFullName, iFolderType, sApiHost, sAuthToken) {
     return new Promise((resolve, reject) => {
       let sLastMessagesInfoTime = appState.setLastMessagesInfoTime(iAccountId, sFolderFullName)
       foldersDbManager.getMessagesInfo({ iAccountId, sFolderFullName }).then(
@@ -262,12 +263,14 @@ export default {
                   let 
                     aUidsToDelete = [],
                     aMessagesInfoToSync = [],
-                    aUidsToRetrieve = []
+                    aUidsToRetrieve = [],
+                    aUnseenNewUids = []
                   await this._updateMessagesInfo(iAccountId, sFolderFullName, aMessagesInfoFromDb, aMessagesInfoFromServer).then(
                     (oResult) => {
                       aUidsToDelete = oResult.aUidsToDelete
                       aMessagesInfoToSync = oResult.aMessagesInfoToSync
                       aUidsToRetrieve = oResult.aUidsToRetrieve
+                      aUnseenNewUids = oResult.aUnseenNewUids
                     },
                     () => {
                       this._markFolderHasChanges(iAccountId, sFolderFullName, true).then(() => {}, () => {})
@@ -279,6 +282,18 @@ export default {
                         () => {
                           this._retrieveMessages({ iAccountId, sFolderFullName, aUids: aUidsToRetrieve, sApiHost, sAuthToken }).then(
                             () => {
+                              if (aUnseenNewUids.length > 0) {
+                                messagesDbManager.getMessagesByUids(iAccountId, sFolderFullName, aUnseenNewUids).then(
+                                  (aMessages) => {
+                                    const { BrowserWindow } = require('electron')
+                                    let oFocusedWin = BrowserWindow.getFocusedWindow()
+                                    if (!oFocusedWin) {
+                                      oEvent.sender.send('mail-new-unseen-messages', { iAccountId, sFolderFullName, aNewUnseenMessages: aMessages })
+                                    }
+                                  },
+                                  () => {}
+                                )
+                              }
                               foldersDbManager.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: aMessagesInfoFromServer }).then(
                                 () => {
                                   let bHasChanges = typesUtils.isNonEmptyArray(aUidsToDelete) || typesUtils.isNonEmptyArray(aMessagesInfoToSync) || typesUtils.isNonEmptyArray(aUidsToRetrieve)
@@ -469,6 +484,7 @@ export default {
     return new Promise(async (resolve, reject) => {
       let aAllNewMessagesInfo = this._getAllMessagesInfo(aNewMessagesInfo)
       let aUidsToRetrieve = []
+      let aUnseenNewUids = []
       let aMessagesInfoToSync = []
       let aUidsToDelete = []
       let aUidsToCheck = []
@@ -491,6 +507,9 @@ export default {
           })
           if (iOldInfoIndex === -1) {
             aUidsToRetrieve.push(oNewInfo.uid)
+            if (oNewInfo.flags.indexOf('\\seen') === -1) {
+              aUnseenNewUids.push(oNewInfo.uid)
+            }
           } else {
             aUidsToCheck.push(oNewInfo.uid)
             let oOldInfo = aAllOldMessagesInfo[iOldInfoIndex]
@@ -503,8 +522,8 @@ export default {
 
         await messagesDbManager.getMessagesUidsByUids(iAccountId, sFolderFullName, aUidsToRetrieve).then(
           (aUidsFromDb) => {
-            let aUidsNotInDb = _.difference(aUidsToRetrieve, aUidsFromDb)
-            aUidsToRetrieve = aUidsNotInDb
+            aUidsToRetrieve = _.difference(aUidsToRetrieve, aUidsFromDb)
+            aUnseenNewUids = _.difference(aUnseenNewUids, aUidsFromDb)
           },
           () => {}
         )
@@ -520,7 +539,8 @@ export default {
           return oMessageInfo.uid
         })
       }
-      resolve({ aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve })
+
+      resolve({ aUidsToDelete, aMessagesInfoToSync, aUidsToRetrieve, aUnseenNewUids })
     })
   }
 }

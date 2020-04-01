@@ -333,7 +333,12 @@ export default {
       return this.$store.getters['main/getApiHost']
     },
     message () {
-      return this.$store.getters['mail/getCurrentMessage']
+      let oMessage = this.$store.getters['mail/getCurrentMessage']
+      let aMessages = this.$store.getters['mail/getCurrentMessages']
+      let bInArray = oMessage ? !!_.find(aMessages, (oTmpMessage) => {
+        return oTmpMessage.Uid === oMessage.Uid
+      }) : false
+      return bInArray ? oMessage : null
     },
     fullDate () {
       return dateUtils.getFullDate(this.message.TimeStampInUTC)

@@ -3,6 +3,7 @@ import _ from 'lodash'
 
 import typesUtils from './../../src/utils/types.js'
 import webApi from './webApi.js'
+import appUpdates from './appUpdates.js'
 
 import mainManager from './main/manager.js'
 import mainDbManager from './main/db-manager.js'
@@ -142,6 +143,8 @@ function createWindow () {
     }
     mainWindow = null
   })
+
+  appUpdates.start(version)
 }
 
 app.on('ready', createWindow)

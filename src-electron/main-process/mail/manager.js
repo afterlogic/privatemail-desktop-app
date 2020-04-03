@@ -370,12 +370,26 @@ export default {
         fCallback: (oResult, oError) => {
           let bResult = !!oResult
           if (bResult) {
-            accountsDbManager.saveAccountSettings({
-              iAccountId: oResult.AccountID,
-              bUseThreading: oResult.UseThreading,
-              bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder,
-            })
-            oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
+            accountsDbManager.getAccount({ iAccountId }).then(
+              (oAccount) => {
+                let bThreadingChanged = oAccount.UseThreading !== oResult.UseThreading
+                if (bThreadingChanged) {
+                  foldersManager.markAllFolderHasChanges(iAccountId).then(() => {
+                    oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
+                  }, () => {
+                    oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
+                  })
+                }
+                accountsDbManager.saveAccountSettings({
+                  iAccountId: oResult.AccountID,
+                  bUseThreading: oResult.UseThreading,
+                  bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder,
+                })
+              },
+              (oResult) => {
+                oEvent.sender.send('mail-save-account-settings', oResult)
+              }
+            )
           } else {
             oEvent.sender.send('mail-save-account-settings', { bResult, oError })
           }

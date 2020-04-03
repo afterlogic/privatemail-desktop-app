@@ -846,6 +846,7 @@ export default {
       if (bResult) {
         notification.showReport('Settings have been updated successfully.')
         this.$store.commit('mail/setAccountSettings', { iAccountId, bUseThreading, bSaveRepliesToCurrFolder })
+        this.$store.dispatch('mail/asyncRefresh', false)
         if (iAccountId === this.iEditAccountId) {
           this.bUseThreading = bUseThreading
           this.bSaveRepliesToCurrFolder = bSaveRepliesToCurrFolder

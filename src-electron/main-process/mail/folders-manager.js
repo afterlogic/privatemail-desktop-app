@@ -467,6 +467,28 @@ export default {
     })
   },
 
+  markAllFolderHasChanges: function (iAccountId) {
+    return new Promise((resolve, reject) => {
+      foldersDbManager.getFolders(iAccountId).then(
+        (oFolderList) => {
+          if (oFolderList && oFolderList.Tree) {
+            function _recursive(oFoldersTree) {
+              _.each(oFoldersTree, (oFolder) => {
+                oFolder.HasChanges = true
+                if (oFolder.SubFolders) {
+                  _recursive(oFolder.SubFolders)
+                }
+              })
+            }
+            _recursive(oFolderList && oFolderList.Tree)
+            foldersDbManager.setFolders(iAccountId, oFolderList).then(resolve, reject)
+          }
+        },
+        reject
+      )
+    })
+  },
+
   _getAllMessagesInfo: function (aMessagesInfo) {
     if (_.isArray(aMessagesInfo)) {
       let aAllThreadsInfo = []

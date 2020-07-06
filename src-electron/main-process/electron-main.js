@@ -174,6 +174,7 @@ ipcMain.on('logout', (oEvent, { sApiHost }) => {
 
 ipcMain.on('app-move-on-top', (oEvent) => {
   if (mainWindow && !mainWindow.isFocused()) {
+    mainWindow.show()
     mainWindow.focus()
   }
 })

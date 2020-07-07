@@ -4,6 +4,7 @@ import _ from 'lodash'
 import appState from '../utils/app-state.js'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
+import tray from '../tray.js'
 
 import foldersDbManager from './folders-db-manager.js'
 import messagesDbManager from './messages-db-manager.js'
@@ -289,6 +290,7 @@ export default {
                                     let oFocusedWin = BrowserWindow.getFocusedWindow()
                                     if (!oFocusedWin) {
                                       oEvent.sender.send('mail-new-unseen-messages', { iAccountId, sFolderFullName, aNewUnseenMessages: aMessages })
+                                      tray.setUnreadStatus(aMessages.length)
                                     }
                                   },
                                   () => {}

@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
 
 import typesUtils from '../../../src/utils/types.js'
+import tray from '../tray.js'
 
 import mainDbManager from './db-manager.js'
 
@@ -14,6 +15,7 @@ export default {
       mainDbManager.getUserData().then(
         (oUserData) => {
           oEvent.sender.send('main-get-user-data', oUserData)
+          tray.setMinimizeToTray(oUserData);
         },
         (oError) => {
           oEvent.sender.send('main-get-user-data', { oError })
@@ -23,7 +25,8 @@ export default {
 
     ipcMain.on('main-save-user-data', (oEvent, oUserData) => {
         mainDbManager.saveUserData(oUserData).then(() => {}, () => {})
-    })
+        tray.setMinimizeToTray(oUserData);
+      })
 
     ipcMain.on('main-get-host', (oEvent, { sEmail }) => {
       const https = require('https')

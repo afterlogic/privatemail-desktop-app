@@ -4,6 +4,7 @@ const path = require('path')
 let oMainWindow = null
 let oTray = null
 let bQuiting = false
+let bMinimizeToTray = true
 
 const getIcon = () => {
   if (process.platform == 'darwin') {
@@ -53,6 +54,12 @@ export default {
       return false
     })
 
+    oMainWindow.on('minimize', function (event) {
+      if (bMinimizeToTray) {
+        oMainWindow.hide()
+      }
+    })
+
     oMainWindow.on('focus', function (event) {
       oTray.setToolTip('Privatemail Desktop')
       oTray.setImage(path.join(__statics, getIcon()))
@@ -89,4 +96,8 @@ export default {
     oMainWindow.setOverlayIcon(path.join(__statics, 'unread-dot.png'), sDescription)
     oMainWindow.setTitle('Privatemail Desktop - ' + sDescription)
   },
+
+  setMinimizeToTray (oUserData) {
+    bMinimizeToTray = oUserData && oUserData.main && typeof(oUserData.main.minimizeToTray) === 'boolean' ? oUserData.main.minimizeToTray : true;
+  }
 }

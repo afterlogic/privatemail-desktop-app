@@ -73,6 +73,16 @@
           <q-item-label>Enable desktop notifications</q-item-label>
         </q-item-section>
       </q-item>
+
+      <q-item tag="label" v-ripple>
+        <q-item-section side top>
+          <q-checkbox v-model="bMinimizeToTray" />
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>Minimize to tray</q-item-label>
+        </q-item-section>
+      </q-item>
     </q-list>
     <q-separator spaced />
     <div class="q-pa-md">
@@ -169,12 +179,15 @@ export default {
       ],
       bAllowDesktopNotifications: false,
 
+      bMinimizeToTray: true,
+
       bSaving: false,
     }
   },
 
   mounted () {
     this.themeValue = this.$store.state.main.theme
+    this.bMinimizeToTray = this.$store.state.main.minimizeToTray
     this.iTimeFormat = coreSettings.iTimeFormat
     this.bAllowDesktopNotifications = coreSettings.bAllowDesktopNotifications
     this.oAutoRefreshIntervalMinutes = _.find(this.aAutoRefreshIntervalMinutesList, function (oAutoRefreshIntervalMinutes) {
@@ -186,11 +199,15 @@ export default {
     '$store.state.main.theme': function (v) {
       this.themeValue = v
     },
+    '$store.state.main.minimizeToTray': function (bMinimizeToTray) {
+      this.bMinimizeToTray = bMinimizeToTray
+    },
   },
 
   methods: {
     save () {
       this.$store.commit('main/setTheme', this.themeValue)
+      this.$store.commit('main/setMinimizeToTray', this.bMinimizeToTray)
 
       this.bSaving = true
       webApi.sendRequest({

@@ -8,6 +8,7 @@ export default {
     apiHost: '',
     lastLogin: '',
     theme: 'dark',
+    minimizeToTray: true,
     openPgpKeys: [],
   },
   mutations: {
@@ -28,12 +29,16 @@ export default {
     setTheme (state, v) {
       state.theme = v
     },
+    setMinimizeToTray (state, bMinimizeToTray) {
+      state.minimizeToTray = !!bMinimizeToTray
+    },
     setDataFromServer (state, oDataFromServer) {
       if (typesUtils.isNonEmptyObject(oDataFromServer)) {
         state.apiHost = typesUtils.pString(oDataFromServer.apiHost, state.apiHost)
         state.lastLogin = typesUtils.pString(oDataFromServer.lastLogin, state.lastLogin)
         state.openPgpKeys = typesUtils.pArray(oDataFromServer.openPgpKeys, state.openPgpKeys)
         state.theme = typesUtils.pString(oDataFromServer.theme, state.theme)
+        state.minimizeToTray = typesUtils.pBool(oDataFromServer.minimizeToTray, state.minimizeToTray)
       }
     },
     setNewUserData (state, { sApiHost, sLogin }) {
@@ -41,6 +46,7 @@ export default {
       state.lastLogin = typesUtils.pString(sLogin)
       state.openPgpKeys = []
       state.theme = 'dark'
+      state.minimizeToTray = true
     },
   },
   actions: {
@@ -71,6 +77,7 @@ export default {
         lastLogin: state.lastLogin,
         openPgpKeys: state.openPgpKeys,
         theme: state.theme,
+        minimizeToTray: state.minimizeToTray,
       }
     },
   },

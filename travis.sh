@@ -39,7 +39,7 @@ if [ "$TASK" = "upload-deb-package" ]; then
 	
 	echo UPLOAD INSTALLER FILE: "${FILENAME}"
 	
-	curl -v --ftp-create-dirs --ftp-pasv --retry 6 -T ./installers/linux/dist/${FILENAME} -u ${FTP_USER}:${FTP_PASSWORD} ftp://afterlogic.com/
+	curl --ftp-create-dirs --ftp-pasv --retry 6 -T ./installers/linux/dist/${FILENAME} -u ${FTP_USER}:${FTP_PASSWORD} ftp://afterlogic.com/
 fi
 
 if [ "$TASK" = "upload-rpm-package" ]; then
@@ -49,5 +49,5 @@ if [ "$TASK" = "upload-rpm-package" ]; then
 	
 	echo UPLOAD INSTALLER FILE: "${FILENAME}"
 	
-	curl -v --ftp-create-dirs --ftp-pasv --retry 6 -T ./installers/linux/dist/${FILENAME} -u ${FTP_USER}:${FTP_PASSWORD} ftp://afterlogic.com/
+	curl --ftp-create-dirs --ftp-pasv --retry 6 -T ./installers/linux/dist/${FILENAME} -u ${FTP_USER}:${FTP_PASSWORD} ftp://afterlogic.com/
 fi

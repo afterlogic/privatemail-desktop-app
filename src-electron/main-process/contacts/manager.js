@@ -427,6 +427,31 @@ export default {
         },
       })
     })
+
+   ipcMain.on('contacts-get-external-keys', (oEvent, { sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'OpenPgpWebclient',
+        sMethod: 'GetPublicKeysFromContacts',
+        fCallback: (aKeysData, oError) => {
+          oEvent.sender.send('contacts-get-external-keys', { aKeysData, oError })
+        },
+      })
+    })
+
+    ipcMain.on('contacts-remove-external-key', (oEvent, { sApiHost, sAuthToken, sEmail }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'OpenPgpWebclient',
+        sMethod: 'RemovePublicKeyFromContact',
+        oParameters: { Email: sEmail },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('contacts-remove-external-key', { bResult, oError })
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

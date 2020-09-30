@@ -9,6 +9,25 @@
         </q-item-section>
       </q-item>
       <q-separator spaced />
+      <q-item-label header class="text-h6">External public keys</q-item-label>
+      <q-item clickable v-for="oKey in openPgpExternalKeys" :key="oKey.sId" @click="viewKeys([oKey])">
+        <q-item-section>
+          <q-item-label>{{ oKey.sEmail }}</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-btn flat icon="visibility" @click="viewKeys([oKey])" />
+        </q-item-section>
+        <q-item-section side>
+          <q-btn flat icon="delete" @click.stop="confirmDeleteKey(oKey)" />
+        </q-item-section>
+      </q-item>
+      <q-item v-if="openPgpExternalKeys.length === 0">
+        <q-item-section>
+          <q-item-label>You don't have any external public keys.</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-separator spaced />
       <q-item-label header class="text-h6">Public keys</q-item-label>
       <q-item clickable v-for="oKey in openPgpPublicKeys" :key="oKey.sId" @click="viewKeys([oKey])">
         <q-item-section>
@@ -55,7 +74,10 @@
 
     <q-dialog v-model="deleteConfirmDialog" persistent>
       <q-card class="q-px-sm non-selectable">
-        <q-card-section v-if="deleteKeyPublic">
+        <q-card-section v-if="deleteKeyExternal">
+          Are you sure you want to delete external public OpenPGP key for <b>{{ deleteKeyEmail }}</b>?
+        </q-card-section>
+        <q-card-section v-if="!deleteKeyExternal && deleteKeyPublic">
           Are you sure you want to delete public OpenPGP key for <b>{{ deleteKeyEmail }}</b>?
         </q-card-section>
         <q-card-section v-if="!deleteKeyPublic">
@@ -208,6 +230,7 @@
 </style>
 
 <script>
+import { ipcRenderer } from 'electron'
 import { saveAs } from 'file-saver'
 
 import addressUtils from 'src/utils/address.js'
@@ -226,10 +249,13 @@ export default {
 
   data () {
     return {
+      openPgpExternalKeys: [],
+
       deleteConfirmDialog: false,
       deleteKeyId: '',
       deleteKeyEmail: '',
       deleteKeyPublic: false,
+      deleteKeyExternal: false,
 
       enterPasswordDialog: false,
       keyToCheckAndView: null,
@@ -328,15 +354,64 @@ export default {
     },
   },
 
+  mounted () {
+      ipcRenderer.on('contacts-get-external-keys', this.onContactsGetExternalKeys)
+      ipcRenderer.on('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+      this.getExternalKeys()
+  },
+
+  beforeDestroy () {
+      ipcRenderer.removeListener('contacts-get-external-keys', this.onContactsGetExternalKeys)
+      ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+  },
+
   methods: {
+    getExternalKeys () {
+      ipcRenderer.send('contacts-get-external-keys', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+      })
+    },
+    onContactsGetExternalKeys: async function (event, { aKeysData, oError }) {
+      if (!_.isArray(aKeysData)) {
+        notification.showError(errors.getText(oError, 'Error occurred while getting external keys'))
+      } else {
+        this.openPgpExternalKeys = _.map(aKeysData, (oKeyData) => {
+          return {
+            bPublic: true,
+            bExternal: true,
+            sArmor: oKeyData.PublicPgpKey,
+            sEmail: oKeyData.Email,
+            sId: 'key-' + Math.round(Math.random() * 1000000),
+          }
+        })
+      }
+    },
+    onContactsRemoveExternalKey (event, { bResult, oError }) {
+      if (bResult) {
+        notification.showReport('The key was successfully removed.')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while removing external keys'))
+      }
+      this.getExternalKeys()
+    },
     confirmDeleteKey (oKey) {
       this.deleteKeyId = oKey.sId
       this.deleteKeyEmail = oKey.sEmail
       this.deleteKeyPublic = oKey.bPublic
+      this.deleteKeyExternal = !!oKey.bExternal
       this.deleteConfirmDialog = true
     },
     deleteKey () {
-      this.$store.commit('main/deleteOpenPgpKey', this.deleteKeyId)
+      if (this.deleteKeyExternal) {
+        ipcRenderer.send('contacts-remove-external-key', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          sEmail: this.deleteKeyEmail,
+        })
+      } else {
+        this.$store.commit('main/deleteOpenPgpKey', this.deleteKeyId)
+      }
       this.deleteKeyId = ''
       this.deleteKeyEmail = ''
       this.deleteKeyPublic = false

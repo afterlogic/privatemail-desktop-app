@@ -1,3 +1,5 @@
+import addressUtils from 'src/utils/address.js'
+import typesUtils from 'src/utils/types.js'
 
 export function getFoldersSyncing (state) {
   return state.foldersSyncing
@@ -9,6 +11,28 @@ export function getMessagesSyncing (state) {
 
 export function getAccounts (state) {
   return state.accounts
+}
+
+export function getAllAccountsFullEmails (state) {
+  let aFullEmails = []
+
+  _.each(state.accounts, (oAccount) => {
+    let aIdentities = state.identities[oAccount.iAccountId]
+    if (typesUtils.isNonEmptyArray(aIdentities)) {
+      _.each(aIdentities, (oIdentity) => {
+        aFullEmails.push(addressUtils.getFullEmail(oIdentity.sFriendlyName, oIdentity.sEmail))
+      })
+    } else {
+      aFullEmails.push(addressUtils.getFullEmail(oAccount.sFriendlyName, oAccount.sEmail))
+    }
+    if (typesUtils.isNonEmptyArray(oAccount.aAliases)) {
+      _.each(oAccount.aAliases, function (oAlias) {
+        aFullEmails.push(oAlias.getFull())
+      })
+    }
+  })
+
+  return aFullEmails;
 }
 
 export function getCurrentAccount (state) {

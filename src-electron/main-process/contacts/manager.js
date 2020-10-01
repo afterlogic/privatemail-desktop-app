@@ -452,6 +452,19 @@ export default {
         },
       })
     })
+
+    ipcMain.on('contacts-add-external-keys', (oEvent, { sApiHost, sAuthToken, aExternalKeysParams }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'OpenPgpWebclient',
+        sMethod: 'AddPublicKeysToContacts',
+        oParameters: { Keys: aExternalKeysParams },
+        fCallback: (aResult, oError) => {
+          oEvent.sender.send('contacts-add-external-keys', { aResult, oError })
+        },
+      })
+    })
   },
 
   refreshGroups: function (oEvent, { sApiHost, sAuthToken }) {

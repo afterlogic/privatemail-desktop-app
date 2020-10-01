@@ -139,6 +139,16 @@ COpenPgp.prototype.splitKeys = function (sArmor) {
   return aResult
 }
 
+COpenPgp.prototype.isOwnEmail = function (sEmail)
+{
+  let aOwnEmails = store.getters['mail/getAllAccountsFullEmails']
+
+  return (_.find(aOwnEmails, sOwnEmail => {
+    let oEmailParts = addressUtils.getEmailParts(sOwnEmail);
+    return sEmail === oEmailParts.email
+  }) != undefined) ? true : false;
+}
+
 /**
  * @param {string} sArmor
  * @return {object}
@@ -439,6 +449,26 @@ COpenPgp.prototype.signAndEncrypt = async function (sData, aPublicKeys, oPrivate
 //     return null
 //   }
 // }
+
+COpenPgp.prototype.findKeysByEmails = function (aEmail, bIsPublic) {
+  bIsPublic = !!bIsPublic
+
+  let aOpenPgpKeys = store.getters['main/getOpenPgpKeys']
+  let aResult = []
+
+  _.each(aEmail, sEmail => {
+    let oKey = _.find(aOpenPgpKeys, (oKey) => {
+      let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+      return oKey.bPublic === bIsPublic && oKeyEmail.email === sEmail
+    })
+
+    if (oKey) {
+      aResult.push(oKey)
+    }
+  })
+
+  return aResult
+}
 
 COpenPgp.prototype.getPrivateKeyByEmail = function (sEmail) {
   let aOpenPgpKeys = store.getters['main/getOpenPgpKeys']

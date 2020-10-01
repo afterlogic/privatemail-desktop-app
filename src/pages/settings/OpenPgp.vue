@@ -12,7 +12,7 @@
       <q-item-label header class="text-h6">External public keys</q-item-label>
       <q-item clickable v-for="oKey in openPgpExternalKeys" :key="oKey.sId" @click="viewKeys([oKey])">
         <q-item-section>
-          <q-item-label>{{ oKey.sEmail }}</q-item-label>
+          <q-item-label>{{ oKey.sFullEmail }}</q-item-label>
         </q-item-section>
         <q-item-section side>
           <q-btn flat icon="visibility" @click="viewKeys([oKey])" />
@@ -133,22 +133,65 @@
     </q-dialog>
 
     <q-dialog v-model="importKeyDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable" style="width: 700px; max-width: 80vw;">
         <q-card-section>
           <div class="text-h6">Import key</div>
         </q-card-section>
-        <q-item-label header v-if="keysToImport.length > 0">Text includes OpenPGP keys</q-item-label>
         <q-card-section v-if="keysToImport.length > 0">
+          <q-item-label header v-if="keysToImport.length > 0">The text contains the following keys that are available for import</q-item-label>
           <q-list separator>
-            <q-item tag="label" v-for="oKey in keysToImport" :key="oKey.sId" :disable="oKey.bDisabled">
+            <q-item dense tag="label" v-for="oKey in keysToImport" :key="oKey.sId">
               <q-item-section side top>
-                <q-checkbox v-model="oKey.bChecked" :disable="oKey.bDisabled" />
+                <q-checkbox v-model="oKey.bChecked" />
               </q-item-section>
               <q-item-section>
-                <q-item-label lines="1">{{ oKey.sEmail }}</q-item-label>
-                <q-item-label lines="1" class="text-caption">{{ oKey.sAddInfo }}</q-item-label>
+                <q-item-label lines="1">
+                  {{ oKey.sEmail }}
+                  <span class="text-caption">{{ oKey.sAddInfo }}</span>
+                  <span class="text-caption" v-if="oKey.bExternal"> (external)</span>
+                </q-item-label>
               </q-item-section>
-              <q-item-section side>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-card-section v-if="keysAlreadyThere.length > 0">
+          <q-item-label header v-if="keysAlreadyThere.length > 0">Keys that are already in the system will not be imported</q-item-label>
+          <q-list separator>
+            <q-item dense tag="label" v-for="oKey in keysAlreadyThere" :key="oKey.sId" disable>
+              <q-item-section>
+                <q-item-label lines="1">
+                  {{ oKey.sEmail }}
+                  <span class="text-caption">{{ oKey.sAddInfo }}</span>
+                  <span class="text-caption" v-if="oKey.bExternal"> (external)</span>
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-card-section v-if="keysPrivateExternal.length > 0">
+          <q-item-label header v-if="keysPrivateExternal.length > 0">External private keys are not supported and will not be imported</q-item-label>
+          <q-list separator>
+            <q-item dense tag="label" v-for="oKey in keysPrivateExternal" :key="oKey.sId" disable>
+              <q-item-section>
+                <q-item-label lines="1">
+                  {{ oKey.sEmail }}
+                  <span class="text-caption">{{ oKey.sAddInfo }}</span>
+                  <span class="text-caption" v-if="oKey.bExternal"> (external)</span>
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+        <q-card-section v-if="keysBroken.length > 0">
+          <q-item-label header v-if="keysBroken.length > 0">Keys with no email address in their names</q-item-label>
+          <q-list separator>
+            <q-item dense tag="label" v-for="oKey in keysBroken" :key="oKey.sId" disable>
+              <q-item-section>
+                <q-item-label lines="1" style="color: red;">
+                  {{ oKey.sEmail }}
+                  <span class="text-caption">{{ oKey.sAddInfo }}</span>
+                  <span class="text-caption" v-if="oKey.bExternal"> (external)</span>
+                </q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
@@ -158,7 +201,7 @@
         </q-item>
         
         <q-card-section v-if="keysToImport.length === 0">
-          <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 500px; height: 300px;" />
+          <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 100%; height: 300px;" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />
@@ -268,6 +311,9 @@ export default {
 
       importKeyDialog: false,
       keysArmorToImport: '',
+      keysBroken: [],
+      keysAlreadyThere: [],
+      keysPrivateExternal: [],
       keysToImport: [],
       importHasExistingKeys: false,
       importHasKeyWithoutEmail: false,
@@ -293,6 +339,9 @@ export default {
     importKeyDialog () {
       this.keysArmorToImport = ''
       this.keysToImport = []
+      this.keysBroken = []
+      this.keysAlreadyThere = []
+      this.keysPrivateExternal = []
     },
     generateNewKeyDialog () {
       this.newKeyPassword = ''
@@ -310,23 +359,12 @@ export default {
       return sEmail
     },
     newKeyEmailOptions () {
-      let aNewKeyEmailOptions = []
-      let aIdentities = this.$store.getters['mail/getIdentities']
-      let aAccounts = this.$store.getters['mail/getAccounts']
-      _.each(aAccounts, function (oAccount) {
-        let aAccountIdentities = aIdentities[oAccount.iAccountId] || []
-        aNewKeyEmailOptions = aNewKeyEmailOptions.concat(_.map(aAccountIdentities, function (oIdentity) {
-          return {
-            label: textUtils.encodeHtml(oIdentity.getFull()),
-            value: oIdentity.getFull(),
-          }
-        }))
-        aNewKeyEmailOptions = aNewKeyEmailOptions.concat(_.map(oAccount.aAliases, function (oAlias) {
-          return {
-            label: textUtils.encodeHtml(oAlias.getFull()),
-            value: oAlias.getFull(),
-          }
-        }))
+      let aOwnEmails = this.$store.getters['mail/getAllAccountsFullEmails']
+      let aNewKeyEmailOptions = _.map(aOwnEmails, (sFullEmail) => {
+        return {
+          label: textUtils.encodeHtml(sFullEmail),
+          value: sFullEmail,
+        }
       })
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
       return _.filter(aNewKeyEmailOptions, function (oOption) {
@@ -357,12 +395,14 @@ export default {
   mounted () {
       ipcRenderer.on('contacts-get-external-keys', this.onContactsGetExternalKeys)
       ipcRenderer.on('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+      ipcRenderer.on('contacts-add-external-keys', this.onContactsAddExternalKey)
       this.getExternalKeys()
   },
 
   beforeDestroy () {
       ipcRenderer.removeListener('contacts-get-external-keys', this.onContactsGetExternalKeys)
       ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+      ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
   },
 
   methods: {
@@ -376,22 +416,38 @@ export default {
       if (!_.isArray(aKeysData)) {
         notification.showError(errors.getText(oError, 'Error occurred while getting external keys'))
       } else {
-        this.openPgpExternalKeys = _.map(aKeysData, (oKeyData) => {
-          return {
-            bPublic: true,
-            bExternal: true,
-            sArmor: oKeyData.PublicPgpKey,
-            sEmail: oKeyData.Email,
-            sId: 'key-' + Math.round(Math.random() * 1000000),
+        let aOpenPgpExternalKeys = []
+        for (const oKeyData of aKeysData) {
+          let aKeys = await OpenPgp.getArmorInfo(oKeyData.PublicPgpKey)
+          if (typesUtils.isNonEmptyArray(aKeys)) {
+            let aKeyUsersIds = aKeys[0].getUserIds()
+            let sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0'
+            aOpenPgpExternalKeys.push({
+              bPublic: true,
+              bExternal: true,
+              sArmor: oKeyData.PublicPgpKey,
+              sEmail: oKeyData.Email,
+              sFullEmail: sKeyEmail,
+              sId: 'key-' + Math.round(Math.random() * 1000000),
+            })
           }
-        })
+        }
+        this.openPgpExternalKeys = aOpenPgpExternalKeys
       }
     },
     onContactsRemoveExternalKey (event, { bResult, oError }) {
       if (bResult) {
-        notification.showReport('The key was successfully removed.')
+        notification.showReport('External key was successfully removed.')
       } else {
-        notification.showError(errors.getText(oError, 'Error occurred while removing external keys'))
+        notification.showError(errors.getText(oError, 'Error occurred while removing external key'))
+      }
+      this.getExternalKeys()
+    },
+    onContactsAddExternalKey (event, { aResult, oError }) {
+      if (_.isArray(aResult)) {
+        notification.showReport('External keys were successfully added.')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while adding external keys'))
       }
       this.getExternalKeys()
     },
@@ -475,9 +531,10 @@ export default {
     async checkKey () {
       let
         aRes = null,
-        aKeys = [],
-        bHasExistingKeys = false,
-        bHasKeyWithoutEmail = false,
+        aKeysBroken = [],
+        aKeysAlreadyThere = [],
+        aKeysPrivateExternal = [],
+        aKeysToImport = [],
         aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
 
       if (this.keysArmorToImport === '') {
@@ -486,61 +543,82 @@ export default {
         aRes = await OpenPgp.getArmorInfo(this.keysArmorToImport)
 
         if (typesUtils.isNonEmptyArray(aRes)) {
-          _.each(aRes, function (oKey) {
+          _.each(aRes, (oKey) => {
             if (oKey) {
               let
                 aKeyUsersIds = oKey.getUserIds(),
                 sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0',
                 oKeyEmailParts = addressUtils.getEmailParts(sKeyEmail),
-                bHasSameKey = !!_.find(aOpenPgpKeys, function (oStoredKey) {
-                  let oStoredKeyEmailParts = addressUtils.getEmailParts(oStoredKey.sEmail)
-                  return oStoredKeyEmailParts.email === oKeyEmailParts.email && oStoredKey.bPublic === oKey.isPublic()
+                aSameUserKeys = OpenPgp.findKeysByEmails([oKeyEmailParts.email], oKey.isPublic()),
+                bHasSameExternalKey = !!_.find(this.openPgpExternalKeys, (oKey) => {
+                  return oKey.sEmail === oKeyEmailParts.email
                 }),
-                sAddInfoLangKey = oKey.isPublic() ? '(%LENGTH%-bit, public)' : '(%LENGTH%-bit, private)',
-                bNoEmail = false // !addressUtils.isCorrectEmail(sKeyEmail)
+                bHasSameKey = aSameUserKeys.length > 0 || bHasSameExternalKey,
+                bNoEmail = !addressUtils.isCorrectEmail(oKeyEmailParts.email),
+                iBitSize = oKey.primaryKey.params[0].byteLength() * 8,
+                oKeyData = {
+                  bPublic: oKey.isPublic(),
+                  sEmail: sKeyEmail,
+                  sArmor: oKey.armor(),
+                  sId: 'key-' + Math.round(Math.random() * 1000000),
+                  sAddInfo: oKey.isPublic() ? '(' + iBitSize + '-bit, public)' : '(' + iBitSize + '-bit, private)',
+                  bChecked: !bHasSameKey && !bNoEmail,
+                  bExternal: !OpenPgp.isOwnEmail(oKeyEmailParts.email)
+                }
 
-              bHasExistingKeys = bHasExistingKeys || bHasSameKey
-              bHasKeyWithoutEmail = bHasKeyWithoutEmail || bNoEmail
-              let iBitSize = oKey.primaryKey.params[0].byteLength() * 8;
-              aKeys.push({
-                sArmor: oKey.armor(),
-                bPublic: oKey.isPublic(),
-                sEmail: sKeyEmail,
-                sAddInfo: sAddInfoLangKey.replace('%LENGTH%', iBitSize),
-                bDisabled: bHasSameKey || bNoEmail,
-                bChecked: false,
-                sId: 'key-' + Math.round(Math.random() * 1000000),
-                // 'id: oKey.getId(),
-                // 'needToImport': !bHasSameKey && !bNoEmail,
-                // 'noEmail': bNoEmail,
-              })
+              if (bNoEmail) {
+                aKeysBroken.push(oKeyData);
+              } else if (bHasSameKey) {
+                aKeysAlreadyThere.push(oKeyData);
+              } else if (!oKey.isPublic() && !OpenPgp.isOwnEmail(oKeyEmailParts.email)) {
+                aKeysPrivateExternal.push(oKeyData);
+              } else {
+                aKeysToImport.push(oKeyData);
+              }
             }
           })
         }
 
-        this.keysToImport = aKeys
-        this.importHasExistingKeys = bHasExistingKeys
-        this.importHasKeyWithoutEmail = bHasKeyWithoutEmail
-
-        if (aKeys.length === 0) {
+        this.keysBroken = aKeysBroken
+        this.keysAlreadyThere = aKeysAlreadyThere
+        this.keysPrivateExternal = aKeysPrivateExternal
+        this.keysToImport = aKeysToImport
+        if (aKeysToImport.length === 0) {
           notification.showError('No OpenPGP keys found for import.')
         }
       }
     },
     importSelectedKeys () {
       let aKeys = []
+      let aExternalKeysParams = []
       _.each(this.keysToImport, function (oKey) {
         if (oKey.bChecked) {
-          aKeys.push({
-            bPublic: oKey.bPublic,
-            sArmor: oKey.sArmor,
-            sId: 'key-' + Math.round(Math.random() * 1000000),
-            sEmail: oKey.sEmail,
-          })
+          if (oKey.bExternal) {
+            let oKeyEmailParts = addressUtils.getEmailParts(oKey.sEmail)
+            aExternalKeysParams.push({
+              Email: oKeyEmailParts.email,
+              Key: oKey.sArmor,
+              Name: oKeyEmailParts.name
+            })
+          } else {
+            aKeys.push({
+              bPublic: oKey.bPublic,
+              sArmor: oKey.sArmor,
+              sId: 'key-' + Math.round(Math.random() * 1000000),
+              sEmail: oKey.sEmail,
+            })
+          }
         }
       })
       if (aKeys.length > 0) {
         this.$store.commit('main/addOpenPgpKeys', aKeys)
+      }
+      if (aExternalKeysParams.length > 0) {
+        ipcRenderer.send('contacts-add-external-keys', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          aExternalKeysParams,
+        })
       }
     },
     openGenerateNewKey () {

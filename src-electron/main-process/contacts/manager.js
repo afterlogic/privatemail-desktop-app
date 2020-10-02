@@ -100,136 +100,9 @@ export default {
       )
     })
 
-    function _refreshContacts (oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew }) {
-      webApi.sendRequest({
-        sApiHost,
-        sAuthToken,
-        sModule: 'Contacts',
-        sMethod: 'GetContactsByUids',
-        oParameters: { 'Storage': sStorage, 'Uids': aUuidsNew },
-        fCallback: (aContactsFromApi, oError) => {
-          if (typesUtils.isNonEmptyArray(aContactsFromApi)) {
-            contactsDbManager.setContacts({ sStorage, aContacts: aContactsFromApi }).then(
-              () => {
-                oEvent.sender.send('contacts-refresh', { bHasChanges: true, sStorage })
-              },
-              (oError) => {
-                oEvent.sender.send('contacts-refresh', { oError })
-              }
-            )
-          } else {
-            oEvent.sender.send('contacts-refresh', { oError })
-          }
-        },
-      })
-    }
-
-    function _refreshContactsInfo (oEvent, { sApiHost, sAuthToken, sStorage }) {
-      contactsDbManager.getContactsInfo({ sStorage }).then(
-        (oContactsInfoFromDb) => {
-          webApi.sendRequest({
-            sApiHost,
-            sAuthToken,
-            sModule: 'Contacts',
-            sMethod: 'GetContactsInfo',
-            oParameters: { 'Storage': sStorage },
-            fCallback: (oContactsInfoFromApi, oError) => {
-              if (typesUtils.isNonEmptyObject(oContactsInfoFromApi)) {
-                if (!typesUtils.isNonEmptyObject(oContactsInfoFromDb)) {
-                  oContactsInfoFromDb = {
-                    CTag: 0,
-                    Info: [],
-                  }
-                }
-                if (oContactsInfoFromDb.CTag !== oContactsInfoFromApi.CTag) {
-                  contactsDbManager.setContactsInfo({ sStorage, oContactsInfoFromDb, oContactsInfoFromApi }).then(
-                    (aUuidsNew) => {
-                      if (typesUtils.isNonEmptyArray(aUuidsNew)) {
-                        _refreshContacts(oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew })
-                      } else {
-                        oEvent.sender.send('contacts-refresh', { bHasChanges: true, sStorage })
-                      }
-                    },
-                    (oError) => {
-                      oEvent.sender.send('contacts-refresh', { oError })
-                    }
-                  )
-                } else {
-                  oEvent.sender.send('contacts-refresh', { bHasChanges: false, sStorage })
-                }
-              } else {
-                oEvent.sender.send('contacts-refresh', { oError })
-              }
-            },
-          })
-        },
-        (oError) => {
-          oEvent.sender.send('contacts-refresh', { oError })
-        }
-      )
-    }
-
-    function _refreshStorages (oEvent, { sApiHost, sAuthToken }) {
-      contactsDbManager.getStoragesCtags({}).then(
-        (aStoragesCtagsFromDb) => {
-          webApi.sendRequest({
-            sApiHost,
-            sAuthToken,
-            sModule: 'Contacts',
-            sMethod: 'GetContactStorages',
-            fCallback: (aStoragesCtagsFromApi, oError) => {
-              if (typesUtils.isNonEmptyArray(aStoragesCtagsFromApi)) {
-
-                // Update storage list in database.
-                let aStoragesFromDb = _.map(aStoragesCtagsFromDb, (oStorage) =>{
-                  return oStorage.Storage
-                })
-                let aStoragesFromApi = _.map(aStoragesCtagsFromApi, (oStorage) => {
-                  return oStorage.Id
-                })
-                if (!_.isEqual(aStoragesFromDb.sort(), aStoragesFromApi.sort())) {
-                  oEvent.sender.send('contacts-get-storages', { aStorages: aStoragesFromApi })
-                  contactsDbManager.setStorages(aStoragesFromApi, aStoragesFromDb).then(
-                    () => {},
-                    (oError) => {
-                      oEvent.sender.send('contacts-refresh', { oError })
-                    }
-                  )
-                }
-
-                // Check storages CTag and update contacts info if necessary.
-                let aStoragesToRefresh = []
-                _.each(aStoragesCtagsFromApi, (oStorageCtagFromApi) => {
-                  let oStorageCtagFromDb = _.find(aStoragesCtagsFromDb, (oTmpStorageCtagFromDb) => {
-                    return oTmpStorageCtagFromDb.Storage === oStorageCtagFromApi.Id
-                  })
-                  if (!oStorageCtagFromDb || oStorageCtagFromDb.CTag !== oStorageCtagFromApi.CTag) {
-                    aStoragesToRefresh.push(oStorageCtagFromApi.Id)
-                  } else if (oStorageCtagFromDb) {
-                    oEvent.sender.send('contacts-refresh', { bHasChanges: false, sStorage: oStorageCtagFromDb.Storage })
-                  }
-                })
-                if (aStoragesToRefresh.length !== 0) {
-                  // Get contacts info for every storage with modified CTag.
-                  _.each(aStoragesToRefresh, (sStorageToRefresh) => {
-                    _refreshContactsInfo (oEvent, { sApiHost, sAuthToken, sStorage: sStorageToRefresh })
-                  })
-                }
-              } else {
-                oEvent.sender.send('contacts-refresh', { oError })
-              }
-            },
-          })
-        },
-        (oError) => {
-          oEvent.sender.send('contacts-refresh', { oError })
-        }
-      )
-    }
-
     ipcMain.on('contacts-refresh', (oEvent, { sApiHost, sAuthToken, sStorage }) => {
       this.refreshGroups(oEvent, { sApiHost, sAuthToken })
-      _refreshStorages(oEvent, { sApiHost, sAuthToken })
+      this.refreshStorages(oEvent, { sApiHost, sAuthToken })
     })
 
     ipcMain.on('contacts-save-contact', (oEvent, { sApiHost, sAuthToken, oContactToSave }) => {
@@ -482,7 +355,7 @@ export default {
             if (typesUtils.isNonEmptyArray(aGroupsFromApi)) {
               if (!contactsDbManager.isGroupsEqual(aGroupsFromDb, aGroupsFromApi)) {
                 contactsDbManager.setGroups({ aGroups: aGroupsFromApi })
-                oEvent.sender.send('contacts-get-groups', { aGroups: typesUtils.pArray(aGroupsFromApi) })
+                oEvent?.sender?.send('contacts-get-groups', { aGroups: typesUtils.pArray(aGroupsFromApi) })
               }
             }
           },
@@ -490,5 +363,132 @@ export default {
       },
       (oError) => {}
     )
+  },
+
+  refreshStorages: function (oEvent, { sApiHost, sAuthToken }) {
+    contactsDbManager.getStoragesCtags({}).then(
+      (aStoragesCtagsFromDb) => {
+        webApi.sendRequest({
+          sApiHost,
+          sAuthToken,
+          sModule: 'Contacts',
+          sMethod: 'GetContactStorages',
+          fCallback: (aStoragesCtagsFromApi, oError) => {
+            if (typesUtils.isNonEmptyArray(aStoragesCtagsFromApi)) {
+
+              // Update storage list in database.
+              let aStoragesFromDb = _.map(aStoragesCtagsFromDb, (oStorage) =>{
+                return oStorage.Storage
+              })
+              let aStoragesFromApi = _.map(aStoragesCtagsFromApi, (oStorage) => {
+                return oStorage.Id
+              })
+              if (!_.isEqual(aStoragesFromDb.sort(), aStoragesFromApi.sort())) {
+                oEvent?.sender?.send('contacts-get-storages', { aStorages: aStoragesFromApi })
+                contactsDbManager.setStorages(aStoragesFromApi, aStoragesFromDb).then(
+                  () => {},
+                  (oError) => {
+                    oEvent?.sender?.send('contacts-refresh', { oError })
+                  }
+                )
+              }
+
+              // Check storages CTag and update contacts info if necessary.
+              let aStoragesToRefresh = []
+              _.each(aStoragesCtagsFromApi, (oStorageCtagFromApi) => {
+                let oStorageCtagFromDb = _.find(aStoragesCtagsFromDb, (oTmpStorageCtagFromDb) => {
+                  return oTmpStorageCtagFromDb.Storage === oStorageCtagFromApi.Id
+                })
+                if (!oStorageCtagFromDb || oStorageCtagFromDb.CTag !== oStorageCtagFromApi.CTag) {
+                  aStoragesToRefresh.push(oStorageCtagFromApi.Id)
+                } else if (oStorageCtagFromDb) {
+                  oEvent?.sender?.send('contacts-refresh', { bHasChanges: false, sStorage: oStorageCtagFromDb.Storage })
+                }
+              })
+              if (aStoragesToRefresh.length !== 0) {
+                // Get contacts info for every storage with modified CTag.
+                _.each(aStoragesToRefresh, (sStorageToRefresh) => {
+                  this.refreshContactsInfo (oEvent, { sApiHost, sAuthToken, sStorage: sStorageToRefresh })
+                })
+              }
+            } else {
+              oEvent?.sender?.send('contacts-refresh', { oError })
+            }
+          },
+        })
+      },
+      (oError) => {
+        oEvent?.sender?.send('contacts-refresh', { oError })
+      }
+    )
+  },
+
+  refreshContactsInfo: function (oEvent, { sApiHost, sAuthToken, sStorage }) {
+    contactsDbManager.getContactsInfo({ sStorage }).then(
+      (oContactsInfoFromDb) => {
+        webApi.sendRequest({
+          sApiHost,
+          sAuthToken,
+          sModule: 'Contacts',
+          sMethod: 'GetContactsInfo',
+          oParameters: { 'Storage': sStorage },
+          fCallback: (oContactsInfoFromApi, oError) => {
+            if (typesUtils.isNonEmptyObject(oContactsInfoFromApi)) {
+              if (!typesUtils.isNonEmptyObject(oContactsInfoFromDb)) {
+                oContactsInfoFromDb = {
+                  CTag: 0,
+                  Info: [],
+                }
+              }
+              if (oContactsInfoFromDb.CTag !== oContactsInfoFromApi.CTag) {
+                contactsDbManager.setContactsInfo({ sStorage, oContactsInfoFromDb, oContactsInfoFromApi }).then(
+                  (aUuidsNew) => {
+                    if (typesUtils.isNonEmptyArray(aUuidsNew)) {
+                      this.refreshContacts(oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew })
+                    } else {
+                      oEvent?.sender?.send('contacts-refresh', { bHasChanges: true, sStorage })
+                    }
+                  },
+                  (oError) => {
+                    oEvent?.sender?.send('contacts-refresh', { oError })
+                  }
+                )
+              } else {
+                oEvent?.sender?.send('contacts-refresh', { bHasChanges: false, sStorage })
+              }
+            } else {
+              oEvent?.sender?.send('contacts-refresh', { oError })
+            }
+          },
+        })
+      },
+      (oError) => {
+        oEvent?.sender?.send('contacts-refresh', { oError })
+      }
+    )
+  },
+
+  refreshContacts: function (oEvent, { sApiHost, sAuthToken, sStorage, aUuidsNew }) {
+    webApi.sendRequest({
+      sApiHost,
+      sAuthToken,
+      sModule: 'Contacts',
+      sMethod: 'GetContactsByUids',
+      oParameters: { 'Storage': sStorage, 'Uids': aUuidsNew },
+      fCallback: (aContactsFromApi, oError) => {
+        if (typesUtils.isNonEmptyArray(aContactsFromApi)) {
+          contactsDbManager.setContacts({ sStorage, aContacts: aContactsFromApi }).then(
+            () => {
+              oEvent?.sender?.send('contacts-refresh', { bHasChanges: true, sStorage })
+            },
+            (oError) => {
+              oEvent?.sender?.send('contacts-refresh', { oError })
+            }
+          )
+        } else {
+          oEvent?.sender?.send('contacts-refresh', { oError })
+        }
+      },
+    })
   },
 }

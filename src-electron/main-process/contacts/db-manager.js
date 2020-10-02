@@ -56,6 +56,9 @@ let aContactDbMap = [
   {Name: 'DavContacts::UID', DbName: 'dav_contacts_uid', Type: 'TEXT'},
   {Name: 'DavContacts::VCardUID', DbName: 'dav_contacts_vcard_uid', Type: 'TEXT'},
   {Name: 'GroupUUIDs', DbName: 'group_uuids', Type: 'TEXT', IsArray: true},
+  {Name: 'OpenPgpWebclient::PgpKey', DbName: 'openpgp_key', Type: 'TEXT'},
+  {Name: 'OpenPgpWebclient::PgpEncryptMessages', DbName: 'openpgp_encrypt_messages', Type: 'INTEGER', IsBool: true},
+  {Name: 'OpenPgpWebclient::PgpSignMessages', DbName: 'openpgp_sign_messages', Type: 'INTEGER', IsBool: true},
 ]
 
 let aGroupDbMap = [

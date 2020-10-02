@@ -196,16 +196,13 @@
             </q-item>
           </q-list>
         </q-card-section>
-        <q-item v-if="keysToImport.length > 0 && importHasExistingKeys">
-            <q-item-label caption >Keys which are already in the system are greyed out.</q-item-label>
-        </q-item>
         
-        <q-card-section v-if="keysToImport.length === 0">
+        <q-card-section v-if="!keysChecked">
           <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 100%; height: 300px;" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />
-          <q-btn flat label="Check" color="primary" @click="checkKey" v-if="keysToImport.length === 0" />
+          <q-btn flat label="Check" color="primary" @click="checkKey" v-if="!keysChecked" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -310,13 +307,12 @@ export default {
       viewKeysFileName: '',
 
       importKeyDialog: false,
+      keysChecked: false,
       keysArmorToImport: '',
       keysBroken: [],
       keysAlreadyThere: [],
       keysPrivateExternal: [],
       keysToImport: [],
-      importHasExistingKeys: false,
-      importHasKeyWithoutEmail: false,
 
       isGenerating: false,
       generateNewKeyDialog: false,
@@ -337,6 +333,7 @@ export default {
       }
     },
     importKeyDialog () {
+      this.keysChecked = false
       this.keysArmorToImport = ''
       this.keysToImport = []
       this.keysBroken = []
@@ -528,30 +525,28 @@ export default {
     openImportKey () {
       this.importKeyDialog = true
     },
-    async checkKey () {
-      let
-        aRes = null,
-        aKeysBroken = [],
-        aKeysAlreadyThere = [],
-        aKeysPrivateExternal = [],
-        aKeysToImport = [],
-        aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
 
+    async checkKey () {
       if (this.keysArmorToImport === '') {
         notification.showReport('Please enter key armor into the field.')
       } else {
-        aRes = await OpenPgp.getArmorInfo(this.keysArmorToImport)
+        let
+          aKeysFromArmor = await OpenPgp.getArmorInfo(this.keysArmorToImport),
+          aKeysBroken = [],
+          aKeysAlreadyThere = [],
+          aKeysPrivateExternal = [],
+          aKeysToImport = []
 
-        if (typesUtils.isNonEmptyArray(aRes)) {
-          _.each(aRes, (oKey) => {
+        if (typesUtils.isNonEmptyArray(aKeysFromArmor)) {
+          _.each(aKeysFromArmor, (oKey) => {
             if (oKey) {
               let
                 aKeyUsersIds = oKey.getUserIds(),
                 sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0',
                 oKeyEmailParts = addressUtils.getEmailParts(sKeyEmail),
                 aSameUserKeys = OpenPgp.findKeysByEmails([oKeyEmailParts.email], oKey.isPublic()),
-                bHasSameExternalKey = !!_.find(this.openPgpExternalKeys, (oKey) => {
-                  return oKey.sEmail === oKeyEmailParts.email
+                bHasSameExternalKey = !!_.find(this.openPgpExternalKeys, (oExternalKey) => {
+                  return oKey.isPublic() && oExternalKey.sEmail === oKeyEmailParts.email
                 }),
                 bHasSameKey = aSameUserKeys.length > 0 || bHasSameExternalKey,
                 bNoEmail = !addressUtils.isCorrectEmail(oKeyEmailParts.email),
@@ -583,11 +578,14 @@ export default {
         this.keysAlreadyThere = aKeysAlreadyThere
         this.keysPrivateExternal = aKeysPrivateExternal
         this.keysToImport = aKeysToImport
-        if (aKeysToImport.length === 0) {
+        if (aKeysBroken.length === 0 && aKeysAlreadyThere.length === 0 && aKeysPrivateExternal.length === 0 && aKeysToImport.length === 0) {
           notification.showError('No OpenPGP keys found for import.')
+        } else {
+          this.keysChecked = true
         }
       }
     },
+
     importSelectedKeys () {
       let aKeys = []
       let aExternalKeysParams = []

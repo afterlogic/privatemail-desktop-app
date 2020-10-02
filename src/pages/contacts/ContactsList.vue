@@ -24,6 +24,9 @@
           <q-item-section side v-if="contact.Storage === 'team' && contact.BusinessEmail === currentAccountEmail">
             <q-chip dense>It's me!</q-chip>
           </q-item-section>
+          <q-item-section side class="storage-type" v-if="contact.OpenPgpKeyView">
+             <q-icon v-if="contact.OpenPgpKeyView" color="grey-4" name="vpn_key" />
+          </q-item-section>
           <q-item-section side class="storage-type" v-if="currentStorage === 'all'">
              <q-icon v-if="contact.Storage === 'personal'">
                 <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24"><path class="svg-icon" d="m 12,6 c -3.3018639,0 -6,2.6981361 -6,6 0,3.301864 2.6981361,6 6,6 3.301864,0 6,-2.698136 6,-6 0,-3.3018639 -2.698136,-6 -6,-6 z m 0,2 c 2.220984,0 4,1.7790164 4,4 0,2.220984 -1.779016,4 -4,4 C 9.7790164,16 8,14.220984 8,12 8,9.7790164 9.7790164,8 12,8 Z" /></svg>

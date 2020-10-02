@@ -229,6 +229,13 @@
                   <label class="label-size">Notes:</label>
                   <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.Notes" type="textarea"/>
                 </div>
+
+                <q-item-label class="caption-style">PGP Settings</q-item-label>
+                <div class="input-line">
+                  <label class="label-size">Public PGP key:</label>
+                  <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.OpenPgpKey" type="textarea"/>
+                </div>
+
                 <q-item-label class="caption-style">Groups</q-item-label>
                 <div class="groups-line">
                   <q-checkbox v-model="groupFilteredList" v-for="group in groupList" :key="group.id" :val="group.UUID" :label="group.Name"/>

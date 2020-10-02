@@ -28,6 +28,7 @@
                 <q-item-label class="info-line" v-if="contact.LastName">Last name: {{ contact.LastName }}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.Skype">Skype: {{ contact.Skype }}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.Facebook">Facebook: {{ contact.Facebook }}</q-item-label>
+
                 <q-item-label class="paragraph-heads" v-if="contact.PersonalEmail || 
                   contact.PersonalAddress || contact.PersonalCity || contact.PersonalState ||contact.PersonalCountry ||
                   contact.PersonalZip || contact.PersonalWeb || contact.PersonalFax || contact.PersonalPhone ||
@@ -69,6 +70,10 @@
                 <q-item-label class="info-line" v-if="contact.BirthDay">Birthday: {{sBirthDate}}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.OtherEmail">Other E-mail: {{ contact.OtherEmail }}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.Notes">Notes: {{ contact.Notes }}</q-item-label>
+
+                <q-item-label class="paragraph-heads" v-if="contact.OpenPgpKeyView">PGP Settings</q-item-label>
+
+                <q-item-label class="info-line" v-if="contact.OpenPgpKeyView">Public PGP key: {{ contact.OpenPgpKeyView }}</q-item-label>
 
                 <q-item-label v-if="groupFilteredList.length" class="paragraph-heads">Groups</q-item-label>
 

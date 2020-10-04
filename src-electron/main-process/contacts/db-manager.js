@@ -663,7 +663,7 @@ export default {
     return new Promise((resolve, reject) => {
       if (oDb && oDb.open) {
         let sSql = `SELECT *, frequency/((CAST(JULIANDAY('now', '+1 day') AS INT) - CAST(JULIANDAY(date_modified) AS INT))/30 + 1) AS age_score FROM contacts
-                    WHERE view_email <> '' AND (view_email LIKE ? OR full_name LIKE ?)
+                    WHERE view_email <> '' AND (view_email LIKE ? OR full_name LIKE ?) AND storage = 'personal'
                     ORDER BY age_score COLLATE NOCASE DESC
                     LIMIT 20 OFFSET 0`
         oDb.all(

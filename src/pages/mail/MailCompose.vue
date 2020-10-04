@@ -295,6 +295,9 @@
                           <span v-if="selectedToAddr">
                             <q-chip flat v-for="oAddr in selectedToAddr" :key="oAddr.value" removable @remove="removeSelectedToAddr(oAddr.value)">
                               {{ oAddr.short }}
+                              <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
+                              <q-icon v-if="oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
+                              <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
                               <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
                             </q-chip>
                           </span>
@@ -309,7 +312,10 @@
                         <template v-slot:option="scope">
                           <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                             <q-item-section class="non-selectable">
-                              <q-item-label v-html="scope.opt.label" />
+                              <q-item-label>
+                                {{ scope.opt.label }}
+                                <q-icon v-if="scope.opt.hasPgpKey" name="vpn_key" />
+                              </q-item-label>
                             </q-item-section>
                           </q-item>
                         </template>
@@ -1042,32 +1048,36 @@ export default {
     },
     getRecipientOptions (sSearch, update, abort, sOptionsName, sSelectName) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
-        let sEncodedSearch = textUtils.encodeHtml(sSearch)
         let iExactlySearchIndex = -1
         let aOptions = []
         _.each(aContacts, function (oContactData, iIndex) {
           let oContact = new cContact(oContactData)
-          let sEncodedFull = textUtils.encodeHtml(oContact.getFull())
-          if (sEncodedSearch === sEncodedFull) {
+          if (sSearch === oContact.getFull()) {
             iExactlySearchIndex = iIndex
           }
           aOptions.push({
-            label: sEncodedFull,
+            label: oContact.getFull(),
             value: 'id_' + oContact.EntityId,
             full: oContact.getFull(),
             short: oContact.FullName || oContact.ViewEmail,
             email: oContact.ViewEmail,
+            hasPgpKey: !!oContact.PublicPgpKey,
+            pgpEncrypt: oContact.PgpEncryptMessages,
+            pgpSign: oContact.PgpSignMessages,
           })
         })
-        let bAddFirstOption = sEncodedSearch !== '' && iExactlySearchIndex === -1
+        let bAddFirstOption = sSearch !== '' && iExactlySearchIndex === -1
         if (bAddFirstOption) {
           let oEmailParts = addressUtils.getEmailParts(sSearch)
           aOptions.unshift({
-            label: sEncodedSearch,
+            label: sSearch,
             value: 'rand_' + Math.round(Math.random() * 10000),
             full: sSearch,
             short: oEmailParts.name || oEmailParts.email,
             email: oEmailParts.email,
+            hasPgpKey: false,
+            pgpEncrypt: false,
+            pgpSign: false,
           })
         }
         update(async () => {

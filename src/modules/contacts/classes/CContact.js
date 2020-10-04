@@ -1,5 +1,3 @@
-import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
-
 import addressUtils from 'src/utils/address.js'
 import typesUtils from 'src/utils/types'
 
@@ -55,10 +53,10 @@ function CContact(data) {
   this['DavContacts::UID'] = ''
   this['DavContacts::VCardUID'] = ''
   this.GroupUUIDs = []
-  this.OpenPgpKey = ''
-  this.OpenPgpKeyView = ''
-  this.OpenPgpEncryptMessages = false
-  this.OpenPgpSignMessages = false
+  this.PublicPgpKey = ''
+  this.OpenPgpKeyUser = ''
+  this.PgpEncryptMessages = false
+  this.PgpSignMessages = false
 
   this.Deleted = false
 
@@ -116,16 +114,9 @@ CContact.prototype.parse = async function (data) {
   this['DavContacts::UID'] = typesUtils.pString(data['DavContacts::UID'])
   this['DavContacts::VCardUID'] = typesUtils.pString(data['DavContacts::VCardUID'])
   this.GroupUUIDs = typesUtils.isNonEmptyArray(data.GroupUUIDs) ? data.GroupUUIDs : []
-  this.OpenPgpKey = typesUtils.pString(data['OpenPgpWebclient::PgpKey'])
-  if (this.OpenPgpKey) {
-    let aKeys = await OpenPgp.getArmorInfo(this.OpenPgpKey)
-    if (typesUtils.isNonEmptyArray(aKeys)) {
-      let aKeyUsersIds = aKeys[0].getUserIds()
-      this.OpenPgpKeyView = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0'
-    }
-  }
-  this.OpenPgpEncryptMessages = typesUtils.pBool(data['OpenPgpWebclient::PgpEncryptMessages'])
-  this.OpenPgpSignMessages = typesUtils.pBool(data['OpenPgpWebclient::PgpSignMessages'])
+  this.PublicPgpKey = typesUtils.pString(data['OpenPgpWebclient::PgpKey'])
+  this.PgpEncryptMessages = typesUtils.pBool(data['OpenPgpWebclient::PgpEncryptMessages'])
+  this.PgpSignMessages = typesUtils.pBool(data['OpenPgpWebclient::PgpSignMessages'])
 }
 
 CContact.prototype.setViewEmail = function () {

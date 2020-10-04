@@ -233,7 +233,15 @@
                 <q-item-label class="caption-style">PGP Settings</q-item-label>
                 <div class="input-line">
                   <label class="label-size">Public PGP key:</label>
-                  <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.OpenPgpKey" type="textarea"/>
+                  <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.PublicPgpKey" type="textarea"/>
+                </div>
+                <div class="input-line" v-if="oContact.OpenPgpKeyUser">{{ oContact.OpenPgpKeyUser }}</div>
+                <div class="input-line">If you want messages to this contact to be automatically encrypted and/or signed, check the boxes below. Please note that these messages will be converted to plain text. Attachments will not be encrypted.</div>
+                <div class="input-line" v-if="oContact.OpenPgpKeyUser">
+                  <q-checkbox v-model="oContact.PgpEncryptMessages" label="Encrypt" />
+                </div>
+                <div class="input-line" v-if="oContact.OpenPgpKeyUser">
+                  <q-checkbox v-model="oContact.PgpSignMessages" label="Sign" />
                 </div>
 
                 <q-item-label class="caption-style">Groups</q-item-label>

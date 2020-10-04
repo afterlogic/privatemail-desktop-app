@@ -24,8 +24,8 @@
           <q-item-section side v-if="contact.Storage === 'team' && contact.BusinessEmail === currentAccountEmail">
             <q-chip dense>It's me!</q-chip>
           </q-item-section>
-          <q-item-section side class="storage-type" v-if="contact.OpenPgpKeyView">
-             <q-icon v-if="contact.OpenPgpKeyView" color="grey-4" name="vpn_key" />
+          <q-item-section side class="storage-type" v-if="contact.OpenPgpKeyUser">
+             <q-icon v-if="contact.OpenPgpKeyUser" color="grey-4" name="vpn_key" />
           </q-item-section>
           <q-item-section side class="storage-type" v-if="currentStorage === 'all'">
              <q-icon v-if="contact.Storage === 'personal'">

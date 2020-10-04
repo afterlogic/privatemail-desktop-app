@@ -1,4 +1,10 @@
 import Vue from 'vue'
+import store from 'src/store'
+
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+
+import typesUtils from 'src/utils/types'
+
 import CStorages from '../../modules/contacts/classes/CStorages'
 
 export function setStorages(state, aStorages) {
@@ -29,7 +35,28 @@ export function setLoading(state, bLoading) {
   state.loading = bLoading
 }
 
+export function setContactOpenPgpKeyView(state, { sUUID, sOpenPgpKeyUser }) {
+  let oContact = _.find(state.contacts.list, (oContact) => {
+    return oContact.UUID === sUUID
+  })
+  if (oContact) {
+    oContact.OpenPgpKeyUser = sOpenPgpKeyUser
+  }
+}
+
 export function setContacts(state, aContacts) {
+  _.each(aContacts, async (oContact) => {
+    if (oContact.PublicPgpKey) {
+      let aKeys = await OpenPgp.getArmorInfo(oContact.PublicPgpKey)
+      if (typesUtils.isNonEmptyArray(aKeys)) {
+        let aKeyUsersIds = aKeys[0].getUserIds()
+        store.commit('contacts/setContactOpenPgpKeyView', {
+          sUUID: oContact.UUID,
+          sOpenPgpKeyUser: aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0'
+        })
+      }
+    }
+  })
   state.contacts.list = aContacts
 }
 
@@ -63,10 +90,6 @@ export function setContactByUUID(state, contactByUUID) {
 
 export function changeEditContact(state, editable) {
   state.contactByUUID.editable = editable
-}
-
-export function saveChangesCurrentContact(state, savedContact, index) {
-  state.contacts.list[index] = savedContact
 }
 
 export function setNewContactToEdit(state, oNewContactToEdit) {

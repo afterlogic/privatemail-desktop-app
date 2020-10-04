@@ -118,6 +118,9 @@ export default {
           if (mResult && (mResult.UUID === oContactToSave.UUID || bNewContact)) {
             oContactToSave.ETag = mResult.ETag
             oContactToSave.UUID = mResult.UUID
+            oContactToSave['OpenPgpWebclient::PgpKey'] = oContactToSave.PublicPgpKey
+            oContactToSave['OpenPgpWebclient::PgpEncryptMessages'] = oContactToSave.PgpEncryptMessages
+            oContactToSave['OpenPgpWebclient::PgpSignMessages'] = oContactToSave.PgpSignMessages
             contactsDbManager.setContacts({ sStorage: oContactToSave.Storage, aContacts: [oContactToSave], bCreateInfo: bNewContact })
             .then(
               () => {

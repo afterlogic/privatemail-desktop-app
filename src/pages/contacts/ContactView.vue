@@ -71,9 +71,9 @@
                 <q-item-label class="info-line" v-if="contact.OtherEmail">Other E-mail: {{ contact.OtherEmail }}</q-item-label>
                 <q-item-label class="info-line" v-if="contact.Notes">Notes: {{ contact.Notes }}</q-item-label>
 
-                <q-item-label class="paragraph-heads" v-if="contact.OpenPgpKeyView">PGP Settings</q-item-label>
+                <q-item-label class="paragraph-heads" v-if="contact.OpenPgpKeyUser">PGP Settings</q-item-label>
 
-                <q-item-label class="info-line" v-if="contact.OpenPgpKeyView">Public PGP key: {{ contact.OpenPgpKeyView }}</q-item-label>
+                <q-item-label class="info-line" v-if="contact.OpenPgpKeyUser">Public PGP key: {{ contact.OpenPgpKeyUser }}</q-item-label>
 
                 <q-item-label v-if="groupFilteredList.length" class="paragraph-heads">Groups</q-item-label>
 

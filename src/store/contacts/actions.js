@@ -145,14 +145,6 @@ export function closeEditContact({ state, commit, dispatch, getters }) {
   }
 }
 
-export function saveChangesCurrentContact({ state, commit, dispatch, getters }, savedContact) {
-  let index = null
-  state.contacts.list.forEach( (item, i) => {
-    if (item.UUID === savedContact.UUID) index = i
-  })
-  commit('saveChangesCurrentContact', savedContact, index)
-}
-
 export function logout ({ commit, dispatch }) {
   commit('setStorages', [])
   commit('setGroups', [])

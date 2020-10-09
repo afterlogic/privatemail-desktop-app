@@ -271,6 +271,19 @@
             <div class="col column full-height">
               <div class="col-auto">
                 <q-list>
+                  <q-item style="background: #96c671; color: white; border: solid 1px #82b35d;" v-show="allowAtoEncryptSignMessage">
+                    <q-item-section side>
+                      <q-icon color="white" name="lock" />
+                    </q-item-section>
+                    <q-item-section>
+                      <div>
+                        <q-checkbox dark v-model="autoEncryptSignMessage" label="The message will be automatically encrypted and/or signed for contacts with OpenPgp keys" />
+                      </div>
+                      <div>
+                        <q-item-label>OpenPGP supports plain text only. All the formatting will be removed before encryption.</q-item-label>
+                      </div>
+                    </q-item-section>
+                  </q-item>
                   <q-item v-if="allIdentities.length > 1">
                     <q-item-section side center style="min-width: 100px;">
                       From
@@ -342,6 +355,9 @@
                           <span v-if="selectedCcAddr">
                             <q-chip flat v-for="oAddr in selectedCcAddr" :key="oAddr.value" removable @remove="removeSelectedCcAddr(oAddr.value)">
                               {{ oAddr.short }}
+                              <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
+                              <q-icon v-if="oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
+                              <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
                               <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
                             </q-chip>
                           </span>
@@ -356,7 +372,10 @@
                         <template v-slot:option="scope">
                           <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                             <q-item-section class="non-selectable">
-                              <q-item-label v-html="scope.opt.label" />
+                              <q-item-label>
+                                {{ scope.opt.label }}
+                                <q-icon v-if="scope.opt.hasPgpKey" name="vpn_key" />
+                              </q-item-label>
                             </q-item-section>
                           </q-item>
                         </template>
@@ -379,6 +398,9 @@
                           <span v-if="selectedBccAddr">
                             <q-chip flat v-for="oAddr in selectedBccAddr" :key="oAddr.value" removable @remove="removeSelectedBccAddr(oAddr.value)">
                               {{ oAddr.short }}
+                              <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
+                              <q-icon v-if="oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
+                              <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
                               <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
                             </q-chip>
                           </span>
@@ -393,7 +415,10 @@
                         <template v-slot:option="scope">
                           <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                             <q-item-section class="non-selectable">
-                              <q-item-label v-html="scope.opt.label" />
+                              <q-item-label>
+                                {{ scope.opt.label }}
+                                <q-icon v-if="scope.opt.hasPgpKey" name="vpn_key" />
+                              </q-item-label>
                             </q-item-section>
                           </q-item>
                         </template>
@@ -738,6 +763,8 @@ export default {
 
       selectedIdentity: null,
 
+      autoEncryptSignMessage: false,
+
       plainText: false,
       disableEditor: false,
       pgpApplied: false,
@@ -897,6 +924,13 @@ export default {
         aLastSection
       ]
     },
+    allowAtoEncryptSignMessage () {
+      let aAllAddr = []
+      aAllAddr = aAllAddr.concat(this.selectedToAddr, this.selectedCcAddr, this.selectedBccAddr)
+      return !!_.find(aAllAddr, (oAddr) => {
+        return oAddr && oAddr.hasPgpKey && (oAddr.pgpSign || oAddr.pgpEncrypt)
+      })
+    },
   },
 
   watch: {
@@ -911,6 +945,9 @@ export default {
         let sSignature = oIdentity && oIdentity.bUseSignature ? typesUtils.pString(oIdentity.sSignature, '') : ''
         this.editortext = this.editortext.replace(re, composeUtils.getTagWrappedSignature(sSignature))
       }
+    },
+    allowAtoEncryptSignMessage () {
+      this.autoEncryptSignMessage = this.allowAtoEncryptSignMessage
     },
     selectedToAddr (aAddr, aPrevAddr) {
       aAddr = typesUtils.pArray(aAddr)

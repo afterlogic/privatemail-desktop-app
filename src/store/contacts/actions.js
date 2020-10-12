@@ -3,6 +3,9 @@ import store from 'src/store'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import typesUtils from 'src/utils/types.js'
+
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 
 import CContact from '../../modules/contacts/classes/CContact'
 import CGroup from '../../modules/contacts/classes/CGroup'
@@ -51,6 +54,37 @@ export function asyncGetContactsByEmails({ state, commit, dispatch, getters }, a
       aEmails: aEmailsForRequest,
     })
   }
+}
+
+ipcRenderer.on('contacts-get-external-keys', async (oEvent, { aKeysData, oError }) => {
+  if (!_.isArray(aKeysData)) {
+    notification.showError(errors.getText(oError, 'Error occurred while getting external keys'))
+  } else {
+    let aOpenPgpExternalKeys = []
+    for (const oKeyData of aKeysData) {
+      let aKeys = await OpenPgp.getArmorInfo(oKeyData.PublicPgpKey)
+      if (typesUtils.isNonEmptyArray(aKeys)) {
+        let aKeyUsersIds = aKeys[0].getUserIds()
+        let sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0'
+        aOpenPgpExternalKeys.push({
+          bPublic: true,
+          bExternal: true,
+          sArmor: oKeyData.PublicPgpKey,
+          sEmail: oKeyData.Email,
+          sFullEmail: sKeyEmail,
+          sId: 'key-' + Math.round(Math.random() * 1000000),
+        })
+      }
+    }
+    store.commit('contacts/setOpenPgpExternalKeys', { aOpenPgpExternalKeys })
+  }
+})
+
+export function asyncGetContactsOpenPgpExternalKeys() {
+  ipcRenderer.send('contacts-get-external-keys', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+  })
 }
 
 ipcRenderer.on('contacts-get-storages', (event, { aStorages, oError }) => {

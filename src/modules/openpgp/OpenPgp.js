@@ -252,6 +252,45 @@ COpenPgp.prototype.getArmorInfo = async function (sArmor) {
   return aResult
 }
 
+// COpenPgp.prototype.cloneKey = async function (oKey) {
+//   let oPrivateKey = null
+
+//   if (oKey) {
+//     oPrivateKey = await openpgp.key.readArmored(oKey.armor())
+//     if (oPrivateKey && typesUtils.isNonEmptyArray(oPrivateKey.keys)) {
+//       oPrivateKey = oPrivateKey.keys[0]
+//       if (!oPrivateKey || !oPrivateKey.primaryKey) {
+//         oPrivateKey = null
+//       }
+//     } else {
+//       oPrivateKey = null
+//     }
+//   }
+
+//   return oPrivateKey
+// }
+
+COpenPgp.prototype.getPrivateKeyAndPassphrase = function (sEmail, fAskForKeyPassword) {
+  return new Promise(async (resolve, reject) => {
+    let
+      aPrivateKeys = this.findKeysByEmails([sEmail], false),
+      oPrivateKey = typesUtils.isNonEmptyArray(aPrivateKeys) ? aPrivateKeys[0] : null
+
+    if (oPrivateKey) {
+      fAskForKeyPassword(oPrivateKey.sEmail, async (sPassphrase) => {
+        let { bVerified, oOpenPgpKey, sError } = await this.verifyKeyPassword(oPrivateKey, sPassphrase)
+        if (bVerified) {
+          resolve({ oPrivateKey, sPassphrase })
+        } else {
+          resolve({ sError })
+        }
+      })
+    } else {
+      resolve({ sError: 'No private key found for ' + sEmail + ' user.' })
+    }
+  })
+}
+
 /**
  * @param {object} oKey
  * @param {string} sPrivateKeyPassword

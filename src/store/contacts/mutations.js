@@ -127,3 +127,7 @@ export function changeStateForCreatingGroup(state, val) {
 export function setCheckedContacts(state, val) {
   state.checkedContactsList = val
 }
+
+export function setOpenPgpExternalKeys(state, { aOpenPgpExternalKeys }) {
+  state.openPgpExternalKeys = aOpenPgpExternalKeys
+}

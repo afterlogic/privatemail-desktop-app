@@ -37,4 +37,6 @@ export default {
     editable: null,
     group: null,
   },
+
+  openPgpExternalKeys: [],
 }

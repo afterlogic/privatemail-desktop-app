@@ -9,6 +9,17 @@
       transition-hide="slide-down"
       @before-hide="onBeforeHide"
     >
+      <q-dialog v-model="showConfirmNotAllRecipientsEncryptSign" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <span class="q-ml-sm">{{ confirmNotAllRecipientsEncryptSignText }}</span>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Send anyway" color="primary" @click="proceedEncryptSignAndSend" v-close-popup />
+            <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
       <q-dialog v-model="convertToPlainConfirm" persistent>
         <q-card>
           <q-card-section class="row items-center">
@@ -271,13 +282,13 @@
             <div class="col column full-height">
               <div class="col-auto">
                 <q-list>
-                  <q-item style="background: #96c671; color: white; border: solid 1px #82b35d;" v-show="allowAtoEncryptSignMessage">
+                  <q-item :class="'notice-auto-encrypt' + (autoEncryptSignMessage ? ' notice-auto-encrypt-checked' : '')" v-show="allowAtoEncryptSignMessage && !pgpApplied">
                     <q-item-section side>
-                      <q-icon color="white" name="lock" />
+                      <q-icon :color="autoEncryptSignMessage ? 'white' : ''" name="lock" />
                     </q-item-section>
                     <q-item-section>
                       <div>
-                        <q-checkbox dark v-model="autoEncryptSignMessage" label="The message will be automatically encrypted and/or signed for contacts with OpenPgp keys" />
+                        <q-checkbox v-model="autoEncryptSignMessage" label="The message will be automatically encrypted and/or signed for contacts with OpenPgp keys" />
                       </div>
                       <div>
                         <q-item-label>OpenPGP supports plain text only. All the formatting will be removed before encryption.</q-item-label>
@@ -511,7 +522,13 @@
                 </q-uploader>
               </div>
             </div>
-            <div class="col-auto q-py-md q-pr-md column full-height" style="min-width: 350px;">
+            <div class="col-2 q-py-md q-pr-md column full-height" style="min-width: 350px;">
+              <div class="col-auto column items-center" v-if="autoEncryptSignMessage || pgpApplied" style="background: #ffffc5; margin-right: -16px; margin-top: -16px; padding: 6px 15px;">
+                Please note that attachments will not be encrypted or signed.
+              </div>
+              <div class="col-auto" v-if="autoEncryptSignMessage || pgpApplied" style="margin-right: -16px;">
+                <q-separator />
+              </div>
               <div class="col-auto column items-center">
                 <q-btn no-wrap no-caps unelevated icon="attachment" @click="pickFiles">
                   <q-tooltip>Pick Files</q-tooltip>
@@ -652,6 +669,14 @@
 </template>
 
 <style lang="scss">
+.notice-auto-encrypt {
+  border-bottom: solid 1px #e2e2e2;
+}
+.notice-auto-encrypt-checked {
+  background: #96c671;
+  color: white;
+  border-bottom: solid 1px #82b35d;
+}
 .attachments-uploader {
   .q-uploader {
     border-radius: 0px;
@@ -815,6 +840,11 @@ export default {
       selfDestructingAddSignature: false,
       selfDestructingSignaturePassword: '',
       selfDestructingShowPassword: '',
+
+      showConfirmNotAllRecipientsEncryptSign: false,
+      confirmNotAllRecipientsEncryptSignText: '',
+      proceedEncryptSignRecipients: null,
+      proceedEncryptSignFromEmail: '',
     }
   },
 
@@ -890,6 +920,9 @@ export default {
       })
 
       return aEmails
+    },
+    openPgpExternalKeys () {
+      return this.$store.getters['contacts/getOpenPgpExternalKeys']
     },
     editorToolbar () {
       if (this.disableEditor) {
@@ -1194,6 +1227,7 @@ export default {
     },
     getRecipientPublicKeys () {
       let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
+      aOpenPgpKeys = aOpenPgpKeys.concat(this.openPgpExternalKeys)
       let aRecipientPublicKeys = []
       let aNotFoundEmails = []
 
@@ -1287,6 +1321,7 @@ export default {
         sReferences: this.references,
         iImportance: this.iImportance,
         bReadingConfirmation: this.bReadingConfirmation,
+        bAddToSentFolder: true,
       }
     },
     isMessageDataChanged () {
@@ -1309,6 +1344,198 @@ export default {
       this.oCommitedMessageData = this.getMessageData()
     },
     send () {
+      if (this.isEnableSending) {
+        if (!this.pgpApplied && this.autoEncryptSignMessage) {
+          this.encryptSignAndSend()
+        } else {
+          this.continueSending()
+        }
+      }
+    },
+    encryptSignAndSend () {
+      let
+        sFromEmail = (this.selectedIdentity && (this.selectedIdentity.value instanceof cIdentity || this.selectedIdentity.value instanceof cAlias)) ? this.selectedIdentity.value.sEmail : '',
+        aRecipients = [].concat(this.selectedToAddr, this.selectedCcAddr, this.selectedBccAddr),//this.recipientEmails,
+        oRecipients = this.groupAllRecipients(aRecipients)
+
+      this.proceedEncryptSignRecipients = oRecipients
+      this.proceedEncryptSignFromEmail = sFromEmail
+      this.confirmNotAllRecipientsEncryptSign()
+    },
+    groupAllRecipients (aRecipients) {
+      let
+        aRecipientsSimple = [],
+        aRecipientsEncrypt = [],
+        aRecipientsSign = [],
+        aRecipientsSignEncrypt = [],
+        iSendingCount = 0
+
+      _.each(aRecipients, (oRecipientInfo) => {
+        if (oRecipientInfo.hasPgpKey) {
+          if (oRecipientInfo.pgpEncrypt) {
+            if (oRecipientInfo.pgpSign) {
+              aRecipientsSignEncrypt.push(oRecipientInfo.email)
+            } else {
+              aRecipientsEncrypt.push(oRecipientInfo.email)
+            }
+          } else if (oRecipientInfo.pgpSign) {
+            aRecipientsSign.push(oRecipientInfo.email)
+          } else {
+            aRecipientsSimple.push(oRecipientInfo.email)
+          }
+        } else {
+          aRecipientsSimple.push(oRecipientInfo.email)
+        }
+      })
+      
+      if (aRecipientsSimple.length > 0) {
+        iSendingCount++
+      }
+      if (aRecipientsEncrypt.length > 0) {
+        iSendingCount++
+      }
+      if (aRecipientsSign.length > 0) {
+        iSendingCount++
+      }
+      if (aRecipientsSignEncrypt.length > 0) {
+        iSendingCount++
+      }
+      
+      return {
+        simple: aRecipientsSimple,
+        encrypt: aRecipientsEncrypt,
+        sign: aRecipientsSign,
+        signEncrypt: aRecipientsSignEncrypt,
+        simpleCount: aRecipientsSimple.length,
+        encryptCount: aRecipientsEncrypt.length,
+        signCount: aRecipientsSign.length,
+        signEncryptCount: aRecipientsSignEncrypt.length,
+        groupCount: iSendingCount,
+      }
+    },
+
+    confirmNotAllRecipientsEncryptSign () {
+      let
+        oRecipients = this.proceedEncryptSignRecipients,
+        sConfirm = null
+      if (oRecipients.simpleCount > 0) {
+        if (oRecipients.encryptCount > 0 || oRecipients.signEncryptCount > 0) {
+          sConfirm = 'Please note that not all recipients support encryption. They will recieve unencrypted copy of the message. You can go back and edit list of the recipients.'
+        } else if (oRecipients.signCount > 0) {
+          sConfirm = 'Please note that not all recipients support signing. They will recieve unsigned copy of the message. You can go back and edit list of the recipients.'
+        }
+      } else {
+        if (oRecipients.signCount > 0 && (oRecipients.encryptCount > 0 || oRecipients.signEncryptCount > 0)) {
+          sConfirm = 'Please note that not all recipients support encryption. They will recieve unencrypted copy of the message. You can go back and edit list of the recipients.'
+        } else if (oRecipients.signCount === 0 && oRecipients.encryptCount > 0 && oRecipients.signEncryptCount > 0) {
+          sConfirm = 'Please note that not all recipients support signing. They will recieve unsigned copy of the message. You can go back and edit list of the recipients.'
+        }
+      }
+      
+      if (sConfirm !== null) {
+        this.confirmNotAllRecipientsEncryptSignText = sConfirm;
+        this.showConfirmNotAllRecipientsEncryptSign = true;
+      } else {
+        this.proceedEncryptSignAndSend()
+      }
+    },
+
+    async proceedEncryptSignAndSend () {
+      let
+        oRecipients = this.proceedEncryptSignRecipients,
+        sFromEmail = this.proceedEncryptSignFromEmail,
+        oPrivateKey = null,
+        sPassphrase = '',
+        sError = ''
+      if (oRecipients.signCount > 0 || oRecipients.signEncryptCount > 0) {
+        let oResult = await OpenPgp.getPrivateKeyAndPassphrase(sFromEmail, this.askOpenPgpKeyPassword)
+        oPrivateKey = oResult?.oPrivateKey
+        sPassphrase = oResult?.sPassphrase
+        sError = oResult?.sError
+        if (typesUtils.isNonEmptyString(sError)) {
+          notification.showError(sError)
+        }
+      }
+      this.proceedEncryptSignRecipients = null
+      this.proceedEncryptSignFromEmail = ''
+      if (!typesUtils.isString(sPassphrase) || !oPrivateKey) {
+        return;
+      }
+
+      let
+        sData = this.getPlainEditorText(),
+        oSendParameters = this.getMessageData(),
+        aInfoToSend = [],
+        fContinueSending = (oSendParameters, bAddToSentFolder) => {
+          this.commitMessageData()
+          this.clearAutosaveTimer()
+          this.sending = true
+          oSendParameters.bAddToSentFolder = bAddToSentFolder
+          composeUtils.sendMessage(
+            oSendParameters,
+            (oResult, oError) => {
+              this.sending = false
+              if (oResult) {
+                notification.showReport('Your message has been sent.')
+                this.closeCompose()
+                this.$store.dispatch('mail/asyncRefresh')
+              } else {
+                notification.showError(errors.getText(oError, 'Error occurred while sending message'))
+              }
+            }
+          )
+        }
+
+      if (oRecipients.simpleCount > 0) {
+        let oCloneSendParameters = _.clone(oSendParameters)
+        oCloneSendParameters.aRecipients = oRecipients.simple
+        fContinueSending(oCloneSendParameters, oRecipients.signCount === 0 && oRecipients.encryptCount === 0 && oRecipients.signEncryptCount === 0)
+      }
+      if (oRecipients.signCount > 0) {
+        let { sSignedData, sError, oPgpResult } = await OpenPgp.sign(sData, oPrivateKey, sPassphrase)
+        if (sSignedData) {
+          let oCloneSendParameters = _.clone(oSendParameters)
+          oCloneSendParameters.aRecipients = oRecipients.sign
+          oCloneSendParameters.sText = sSignedData
+          oCloneSendParameters.bPlainText = true
+          fContinueSending(oCloneSendParameters, oRecipients.encryptCount === 0 && oRecipients.signEncryptCount === 0)
+        } else {
+          notification.showError(sError)
+        }
+      }
+      if (oRecipients.encryptCount > 0) {
+        let aRecipientPublicKeys = _.filter(this.getRecipientPublicKeys(), (oPublicKey) => {
+          return _.indexOf(oRecipients.encrypt, oPublicKey.sEmail) !== -1
+        })
+        let { sEncryptedData, sError, oPgpResult } = await OpenPgp.encrypt(sData, aRecipientPublicKeys)
+        if (sEncryptedData) {
+          let oCloneSendParameters = _.clone(oSendParameters)
+          oCloneSendParameters.aRecipients = oRecipients.encrypt
+          oCloneSendParameters.sText = sEncryptedData
+          oCloneSendParameters.bPlainText = true
+          fContinueSending(oCloneSendParameters, oRecipients.signEncryptCount === 0)
+        } else {
+          notification.showError(sError)
+        }
+      }
+      if (oRecipients.signEncryptCount > 0) {
+        let aRecipientPublicKeys = _.filter(this.getRecipientPublicKeys(), (oPublicKey) => {
+          return _.indexOf(oRecipients.signEncrypt, oPublicKey.sEmail) !== -1
+        })
+        let { sEncryptedSignedData, sError, oPgpResult } = await OpenPgp.signAndEncrypt(sData, aRecipientPublicKeys, oPrivateKey, sPassphrase)
+        if (sEncryptedSignedData) {
+          let oCloneSendParameters = _.clone(oSendParameters)
+          oCloneSendParameters.aRecipients = oRecipients.signEncrypt
+          oCloneSendParameters.sText = sEncryptedSignedData
+          oCloneSendParameters.bPlainText = true
+          fContinueSending(oCloneSendParameters, true)
+        } else {
+          notification.showError(sError)
+        }
+      }
+    },
+
+    continueSending () {
       if (this.isEnableSending) {
         this.commitMessageData()
         this.clearAutosaveTimer()
@@ -1375,6 +1602,7 @@ export default {
       }
     },
     async openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences, iImportance, bReadingConfirmation }) {
+      this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
       this.allowInsertImage = mailSettings.bAllowInsertImage
       this.selectedIdentity = oIdentity ? {
         label: textUtils.encodeHtml(oIdentity.getFull()),

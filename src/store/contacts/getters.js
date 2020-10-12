@@ -86,3 +86,7 @@ export function getStateForCreatingGroup(state) {
 export function getCheckedContacts(state) {
   return state.checkedContactsList
 }
+
+export function getOpenPgpExternalKeys(state) {
+  return state.openPgpExternalKeys
+}

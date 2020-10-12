@@ -289,8 +289,6 @@ export default {
 
   data () {
     return {
-      openPgpExternalKeys: [],
-
       deleteConfirmDialog: false,
       deleteKeyId: '',
       deleteKeyEmail: '',
@@ -346,6 +344,9 @@ export default {
   },
 
   computed: {
+    openPgpExternalKeys () {
+      return this.$store.getters['contacts/getOpenPgpExternalKeys']
+    },
     newKeyEmail () {
       let oCurrentAccount = this.$store.getters['mail/getCurrentAccount']
       let sEmail = oCurrentAccount ? oCurrentAccount.sEmail : ''
@@ -390,48 +391,17 @@ export default {
   },
 
   mounted () {
-      ipcRenderer.on('contacts-get-external-keys', this.onContactsGetExternalKeys)
-      ipcRenderer.on('contacts-remove-external-key', this.onContactsRemoveExternalKey)
-      ipcRenderer.on('contacts-add-external-keys', this.onContactsAddExternalKey)
-      this.getExternalKeys()
+    ipcRenderer.on('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+    ipcRenderer.on('contacts-add-external-keys', this.onContactsAddExternalKey)
+    this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
   },
 
   beforeDestroy () {
-      ipcRenderer.removeListener('contacts-get-external-keys', this.onContactsGetExternalKeys)
-      ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
-      ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
+    ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+    ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
   },
 
   methods: {
-    getExternalKeys () {
-      ipcRenderer.send('contacts-get-external-keys', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-      })
-    },
-    onContactsGetExternalKeys: async function (event, { aKeysData, oError }) {
-      if (!_.isArray(aKeysData)) {
-        notification.showError(errors.getText(oError, 'Error occurred while getting external keys'))
-      } else {
-        let aOpenPgpExternalKeys = []
-        for (const oKeyData of aKeysData) {
-          let aKeys = await OpenPgp.getArmorInfo(oKeyData.PublicPgpKey)
-          if (typesUtils.isNonEmptyArray(aKeys)) {
-            let aKeyUsersIds = aKeys[0].getUserIds()
-            let sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0'
-            aOpenPgpExternalKeys.push({
-              bPublic: true,
-              bExternal: true,
-              sArmor: oKeyData.PublicPgpKey,
-              sEmail: oKeyData.Email,
-              sFullEmail: sKeyEmail,
-              sId: 'key-' + Math.round(Math.random() * 1000000),
-            })
-          }
-        }
-        this.openPgpExternalKeys = aOpenPgpExternalKeys
-      }
-    },
     onContactsRemoveExternalKey (event, { bResult, oError }) {
       if (bResult) {
         notification.showReport('External key was successfully removed.')

@@ -33,7 +33,7 @@
 import Vue from 'vue'
 import { ipcRenderer } from 'electron'
 import theming from './css/theming'
-import MessageCompose from "./pages/mail/MailCompose.vue"
+import MessageCompose from "./pages/mail/MailCompose"
 
 Vue.mixin({
   methods: {

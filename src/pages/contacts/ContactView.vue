@@ -260,6 +260,9 @@ export default {
         email: this.contact.ViewEmail,
         name: this.contact.FullName,
         id: this.contact.EntityId,
+        hasPgpKey: !!this.contact.PublicPgpKey,
+        pgpEncrypt: this.contact.PgpEncryptMessages,
+        pgpSign: this.contact.PgpSignMessages,
       }]
       this.openCompose({ aToContacts })
     },

@@ -197,8 +197,6 @@ export default {
         sDraftFolder = (oCurrentFolderList && oCurrentFolderList.Drafts) ? oCurrentFolderList.Drafts.FullName : ''
 
       if (this.message.Folder === sDraftFolder) {
-        console.log('this.message', this.message)
-        console.log('this.message.ReadingConfirmation', this.message.ReadingConfirmation)
         let oComposeParams = {
           aDraftInfo: this.message.DraftInfo,
           sDraftUid: this.message.Uid,

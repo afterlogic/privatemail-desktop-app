@@ -234,7 +234,6 @@ export default {
 
   methods: {
     openCardPopup: _.debounce(function (bShow) {
-      console.log('openCardPopup');
       this.bShowContactCard = bShow;
     }, 300),
     setBirthDate () {
@@ -249,6 +248,9 @@ export default {
         email: this.contact.ViewEmail,
         name: this.contact.FullName,
         id: this.contact.EntityId,
+        hasPgpKey: !!this.contact.PublicPgpKey,
+        pgpEncrypt: this.contact.PgpEncryptMessages,
+        pgpSign: this.contact.PgpSignMessages,
       }]
       this.openCompose({ aToContacts })
       if (this.$refs.cardPopup) {

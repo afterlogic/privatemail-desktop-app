@@ -310,6 +310,9 @@ export default {
             email: oContact.ViewEmail,
             name: oContact.FullName,
             id: oContact.EntityId,
+            hasPgpKey: !!oContact.PublicPgpKey,
+            pgpEncrypt: oContact.PgpEncryptMessages,
+            pgpSign: oContact.PgpSignMessages,
           })
         }
       })

@@ -1,0 +1,668 @@
+<q-dialog
+v-model="dialog"
+persistent
+content-class="compose-dialog"
+:seamless="maximizedToggle"
+:maximized="maximizedToggle"
+transition-show="slide-up"
+transition-hide="slide-down"
+@before-hide="onBeforeHide"
+>
+  <q-dialog v-model="showConfirmNotAllRecipientsEncryptSign" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <span class="q-ml-sm">{{ confirmNotAllRecipientsEncryptSignText }}</span>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="Send anyway" color="primary" @click="proceedEncryptSignAndSend" v-close-popup />
+        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+  <q-dialog v-model="convertToPlainConfirm" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <span class="q-ml-sm">OpenPGP supports plain text only. Click OK to remove all the formatting and continue.</span>
+      </q-card-section>
+      <q-card-section class="row items-center" v-if="attachments.length > 0">
+        <span class="q-ml-sm">Also, attachments cannot be encrypted or signed and will stay as-is.</span>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="Ok" color="primary" @click="openPgpSignEncryptDialog" v-close-popup />
+        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="pgpSignEncryptDialog" persistent>
+    <q-card class="q-px-sm">
+      <q-card-section>
+        <div class="text-h6">OpenPGP Sign/Encrypt</div>
+      </q-card-section>
+
+      <q-item tag="label">
+        <q-item-section side top>
+          <q-checkbox v-model="signCheckbox" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>Sign</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-input type="password" outlined dense v-model="signPassword" label="Password" @click.stop.prevent="signCheckbox = true" />
+        </q-item-section>
+      </q-item>
+      
+      <q-item tag="label">
+        <q-item-section side top>
+          <q-checkbox v-model="encryptCheckbox" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>Encrypt</q-item-label>
+        </q-item-section>
+      </q-item>
+      <q-card-actions align="right">
+        <q-btn flat label="PGP Sign/Encrypt" color="primary" @click="signAndEncrypt" v-if="signCheckbox && encryptCheckbox" />
+        <q-btn flat label="Sign" color="primary" @click="sign" v-if="signCheckbox && !encryptCheckbox" />
+        <q-btn flat label="Encrypt" color="primary" @click="encrypt" v-if="!signCheckbox && encryptCheckbox" />
+        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="selfDestructingEmailDialog" persistent>
+    <q-card class="q-px-sm">
+      <q-card-section class="non-selectable">
+        <div class="text-h6">Send a self-destructing secure email</div>
+      </q-card-section>
+
+      <q-item class="non-selectable">
+        <q-item-section>
+          <q-item-label caption>The Self-destructing secure messages support plain text only. All the formatting will be removed. Also, attachments cannot be encrypted and will be removed from the message.</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item class="non-selectable">
+        <q-item-section>
+          <q-item-label>Recipient:</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-item-label v-if="selfDestructingShowPassword !== ''" disable>{{selfDestructingRecipient.full}}</q-item-label>
+          <q-select v-if="selfDestructingShowPassword === ''"
+            dense outlined style="width: 350px;"
+            use-input input-debounce="0" fill-input hide-selected
+            ref="selfDestructingRecipientSelect"
+            v-model="selfDestructingRecipient" :options="selfDestructingRecipientOptions"
+            @filter="getSelfDestructingRecipientOptionsOptions"
+            @input-value="checkSelfDestructingRecipient"
+          >
+            <template v-if="selfDestructingRecipient && selfDestructingRecipient.key" v-slot:append>
+              <q-icon color="primary" name="vpn_key" />
+            </template>
+            <!-- <template v-slot:selected>
+              <span>
+                <q-item v-if="selfDestructingRecipient">
+                  <q-item-section class="non-selectable">
+                    <q-item-label v-html="selfDestructingRecipient.label" />
+                  </q-item-section>
+                  <q-item-section avatar v-if="selfDestructingRecipient.key">
+                    <q-icon color="primary" name="vpn_key" />
+                  </q-item-section>
+                </q-item>
+              </span>
+            </template> -->
+            <template v-slot:no-option>
+              <q-item>
+                <q-item-section class="text-grey">
+                  No results
+                </q-item-section>
+              </q-item>
+            </template>
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                <q-item-section class="non-selectable">
+                  <q-item-label v-html="scope.opt.encodedLabel" />
+                </q-item-section>
+                <q-item-section avatar v-if="scope.opt.key">
+                  <q-icon color="primary" name="vpn_key" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+        </q-item-section>
+      </q-item>
+
+      <q-item class="non-selectable" style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''">
+        <q-item-section>
+          <q-item-label caption v-if="!selfDestructingRecipient">Please select recipient first.</q-item-label>
+          <q-item-label caption v-if="selfDestructingRecipient && !selfDestructingRecipient.key">Selected recipient has no PGP public key. The key based encryption is not allowed.</q-item-label>
+          <q-item-label caption v-if="selfDestructingRecipient && selfDestructingRecipient.key">Selected recipient has PGP public key. The message can be encrypted using this key.</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item v-if="selfDestructingShowPassword === ''" class="non-selectable">
+        <q-item-section>
+          <q-item-label>Message lifetime:</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-select dense outlined v-model="selfDestructingLifetime" :options="selfDestructingLifetimeOptions" style="width: 350px;">
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                <q-item-section class="non-selectable">
+                  <q-item-label v-html="scope.opt.label" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+        </q-item-section>
+      </q-item>
+
+      <q-item :disable="!selfDestructingRecipient" v-if="selfDestructingShowPassword === ''" class="non-selectable">
+        <q-item-section>
+          <q-item-label>Encryption type:</q-item-label>
+        </q-item-section>
+        <q-item-section side style="flex-direction: row; justify-content: flex-start;" class="q-gutter-sm">
+          <q-radio :disable="!selfDestructingRecipient || !selfDestructingRecipient.key" v-model="selfDestructingEncryptType" val="key" label="Key based" />
+          <q-radio :disable="!selfDestructingRecipient" v-model="selfDestructingEncryptType" val="password" label="Password based" />
+        </q-item-section>
+      </q-item>
+
+      <q-item style="padding-bottom: 0; margin-bottom: -14px;" v-if="selfDestructingShowPassword === '' && selfDestructingRecipient" class="non-selectable">
+        <q-item-section>
+          <q-item-label v-if="selfDestructingEncryptType === 'password'" caption>The Password based encryption will be used.</q-item-label>
+          <q-item-label v-if="selfDestructingEncryptType === 'key'" caption>The Key based encryption will be used.</q-item-label>
+        </q-item-section>
+      </q-item>
+      <q-item tag="label" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" v-if="selfDestructingShowPassword === ''">
+        <q-item-section side top>
+          <q-checkbox v-model="selfDestructingAddSignature" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" />
+        </q-item-section>
+        <q-item-section class="non-selectable">
+          <q-item-label>Add digital signature</q-item-label>
+        </q-item-section>
+        <q-item-section v-if="selfDestructingAddSignature" side>
+          <q-item-label>Password:</q-item-label>
+        </q-item-section>
+        <q-item-section v-if="selfDestructingAddSignature" side>
+          <q-input type="password" outlined dense v-model="selfDestructingSignaturePassword" />
+        </q-item-section>
+      </q-item>
+      <q-item style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''" class="non-selectable">
+        <q-item-section>
+          <q-item-label v-if="selfDestructingAddSignature" caption>Will sign the data with your private key.</q-item-label>
+          <q-item-label v-if="!selfDestructingAddSignature" caption>Will not sign the data.</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-card-actions align="right" v-if="selfDestructingShowPassword === ''" class="non-selectable">
+        <q-btn flat label="Encrypt" v-if="selfDestructingRecipient" color="primary" @click="sendSelfDestructingSecureEmail" />
+        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+      </q-card-actions>
+
+      <q-item v-if="selfDestructingShowPassword !== ''">
+        <q-item-section>
+          <span class="rounded-borders q-pa-md bg-grey-2">
+          <q-item-label class="h6 non-selectable">Encrypted message password:</q-item-label>
+          <q-item-label lines="2" class="text-bold">{{ selfDestructingShowPassword }}</q-item-label>
+          </span>
+        </q-item-section>
+        <q-item-section side>
+        </q-item-section>
+      </q-item>
+
+      <q-item v-if="selfDestructingShowPassword !== ''" class="non-selectable">
+        <q-item-section>
+          <q-item-label caption>The password must be sent using a different channel. Store the password somewhere. You will not be able to recover it otherwise.</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-card-actions align="right" v-if="selfDestructingShowPassword !== ''" class="non-selectable">
+        <q-btn flat label="Ok" v-if="selfDestructingRecipient" color="primary" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <div class="column bg-white" style="min-width: 300px;" v-show="maximizedToggle">
+    <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
+      <q-toolbar-title @dblclick="maximizedToggle = false">
+        {{subjectText !== '' ? subjectText : 'New message'}}
+      </q-toolbar-title>
+      <q-space />
+      <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
+        <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
+      </q-btn>
+      <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">
+        <!-- <q-tooltip content-class="bg-white text-primary">Maximize</q-tooltip> -->
+      </q-btn>
+      <q-btn flat icon="close" @click="saveAndClose">
+        <q-tooltip content-class="bg-white text-primary">Save&nbsp;and&nbsp;Close</q-tooltip>
+      </q-btn>
+    </q-toolbar>
+  </div>
+  <div class="column no-wrap bg-white non-selectable" style="width: 90%; max-width: initial; height: 90%; " v-show="!maximizedToggle">
+    <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
+      <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
+      <q-btn flat icon="save" label="Save" @click="save" />
+      <q-btn-dropdown flat icon-color="grey" text-color="white" icon="priority_high" label="Importance">
+        <q-list class="non-selectable">
+          <q-item clickable :class="iImportance === 5 ? 'bg-grey-3' : ''" v-close-popup @click="setImportance(5)">
+            <q-item-section>
+              <q-item-label>Low</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable :class="iImportance === 3 ? 'bg-grey-3' : ''" v-close-popup @click="setImportance(3)">
+            <q-item-section>
+              <q-item-label>Normal</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable :class="iImportance === 1 ? 'bg-grey-3' : ''" v-close-popup @click="setImportance(1)">
+            <q-item-section>
+              <q-item-label>High</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+      <q-btn flat :icon="bReadingConfirmation ? 'check_box' : 'check_box_outline_blank'" label="Reading confirmation" @click="triggerReadingConfirmation" />
+      <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
+      <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
+      <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" />
+      <q-space />
+      <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
+        <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
+      </q-btn>
+      <q-btn flat icon="crop_square" @click="maximizedToggle = false" :disable="!maximizedToggle">
+        <!-- <q-tooltip content-class="bg-white text-primary">Maximize</q-tooltip> -->
+      </q-btn>
+      <q-btn flat icon="close" @click="saveAndClose">
+        <q-tooltip content-class="bg-white text-primary">Save&nbsp;and&nbsp;Close</q-tooltip>
+      </q-btn>
+    </q-toolbar>
+    <div class="col">
+      <div class="row full-height full-width">
+        <div class="col column full-height">
+          <div class="col-auto">
+            <q-list>
+              <q-item :class="'notice-auto-encrypt' + (autoEncryptSignMessage ? ' notice-auto-encrypt-checked' : '')" v-show="allowAtoEncryptSignMessage && !pgpApplied">
+                <q-item-section side>
+                  <q-icon :color="autoEncryptSignMessage ? 'white' : ''" name="lock" />
+                </q-item-section>
+                <q-item-section>
+                  <div>
+                    <q-checkbox v-model="autoEncryptSignMessage" label="The message will be automatically encrypted and/or signed for contacts with OpenPgp keys" />
+                  </div>
+                  <div>
+                    <q-item-label>OpenPGP supports plain text only. All the formatting will be removed before encryption.</q-item-label>
+                  </div>
+                </q-item-section>
+              </q-item>
+              <q-item v-if="allIdentities.length > 1">
+                <q-item-section side center style="min-width: 100px;">
+                  From
+                </q-item-section>
+                <q-item-section>
+                  <q-select dense outlined v-model="selectedIdentity" :options="allIdentitiesOptions"></q-select>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section side center style="min-width: 100px;">
+                  To
+                </q-item-section>
+                <q-item-section>
+                  <q-select
+                    dense outlined class="recipients-select"
+                    use-input use-chips multiple input-debounce="0"
+                    ref="toAddrSelect"
+                    v-model="selectedToAddr" :options="toAddrOptions" :disable="disableRecipients"
+                    @filter="getToAddrOptions"
+                  >
+                    <template v-slot:selected>
+                      <span v-if="selectedToAddr">
+                        <q-chip flat v-for="oAddr in selectedToAddr" :key="oAddr.value" removable @remove="removeSelectedToAddr(oAddr.value)">
+                          {{ oAddr.short }}
+                          <q-icon v-if="!autoEncryptSignMessage && oAddr.hasPgpKey" color="green" name="vpn_key" />
+                          <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
+                          <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
+                          <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
+                          <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                        </q-chip>
+                      </span>
+                    </template>
+                    <template v-slot:no-option>
+                      <q-item>
+                        <q-item-section class="text-grey">
+                          No results
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                        <q-item-section class="non-selectable">
+                          <q-item-label>
+                            {{ scope.opt.label }}
+                            <q-icon v-if="scope.opt.hasPgpKey" name="vpn_key" />
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-select>
+                </q-item-section>
+                <q-item-section style="max-width: 100px;" v-show="!isCcShowed || !isBccShowed">
+                  <a href="javascript:void(0)" v-show="!isCcShowed" @click="showCc" class="text-primary">Show CC</a>
+                  <a href="javascript:void(0)" v-show="!isBccShowed" @click="showBcc" class="text-primary">Show BCC</a>
+                </q-item-section>
+              </q-item>
+              <q-item v-show="isCcShowed">
+                <q-item-section side center style="min-width: 100px;">
+                  CC
+                </q-item-section>
+                <q-item-section>
+                  <q-select
+                    dense outlined class="recipients-select"
+                    use-input use-chips multiple input-debounce="0"
+                    ref="ccAddrSelect"
+                    v-model="selectedCcAddr" :options="ccAddrOptions" :disable="disableRecipients"
+                    @filter="getCcAddrOptions"
+                  >
+                    <template v-slot:selected>
+                      <span v-if="selectedCcAddr">
+                        <q-chip flat v-for="oAddr in selectedCcAddr" :key="oAddr.value" removable @remove="removeSelectedCcAddr(oAddr.value)">
+                          {{ oAddr.short }}
+                          <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
+                          <q-icon v-if="oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
+                          <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
+                          <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                        </q-chip>
+                      </span>
+                    </template>
+                    <template v-slot:no-option>
+                      <q-item>
+                        <q-item-section class="text-grey">
+                          No results
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                        <q-item-section class="non-selectable">
+                          <q-item-label>
+                            {{ scope.opt.label }}
+                            <q-icon v-if="scope.opt.hasPgpKey" name="vpn_key" />
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-select>
+                </q-item-section>
+              </q-item>
+              <q-item v-show="isBccShowed">
+                <q-item-section side center style="min-width: 100px;">
+                  BCC
+                </q-item-section>
+                <q-item-section>
+                  <q-select
+                    dense outlined class="recipients-select"
+                    use-input use-chips multiple input-debounce="0"
+                    ref="bccAddrSelect"
+                    v-model="selectedBccAddr" :options="bccAddrOptions" :disable="disableRecipients"
+                    @filter="getBccAddrOptions"
+                  >
+                    <template v-slot:selected>
+                      <span v-if="selectedBccAddr">
+                        <q-chip flat v-for="oAddr in selectedBccAddr" :key="oAddr.value" removable @remove="removeSelectedBccAddr(oAddr.value)">
+                          {{ oAddr.short }}
+                          <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
+                          <q-icon v-if="oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
+                          <q-icon v-if="oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
+                          <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                        </q-chip>
+                      </span>
+                    </template>
+                    <template v-slot:no-option>
+                      <q-item>
+                        <q-item-section class="text-grey">
+                          No results
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                        <q-item-section class="non-selectable">
+                          <q-item-label>
+                            {{ scope.opt.label }}
+                            <q-icon v-if="scope.opt.hasPgpKey" name="vpn_key" />
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-select>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section side center style="min-width: 100px;">
+                  Subject
+                </q-item-section>
+                <q-item-section>
+                  <q-input dense outlined v-model="subjectText" style="width: 100%;" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+            <!-- :definitions="{
+              colors: {
+                tip: 'Font & background colors',
+                icon: 'text_format',
+                handler: changeColors
+              },
+            }" -->
+          </div>
+          <div class="col q-pa-md full-width "> 
+            <q-editor class="full-height"
+              ref="editor" 
+              v-model="editortext"
+              height="calc(100% - 32px)"
+              :disable="disableEditor"
+              :toolbar="editorToolbar"
+              :fonts="{
+                arial: 'Arial',
+                arial_black: 'Arial Black',
+                courier_new: 'Courier New',
+                tahoma: 'Tahoma',
+                times_new_roman: 'Times New Roman',
+                verdana: 'Verdana'
+              }"
+            >
+              <template v-slot:image>
+                <q-btn-dropdown
+                  flat
+                  dense
+                  size="sm"
+                  class="arrowless"
+                  icon="image"
+                  ref="insertImageDropdown"
+                  @hide="imageUrl=''"
+                >
+                  <template v-slot:label>
+                    <q-tooltip>Insert Image</q-tooltip>
+                  </template>
+
+                  <q-card class="">
+                      <q-item-label header>Please select an image file to upload</q-item-label>
+                      <q-item>
+                        <q-btn outline class="full-width" color="primary" @click="insertImage" label="Choose File" />
+                      </q-item>
+
+                      <q-item-label header>or enter an URL:</q-item-label>
+                      <q-item>
+                        <q-input outlined dense type="text" class="full-width" v-model="imageUrl" />
+                      </q-item>
+              
+                    <q-card-actions align="right">
+                      <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
+                      <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
+                    </q-card-actions>
+                  </q-card>
+                  <div>
+                  </div>
+                </q-btn-dropdown>
+              </template>
+            </q-editor>
+            <q-uploader style="display: none;"
+                ref="imageUploader"
+                auto-upload
+                hide-upload-btn
+                :accept="acceptedImageTypes"
+                :factory="uploaderFactory"
+                @added="onImageFileAdded"
+                @uploaded="onFileUploaded"
+                @failed="onFileUploadFailed"
+              >
+                <template v-slot:header="scope">
+                  <q-uploader-add-trigger />
+                </template>
+                <template v-slot:list="scope" >
+                </template>
+            </q-uploader>
+          </div>
+        </div>
+        <div class="col-2 q-py-md q-pr-md column full-height" style="min-width: 350px;">
+          <div class="col-auto column items-center" v-if="autoEncryptSignMessage || pgpApplied" style="background: #ffffc5; margin-right: -16px; margin-top: -16px; padding: 6px 15px;">
+            Please note that attachments will not be encrypted or signed.
+          </div>
+          <div class="col-auto" v-if="autoEncryptSignMessage || pgpApplied" style="margin-right: -16px;">
+            <q-separator />
+          </div>
+          <div class="col-auto column items-center">
+            <q-btn no-wrap no-caps unelevated icon="attachment" @click="pickFiles">
+              <q-tooltip>Pick Files</q-tooltip>
+            </q-btn>
+          </div>
+          <div class="col-auto">
+            <q-separator />
+          </div>
+          
+          <div class="attachments-uploader col column full-height full-width">
+            <q-uploader
+                style="max-height: initial"
+                class="col full-height full-width"
+                flat
+                ref="uploader"
+                multiple
+                auto-upload
+                hide-upload-btn
+                :factory="uploaderFactory"
+                @added="onFileAdded"
+                @uploaded="onFileUploaded"
+                @failed="onFileUploadFailed"
+              >
+                <template v-slot:header="scope">
+                  <div class="" style="opacity: 0; height: 0px;">
+                    <!-- <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
+                      <q-tooltip>Clear All</q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="scope.uploadedFiles.length > 0" icon="done_all" @click="scope.removeUploadedFiles" round dense flat >
+                      <q-tooltip>Remove Uploaded Files</q-tooltip>
+                    </q-btn>
+                    <q-spinner v-if="scope.isUploading" class="q-uploader__spinner">
+                    </q-spinner>
+                    <div class="col">
+                      <div class="q-uploader__title">Upload your files</div>
+                      <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+                    </div> -->
+                    <q-btn dense flat type="a" icon="add_box">
+                      <q-uploader-add-trigger />
+                      <q-tooltip>Pick Files</q-tooltip>
+                    </q-btn>
+                    <!-- <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
+                      <q-tooltip>Upload Files</q-tooltip>
+                    </q-btn>
+
+                    <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
+                      <q-tooltip>Abort Upload</q-tooltip>
+                    </q-btn> -->
+                  </div>
+                </template>
+                <template v-slot:list="scope" class="full-height">
+                  <q-scroll-area class="full-height full-width">
+                    <q-list separator>
+                      <q-item v-for="attach in notLinkedAttachments" :key="attach.sLocalPath || attach.sHash">
+                        <q-item-section>
+                          <q-item-label class="full-width ellipsis">
+                            {{ attach.sFileName }}
+                          </q-item-label>
+                          <q-item-label caption>
+                            Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
+                          </q-item-label>
+                          <q-item-label caption>
+                            <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }} / </span>{{ attach.getProgressPercent() }}%
+                          </q-item-label>
+                        </q-item-section>
+                        <q-item-section side 
+                          v-if="attach.sThumbnailLink"
+                          class="gt-xs thumb"
+                          
+                        >
+                          <img :src="sApiHost + '/' + attach.sThumbnailLink">
+                        </q-item-section>
+
+                        <q-item-section  side>
+                          <q-btn
+                            v-if="attach.iProgressPercent === 100"
+                            class="gt-xs"
+                            size="12px"
+                            flat
+                            dense
+                            round
+                            icon="delete"
+                            @click="removeAttachment(scope, attach)"
+                          />
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-scroll-area>
+                  <!-- <q-list separator>
+
+                    <q-item v-for="file in scope.files" :key="file.name">
+                      <q-item-section>
+                        <q-item-label class="full-width ellipsis">
+                          {{ file.name }}
+                        </q-item-label>
+
+                        <q-item-label caption>
+                          Status: {{ file.__status }}
+                        </q-item-label>
+
+                        <q-item-label caption>
+                          {{ file.__sizeLabel }} / {{ file.__progressLabel }}
+                        </q-item-label>
+                      </q-item-section>
+
+                      <q-item-section
+                        v-if="file.__img"
+                        thumbnail
+                        class="gt-xs"
+                      >
+                        <img :src="file.__img.src">
+                      </q-item-section>
+
+                      <q-item-section top side>
+                        <q-btn
+                          class="gt-xs"
+                          size="12px"
+                          flat
+                          dense
+                          round
+                          icon="delete"
+                          @click="scope.removeFile(file)"
+                        />
+                      </q-item-section>
+                    </q-item>
+
+                  </q-list> -->
+                </template>
+              </q-uploader>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <q-bar> -->
+  <!-- </q-bar> -->
+</q-dialog>

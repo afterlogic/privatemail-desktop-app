@@ -1,4 +1,7 @@
+import store from 'src/store'
+
 import _ from 'lodash'
+
 import addressUtils from 'src/utils/address.js'
 import typesUtils from 'src/utils/types.js'
 
@@ -73,9 +76,16 @@ export default {
     let aFullEmails = typesUtils.isNonEmptyString(sFullEmailsFromServer) ? sFullEmailsFromServer.split('\n') : []
 
     let aContacts = _.map(aFullEmails, function (sFullEmail) {
-      let oEmailParts = addressUtils.getEmailParts(sFullEmail)
-      oEmailParts.id = 'rand_' + Math.round(Math.random() * 10000)
-      return oEmailParts
+      let oContactData = addressUtils.getEmailParts(sFullEmail)
+      oContactData.id = 'rand_' + Math.round(Math.random() * 10000)
+      let oContacts = store.getters['contacts/getContactsByEmail']
+      let oContact = oContacts[oContactData.email]
+      if (oContact) {
+        oContactData.hasPgpKey = !!oContact.PublicPgpKey
+        oContactData.pgpEncrypt = oContact.PgpEncryptMessages
+        oContactData.pgpSign = oContact.PgpSignMessages
+      }
+      return oContactData
     })
 
     return aContacts

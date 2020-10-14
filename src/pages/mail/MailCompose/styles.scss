@@ -1,0 +1,73 @@
+.notice-auto-encrypt {
+  border-bottom: solid 1px #e2e2e2;
+}
+.notice-auto-encrypt-checked {
+  background: #96c671;
+  color: white;
+  border-bottom: solid 1px #82b35d;
+}
+.attachments-uploader {
+  .q-uploader {
+    border-radius: 0px;
+  }
+  .q-uploader__header {
+    background: none;
+    display:none;
+  }
+  .q-uploader__list {
+    padding: 0px;
+    overflow: hidden;
+
+    .thumb {
+      width: 100px;
+      max-height: 80px;
+      justify-content: flex-start;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+      }
+    }
+  }
+  .q-uploader__dnd {
+    outline: 0px;
+    top: 5px;
+    background: rgba(#fffdd6, 0.5);
+    border: 2px dashed #e2da36;
+    border-radius: 5px;
+  }
+}
+
+.compose-dialog {
+  .q-dialog__inner > div {
+    overflow: hidden;
+  }
+  .q-dialog__inner--maximized {
+    align-items: flex-end;
+    justify-content: flex-end;
+
+    & > div {
+      height: 60px;
+      width: 500px;
+      max-height: 100vh;
+      max-width: 100vw;
+      border-radius: 0 !important;
+    }
+  } 
+}
+
+.arrowless {
+  .q-btn-dropdown__arrow {
+    display: none;
+  }
+
+}
+
+.recipients-select {
+  width: 100%;
+
+  .remove-recipient-icon {
+    cursor: pointer;
+    margin-left: 4px;
+  }
+}

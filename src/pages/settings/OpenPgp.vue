@@ -2,14 +2,33 @@
   <div>
     <div class="text-h4 q-mb-md non-selectable">Open PGP settings</div>
     <q-separator spaced />
-    <q-list class="non-selectable" separator>
+    <q-list class="non-selectable" dense>
       <q-item>
         <q-item-section>
           <q-item-label caption>Be aware of "Allow autosave in Drafts" setting in Mail module. Turn it off if you don't want the server to store unencrypted drafts. You will still be able to save drafts manually.</q-item-label>
         </q-item-section>
       </q-item>
-      <q-separator spaced />
-      <q-item-label header class="text-h6">External public keys</q-item-label>
+    </q-list>
+    <q-separator spaced />
+    <q-list class="non-selectable" dense>
+      <q-item tag="label">
+        <q-item-section side top>
+          <q-checkbox v-model="bRememberPassphrase" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>Remember OpenPGP key password until you log out or close this app.</q-item-label>
+          <q-item-label caption>If not checked, the system will ask for your OpenPGP key password every time it's needed.</q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
+    <div class="q-pt-md q-pr-md q-pb-xs q-pl-md q-gutter-sm">
+      <q-btn unelevated color="primary" label="Save" @click="save" />
+    </div>
+    <q-separator spaced />
+    <q-list class="non-selectable" separator dense>
+      <q-item class="q-pt-lg">
+        <q-item-label header class="text-h6">External public keys</q-item-label>
+      </q-item>
       <q-item clickable v-for="oKey in openPgpExternalKeys" :key="oKey.sId" @click="viewKeys([oKey])">
         <q-item-section>
           <q-item-label>{{ oKey.sFullEmail }}</q-item-label>
@@ -27,8 +46,9 @@
         </q-item-section>
       </q-item>
 
-      <q-separator spaced />
-      <q-item-label header class="text-h6">Public keys</q-item-label>
+      <q-item class="q-pt-lg">
+        <q-item-label header class="text-h6">Public keys</q-item-label>
+      </q-item>
       <q-item clickable v-for="oKey in openPgpPublicKeys" :key="oKey.sId" @click="viewKeys([oKey])">
         <q-item-section>
           <q-item-label>{{ oKey.sEmail }}</q-item-label>
@@ -46,7 +66,9 @@
         </q-item-section>
       </q-item>
 
-      <q-item-label header class="text-h6">Private keys</q-item-label>
+      <q-item class="q-pt-lg">
+        <q-item-label header class="text-h6">Private keys</q-item-label>
+      </q-item>
       <q-item clickable v-for="oKey in openPgpPrivateKeys" :key="oKey.sId" @click="enterPassword(oKey)">
         <q-item-section>
           <q-item-label>{{ oKey.sEmail }}</q-item-label>
@@ -280,6 +302,7 @@ import textUtils from 'src/utils/text.js'
 import typesUtils from 'src/utils/types.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+import openpgpSettings from 'src/modules/openpgp/settings.js'
 
 export default {
   name: 'OpenPgpSettings',
@@ -289,6 +312,8 @@ export default {
 
   data () {
     return {
+      bRememberPassphrase: false,
+
       deleteConfirmDialog: false,
       deleteKeyId: '',
       deleteKeyEmail: '',
@@ -391,17 +416,36 @@ export default {
   },
 
   mounted () {
+    this.bRememberPassphrase = openpgpSettings.bRememberPassphrase
+    ipcRenderer.on('openpgp-save-settings', this.onOpenpgpSaveSettings)
     ipcRenderer.on('contacts-remove-external-key', this.onContactsRemoveExternalKey)
     ipcRenderer.on('contacts-add-external-keys', this.onContactsAddExternalKey)
     this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
   },
 
   beforeDestroy () {
+    ipcRenderer.removeListener('openpgp-save-settings', this.onOpenpgpSaveSettings)
     ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
     ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
   },
 
   methods: {
+    save () {
+      ipcRenderer.send('openpgp-save-settings', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        bEnableModule: openpgpSettings.bEnableModule,
+        bRememberPassphrase: this.bRememberPassphrase,
+      })
+    },
+    onOpenpgpSaveSettings (event, { bResult, oError }) {
+      if (bResult) {
+        openpgpSettings.setRememberPassphrase(this.bRememberPassphrase)
+        notification.showReport('Settings have been updated successfully.')
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+      }
+    },
     onContactsRemoveExternalKey (event, { bResult, oError }) {
       if (bResult) {
         notification.showReport('External key was successfully removed.')

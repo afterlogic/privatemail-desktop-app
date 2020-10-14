@@ -23,5 +23,22 @@ export default {
         },
       })
     })
+
+    ipcMain.on('openpgp-save-settings', (oEvent, { sApiHost, sAuthToken, bEnableModule, bRememberPassphrase }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'OpenPgpWebclient',
+        sMethod: 'UpdateSettings',
+        oParameters: {
+          EnableModule: bEnableModule,
+          RememberPassphrase: bRememberPassphrase,
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('openpgp-save-settings', { bResult, oError })
+        },
+      })
+    })
+
   },
 }

@@ -12,6 +12,7 @@ import foldersUtils from './utils/folders.js'
 import coreSettings from 'src/modules/core/settings.js'
 import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
+import openpgpSettings from 'src/modules/openpgp/settings.js'
 
 let oAllStartedOperations = {}
 
@@ -83,6 +84,9 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       }
       if (oResult['Contacts']) {
         contactsSettings.parse(oResult['Contacts'])
+      }
+      if (oResult['OpenPgpWebclient']) {
+        openpgpSettings.parse(oResult['OpenPgpWebclient'])
       }
     }
   })

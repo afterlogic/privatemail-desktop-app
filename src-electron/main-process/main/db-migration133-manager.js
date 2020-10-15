@@ -1,23 +1,9 @@
-import moment from 'moment'
-
 import _ from 'lodash'
-
-import textUtils from '../../../src/utils/text.js'
 
 import dbManager from './db-manager.js'
 
 import contactsDbManager from '../contacts/db-manager.js'
 import contactsManager from '../contacts/manager.js'
-
-const log = require('electron-log')
-function _logMigrationError (sError, mData) {
-  if (mData) {
-    log.warn(sError)
-    log.warn(mData)
-  } else {
-    log.warn(sError)
-  }
-}
 
 export default {
   start: function (oDb) {
@@ -31,8 +17,16 @@ export default {
         let sApiHost = oUserData?.main?.apiHost
         let sAuthToken = oUserData?.user?.authToken
         contactsManager.refreshGroups(null, { sApiHost, sAuthToken })
-        contactsManager.refreshStorages(null, { sApiHost, sAuthToken })
-        resolve()
+        let oEvent = {
+          sender: {
+            send: (sEventName, { bHasChanges, sStorage, oError }) => {
+              if (sEventName === 'contacts-refresh' && (sStorage === 'personal' || oError)) {
+                resolve()
+              }
+            }
+          }
+        }
+        contactsManager.refreshStorages(oEvent, { sApiHost, sAuthToken }, )
       })
     })
   },

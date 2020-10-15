@@ -84,6 +84,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       }
       if (oResult['Contacts']) {
         contactsSettings.parse(oResult['Contacts'])
+        store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
       }
       if (oResult['OpenPgpWebclient']) {
         openpgpSettings.parse(oResult['OpenPgpWebclient'])

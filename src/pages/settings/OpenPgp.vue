@@ -303,6 +303,7 @@ import typesUtils from 'src/utils/types.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 import openpgpSettings from 'src/modules/openpgp/settings.js'
+import cOpenPgpKey from 'src/modules/openpgp/classes/cOpenPgpKey.js'
 
 export default {
   name: 'OpenPgpSettings',
@@ -452,7 +453,7 @@ export default {
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while removing external key'))
       }
-      this.getExternalKeys()
+      this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
     },
     onContactsAddExternalKey (event, { aResult, oError }) {
       if (_.isArray(aResult)) {
@@ -460,7 +461,7 @@ export default {
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while adding external keys'))
       }
-      this.getExternalKeys()
+      this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
     },
     confirmDeleteKey (oKey) {
       this.deleteKeyId = oKey.sId
@@ -558,22 +559,22 @@ export default {
                 aKeyUsersIds = oKey.getUserIds(),
                 sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0',
                 oKeyEmailParts = addressUtils.getEmailParts(sKeyEmail),
-                aSameUserKeys = OpenPgp.findKeysByEmails([oKeyEmailParts.email], oKey.isPublic()),
+                aSameUserKeys = OpenPgp.getOwnKeysByEmails([oKeyEmailParts.email], oKey.isPublic()),
                 bHasSameExternalKey = !!_.find(this.openPgpExternalKeys, (oExternalKey) => {
                   return oKey.isPublic() && oExternalKey.sEmail === oKeyEmailParts.email
                 }),
                 bHasSameKey = aSameUserKeys.length > 0 || bHasSameExternalKey,
                 bNoEmail = !addressUtils.isCorrectEmail(oKeyEmailParts.email),
                 iBitSize = oKey.primaryKey.params[0].byteLength() * 8,
-                oKeyData = {
-                  bPublic: oKey.isPublic(),
-                  sEmail: sKeyEmail,
+                oKeyData = new cOpenPgpKey({
                   sArmor: oKey.armor(),
-                  sId: 'key-' + Math.round(Math.random() * 1000000),
-                  sAddInfo: oKey.isPublic() ? '(' + iBitSize + '-bit, public)' : '(' + iBitSize + '-bit, private)',
-                  bChecked: !bHasSameKey && !bNoEmail,
+                  sEmail: sKeyEmail,
+                  bPublic: oKey.isPublic(),
                   bExternal: !OpenPgp.isOwnEmail(oKeyEmailParts.email)
-                }
+                })
+
+              oKeyData.sAddInfo = oKey.isPublic() ? '(' + iBitSize + '-bit, public)' : '(' + iBitSize + '-bit, private)'
+              oKeyData.bChecked = !bHasSameKey && !bNoEmail
 
               if (bNoEmail) {
                 aKeysBroken.push(oKeyData);
@@ -607,18 +608,14 @@ export default {
         if (oKey.bChecked) {
           if (oKey.bExternal) {
             let oKeyEmailParts = addressUtils.getEmailParts(oKey.sEmail)
+            // Parameters to send via Web API
             aExternalKeysParams.push({
               Email: oKeyEmailParts.email,
               Key: oKey.sArmor,
               Name: oKeyEmailParts.name
             })
           } else {
-            aKeys.push({
-              bPublic: oKey.bPublic,
-              sArmor: oKey.sArmor,
-              sId: 'key-' + Math.round(Math.random() * 1000000),
-              sEmail: oKey.sEmail,
-            })
+            aKeys.push(oKey)
           }
         }
       })
@@ -645,20 +642,18 @@ export default {
         OpenPgp.generateKey(this.sNewKeyEmail.value, this.newKeyPassword, this.newKeyLength, (oKeyPair) => {
           let aKeys = []
           if (oKeyPair.privateKeyArmored) {
-            aKeys.push({
-              bPublic: false,
+            aKeys.push(new cOpenPgpKey({
               sArmor: oKeyPair.privateKeyArmored,
-              sId: 'key-' + Math.round(Math.random() * 1000000),
               sEmail: this.sNewKeyEmail.value,
-            })
+              bPublic: false,
+            }))
           }
           if (oKeyPair.publicKeyArmored) {
-            aKeys.push({
-              bPublic: true,
+            aKeys.push(new cOpenPgpKey({
               sArmor: oKeyPair.publicKeyArmored,
-              sId: 'key-' + Math.round(Math.random() * 1000000),
               sEmail: this.sNewKeyEmail.value,
-            })
+              bPublic: true,
+            }))
           }
           if (aKeys.length > 0) {
             this.$store.commit('main/addOpenPgpKeys', aKeys)

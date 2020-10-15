@@ -75,7 +75,6 @@ export default {
       pgpSignEncryptDialog: false,
       signCheckbox: true,
       encryptCheckbox: true,
-      signPassword: '',
 
       selectedToAddr: null,
       toAddrOptions: [],
@@ -85,7 +84,7 @@ export default {
       bccAddrOptions: [],
 
       selfDestructingEmailDialog: false,
-      selfDestructingRecipient: '',
+      selfDestructingRecipient: null,
       selfDestructingRecipientOptions: [],
       selfDestructingLifetime: { label: '24 hrs', value: 24 },
       selfDestructingLifetimeOptions: [
@@ -95,7 +94,6 @@ export default {
       ],
       selfDestructingEncryptType: '',
       selfDestructingAddSignature: false,
-      selfDestructingSignaturePassword: '',
       selfDestructingShowPassword: '',
 
       showConfirmNotAllRecipientsEncryptSign: false,
@@ -177,9 +175,6 @@ export default {
       })
 
       return aEmails
-    },
-    openPgpExternalKeys () {
-      return this.$store.getters['contacts/getOpenPgpExternalKeys']
     },
     editorToolbar () {
       if (this.disableEditor) {
@@ -291,19 +286,17 @@ export default {
     getSelfDestructingRecipientOptionsOptions (sSearch, update, abort) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let sFromEmail = this.selectedIdentity ? this.selectedIdentity.value.sEmail : ''
-        let aPublicKeys = _.filter(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
+        let aPublicKeys = _.filter(OpenPgp.getAllKeys(), function (oKey) {
           let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
           return oKey.bPublic && oKeyEmail.email !== sFromEmail
         })
         let aEmailsToExclude = []
-        let sEncodedSearch = textUtils.encodeHtml(sSearch)
         let iExactlySearchIndex = -1
         let aOptions = []
         _.each(aContacts, function (oContactData, iIndex) {
           let oContact = new cContact(oContactData)
           if (oContact.ViewEmail !== sFromEmail) {
-            let sEncodedFull = textUtils.encodeHtml(oContact.getFull())
-            if (sEncodedSearch === sEncodedFull) {
+            if (sSearch === oContact.getFull()) {
               iExactlySearchIndex = iIndex
             }
             let bKey = !!_.find(aPublicKeys, function (oKey) {
@@ -311,43 +304,49 @@ export default {
               return oKeyEmail.email === oContact.ViewEmail
             })
             aOptions.push({
-              encodedLabel: sEncodedFull,
-              value: 'id_' + oContact.EntityId,
-              label: oContact.getFull(),
-              short: oContact.FullName || oContact.ViewEmail,
               email: oContact.ViewEmail,
-              key: bKey
+              full: oContact.getFull(),
+              hasPgpKey: !!oContact.PublicPgpKey,
+              label: oContact.getFull(),
+              pgpEncrypt: oContact.PgpEncryptMessages,
+              pgpSign: oContact.PgpSignMessages,
+              short: oContact.FullName || oContact.ViewEmail,
+              value: 'id_' + oContact.EntityId,
             })
             if (bKey) {
               aEmailsToExclude.push(oContact.ViewEmail)
             }
           }
         })
-        let bAddFirstOption = sEncodedSearch !== '' && iExactlySearchIndex === -1
+        let bAddFirstOption = sSearch !== '' && iExactlySearchIndex === -1
         if (bAddFirstOption) {
           let oEmailParts = addressUtils.getEmailParts(sSearch)
           aOptions.unshift({
-            encodedLabel: sEncodedSearch,
-            value: 'rand_' + Math.round(Math.random() * 10000),
-            label: sSearch,
-            short: oEmailParts.name || oEmailParts.email,
             email: oEmailParts.email,
-            key: !!_.find(aPublicKeys, function (oKey) {
+            full: sSearch,
+            hasPgpKey: !!_.find(aPublicKeys, function (oKey) {
               let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
               return oKeyEmail.email === oEmailParts.email
-            })
+            }),
+            label: sSearch,
+            pgpEncrypt: false,
+            pgpSign: false,
+            short: oEmailParts.name || oEmailParts.email,
+            value: 'rand_' + Math.round(Math.random() * 10000),
           })
         }
         _.each(aPublicKeys, (oKey) => {
           let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
           if (oKey.sEmail.indexOf(sSearch) !== -1 && _.indexOf(aEmailsToExclude, oKeyEmail.email) === -1) {
             aOptions.push({
-              encodedLabel: textUtils.encodeHtml(oKeyEmail.full),
-              value: 'keyid_' + oKey.sId,
-              label: oKeyEmail.full,
-              short: oKeyEmail.name || oKeyEmail.email,
               email: oKeyEmail.email,
-              key: true
+              full: oKeyEmail.full,
+              hasPgpKey: true,
+              label: oKeyEmail.full,
+              pgpEncrypt: false,
+              pgpSign: false,
+              short: oEmailParts.name || oEmailParts.email,
+              value: 'keyid_' + oKey.sId,
             })
           }
         })
@@ -447,29 +446,15 @@ export default {
     openPgpSignEncryptDialog () {
       this.signCheckbox = true
       this.encryptCheckbox = true
-      this.signPassword = ''
       this.pgpSignEncryptDialog = true
     },
     getPlainEditorText () {
       return textUtils.htmlToPlain(this.editortext)
     },
-    getPrivateCurrentKey () {
-      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
-      let aPrivateCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
-        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
-      })
-      if (aPrivateCurrentKey.length > 0) {
-        return aPrivateCurrentKey[0]
-      } else {
-        notification.showError('No private key found for ' + this.currentAccount.sEmail + ' user.')
-        return null
-      }
-    },
     async sign () {
-      let oPrivateCurrentKey = this.getPrivateCurrentKey()
+      let oPrivateCurrentKey = OpenPgp.getCurrentPrivateOwnKey()
       if (oPrivateCurrentKey) {
-        let { sSignedData, sError, oPgpResult } = await OpenPgp.sign(this.getPlainEditorText(), oPrivateCurrentKey, this.signPassword)
+        let { sSignedData, sError } = await OpenPgp.signText(this.getPlainEditorText(), oPrivateCurrentKey, this.askOpenPgpKeyPassword)
         if (sSignedData) {
           this.plainText = true
           this.disableEditor = true
@@ -483,13 +468,12 @@ export default {
       }
     },
     getRecipientPublicKeys () {
-      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
-      aOpenPgpKeys = aOpenPgpKeys.concat(this.openPgpExternalKeys)
-      let aRecipientPublicKeys = []
-      let aNotFoundEmails = []
-
+      let
+        aAllOpenPgpKeys = OpenPgp.getAllKeys(),
+        aRecipientPublicKeys = [],
+        aNotFoundEmails = []
       _.each(this.recipientEmails, function (sEmail) {
-        let oPublicKey = _.find(aOpenPgpKeys, function (oKey) {
+        let oPublicKey = _.find(aAllOpenPgpKeys, function (oKey) {
           let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
           return oKey.bPublic && oKeyEmail.email === sEmail
         })
@@ -510,7 +494,7 @@ export default {
     async encrypt () {
       let aRecipientPublicKeys = this.getRecipientPublicKeys()
       if (aRecipientPublicKeys.length > 0) {
-        let { sEncryptedData, sError, oPgpResult } = await OpenPgp.encrypt(this.getPlainEditorText(), aRecipientPublicKeys)
+        let { sEncryptedData, sError } = await OpenPgp.encryptText(this.getPlainEditorText(), aRecipientPublicKeys)
         if (sEncryptedData) {
           this.plainText = true
           this.disableEditor = true
@@ -525,10 +509,10 @@ export default {
       }
     },
     async signAndEncrypt () {
-      let oPrivateCurrentKey = this.getPrivateCurrentKey()
+      let oPrivateCurrentKey = OpenPgp.getCurrentPrivateOwnKey()
       let aRecipientPublicKeys = this.getRecipientPublicKeys()
       if (aRecipientPublicKeys.length > 0 && oPrivateCurrentKey) {
-        let { sEncryptedSignedData, sError, oPgpResult } = await OpenPgp.signAndEncrypt(this.getPlainEditorText(), aRecipientPublicKeys, oPrivateCurrentKey, this.signPassword)
+        let { sEncryptedSignedData, sError } = await OpenPgp.signAndEncryptText(this.getPlainEditorText(), aRecipientPublicKeys, oPrivateCurrentKey, this.askOpenPgpKeyPassword)
         if (sEncryptedSignedData) {
           this.plainText = true
           this.disableEditor = true
@@ -612,7 +596,7 @@ export default {
     encryptSignAndSend () {
       let
         sFromEmail = (this.selectedIdentity && (this.selectedIdentity.value instanceof cIdentity || this.selectedIdentity.value instanceof cAlias)) ? this.selectedIdentity.value.sEmail : '',
-        aRecipients = [].concat(this.selectedToAddr, this.selectedCcAddr, this.selectedBccAddr),//this.recipientEmails,
+        aRecipients = [].concat(this.selectedToAddr, this.selectedCcAddr, this.selectedBccAddr),
         oRecipients = this.groupAllRecipients(aRecipients)
 
       this.proceedEncryptSignRecipients = oRecipients
@@ -705,7 +689,7 @@ export default {
         sPassphrase = '',
         sError = ''
       if (oRecipients.signCount > 0 || oRecipients.signEncryptCount > 0) {
-        let oResult = await OpenPgp.getPrivateKeyAndPassphrase(sFromEmail, this.askOpenPgpKeyPassword)
+        let oResult = await OpenPgp.getPrivateOwnKeyAndPassphrase(sFromEmail, this.askOpenPgpKeyPassword)
         oPrivateKey = oResult?.oPrivateKey
         sPassphrase = oResult?.sPassphrase
         sError = oResult?.sError
@@ -749,7 +733,7 @@ export default {
         fContinueSending(oCloneSendParameters, oRecipients.signCount === 0 && oRecipients.encryptCount === 0 && oRecipients.signEncryptCount === 0)
       }
       if (oRecipients.signCount > 0) {
-        let { sSignedData, sError, oPgpResult } = await OpenPgp.sign(sData, oPrivateKey, sPassphrase)
+        let { sSignedData, sError } = await OpenPgp.signTextWithPassphrase(sData, oPrivateKey, sPassphrase)
         if (sSignedData) {
           let oCloneSendParameters = _.clone(oSendParameters)
           oCloneSendParameters.aRecipients = oRecipients.sign
@@ -764,7 +748,7 @@ export default {
         let aRecipientPublicKeys = _.filter(this.getRecipientPublicKeys(), (oPublicKey) => {
           return _.indexOf(oRecipients.encrypt, oPublicKey.sEmail) !== -1
         })
-        let { sEncryptedData, sError, oPgpResult } = await OpenPgp.encrypt(sData, aRecipientPublicKeys)
+        let { sEncryptedData, sError } = await OpenPgp.encryptText(sData, aRecipientPublicKeys)
         if (sEncryptedData) {
           let oCloneSendParameters = _.clone(oSendParameters)
           oCloneSendParameters.aRecipients = oRecipients.encrypt
@@ -779,7 +763,7 @@ export default {
         let aRecipientPublicKeys = _.filter(this.getRecipientPublicKeys(), (oPublicKey) => {
           return _.indexOf(oRecipients.signEncrypt, oPublicKey.sEmail) !== -1
         })
-        let { sEncryptedSignedData, sError, oPgpResult } = await OpenPgp.signAndEncrypt(sData, aRecipientPublicKeys, oPrivateKey, sPassphrase)
+        let { sEncryptedSignedData, sError } = await OpenPgp.signAndEncryptTextWithPassphrase(sData, aRecipientPublicKeys, oPrivateKey, sPassphrase)
         if (sEncryptedSignedData) {
           let oCloneSendParameters = _.clone(oSendParameters)
           oCloneSendParameters.aRecipients = oRecipients.signEncrypt
@@ -1152,17 +1136,7 @@ export default {
     },
     openSelfDestructingEmailDialog () {
       if (typesUtils.isNonEmptyArray(this.selectedToAddr)) {
-        let oRecipient = this.selectedToAddr[0]
-        this.selfDestructingRecipient = {
-          encodedLabel: oRecipient.label,
-          value: oRecipient.value,
-          label: oRecipient.full,
-          short: oRecipient.short,
-          email: oRecipient.email,
-          key: !!_.find(this.$store.getters['main/getOpenPgpKeys'], function (oKey) {
-            return oKey.bPublic && oKey.sEmail === oRecipient.email
-          })
-        }
+        this.selfDestructingRecipient = this.selectedToAddr[0]
       } else {
         this.selfDestructingRecipient = null
       }
@@ -1204,7 +1178,7 @@ export default {
         this.selfDestructingRecipient.email,
         this.selfDestructingEncryptType === 'password',
         this.selfDestructingAddSignature,
-        this.selfDestructingSignaturePassword
+        this.askOpenPgpKeyPassword,
       )
       if (typesUtils.isNonEmptyString(sError)) {
         notification.showError(sError)
@@ -1228,7 +1202,7 @@ export default {
           let sServerTimezone = coreSettings.sTimezone
           let sCurrentTime = moment.tz(new Date(), sBrowserTimezone || sServerTimezone).format('MMM D, YYYY HH:mm [GMT] ZZ')
 
-          if (this.selfDestructingRecipient.key) {//encrypt message with key
+          if (this.selfDestructingRecipient.hasPgpKey) {//encrypt message with key
             if (sPassword) {
               sBody = 'Hello,%BR%%EMAIL% user sent you a self-destructing secure email.%BR%You can read it by the following link: %URL%%BR%The message is password-protected. The password is: %PASSWORD%%BR%The message will be accessible for %HOURS% hours starting from %CREATING_TIME_GMT%'
               sBody = sBody

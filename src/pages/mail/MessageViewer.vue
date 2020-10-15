@@ -30,7 +30,6 @@
         <template v-if="isEcryptedMessage && !isDecrypted">
           <div class="q-mb-md hint">OpenPGP encrypted message.</div>
           <div class="row">
-            <q-input dense outlined type="password" label="Enter your password" v-model="privateKeyPass" />
             <q-btn unelevated outline color="primary" label="Click to decrypt" @click="decrypt" />
           </div>
         </template>
@@ -305,7 +304,6 @@ export default {
       replyText: '',
       draftUid: '',
       isSendingOrSaving: false,
-      privateKeyPass: '',
       from: [],
       to: [],
       cc: [],
@@ -463,7 +461,6 @@ export default {
     },
     clearAll: function () {
       this.clearQuickReplyData()
-      this.privateKeyPass = ''
       this.isVerified = false
       this.verifyReport = ''
       this.isDecrypted = false
@@ -496,6 +493,9 @@ export default {
       this.bExternalPicturesShown = false
       this.isEcryptedMessage = this.text.indexOf('-----BEGIN PGP MESSAGE-----') !== -1
       this.isSignedMessage = this.text.indexOf('-----BEGIN PGP SIGNED MESSAGE-----') !== -1
+      if (this.isEcryptedMessage || this.isSignedMessage) {
+        this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
+      }
 
       this.from = []
       this.to = []
@@ -564,49 +564,11 @@ export default {
       this.openCompose(oComposeReplyParams)
       this.clearQuickReplyData()
     },
-    getPublicCurrentKey () {
-      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
-      let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
-        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
-      })
-      if (aPublicCurrentKey.length > 0) {
-        return aPublicCurrentKey[0]
-      } else {
-        return null
-      }
-    },
-    getPublicKeyByEmail (sEmail) {
-      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
-      let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
-        
-        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return oKey.bPublic && oKeyEmail.email === sEmail
-      })
-      if (aPublicCurrentKey.length > 0) {
-        return aPublicCurrentKey[0]
-      } else {
-        return null
-      }
-    },
-    getPrivateCurrentKey () {
-      let aOpenPgpKeys = this.$store.getters['main/getOpenPgpKeys']
-      let aPublicCurrentKey = _.filter(aOpenPgpKeys, (oKey) => {
-        let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-        return !oKey.bPublic && oKeyEmail.email === this.currentAccount.sEmail
-      })
-      if (aPublicCurrentKey.length > 0) {
-        return aPublicCurrentKey[0]
-      } else {
-        notification.showError('No private key found for ' + this.currentAccount.sEmail + ' user.')
-        return null
-      }
-    },
     async verify () {
       let sFromEmail = messageUtils.getFirstAddressEmail(this.message.From)
-      let oPublicFromKey = this.getPublicKeyByEmail(sFromEmail)
+      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(sFromEmail)
       if (oPublicFromKey) {
-        let { sVerifiedData, sError, oPgpResult } = await OpenPgp.verify(this.message.PlainRaw, [oPublicFromKey])
+        let { sVerifiedData, sError } = await OpenPgp.verifyText(this.message.PlainRaw, [oPublicFromKey])
         if (sVerifiedData) {
           this.text = sVerifiedData.replace(/\r\n/g, '<br />').replace(/\n/g, '<br />')
           this.isVerified = true
@@ -619,12 +581,12 @@ export default {
       }
     },
     async decrypt () {
-      let oPrivateCurrentKey = this.getPrivateCurrentKey()
+      let oPrivateCurrentKey = OpenPgp.getCurrentPrivateOwnKey()
       let sFromEmail = messageUtils.getFirstAddressEmail(this.message.From)
-      let oPublicFromKey = this.getPublicKeyByEmail(sFromEmail)
+      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(sFromEmail)
       let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
       if (oPrivateCurrentKey) {
-        let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerify(this.message.PlainRaw, oPrivateCurrentKey, this.privateKeyPass, aPublicKeys)
+        let { sDecryptedData, sReport, sError } = await OpenPgp.decryptAndVerifyText(this.message.PlainRaw, oPrivateCurrentKey, aPublicKeys, this.askOpenPgpKeyPassword)
         if (sDecryptedData) {
           this.text = sDecryptedData.replace(/\r\n/g, '<br />').replace(/\n/g, '<br />')
           this.isDecrypted = true

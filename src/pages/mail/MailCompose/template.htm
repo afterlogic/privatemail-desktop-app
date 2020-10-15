@@ -42,24 +42,16 @@ transition-hide="slide-down"
 
       <q-item tag="label">
         <q-item-section side top>
-          <q-checkbox v-model="signCheckbox" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Sign</q-item-label>
-        </q-item-section>
-        <q-item-section side>
-          <q-input type="password" outlined dense v-model="signPassword" label="Password" @click.stop.prevent="signCheckbox = true" />
+          <q-checkbox v-model="signCheckbox" label="Sign" />
         </q-item-section>
       </q-item>
-      
+
       <q-item tag="label">
         <q-item-section side top>
-          <q-checkbox v-model="encryptCheckbox" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Encrypt</q-item-label>
+          <q-checkbox v-model="encryptCheckbox" label="Encrypt" />
         </q-item-section>
       </q-item>
+
       <q-card-actions align="right">
         <q-btn flat label="PGP Sign/Encrypt" color="primary" @click="signAndEncrypt" v-if="signCheckbox && encryptCheckbox" />
         <q-btn flat label="Sign" color="primary" @click="sign" v-if="signCheckbox && !encryptCheckbox" />
@@ -95,21 +87,9 @@ transition-hide="slide-down"
             @filter="getSelfDestructingRecipientOptionsOptions"
             @input-value="checkSelfDestructingRecipient"
           >
-            <template v-if="selfDestructingRecipient && selfDestructingRecipient.key" v-slot:append>
+            <template v-if="selfDestructingRecipient && selfDestructingRecipient.hasPgpKey" v-slot:append>
               <q-icon color="primary" name="vpn_key" />
             </template>
-            <!-- <template v-slot:selected>
-              <span>
-                <q-item v-if="selfDestructingRecipient">
-                  <q-item-section class="non-selectable">
-                    <q-item-label v-html="selfDestructingRecipient.label" />
-                  </q-item-section>
-                  <q-item-section avatar v-if="selfDestructingRecipient.key">
-                    <q-icon color="primary" name="vpn_key" />
-                  </q-item-section>
-                </q-item>
-              </span>
-            </template> -->
             <template v-slot:no-option>
               <q-item>
                 <q-item-section class="text-grey">
@@ -120,9 +100,9 @@ transition-hide="slide-down"
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                 <q-item-section class="non-selectable">
-                  <q-item-label v-html="scope.opt.encodedLabel" />
+                  <q-item-label v-html="scope.opt.label" />
                 </q-item-section>
-                <q-item-section avatar v-if="scope.opt.key">
+                <q-item-section avatar v-if="scope.opt.hasPgpKey">
                   <q-icon color="primary" name="vpn_key" />
                 </q-item-section>
               </q-item>
@@ -134,8 +114,8 @@ transition-hide="slide-down"
       <q-item class="non-selectable" style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''">
         <q-item-section>
           <q-item-label caption v-if="!selfDestructingRecipient">Please select recipient first.</q-item-label>
-          <q-item-label caption v-if="selfDestructingRecipient && !selfDestructingRecipient.key">Selected recipient has no PGP public key. The key based encryption is not allowed.</q-item-label>
-          <q-item-label caption v-if="selfDestructingRecipient && selfDestructingRecipient.key">Selected recipient has PGP public key. The message can be encrypted using this key.</q-item-label>
+          <q-item-label caption v-if="selfDestructingRecipient && !selfDestructingRecipient.hasPgpKey">Selected recipient has no PGP public key. The key based encryption is not allowed.</q-item-label>
+          <q-item-label caption v-if="selfDestructingRecipient && selfDestructingRecipient.hasPgpKey">Selected recipient has PGP public key. The message can be encrypted using this key.</q-item-label>
         </q-item-section>
       </q-item>
 
@@ -161,7 +141,7 @@ transition-hide="slide-down"
           <q-item-label>Encryption type:</q-item-label>
         </q-item-section>
         <q-item-section side style="flex-direction: row; justify-content: flex-start;" class="q-gutter-sm">
-          <q-radio :disable="!selfDestructingRecipient || !selfDestructingRecipient.key" v-model="selfDestructingEncryptType" val="key" label="Key based" />
+          <q-radio :disable="!selfDestructingRecipient || !selfDestructingRecipient.hasPgpKey" v-model="selfDestructingEncryptType" val="key" label="Key based" />
           <q-radio :disable="!selfDestructingRecipient" v-model="selfDestructingEncryptType" val="password" label="Password based" />
         </q-item-section>
       </q-item>
@@ -178,12 +158,6 @@ transition-hide="slide-down"
         </q-item-section>
         <q-item-section class="non-selectable">
           <q-item-label>Add digital signature</q-item-label>
-        </q-item-section>
-        <q-item-section v-if="selfDestructingAddSignature" side>
-          <q-item-label>Password:</q-item-label>
-        </q-item-section>
-        <q-item-section v-if="selfDestructingAddSignature" side>
-          <q-input type="password" outlined dense v-model="selfDestructingSignaturePassword" />
         </q-item-section>
       </q-item>
       <q-item style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''" class="non-selectable">

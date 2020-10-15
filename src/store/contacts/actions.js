@@ -6,6 +6,7 @@ import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+import cOpenPgpKey from 'src/modules/openpgp/classes/cOpenPgpKey.js'
 
 import CContact from '../../modules/contacts/classes/CContact'
 import CGroup from '../../modules/contacts/classes/CGroup'
@@ -66,14 +67,14 @@ ipcRenderer.on('contacts-get-external-keys', async (oEvent, { aKeysData, oError 
       if (typesUtils.isNonEmptyArray(aKeys)) {
         let aKeyUsersIds = aKeys[0].getUserIds()
         let sKeyEmail = aKeyUsersIds.length > 0 ? aKeyUsersIds[0] : '0'
-        aOpenPgpExternalKeys.push({
-          bPublic: true,
-          bExternal: true,
+        let oOpenPgpKey = new cOpenPgpKey({
           sArmor: oKeyData.PublicPgpKey,
           sEmail: oKeyData.Email,
-          sFullEmail: sKeyEmail,
-          sId: 'key-' + Math.round(Math.random() * 1000000),
+          bPublic: true,
+          bExternal: true,
         })
+        oOpenPgpKey.sFullEmail = sKeyEmail
+        aOpenPgpExternalKeys.push(oOpenPgpKey)
       }
     }
     store.commit('contacts/setOpenPgpExternalKeys', { aOpenPgpExternalKeys })

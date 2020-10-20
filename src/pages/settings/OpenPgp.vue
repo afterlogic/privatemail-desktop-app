@@ -88,7 +88,7 @@
     </q-list>
     <q-separator spaced />
     <div class="q-pa-md q-gutter-sm">
-      <q-btn unelevated color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys)" :disable="openPgpPublicKeys.length === 0" />
+      <q-btn unelevated color="primary" label="Export all public keys" @click="viewKeys(openPgpPublicKeys.concat(openPgpExternalKeys))" :disable="openPgpPublicKeys.length === 0 && openPgpExternalKeys.length === 0" />
       <q-btn unelevated color="primary" label="Import key" @click="openImportKey" />
       <q-btn unelevated color="primary" v-if="isGenerating" label="Generating new key..." />
       <q-btn unelevated color="primary" v-if="!isGenerating" label="Generate new key" @click="openGenerateNewKey" :disable="!allowGenerateNewKey" />

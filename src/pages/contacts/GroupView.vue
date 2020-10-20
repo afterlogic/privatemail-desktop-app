@@ -175,8 +175,8 @@ export default {
           if (typesUtils.isNonEmptyString(oContact.ViewEmail)) {
             aToContacts.push({
               full: oContact.getFull(),
-              email: oContact.ViewEmail,
-              name: oContact.FullName,
+              email: _.trim(oContact.ViewEmail),
+              name: _.trim(oContact.FullName),
               id: oContact.EntityId,
               hasPgpKey: !!oContact.PublicPgpKey,
               pgpEncrypt: oContact.PgpEncryptMessages,

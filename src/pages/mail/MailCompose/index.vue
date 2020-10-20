@@ -283,6 +283,34 @@ export default {
         this.selfDestructingRecipient = null
       }
     },
+    getOptionFromContactData (oContactData) {
+      return {
+        full: oContactData.full,
+        label: oContactData.full,
+        value: 'id_' + oContactData.id,
+        short: oContactData.name || oContactData.email,
+        email: oContactData.email,
+        hasPgpKey: !!oContactData.hasPgpKey,
+        pgpEncrypt: !!oContactData.pgpEncrypt,
+        pgpSign: !!oContactData.pgpSign,
+      }
+    },
+    getOptionFromContact (oContact) {
+      let
+        sName = _.trim(oContact.FullName),
+        sEmail = _.trim(oContact.ViewEmail)
+
+      return {
+        full: oContact.getFull(),
+        label: oContact.getFull(),
+        value: 'id_' + oContact.EntityId,
+        short: sName || sEmail,
+        email: sEmail,
+        hasPgpKey: !!oContact.PublicPgpKey,
+        pgpEncrypt: !!oContact.PgpEncryptMessages,
+        pgpSign: !!oContact.PgpSignMessages,
+      }
+    },
     getSelfDestructingRecipientOptionsOptions (sSearch, update, abort) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let sFromEmail = this.selectedIdentity ? this.selectedIdentity.value.sEmail : ''
@@ -293,7 +321,7 @@ export default {
         let aEmailsToExclude = []
         let iExactlySearchIndex = -1
         let aOptions = []
-        _.each(aContacts, function (oContactData, iIndex) {
+        _.each(aContacts, (oContactData, iIndex) => {
           let oContact = new cContact(oContactData)
           if (oContact.ViewEmail !== sFromEmail) {
             if (sSearch === oContact.getFull()) {
@@ -303,16 +331,7 @@ export default {
               let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
               return oKeyEmail.email === oContact.ViewEmail
             })
-            aOptions.push({
-              email: oContact.ViewEmail,
-              full: oContact.getFull(),
-              hasPgpKey: !!oContact.PublicPgpKey,
-              label: oContact.getFull(),
-              pgpEncrypt: oContact.PgpEncryptMessages,
-              pgpSign: oContact.PgpSignMessages,
-              short: oContact.FullName || oContact.ViewEmail,
-              value: 'id_' + oContact.EntityId,
-            })
+            aOptions.push(this.getOptionFromContact(oContact))
             if (bKey) {
               aEmailsToExclude.push(oContact.ViewEmail)
             }
@@ -376,21 +395,12 @@ export default {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let iExactlySearchIndex = -1
         let aOptions = []
-        _.each(aContacts, function (oContactData, iIndex) {
+        _.each(aContacts, (oContactData, iIndex) => {
           let oContact = new cContact(oContactData)
           if (sSearch === oContact.getFull()) {
             iExactlySearchIndex = iIndex
           }
-          aOptions.push({
-            label: oContact.getFull(),
-            value: 'id_' + oContact.EntityId,
-            full: oContact.getFull(),
-            short: oContact.FullName || oContact.ViewEmail,
-            email: oContact.ViewEmail,
-            hasPgpKey: !!oContact.PublicPgpKey,
-            pgpEncrypt: oContact.PgpEncryptMessages,
-            pgpSign: oContact.PgpSignMessages,
-          })
+          aOptions.push(this.getOptionFromContact(oContact))
         })
         let bAddFirstOption = sSearch !== '' && iExactlySearchIndex === -1
         if (bAddFirstOption) {
@@ -851,49 +861,22 @@ export default {
       } : null
       this.setSelectedIdentity()
       if (typesUtils.isNonEmptyArray(aToContacts)) {
-        this.selectedToAddr = _.map(aToContacts, function (oContactData) {
-          return {
-            full: oContactData.full,
-            label: textUtils.encodeHtml(oContactData.full),
-            value: 'id_' + oContactData.id,
-            short: oContactData.name || oContactData.email,
-            email: oContactData.email,
-            hasPgpKey: !!oContactData.hasPgpKey,
-            pgpEncrypt: !!oContactData.pgpEncrypt,
-            pgpSign: !!oContactData.pgpSign,
-          }
+        this.selectedToAddr = _.map(aToContacts, (oContactData) => {
+          return this.getOptionFromContactData(oContactData)
         })
       } else {
         this.selectedToAddr = []
       }
       if (typesUtils.isNonEmptyArray(aCcContacts)) {
-        this.selectedCcAddr = _.map(aCcContacts, function (oContactData) {
-          return {
-            full: oContactData.full,
-            label: textUtils.encodeHtml(oContactData.full),
-            value: 'id_' + oContactData.id,
-            short: oContactData.name || oContactData.email,
-            email: oContactData.email,
-            hasPgpKey: !!oContactData.hasPgpKey,
-            pgpEncrypt: !!oContactData.pgpEncrypt,
-            pgpSign: !!oContactData.pgpSign,
-          }
+        this.selectedCcAddr = _.map(aCcContacts, (oContactData) => {
+          return this.getOptionFromContactData(oContactData)
         })
       } else {
         this.selectedCcAddr = []
       }
       if (typesUtils.isNonEmptyArray(aBccContacts)) {
-        this.selectedBccAddr = _.map(aBccContacts, function (oContactData) {
-          return {
-            full: oContactData.full,
-            label: textUtils.encodeHtml(oContactData.full),
-            value: 'id_' + oContactData.id,
-            short: oContactData.name || oContactData.email,
-            email: oContactData.email,
-            hasPgpKey: !!oContactData.hasPgpKey,
-            pgpEncrypt: !!oContactData.pgpEncrypt,
-            pgpSign: !!oContactData.pgpSign,
-          }
+        this.selectedBccAddr = _.map(aBccContacts, (oContactData) => {
+          return this.getOptionFromContactData(oContactData)
         })
       } else {
         this.selectedBccAddr = []

@@ -257,8 +257,8 @@ export default {
     emailToContact () {
       let aToContacts = [{
         full: this.contact.getFull(),
-        email: this.contact.ViewEmail,
-        name: this.contact.FullName,
+        email: _.trim(this.contact.ViewEmail),
+        name: _.trim(this.contact.FullName),
         id: this.contact.EntityId,
         hasPgpKey: !!this.contact.PublicPgpKey,
         pgpEncrypt: this.contact.PgpEncryptMessages,

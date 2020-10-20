@@ -1,29 +1,6 @@
 <template>
   <div id="q-app">
-    <template>
-    <q-dialog v-model="enterOpenPgpKeyPassword" persistent>
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Enter password</div>
-        </q-card-section>
-        <q-card-section>
-          <span>Enter password for {{ openPgpKeyFullEmail }} OpenPGP key</span>
-        </q-card-section>
-        <q-item>
-          <q-item-section side>
-            <q-item-label>OpenPGP key password</q-item-label>
-          </q-item-section>
-          <q-item-section>
-            <q-input type="password" outlined dense v-model="openPgpKeyPassword" />
-          </q-item-section>
-        </q-item>
-        <q-card-actions align="right">
-          <q-btn flat label="Ok" color="primary" @click="setOpenPgpKeyPassword" v-close-popup />
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-    </template>
+    <AskOpenPgpKeyPassword ref="AskOpenPgpKeyPassword" />
     <MessageCompose ref="compose" />
     <router-view />
   </div>
@@ -34,6 +11,7 @@ import Vue from 'vue'
 import { ipcRenderer } from 'electron'
 import theming from './css/theming'
 import MessageCompose from "./pages/mail/MailCompose"
+import AskOpenPgpKeyPassword from "./pages/AskOpenPgpKeyPassword"
 
 Vue.mixin({
   methods: {
@@ -58,8 +36,13 @@ Vue.mixin({
       }
     },
     askOpenPgpKeyPassword (sFullEmail, fCallback) {
-      let oAppComponent = this._getParentComponent('App')
-      oAppComponent.askOpenPgpKeyPassword(sFullEmail, fCallback)
+      let
+        oAppComponent = this._getParentComponent('App'),
+        oAskOpenPgpKeyPasswordComponent = oAppComponent ? oAppComponent.$refs.AskOpenPgpKeyPassword : null
+
+      if (oAskOpenPgpKeyPasswordComponent) {
+        oAskOpenPgpKeyPasswordComponent.askOpenPgpKeyPassword(sFullEmail, fCallback)
+      }
     },
   }
 })
@@ -69,15 +52,7 @@ export default {
 
   components: {
     MessageCompose,
-  },
-
-  data () {
-    return {
-      enterOpenPgpKeyPassword: false,
-      openPgpKeyFullEmail: '',
-      openPgpKeyPassword: '',
-      openPgpKeyCallback: null,
-    }
+    AskOpenPgpKeyPassword,
   },
 
   computed: {
@@ -118,17 +93,6 @@ export default {
         theming.setLightThemeColors()
       } else {
         theming.setDarkhemeColors()
-      }
-    },
-    askOpenPgpKeyPassword (sFullEmail, fCallback) {
-      this.enterOpenPgpKeyPassword = true
-      this.openPgpKeyFullEmail = sFullEmail
-      this.openPgpKeyPassword = ''
-      this.openPgpKeyCallback = fCallback || null
-    },
-    setOpenPgpKeyPassword () {
-      if (_.isFunction(this.openPgpKeyCallback)) {
-        this.openPgpKeyCallback(this.openPgpKeyPassword)
       }
     },
   },

@@ -477,6 +477,28 @@ export default {
         }
       }
     },
+    getRecipientAndSenderPublicKeys () {
+      let
+        aRecipientPublicKeys = this.getRecipientPublicKeys(),
+        oSenderPublicKey = this.getSenderPublicKey()
+
+      if (oSenderPublicKey && aRecipientPublicKeys.length > 0) {
+        // Add sender key if possible. It allows sender to decrypt messages in Sent and Draft folders
+        return aRecipientPublicKeys.concat([oSenderPublicKey])
+      }
+
+      return aRecipientPublicKeys
+    },
+    getSenderPublicKey () {
+      let
+        aAllOpenPgpKeys = OpenPgp.getAllKeys(),
+        sSenderEmail = (this.selectedIdentity && this.selectedIdentity.value) ? this.selectedIdentity.value.sEmail : this.currentAccount.sEmail,
+        oSenderPublicKey = _.find(aAllOpenPgpKeys, function (oKey) {
+          let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+          return oKey.bPublic && oKeyEmail.email === sSenderEmail
+        })
+      return oSenderPublicKey
+    },
     getRecipientPublicKeys () {
       let
         aAllOpenPgpKeys = OpenPgp.getAllKeys(),
@@ -502,7 +524,7 @@ export default {
       }
     },
     async encrypt () {
-      let aRecipientPublicKeys = this.getRecipientPublicKeys()
+      let aRecipientPublicKeys = this.getRecipientAndSenderPublicKeys()
       if (aRecipientPublicKeys.length > 0) {
         let { sEncryptedData, sError } = await OpenPgp.encryptText(this.getPlainEditorText(), aRecipientPublicKeys)
         if (sEncryptedData) {
@@ -520,7 +542,7 @@ export default {
     },
     async signAndEncrypt (sPassphrase) {
       let oPrivateCurrentKey = OpenPgp.getCurrentPrivateOwnKey()
-      let aRecipientPublicKeys = this.getRecipientPublicKeys()
+      let aRecipientPublicKeys = this.getRecipientAndSenderPublicKeys()
       if (aRecipientPublicKeys.length > 0 && oPrivateCurrentKey) {
         let oResult = null
         if (typesUtils.isNonEmptyString(sPassphrase)) { // it can be event if called from HTML
@@ -764,6 +786,10 @@ export default {
         let aRecipientPublicKeys = _.filter(this.getRecipientPublicKeys(), (oPublicKey) => {
           return _.indexOf(oRecipients.encrypt, oPublicKey.sEmail) !== -1
         })
+        let oSenderPublicKey = this.getSenderPublicKey()
+        if (oSenderPublicKey) {
+          aRecipientPublicKeys.push(oSenderPublicKey)
+        }
         let { sEncryptedData, sError } = await OpenPgp.encryptText(sData, aRecipientPublicKeys)
         if (sEncryptedData) {
           let oCloneSendParameters = _.clone(oSendParameters)
@@ -779,6 +805,10 @@ export default {
         let aRecipientPublicKeys = _.filter(this.getRecipientPublicKeys(), (oPublicKey) => {
           return _.indexOf(oRecipients.signEncrypt, oPublicKey.sEmail) !== -1
         })
+        let oSenderPublicKey = this.getSenderPublicKey()
+        if (oSenderPublicKey) {
+          aRecipientPublicKeys.push(oSenderPublicKey)
+        }
         let { sEncryptedSignedData, sError } = await OpenPgp.signAndEncryptTextWithPassphrase(sData, aRecipientPublicKeys, oPrivateKey, sPassphrase)
         if (sEncryptedSignedData) {
           let oCloneSendParameters = _.clone(oSendParameters)

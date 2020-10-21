@@ -28,8 +28,9 @@
       </div>
       <div class="q-pa-md pgp-notification-panel non-selectable" v-if="isEcryptedMessage || isSignedMessage" :class="{'success-report': isDecrypted || isVerified}">
         <template v-if="isEcryptedMessage && !isDecrypted">
-          <div class="q-mb-md hint">OpenPGP encrypted message.</div>
-          <div class="row">
+          <div class="q-mb-md hint" v-if="!oOpenPgpgKeyToDecrypt">The message is encrypted. But there is no appropriate PGP private key in OpenPGP section in Settings.</div>
+          <div class="q-mb-md hint" v-if="oOpenPgpgKeyToDecrypt">OpenPGP encrypted message.</div>
+          <div class="row" v-if="oOpenPgpgKeyToDecrypt">
             <q-btn unelevated outline color="primary" label="Click to decrypt" @click="decrypt" />
           </div>
         </template>
@@ -311,6 +312,7 @@ export default {
       text: '',
       bExternalPicturesShown: false,
       isEcryptedMessage: false,
+      oOpenPgpgKeyToDecrypt: null,
       isSignedMessage: false,
       isVerified: false,
       verifyReport: '',
@@ -466,6 +468,12 @@ export default {
       this.isDecrypted = false
       this.decryptReport = ''
     },
+    populateOpenPgpgKeyToDecrypt: async function () {
+      this.oOpenPgpgKeyToDecrypt = null
+      if (this.isEcryptedMessage) {
+        this.oOpenPgpgKeyToDecrypt = await OpenPgp.getEncryptionKeyFromArmoredMessage(this.message.PlainRaw)
+      }
+    },
     populateMessageData: function () {
       let sText = ''
       this.aAttachments = []
@@ -496,6 +504,7 @@ export default {
       if (this.isEcryptedMessage || this.isSignedMessage) {
         this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
       }
+      this.populateOpenPgpgKeyToDecrypt()
 
       this.from = []
       this.to = []
@@ -581,7 +590,7 @@ export default {
       }
     },
     async decrypt () {
-      let oPrivateCurrentKey = OpenPgp.getCurrentPrivateOwnKey()
+      let oPrivateCurrentKey = this.oOpenPgpgKeyToDecrypt ? this.oOpenPgpgKeyToDecrypt : OpenPgp.getCurrentPrivateOwnKey()
       let sFromEmail = messageUtils.getFirstAddressEmail(this.message.From)
       let oPublicFromKey = OpenPgp.getPublicKeyByEmail(sFromEmail)
       let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []

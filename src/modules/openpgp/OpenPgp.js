@@ -231,6 +231,63 @@ COpenPgp.prototype.verifyKeyPassword = async function (oKey, sPassphrase) {
 }
 
 /**
+ * @param {String} sKeyId
+ * @param {Boolean} bPublic
+ * @return {Object|null}
+ */
+COpenPgp.prototype.findKeyById = async function (sKeyId, bPublic) {
+  bPublic = !!bPublic
+  sKeyId = sKeyId.toLowerCase()
+
+  let
+    aAllOpenPgpKeys = this.getAllKeys(),
+    oFoundOpenPgpKey = null
+
+  for (let oOpenPgpKey of aAllOpenPgpKeys) {
+    if (oOpenPgpKey && bPublic === oOpenPgpKey.bPublic) {
+      let
+        aNativeKeys = await this.convertToNativeKeys([oOpenPgpKey]),
+        aKeysIds = typesUtils.isNonEmptyArray(aNativeKeys) ? aNativeKeys[0].getKeyIds() : []
+
+      if (typesUtils.isNonEmptyArray(aKeysIds)) {
+        let bFoundKeyId = !!_.find(aKeysIds, (oKeyId) => {
+          return oKeyId && oKeyId.toHex && sKeyId === oKeyId.toHex().toLowerCase()
+        })
+        if (bFoundKeyId) {
+          oFoundOpenPgpKey = oOpenPgpKey
+          break
+        }
+      }
+    }
+  }
+
+  return oFoundOpenPgpKey
+}
+
+/**
+ * @param {String} sArmoredMessage 
+ * @retunr {Object|null}
+ */
+COpenPgp.prototype.getEncryptionKeyFromArmoredMessage = async function (sArmoredMessage) {
+  let
+    oMessage = await openpgp.message.readArmored(sArmoredMessage),
+    aEncryptionKeys = oMessage.getEncryptionKeyIds(),
+    oEncryptionKey = null
+
+  if (aEncryptionKeys.length > 0) {
+    for (let oKeyId of aEncryptionKeys) {
+      let oKey = await this.findKeyById(oKeyId.toHex(), false)
+      if (oKey) {
+        oEncryptionKey = oKey
+        break
+      }
+    }
+  }
+
+  return oEncryptionKey
+}
+
+/**
  * @param {String} sData
  * @param {Object} oPrivateKey
  * @param {Array} aPublicKeys

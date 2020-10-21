@@ -557,11 +557,15 @@ COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsE
       if (oPrivateUserKey) {
         let sPassphrase = oPrivateUserKey.getPassphrase()
         if (sPassphrase === null) {
-          fAskForKeyPassword(oPrivateUserKey.sEmail, (sPassphrase) => {
-            resolve(this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase))
+          fAskForKeyPassword(oPrivateUserKey.sEmail, async (sPassphrase) => {
+            let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
+            oResult.sPassphrase = sPassphrase
+            resolve(oResult)
           })
         } else {
-          resolve(this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase))
+          let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
+          oResult.sPassphrase = sPassphrase
+          resolve(oResult)
         }
       } else {
         return { sError: 'No private key found for ' + sUserEmail + ' user.' }

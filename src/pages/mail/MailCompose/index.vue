@@ -518,11 +518,17 @@ export default {
         }
       }
     },
-    async signAndEncrypt () {
+    async signAndEncrypt (sPassphrase) {
       let oPrivateCurrentKey = OpenPgp.getCurrentPrivateOwnKey()
       let aRecipientPublicKeys = this.getRecipientPublicKeys()
       if (aRecipientPublicKeys.length > 0 && oPrivateCurrentKey) {
-        let { sEncryptedSignedData, sError } = await OpenPgp.signAndEncryptText(this.getPlainEditorText(), aRecipientPublicKeys, oPrivateCurrentKey, this.askOpenPgpKeyPassword)
+        let oResult = null
+        if (typesUtils.isNonEmptyString(sPassphrase)) { // it can be event if called from HTML
+          oResult = await OpenPgp.signAndEncryptTextWithPassphrase(this.getPlainEditorText(), aRecipientPublicKeys, oPrivateCurrentKey, sPassphrase)
+        } else {
+          oResult = await OpenPgp.signAndEncryptText(this.getPlainEditorText(), aRecipientPublicKeys, oPrivateCurrentKey, this.askOpenPgpKeyPassword)
+        }
+        let { sEncryptedSignedData, sError } = oResult
         if (sEncryptedSignedData) {
           this.plainText = true
           this.disableEditor = true
@@ -1155,7 +1161,7 @@ export default {
     async sendSelfDestructingSecureEmail () {
       this.isEncrypting = true
       let sUserEmail = this.currentAccount ? this.currentAccount.sEmail : ''
-      const { sEncryptedData, sPassword, sError } = await OpenPgp.encryptData(
+      const { sEncryptedData, sPassword, sError, sPassphrase } = await OpenPgp.encryptData(
         this.getPlainEditorText(),
         sUserEmail,
         this.selfDestructingRecipient.email,
@@ -1208,7 +1214,7 @@ export default {
             this.editortext = sBody
             this.selectedToAddr = [this.selfDestructingRecipient]
             if (this.selfDestructingAddSignature) {
-              this.signAndEncrypt()
+              this.signAndEncrypt(sPassphrase)
             } else {
               this.encrypt()
             }

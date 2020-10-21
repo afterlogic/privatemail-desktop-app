@@ -51,7 +51,7 @@ export default {
         sSentFolder = oParameters.DraftInfo[2]
       }
 
-      if (bAddToSentFolder && !typesUtils.isNonEmptyString(sConfirmFolder) || !_.isFinite(iConfirmUid)) {
+      if (bAddToSentFolder && (!typesUtils.isNonEmptyString(sConfirmFolder) || !_.isFinite(iConfirmUid))) {
         oParameters.SentFolder = sSentFolder
       }
       if (oParameters.DraftUid !== '') {

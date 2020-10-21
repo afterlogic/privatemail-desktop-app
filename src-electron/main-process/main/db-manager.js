@@ -6,7 +6,7 @@ import cryptoHelper from '../utils/crypto-helper.js'
 
 import dbMigration122Manager from './db-migration122-manager.js'
 import dbMigration131Manager from './db-migration131-manager.js'
-import dbMigration133Manager from './db-migration133-manager.js'
+import dbMigration140Manager from './db-migration140-manager.js'
 
 import typesUtils from '../../../src/utils/types.js'
 
@@ -69,9 +69,9 @@ let aVersionChangesData = [
     },
   },
   {
-    Version: '1.3.3',
+    Version: '1.4.0',
     Handler: async function () {
-      await dbMigration133Manager.start(oDb).then(
+      await dbMigration140Manager.start(oDb).then(
         () => {},
         (mResult) => {
           if (mResult.sError || mResult.oError) {

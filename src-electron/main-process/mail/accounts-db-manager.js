@@ -14,6 +14,7 @@ let aAccountDbMap = [
   {Name: 'CanBeUsedToAuthorize', DbName: 'can_be_used_to_authorize', Type: 'INTEGER', IsBool: true},
   {Name: 'Email', DbName: 'email', Type: 'TEXT'},
   {Name: 'EntityId', DbName: 'entity_id', Type: 'INTEGER'},
+  {Name: 'Extend', DbName: 'extend', Type: 'TEXT', IsObject: true},
   {Name: 'FoldersOrder', DbName: 'folders_order', Type: 'TEXT', IsArray: true},
   {Name: 'FriendlyName', DbName: 'friendly_name', Type: 'TEXT'},
   {Name: 'IdUser', DbName: 'id_user', Type: 'INTEGER'},
@@ -21,6 +22,7 @@ let aAccountDbMap = [
   {Name: 'IsDisabled', DbName: 'is_disabled', Type: 'INTEGER', IsBool: true},
   {Name: 'SaveRepliesToCurrFolder', DbName: 'save_replies_to_curr_folder', Type: 'INTEGER', IsBool: true},
 
+  {Name: 'ServerAllowEditDomains', DbName: 'server_allow_edit_domains', Type: 'INTEGER', IsBool: true},
   {Name: 'ServerDomains', DbName: 'server_domains', Type: 'TEXT'},
   {Name: 'ServerEnableSieve', DbName: 'server_enable_sieve', Type: 'INTEGER', IsBool: true},
   {Name: 'ServerEnableThreading', DbName: 'server_enable_threading', Type: 'INTEGER', IsBool: true},

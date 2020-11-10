@@ -7,6 +7,7 @@ import cryptoHelper from '../utils/crypto-helper.js'
 import dbMigration122Manager from './db-migration122-manager.js'
 import dbMigration131Manager from './db-migration131-manager.js'
 import dbMigration140Manager from './db-migration140-manager.js'
+import dbMigration141Manager from './db-migration141-manager.js'
 
 import typesUtils from '../../../src/utils/types.js'
 
@@ -72,6 +73,32 @@ let aVersionChangesData = [
     Version: '1.4.0',
     Handler: async function () {
       await dbMigration140Manager.start(oDb).then(
+        () => {},
+        (mResult) => {
+          if (mResult.sError || mResult.oError) {
+            let sError = mResult.sError || ''
+            if (sError) {
+              if (mResult.oError) {
+                sError += ' (' + mResult.oError.message + ')'
+              }
+            } else if (mResult.oError) {
+              sError += mResult.oError.message
+            }
+            oMigrationStatus.sError = sError
+          } else {
+            oMigrationStatus.sError = mResult.message
+          }
+          if (oMainWindow) {
+            oMainWindow.webContents.send('main-migration', oMigrationStatus)
+          }
+        },
+      )
+    },
+  },
+  {
+    Version: '1.4.1',
+    Handler: async function () {
+      await dbMigration141Manager.start(oDb).then(
         () => {},
         (mResult) => {
           if (mResult.sError || mResult.oError) {

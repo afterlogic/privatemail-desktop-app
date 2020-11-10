@@ -731,5 +731,22 @@ export default {
         },
       })
     })
+
+    ipcMain.on('mail-change-password', (oEvent, { iAccountId, sCurrentPassword, sNewPassword, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'ChangePassword',
+        oParameters: {
+          AccountId: iAccountId,
+          CurrentPassword: sCurrentPassword,
+          NewPassword: sNewPassword,
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-change-password', { bResult, oError })
+        },
+      })
+    })
   },
 }

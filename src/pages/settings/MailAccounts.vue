@@ -118,9 +118,11 @@
           </q-item>
         </q-list>
         <q-separator spaced />
-        <div class="q-pa-md">
+        <div class="q-pa-md row ">
           <q-btn unelevated color="primary" v-if="bAccountSaving" label="Saving..." />
           <q-btn unelevated color="primary" v-if="!bAccountSaving" label="Save" @click="saveAccountSettings" />
+          <q-space />
+          <q-btn unelevated color="primary" v-if="bAllowChangePasswordOnMailServer" label="Change Password" @click="openChangePassword" />
         </div>
       </q-tab-panel>
 
@@ -457,6 +459,60 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="bChangeAccountPasswordDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6"></div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-section>
+            <q-item-label>Current password</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" type="password" v-model="sChangePasswordCurrent" v-on:keyup.enter="changePassword" />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>New password</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" type="password" v-model="sChangePasswordNew" v-on:keyup.enter="changePassword" />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-item-label>Confirm new password</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense class="input-size" type="password" v-model="sChangePasswordConfirmNew" v-on:keyup.enter="changePassword" />
+          </q-item-section>
+        </q-item>
+        <q-card-actions align="right">
+          <q-btn flat label="Saving..." color="primary" v-if="bChangingPassword" />
+          <q-btn flat label="Save" color="primary" @click="changePassword" v-if="!bChangingPassword" />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="bWarningAboutLogoutDialog" persistent>
+      <q-card class="q-px-sm non-selectable">
+        <q-card-section>
+          <div class="text-h6"></div>
+        </q-card-section>
+
+        <q-item>
+          <q-item-label>Your password has been changed. You will be redirected to login page.</q-item-label>
+        </q-item>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Ok" color="primary" @click="logoutAfterChangePassword" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-dialog v-model="bNewIdentityDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
@@ -626,6 +682,14 @@ export default {
       bNewAccountSmtpSsl: false,
       bNewAccountSmtpAuth: true,
 
+      bAllowChangePasswordOnMailServer: false,
+      bChangeAccountPasswordDialog: false,
+      sChangePasswordCurrent: '',
+      sChangePasswordNew: '',
+      sChangePasswordConfirmNew: '',
+      bChangingPassword: false,
+      bWarningAboutLogoutDialog: false,
+
       bAllowIdentities: false,
       bIdentityIsAccountPart: false,
       bIdentityDefault: false,
@@ -724,6 +788,7 @@ export default {
         this.bDefaultAccount = this.editAccount.bDefault
         this.bUseThreading = this.editAccount.bUseThreading
         this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
+        this.bAllowChangePasswordOnMailServer = !!this.editAccount.oExtend.AllowChangePasswordOnMailServer
       }
     },
     editIdentity () {
@@ -898,6 +963,38 @@ export default {
         }
         this.bAddNewAccountDialog = true
       }
+    },
+    openChangePassword () {
+      this.bChangeAccountPasswordDialog = true
+      this.sChangePasswordCurrent = ''
+      this.sChangePasswordNew = ''
+      this.sChangePasswordConfirmNew = ''
+    },
+    changePassword () {
+      if (this.sChangePasswordNew !== this.sChangePasswordConfirmNew) {
+        notification.showError('Passwords do not match')
+      } else {
+        this.bChangingPassword = true
+        ipcRenderer.send('mail-change-password', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditAccountId,
+          sCurrentPassword: this.sChangePasswordCurrent,
+          sNewPassword: this.sChangePasswordNew,
+        })
+      }
+    },
+    onChangePassword (oEvent, { bResult, oError }) {
+      this.bChangingPassword = false
+      if (bResult) {
+        notification.showReport('Password was successfully changed.')
+        this.bWarningAboutLogoutDialog = true
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while changing password.'))
+      }
+    },
+    logoutAfterChangePassword () {
+      this.$router.push({ path: '/login' })
     },
     addNewAccount () {
       if (this.bSecondStepOfAddAccount) {
@@ -1180,6 +1277,7 @@ export default {
       ipcRenderer.on('mail-save-alias-settings', this.onSaveAliasSettings)
       ipcRenderer.on('mail-add-new-alias', this.onAddNewAlias)
       ipcRenderer.on('mail-remove-alias', this.onRemoveAlias)
+      ipcRenderer.on('mail-change-password', this.onChangePassword)
     },
     destroySubscriptions () {
       ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
@@ -1192,6 +1290,7 @@ export default {
       ipcRenderer.removeListener('mail-save-alias-settings', this.onSaveAliasSettings)
       ipcRenderer.removeListener('mail-add-new-alias', this.onAddNewAlias)
       ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
+      ipcRenderer.removeListener('mail-change-password', this.onChangePassword)
     },
   },
 }

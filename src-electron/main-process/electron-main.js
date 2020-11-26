@@ -254,6 +254,19 @@ ipcMain.on('core-get-appdata', (oEvent, { sApiHost, sAuthToken }) => {
   })
 })
 
+ipcMain.on('core-send-web-api-request', (oEvent, { iRequestId, sApiHost, sAuthToken, sModule, sMethod, oParameters }) => {
+  webApi.sendRequest({
+    sApiHost,
+    sAuthToken,
+    sModule,
+    sMethod,
+    oParameters,
+    fCallback: (oResult, oError) => {
+      oEvent.sender.send('core-send-web-api-request', { iRequestId, oResult, oError })
+    },
+  })
+})
+
 mainManager.initSubscriptions()
 mailManager.initSubscriptions()
 openpgpManager.initSubscriptions()

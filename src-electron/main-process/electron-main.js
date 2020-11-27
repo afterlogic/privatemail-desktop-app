@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron'
 import _ from 'lodash'
+import moment from 'moment'
 
 import typesUtils from './../../src/utils/types.js'
 import webApi from './webApi.js'
@@ -251,6 +252,56 @@ ipcMain.on('core-get-appdata', (oEvent, { sApiHost, sAuthToken }) => {
         )
       }
     },
+  })
+})
+
+ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword }) => {
+  let iStartedTime = moment().unix()
+  let verifyWindow = new BrowserWindow({
+    width: 400,
+    height: 400,
+    frame: false,
+  })
+  let sUrl = sApiHost + '/?verify-security-key&login=' + sLogin + '&password=' + sPassword
+  verifyWindow.loadURL(sUrl, {'extraHeaders' : 'pragma: no-cache\n'})
+  verifyWindow.webContents.on('devtools-opened', () => { verifyWindow.webContents.closeDevTools() })
+
+  let iInterval = setInterval(() => {
+    if (verifyWindow) {
+      verifyWindow.webContents.executeJavaScript('window.Attestation')
+        .then(oAttestation => {
+          console.log('oAttestation', oAttestation)
+          let iNowTime = moment().unix()
+          let iDiff = iNowTime - iStartedTime
+          if (!oAttestation && iDiff > 5 * 60) { // in 5 minutes stop waiting for answer
+            oAttestation = {
+              error: {
+                message: 'Unknown error',
+              }
+            }
+          }
+          if (oAttestation) {
+            oEvent.sender.send('core-verify-security-key', { oAttestation })
+            clearInterval(iInterval)
+            verifyWindow.close()
+          }
+        })
+        .catch((oErr) => {
+          console.log('oErr', oErr)
+          let oAttestation = {
+            error: {
+              message: 'Unknown error',
+            }
+          }
+          oEvent.sender.send('core-verify-security-key', { oAttestation })
+          clearInterval(iInterval)
+          verifyWindow.close()
+        })
+    }
+  }, 1000)
+  verifyWindow.on('closed', function () {
+    clearInterval(iInterval)
+    verifyWindow = null
   })
 })
 

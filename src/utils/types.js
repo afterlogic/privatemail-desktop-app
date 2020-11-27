@@ -108,4 +108,30 @@ export default {
     }
     return oResult
   },
+
+  base64ToArrayBuffer (sBase64) {
+    let
+      sBinary = window.atob(sBase64),
+      iLen = sBinary.length,
+      oBytes = new Uint8Array(iLen)
+
+    for (var i = 0; i < iLen; i++) {
+      oBytes[i] = sBinary.charCodeAt(i)
+    }
+
+    return oBytes.buffer
+  },
+
+  arrayBufferToBase64 (buffer) {
+    let
+      sBinary = '',
+      oBytes = new Uint8Array(buffer),
+      iLen = oBytes.byteLength
+
+    for (var i = 0; i < iLen; i++) {
+      sBinary += String.fromCharCode(oBytes[ i ])
+    }
+
+    return window.btoa(sBinary)
+  },
 }

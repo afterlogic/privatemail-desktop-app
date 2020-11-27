@@ -12,28 +12,11 @@
             <q-input outlined v-model="password" label="Password" type="password" v-on:keyup.enter="logIn" />
             <span class="pannel-hint--link" v-if="showHost" @click="showHost=false">Less options</span>
             <q-btn unelevated color="primary" no-caps disable size="20px" v-if="loading" label="Signing In ..." />
-            <q-btn unelevated color="primary" no-caps size="20px" v-else label="Sign In" @click="logIn()" />
+            <q-btn unelevated color="primary" no-caps size="20px" v-else label="Sign In" @click="logIn" />
           </div>
         </div>
       </div>
-      <q-dialog v-model="enterPinDialog" persistent>
-        <q-card class="non-selectable">
-          <q-card-section class="row items-center">
-            <span class="text-h6">Enter PIN</span>
-          </q-card-section>
-          <q-card-section class="row items-center">
-            <span class="q-ml-sm">To protect your security, you need to type a PIN code.</span>
-          </q-card-section>
-          <q-card-section class="row items-center">
-            <q-input v-model="twoFactorPin" label="PIN" v-on:keyup.enter="verifyPin" class="verify-pin-input" ref="verifyPinInput" />
-          </q-card-section>
-          <q-card-actions align="right">
-            <q-btn flat label="Verify PIN" color="primary" @click="verifyPin" v-if="!verifying" />
-            <q-btn flat label="Verifying PIN..." color="primary" v-if="verifying" />
-            <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+      <VerifyTwoFactorDialog ref="VerifyTwoFactorDialog"></VerifyTwoFactorDialog>
     </q-page>
   </q-page-container>
 </template>
@@ -46,23 +29,24 @@
   max-width: 300px;
   margin-top: -200px;
 }
-.verify-pin-input {
-  width: 100%;
-  margin-left: 10px;
-}
 </style>
 
 <script>
 import { ipcRenderer } from 'electron'
-import axios from 'axios'
 
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 import webApi from 'src/utils/webApi.js'
 
+import VerifyTwoFactorDialog from './VerifyTwoFactorDialog.vue'
+
 export default {
   name: 'LoginUI',
+
+  components: {
+    VerifyTwoFactorDialog,
+  },
 
   data () {
     return {
@@ -74,11 +58,6 @@ export default {
 
       bNeedSecondAttempt: false,
       sApiHostAttempt: '',
-
-      enterPinDialog: false,
-      twoFactorPin: '',
-      twoFactorData: {},
-      verifying: false,
     }
   },
 
@@ -136,14 +115,7 @@ export default {
           if (oResult && oResult.AuthToken) {
             this.handleAuthToken(oResult.AuthToken)
           } else if (oResult && oResult.TwoFactorAuth) {
-            this.twoFactorData = oParameters
-            this.twoFactorPin = ''
-            this.enterPinDialog = true
-
-            await this.$nextTick()
-            if (this.$refs.verifyPinInput) {
-              this.$refs.verifyPinInput.focus()
-            }
+            this.$refs.VerifyTwoFactorDialog.open(oResult.TwoFactorAuth, oParameters, this.sApiHostAttempt, this.handleAuthToken)
           } else {
             this.catchSignInError(oError)
           }
@@ -169,23 +141,6 @@ export default {
         this.sApiHostAttempt = 'https://' + this.host
         this.trySignIn()
       }
-    },
-    verifyPin () {
-      this.verifying = true
-      webApi.sendRequest({
-        sApiHost: this.sApiHostAttempt,
-        sModule: 'TwoFactorAuth',
-        sMethod: 'VerifyPin',
-        oParameters: _.assign({ 'Pin': this.twoFactorPin }, this.twoFactorData),
-        fCallback: (oResult, oError) => {
-          this.verifying = false
-          if (oResult && oResult.AuthToken) {
-            this.handleAuthToken(oResult.AuthToken)
-          } else {
-            notification.showError(errors.getText(oError, 'Error occurred while trying to sign in.'))
-          }
-        },
-      })
     },
     handleAuthToken (sAuthToken) {
       if (this.sApiHostAttempt !== this.$store.getters['main/getApiHost'] || this.login !== this.$store.getters['main/getLastLogin']) {

@@ -37,6 +37,7 @@
     "quasar": "^1.9.11",
     "semver": "^7.1.1",
     "sqlite3": "^4.1.0",
+    "ua-parser-js": "^0.7.22",
     "vue-i18n": "^8.14.1",
     "vuex-persistedstate": "^2.5.4"
   },

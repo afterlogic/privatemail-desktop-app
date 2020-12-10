@@ -2,8 +2,11 @@ import _ from 'lodash'
 import http from 'http'
 import https from 'https'
 import querystring from 'querystring'
+import { machineIdSync } from 'node-machine-id'
 
 import typesUtils from '../../src/utils/types.js'
+
+const sMachineId = machineIdSync(true)
 
 let aRequestsNumbers = []
 
@@ -40,6 +43,7 @@ export default {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': Buffer.byteLength(oPostData),
+        'X-DeviceId': sMachineId,
       },
     }
     if (typesUtils.isNonEmptyString(sAuthToken)) {

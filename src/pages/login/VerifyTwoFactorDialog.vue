@@ -13,9 +13,22 @@
             <q-item-label><span class="text-h6">{{ twoFactorData.Login }}</span></q-item-label>
           </q-item-section>
         </q-item>
+        <q-item v-if="isVerified">
+          <q-item-section side>
+            <q-item-label>You're all set</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item v-if="isVerified">
+          <q-item-section>
+            <q-item-label><q-checkbox v-model="trustDevice" :label="dontAskAgainText" /></q-item-label>
+          </q-item-section>
+        </q-item>
       </q-card-section>
+      <q-card-actions align="right" v-if="isVerified">
+        <q-btn flat label="Continue" color="primary" @click="continueSigningIn" />
+      </q-card-actions>
 
-      <q-card-section v-if="securityKeyVisible">
+      <q-card-section v-if="securityKeyVisible && !isVerified">
         <q-item v-if="securityKeyInProgress">
           <q-item-section side>
             <q-item-label>Please follow the instructions in the popup window</q-item-label>
@@ -37,7 +50,7 @@
           </q-item-section>
         </q-item>
       </q-card-section>
-      <q-card-actions align="right" v-if="securityKeyVisible && securityKeyError">
+      <q-card-actions align="right" v-if="securityKeyVisible && securityKeyError && !isVerified">
         <q-btn label="Try again" color="primary" @click="verifySecurityKey" />
         <q-btn flat label="Cancel" color="grey-6" v-close-popup />
       </q-card-actions>
@@ -45,7 +58,7 @@
         <q-btn flat label="Other options" color="primary" @click="useOtherOption" />
       </q-card-actions>
 
-      <q-card-section v-if="allOptionsVisible">
+      <q-card-section v-if="allOptionsVisible && !isVerified">
         <q-item>
           <q-item-section side>
             <q-item-label>Security options available</q-item-label>
@@ -67,11 +80,11 @@
           </q-item-section>
         </q-item>
       </q-card-section>
-      <q-card-actions align="right" v-if="allOptionsVisible">
+      <q-card-actions align="right" v-if="allOptionsVisible && !isVerified">
         <q-btn flat label="Cancel" color="grey-6" v-close-popup />
       </q-card-actions>
 
-      <q-card-section v-if="authenticatorAppVisible">
+      <q-card-section v-if="authenticatorAppVisible && !isVerified">
         <q-item>
           <q-item-section side>
             <q-item-label>Specify verification code from Authenticator app</q-item-label>
@@ -83,16 +96,16 @@
           </q-item-section>
         </q-item>
       </q-card-section>
-      <q-card-actions align="right" v-if="authenticatorAppVisible">
+      <q-card-actions align="right" v-if="authenticatorAppVisible && !isVerified">
         <q-btn color="primary" v-if="authenticatorCodeInProgress" label="Verifying..." />
         <q-btn color="primary" v-else label="Verify" @click="verifyAuthenticatorCode" />
         <q-btn flat color="grey-6" label="Cancel" v-close-popup />
       </q-card-actions>
-      <q-card-actions align="right" v-if="authenticatorAppVisible && hasSeveralOptions">
+      <q-card-actions align="right" v-if="authenticatorAppVisible && hasSeveralOptions && !isVerified">
         <q-btn flat label="Other options" color="primary" @click="useOtherOption" />
       </q-card-actions>
 
-      <q-card-section v-if="backupCodesVisible">
+      <q-card-section v-if="backupCodesVisible && !isVerified">
         <q-item>
           <q-item-section side>
             <q-item-label>Enter one of your 8-character backup codes</q-item-label>
@@ -104,12 +117,12 @@
           </q-item-section>
         </q-item>
       </q-card-section>
-      <q-card-actions align="right" v-if="backupCodesVisible">
+      <q-card-actions align="right" v-if="backupCodesVisible && !isVerified">
         <q-btn color="primary" v-if="backupCodeInProgress" label="Verifying..." />
         <q-btn color="primary" v-else label="Verify" @click="verifyBackupCode" />
         <q-btn flat color="grey-6" label="Cancel" v-close-popup />
       </q-card-actions>
-      <q-card-actions align="right" v-if="backupCodesVisible && hasSeveralOptions">
+      <q-card-actions align="right" v-if="backupCodesVisible && hasSeveralOptions && !isVerified">
         <q-btn flat label="Other options" color="primary" @click="useOtherOption" />
       </q-card-actions>
     </q-card>
@@ -126,7 +139,9 @@
 <script>
 
 import { ipcRenderer } from 'electron'
+import { machineIdSync } from 'node-machine-id'
 
+import deviceUtils from 'src/utils/device.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
@@ -162,6 +177,11 @@ export default {
       hasBackupCodes: false,
       backupCode: false,
       backupCodeInProgress: false,
+
+      trustDevicesForDaysSetting: 0,
+      verificationResponse: null,
+      trustDevice: false,
+      continueInProgress: false,
     }
   },
 
@@ -178,6 +198,12 @@ export default {
         iOptionsCount++
       }
       return iOptionsCount > 1
+    },
+    isVerified () {
+      return this.verificationResponse !== null
+    },
+    dontAskAgainText () {
+      return `Don't ask again on this device for ${this.trustDevicesForDaysSetting} days`
     },
   },
 
@@ -207,7 +233,24 @@ export default {
         this.useAuthenticatorApp()
       }
 
+      this.trustDevicesForDaysSetting = 0
+      this.verificationResponse = null
+      this.trustDevice = false
+      this.continueInProgress = false
+
       this.showVerifyDialog = true
+
+      webApi.sendRequest({
+        sApiHost: this.apiHost,
+        sModule: 'TwoFactorAuth',
+        sMethod: 'GetSettings',
+        oParameters,
+        fCallback: (oResult, oError) => {
+          if (oResult) {
+            this.trustDevicesForDaysSetting = typesUtils.pInt(oResult.TrustDevicesForDays, 0)
+          }
+        },
+      })
     },
 
     useOtherOption () {
@@ -260,20 +303,48 @@ export default {
     },
 
     afterVerify (sAuthToken) {
+      this.verificationResponse = sAuthToken
+      if (this.trustDevicesForDaysSetting === 0) {
+        this.passTokenAndClose()
+      }
+    },
+
+    continueSigningIn () {
+      if (!this.continueInProgress)
+      {
+        this.continueInProgress = true
+        if (this.trustDevice) {
+          let oParameters = _.assign({
+              DeviceId: machineIdSync(true),
+              DeviceName: deviceUtils.getName(),
+          }, this.twoFactorData)
+          webApi.sendRequest({
+            sApiHost: this.apiHost,
+            sModule: 'TwoFactorAuth',
+            sMethod: 'TrustDevice',
+            oParameters,
+            fCallback: (bResult, oError) => {
+              this.passTokenAndClose()
+            },
+          })
+        } else {
+          this.passTokenAndClose()
+        }
+      }
+    },
+
+    passTokenAndClose () {
       if (_.isFunction(this.passTokenHandler)) {
-        this.passTokenHandler(sAuthToken)
+        this.passTokenHandler(this.verificationResponse)
+        this.verificationResponse = null
       }
       this.showVerifyDialog = false
     },
 
     verifySecurityKey () {
-      window.passCreds = function (oCreds) {
-        console.log('oCreds', oCreds);
-      }
       this.securityKeyInProgress = true
       this.securityKeyError = false
       ipcRenderer.once('core-verify-security-key', (oEvent, { oAttestation }) => {
-        console.log('oAttestation', oAttestation)
         if (oAttestation && !oAttestation.error) {
           var oParameters = _.assign({
             'Attestation': oAttestation
@@ -291,7 +362,6 @@ export default {
             // oAttestation.error.cancel
             // oAttestation.error.https
             // oAttestation.error.support
-            console.log('oAttestation.error', oAttestation.error)
           }
           this.securityKeyInProgress = false
           this.securityKeyError = true

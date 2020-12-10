@@ -2,10 +2,13 @@ import { ipcRenderer } from 'electron'
 import store from 'src/store'
 import moment from 'moment'
 import _ from 'lodash'
+import { machineIdSync } from 'node-machine-id'
 
+import deviceUtils from 'src/utils/device.js'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types'
+import webApi from 'src/utils/webApi.js'
 
 import cIdentity from 'src/modules/mail/classes/cIdentity.js'
 import foldersUtils from './utils/folders.js'
@@ -64,6 +67,14 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       ipcRenderer.send('contacts-refresh', {
         sApiHost: store.getters['main/getApiHost'],
         sAuthToken: store.getters['user/getAuthToken'],
+      })
+      webApi.sendRequest({
+        sModule: 'TwoFactorAuth',
+        sMethod: 'SaveDevice',
+        oParameters: {
+          DeviceId: machineIdSync(true),
+          DeviceName: deviceUtils.getName(),
+        },
       })
     }
     if (_.isFunction(fGetSettingsCallback)) {

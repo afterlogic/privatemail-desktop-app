@@ -283,7 +283,7 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
           }
           if (oAttestation) {
             oEvent.sender.send('core-verify-security-key', { oAttestation })
-              bEventAlreadySent = true
+            bEventAlreadySent = true
             clearInterval(iInterval)
             verifyWindow.close()
           }
@@ -296,7 +296,7 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
             }
           }
           oEvent.sender.send('core-verify-security-key', { oAttestation })
-            bEventAlreadySent = true
+          bEventAlreadySent = true
           clearInterval(iInterval)
           verifyWindow.close()
         })
@@ -305,14 +305,14 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
   verifyWindow.on('closed', function () {
     clearInterval(iInterval)
     verifyWindow = null
-      if (!bEventAlreadySent) {
-          let oAttestation = {
-            error: {
-              message: 'Unknown error',
-            }
-          }
-          oEvent.sender.send('core-verify-security-key', { oAttestation })
+    if (!bEventAlreadySent) {
+      let oAttestation = {
+        error: {
+          message: 'Unknown error',
+        }
       }
+      oEvent.sender.send('core-verify-security-key', { oAttestation })
+    }
   })
 })
 

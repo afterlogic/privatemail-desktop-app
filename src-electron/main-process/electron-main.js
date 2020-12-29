@@ -265,6 +265,7 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
   let sUrl = sApiHost + '/?verify-security-key&login=' + sLogin + '&password=' + sPassword
   verifyWindow.loadURL(sUrl, {'extraHeaders' : 'pragma: no-cache\n'})
   verifyWindow.webContents.on('devtools-opened', () => { verifyWindow.webContents.closeDevTools() })
+  let bEventAlreadySent = false
 
   let iInterval = setInterval(() => {
     if (verifyWindow) {
@@ -282,6 +283,7 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
           }
           if (oAttestation) {
             oEvent.sender.send('core-verify-security-key', { oAttestation })
+              bEventAlreadySent = true
             clearInterval(iInterval)
             verifyWindow.close()
           }
@@ -294,6 +296,7 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
             }
           }
           oEvent.sender.send('core-verify-security-key', { oAttestation })
+            bEventAlreadySent = true
           clearInterval(iInterval)
           verifyWindow.close()
         })
@@ -302,6 +305,14 @@ ipcMain.on('core-verify-security-key', (oEvent, { sApiHost, sLogin, sPassword })
   verifyWindow.on('closed', function () {
     clearInterval(iInterval)
     verifyWindow = null
+      if (!bEventAlreadySent) {
+          let oAttestation = {
+            error: {
+              message: 'Unknown error',
+            }
+          }
+          oEvent.sender.send('core-verify-security-key', { oAttestation })
+      }
   })
 })
 

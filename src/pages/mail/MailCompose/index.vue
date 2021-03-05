@@ -1174,7 +1174,7 @@ export default {
         this.clearAutosaveTimer()
         this.sending = true
         composeUtils.scheduleMessage(
-          this.getMessageData(),
+          oData,
           (oResult, oError) => {
             this.sending = false
             if (oResult) {

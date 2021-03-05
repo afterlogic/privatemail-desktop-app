@@ -61,6 +61,8 @@ transition-hide="slide-down"
     </q-card>
   </q-dialog>
 
+  <ScheduleSendingDialog ref="scheduleSendingDialog" />
+
   <q-dialog v-model="selfDestructingEmailDialog" persistent>
     <q-card class="q-px-sm">
       <q-card-section class="non-selectable">
@@ -238,6 +240,7 @@ transition-hide="slide-down"
       <q-btn flat :icon="bReadingConfirmation ? 'check_box' : 'check_box_outline_blank'" label="Reading confirmation" @click="triggerReadingConfirmation" />
       <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
       <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
+      <q-btn flat icon="mail_outline" label="Schedule sending" :disable="!isEnableSending || saving" @click="openScheduleSendingDialog" v-show="mailScheduledAllowed" />
       <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" />
       <q-space />
       <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">

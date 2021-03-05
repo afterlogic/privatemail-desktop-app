@@ -118,6 +118,39 @@ export default {
     })
   },
 
+  scheduleMessage: function ({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, 
+                sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, iConfirmUid, iScheduleDateTime, aRecipients}, fCallback) {
+    if (this.verifyDataForSending(sToAddr, sCcAddr, sBccAddr)) {
+      let
+        oParameters = this.getSendSaveParameters({oCurrentFolderList, iIdentityId, iAliasId, sToAddr, sCcAddr, sBccAddr, sSubject, sText, bPlainText, sDraftUid, aDraftInfo, sInReplyTo, sReferences, aAttachments, iImportance, bReadingConfirmation, sConfirmFolder, iConfirmUid, aRecipients}),
+        sDraftFolder = oCurrentFolderList.Drafts ? oCurrentFolderList.Drafts.FullName : '',
+        sLoadingMessage = 'Scheduling...'
+
+      if (oParameters.DraftUid !== '') {
+        oParameters.DraftFolder = sDraftFolder
+      }
+
+      oParameters.ScheduleDateTime = iScheduleDateTime
+
+      oParameters.Text = oParameters.Text.split('<div data-anchor="signature">').join('<div>')
+      oParameters.Text = oParameters.Text.split('<!--signature end--></div>').join('</div>')
+
+      notification.showLoading(sLoadingMessage)
+
+      webApi.sendRequest({
+        sModule: 'MailScheduledMessages',
+        sMethod: 'SaveScheduledMessage',
+        oParameters,
+        fCallback: (oResult, oError) => {
+          notification.hideLoading()
+          if (_.isFunction(fCallback)) {
+            fCallback(oResult, oError)
+          }
+        },
+      })
+    }
+  },
+
   verifyDataForSending: function (sToAddr, sCcAddr, sBccAddr) {
     let
       aToIncorrect = typesUtils.isNonEmptyString(sCcAddr) ? addressUtils.getIncorrectEmailsFromAddressString(sToAddr) : [],

@@ -91,7 +91,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
         coreSettings.parse(oResult['Core'], oResult['CoreWebclient'])
       }
       if (oResult['Mail'] && oResult['MailWebclient']) {
-        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'], oResult['CpanelIntegrator'])
+        mailSettings.parse(oResult['Mail'], oResult['MailWebclient'], oResult['CpanelIntegrator'], oResult['MailScheduledMessages'])
       }
       if (oResult['Contacts']) {
         contactsSettings.parse(oResult['Contacts'])

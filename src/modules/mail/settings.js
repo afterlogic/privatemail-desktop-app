@@ -43,7 +43,7 @@ function CSettings () {
   this.bAllowAliases = false
 }
 
-CSettings.prototype.parse = function (oData, oWebclientData, oCpanelData) {
+CSettings.prototype.parse = function (oData, oWebclientData, oCpanelData, oMailScheduledMessages) {
   if (oData) {
     this.bAllowAddAccounts = typesUtils.pBool(oData.AllowAddAccounts, this.bAllowAddAccounts)
     // this.bAllowAlwaysRefreshFolders = typesUtils.pBool(oData.AllowAlwaysRefreshFolders, this.bAllowAlwaysRefreshFolders)
@@ -89,6 +89,9 @@ CSettings.prototype.parse = function (oData, oWebclientData, oCpanelData) {
   if (!_.isEmpty(oCpanelData)) {
     this.bAllowAliases = typesUtils.pBool(oCpanelData.AllowAliases, this.bAllowAliases)
   }
+
+  this.bMailScheduledAllowed = !!oMailScheduledMessages
+  this.aPredefinedSchedule = typesUtils.pArray(oMailScheduledMessages && oMailScheduledMessages.PredefinedSchedule, this.aPredefinedSchedule)
 }
 
 CSettings.prototype.setMailsPerPage = function (iMailsPerPage) {

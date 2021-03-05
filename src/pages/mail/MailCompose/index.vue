@@ -25,10 +25,13 @@ import openpgpSettings from 'src/modules/openpgp/settings.js'
 
 import cContact from 'src/modules/contacts/classes/CContact.js'
 
+import ScheduleSendingDialog from "../ScheduleSendingDialog.vue"
+
 export default {
   name: 'MailCompose',
 
   components: {
+    ScheduleSendingDialog,
   },
 
   data () {
@@ -215,6 +218,9 @@ export default {
       return !!_.find(aAllAddr, (oAddr) => {
         return oAddr && oAddr.hasPgpKey && (oAddr.pgpSign || oAddr.pgpEncrypt)
       })
+    },
+    mailScheduledAllowed () {
+      return mailSettings.bMailScheduledAllowed
     },
   },
 
@@ -1152,6 +1158,35 @@ export default {
         this.save()
       }
       this.closeCompose()
+    },
+    openScheduleSendingDialog () {
+      if (this.autoEncryptSignMessage) {
+        notification.showError('Cannot schedule email with automatic PGP encryption turned on. Please encrypt the message manually.')
+      } else {
+        this.clearAutosaveTimer()
+        this.$refs.scheduleSendingDialog.open(this.saveScheduledMessage.bind(this))
+      }
+    },
+    saveScheduledMessage (iUnix) {
+        this.commitMessageData()
+        let oData = this.getMessageData()
+        oData.iScheduleDateTime = iUnix;
+        this.clearAutosaveTimer()
+        this.sending = true
+        composeUtils.scheduleMessage(
+          this.getMessageData(),
+          (oResult, oError) => {
+            this.sending = false
+            if (oResult) {
+              notification.showReport('Your message has been scheduled.')
+              this.closeCompose()
+              this.$store.dispatch('mail/asyncRefresh')
+            } else {
+              notification.showError(errors.getText(oError, 'Error occurred while scheduling message'))
+              this.setAutosaveTimer()
+            }
+          }
+        )
     },
     openSelfDestructingEmailDialog () {
       if (typesUtils.isNonEmptyArray(this.selectedToAddr)) {

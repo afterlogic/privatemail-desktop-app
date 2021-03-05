@@ -1,6 +1,14 @@
 import _ from 'lodash'
 
 export default {
+  isNumber: function (mValue) {
+    return typeof mValue === 'number'
+  },
+
+  isPositiveNumber: function (mValue) {
+    return this.isNumber(mValue) && mValue > 0
+  },
+
   pInt: function (mValue, iDefault) {
     var iValue = parseInt(mValue, 10)
     if (isNaN(iValue)) {

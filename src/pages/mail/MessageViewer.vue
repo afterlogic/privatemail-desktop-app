@@ -51,12 +51,12 @@
       </div>
       <div class="col-auto">
         <q-toolbar style="float: right; width: auto;">
-          <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder" @click="reply">
+          <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder && !isScheduledFolder" @click="reply">
             <q-tooltip>
               Reply
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="reply_all" v-if="!isSentFolder && !isDraftsFolder" @click="replyAll">
+          <q-btn flat color="primary" icon="reply_all" v-if="!isSentFolder && !isDraftsFolder && !isScheduledFolder" @click="replyAll">
             <q-tooltip>
               Reply To All
             </q-tooltip>
@@ -66,7 +66,7 @@
               Resend
             </q-tooltip>
           </q-btn>
-          <q-btn flat color="primary" icon="forward" v-if="!isDraftsFolder" @click="forward">
+          <q-btn flat color="primary" icon="forward" v-if="!isDraftsFolder && !isScheduledFolder" @click="forward">
             <q-tooltip>
               Forward
             </q-tooltip>
@@ -171,6 +171,14 @@
       </div>
       <div class="col">
         <q-scroll-area class="full-height">
+        <div class="q-pa-md information-panel non-selectable" v-if="isScheduledMessage">
+          <template>
+            <div>
+              {{ scheduledMessageText }}
+              <q-btn unelevated outline color="primary" class="q-ml-md" label="Cancel sending" @click="cancelSending" />
+            </div>
+          </template>
+        </div>
           <div class="q-pa-md" v-html="text"></div>
         </q-scroll-area>
       </div>
@@ -261,6 +269,11 @@
     margin-right: 10px;
   }
 }
+.information-panel {
+  background: #dff6eb;
+  border-bottom: 1px solid #b7ebd2;
+  padding: 15px;
+}
 .expand-header-handler {
     margin-bottom: -19px;
     text-align: center;
@@ -284,6 +297,7 @@ import addressUtils from 'src/utils/address'
 import dateUtils from 'src/utils/date'
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
+import scheduleUtils from 'src/utils/schedule.js'
 import textUtils from 'src/utils/text'
 import typesUtils from 'src/utils/types'
 import webApi from 'src/utils/webApi'
@@ -321,6 +335,9 @@ export default {
       showDetails: false,
 
       aAttachments: [],
+
+      isScheduledMessage: false,
+      scheduledMessageText: '',
     }
   },
 
@@ -366,6 +383,9 @@ export default {
       }
       return false
     },
+    isScheduledFolder () {
+      return false
+    },
     /**
      * Determines if sending a message is allowed.
      */
@@ -389,6 +409,9 @@ export default {
   },
 
   methods: {
+    cancelSending () {
+      notification.showReport('Coming soon')
+    },
     viewAttach: function (sViewUrl, sFileName) {
       webApi.viewByUrlInNewWindow(sViewUrl, sFileName)
     },
@@ -495,6 +518,19 @@ export default {
           }
         } else {
           sText = this.message.Plain
+        }
+
+        var
+          aExtend = typesUtils.pArray(this.message && this.message.Extend),
+          oSchedule = _.find(aExtend, function (oExtend) {
+            return typesUtils.isPositiveNumber(oExtend.ScheduleTimestamp)
+          })
+
+        if (oSchedule) {
+          this.isScheduledMessage = true
+          this.scheduledMessageText = scheduleUtils.getScheduledAtText(oSchedule.ScheduleTimestamp)
+        } else {
+          this.isScheduledMessage = false
         }
       }
       this.text = sText

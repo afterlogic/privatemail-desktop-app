@@ -16,7 +16,7 @@
       <q-item-section>
         <q-item-label lines="1">{{folder.Name}}</q-item-label>
       </q-item-section>
-      <q-item-section side class="non-selectable" v-if="folder.UnseenCount > 0" @click.native.stop="showUnreadMessages">
+      <q-item-section side class="non-selectable" v-if="showUnseenCount" @click.native.stop="showUnreadMessages">
         <q-chip dense>{{folder.UnseenCount}}
           <q-tooltip>
             Show unread messages only
@@ -78,7 +78,10 @@ export default {
 
   computed: {
     showTotalCount () {
-      return this.folder.Type === mailEnums.FolderType.Drafts && this.folder.Count > 0
+      return this.folder.Count > 0 && (this.folder.Type === mailEnums.FolderType.Drafts || this.folder.Type === mailEnums.FolderType.Scheduled)
+    },
+    showUnseenCount () {
+      return this.folder.UnseenCount > 0 && this.folder.Type !== mailEnums.FolderType.Scheduled
     },
     showStarred () {
       return this.folder.Type === mailEnums.FolderType.Inbox

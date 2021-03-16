@@ -101,7 +101,7 @@
                 </q-item-section>
               </q-item>
 
-              <q-item clickable @click="dummyAction">
+              <q-item clickable @click="dummyAction" v-if="!isDraftsFolder && !isScheduledFolder">
                 <q-item-section side>
                   <q-icon name="forward" />
                 </q-item-section>
@@ -174,6 +174,7 @@
         <div class="q-pa-md information-panel non-selectable" v-if="isScheduledMessage">
           <template>
             <div>
+              <q-icon name="schedule_send" />
               {{ scheduledMessageText }}
               <q-btn unelevated outline color="primary" class="q-ml-md" label="Cancel sending" @click="cancelSending" />
             </div>
@@ -384,6 +385,10 @@ export default {
       return false
     },
     isScheduledFolder () {
+      if (this.message && this.currentFolderList) {
+        let sScheduledFolder = this.currentFolderList.Scheduled ? this.currentFolderList.Scheduled.FullName : ''
+        return this.message.Folder === sScheduledFolder
+      }
       return false
     },
     /**

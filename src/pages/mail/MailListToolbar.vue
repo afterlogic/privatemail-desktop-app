@@ -19,7 +19,7 @@
     </span>
 
     <span>
-      <q-btn-dropdown flat color="primary" icon="move_to_inbox" :disable="checkedCount === 0">
+      <q-btn-dropdown flat color="primary" icon="move_to_inbox" v-if="!isScheduledFolder" :disable="checkedCount === 0">
         <q-list class="non-selectable">
           <MoveToFolderItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
         </q-list>
@@ -50,7 +50,7 @@
       <q-tooltip>Not Spam</q-tooltip>
     </span>
 
-    <span v-if="!isSpamFolder">
+    <span v-if="!isSpamFolder && !isScheduledFolder">
       <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam" />
       <q-tooltip>Spam</q-tooltip>
     </span>
@@ -143,6 +143,9 @@ export default {
     },
     isTrashFolder () {
       return this.currentFolder && this.currentFolder.Type === mailEnums.FolderType.Trash
+    },
+    isScheduledFolder () {
+      return this.currentFolder && this.currentFolder.Type === mailEnums.FolderType.Scheduled
     },
   },
 

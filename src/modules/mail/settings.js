@@ -41,6 +41,10 @@ function CSettings () {
   // this.bShowMessagesCountInFolderList = false
 
   this.bAllowAliases = false
+
+  // MailScheduledMessages module
+  this.bMailScheduledAllowed = false
+  this.aPredefinedSchedule = []
 }
 
 CSettings.prototype.parse = function (oData, oWebclientData, oCpanelData, oMailScheduledMessages) {

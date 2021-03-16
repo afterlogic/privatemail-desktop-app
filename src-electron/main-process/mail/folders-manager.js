@@ -20,6 +20,9 @@ function _getIconName (sType, sFolderFullName) {
     case mailEnums.FolderType.Sent:
       sIconName = 'send'
       break
+    case mailEnums.FolderType.Scheduled:
+      sIconName = 'schedule_send'
+      break
     case mailEnums.FolderType.Drafts:
       sIconName = 'insert_drive_file'
       break
@@ -32,9 +35,11 @@ function _getIconName (sType, sFolderFullName) {
     case mailEnums.FolderType.Starred:
       sIconName = 'star'
       break
-  }
-  if (sFolderFullName === 'Notes') {
-    sIconName = 'edit'
+    default:
+      if (sFolderFullName === 'Notes') {
+        sIconName = 'edit'
+      }
+      break
   }
   return sIconName
 }
@@ -65,13 +70,14 @@ export default {
       _.each(aFoldersTree, function (oFolderFromServer) {
         let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullNameRaw]
         delete oOldFoldersByNames[oFolderFromServer.FullNameRaw]
+        let iType = oFolderFromServer.FullNameRaw === 'Scheduled' ? mailEnums.FolderType.Scheduled : oFolderFromServer.Type
         let oNewFolder = {
           FullName: oFolderFromServer.FullNameRaw,
           Name: oFolderFromServer.Name,
-          Type: oFolderFromServer.Type,
+          Type: iType,
           Delimiter: oFolderFromServer.Delimiter,
           Namespaced: oFolderFromServer.FullNameRaw + oFolderFromServer.Delimiter === sNamespace,
-          IconName: _getIconName(oFolderFromServer.Type, oFolderFromServer.FullNameRaw),
+          IconName: _getIconName(iType, oFolderFromServer.FullNameRaw),
           IsSubscribed: oFolderFromServer.IsSubscribed,
           IsSelectable: oFolderFromServer.IsSelectable,
           Exists: oFolderFromServer.Exists,

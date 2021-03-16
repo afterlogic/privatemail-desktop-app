@@ -6,6 +6,7 @@ export default {
     let aFoldersNames = []
     let oInbox = null
     let oSent = null
+    let oScheduled = null
     let oDrafts = null
     let oSpam = null
     let oTrash = null
@@ -18,6 +19,9 @@ export default {
             break
           case mailEnums.FolderType.Sent:
             oSent = oFolder
+            break
+          case mailEnums.FolderType.Scheduled:
+            oScheduled = oFolder
             break
           case mailEnums.FolderType.Drafts:
             oDrafts = oFolder
@@ -51,6 +55,7 @@ export default {
 
       Inbox: oInbox,
       Sent: oSent,
+      Scheduled: oScheduled,
       Drafts: oDrafts,
       Spam: oSpam,
       Trash: oTrash,

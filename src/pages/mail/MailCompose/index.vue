@@ -103,6 +103,8 @@ export default {
       confirmNotAllRecipientsEncryptSignText: '',
       proceedEncryptSignRecipients: null,
       proceedEncryptSignFromEmail: '',
+
+      mailScheduledAllowed: false,
     }
   },
 
@@ -218,9 +220,6 @@ export default {
       return !!_.find(aAllAddr, (oAddr) => {
         return oAddr && oAddr.hasPgpKey && (oAddr.pgpSign || oAddr.pgpEncrypt)
       })
-    },
-    mailScheduledAllowed () {
-      return mailSettings.bMailScheduledAllowed
     },
   },
 
@@ -897,6 +896,7 @@ export default {
     async openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences, iImportance, bReadingConfirmation }) {
       this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
       this.allowInsertImage = mailSettings.bAllowInsertImage
+      this.mailScheduledAllowed = mailSettings.bMailScheduledAllowed
       this.selectedIdentity = oIdentity ? {
         label: textUtils.encodeHtml(oIdentity.getFull()),
         value: oIdentity,

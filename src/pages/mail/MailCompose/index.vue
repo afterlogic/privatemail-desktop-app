@@ -38,6 +38,8 @@ export default {
     return {
       dialog: false,
       maximizedToggle: false,
+      discardPreviousDraftDialog: false,
+      composeParameters: null,
 
       allowInsertImage: false,
 
@@ -893,7 +895,36 @@ export default {
         }
       }
     },
-    async openCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences, iImportance, bReadingConfirmation }) {
+    openCompose (oComposeParameters) {
+      if (this.dialog) {
+        // Compose dialog is opened but not expanded.
+        if (!_.isEmpty(oComposeParameters)) {
+          if (this.isMessageDataChanged()) {
+            // Ask what to do. Also expand compose dialog.
+            this.composeParameters = oComposeParameters
+            this.discardPreviousDraftDialog = true
+          } else {
+            // Continue opening compose. Also expand compose dialog.
+            this.continueOpeningCompose(oComposeParameters)
+          }
+        } else {
+          // Just expand compose dialog.
+        }
+        this.maximizedToggle = false // Expanding compose dialog.
+      } else {
+        // Continue opening compose. Dialog is closed.
+        this.continueOpeningCompose(oComposeParameters)
+      }
+    },
+    discardPreviousDraft () {
+      this.continueOpeningCompose(this.composeParameters)
+    },
+    savePreviousDraft () {
+      this.save()
+      this.continueOpeningCompose(this.composeParameters)
+    },
+    async continueOpeningCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences, iImportance, bReadingConfirmation }) {
+      this.composeParameters = null
       this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
       this.allowInsertImage = mailSettings.bAllowInsertImage
       this.mailScheduledAllowed = mailSettings.bMailScheduledAllowed

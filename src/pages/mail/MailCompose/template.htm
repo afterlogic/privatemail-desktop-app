@@ -8,6 +8,18 @@ transition-show="slide-up"
 transition-hide="slide-down"
 @before-hide="onBeforeHide"
 >
+  <q-dialog v-model="discardPreviousDraftDialog" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <span class="q-ml-sm">Another message is already being composed.</span>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="Discard it" color="primary" @click="discardPreviousDraft" v-close-popup />
+        <q-btn flat label="Save as draft" color="primary" @click="savePreviousDraft" v-close-popup />
+        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
   <q-dialog v-model="showConfirmNotAllRecipientsEncryptSign" persistent>
     <q-card>
       <q-card-section class="row items-center">

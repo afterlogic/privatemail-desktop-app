@@ -531,29 +531,10 @@ transition-hide="slide-down"
               >
                 <template v-slot:header="scope">
                   <div class="" style="opacity: 0; height: 0px;">
-                    <!-- <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
-                      <q-tooltip>Clear All</q-tooltip>
-                    </q-btn>
-                    <q-btn v-if="scope.uploadedFiles.length > 0" icon="done_all" @click="scope.removeUploadedFiles" round dense flat >
-                      <q-tooltip>Remove Uploaded Files</q-tooltip>
-                    </q-btn>
-                    <q-spinner v-if="scope.isUploading" class="q-uploader__spinner">
-                    </q-spinner>
-                    <div class="col">
-                      <div class="q-uploader__title">Upload your files</div>
-                      <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
-                    </div> -->
                     <q-btn dense flat type="a" icon="add_box">
                       <q-uploader-add-trigger />
                       <q-tooltip>Pick Files</q-tooltip>
                     </q-btn>
-                    <!-- <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
-                      <q-tooltip>Upload Files</q-tooltip>
-                    </q-btn>
-
-                    <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
-                      <q-tooltip>Abort Upload</q-tooltip>
-                    </q-btn> -->
                   </div>
                 </template>
                 <template v-slot:list="scope" class="full-height">
@@ -568,7 +549,9 @@ transition-hide="slide-down"
                             Status: <span :style="attach.bUploadFailed ? 'color: red;' : (attach.iProgressPercent === 100 ? 'color: green;' : 'color: orange;')">{{ attach.getStatus() }}</span>
                           </q-item-label>
                           <q-item-label caption>
-                            <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }} / </span>{{ attach.getProgressPercent() }}%
+                            <span v-if="attach.getFriendlySize() !== '0B'">{{ attach.getFriendlySize() }}</span>
+                            <span v-if="attach.getFriendlySize() !== '0B' && !attach.bUploadFailed"> / </span>
+                            <span v-if="!attach.bUploadFailed">{{ attach.getProgressPercent() }}%</span>
                           </q-item-label>
                         </q-item-section>
                         <q-item-section side 
@@ -579,7 +562,7 @@ transition-hide="slide-down"
                           <img :src="sApiHost + '/' + attach.sThumbnailLink">
                         </q-item-section>
 
-                        <q-item-section  side>
+                        <q-item-section side>
                           <q-btn
                             v-if="attach.iProgressPercent === 100"
                             class="gt-xs"
@@ -594,45 +577,6 @@ transition-hide="slide-down"
                       </q-item>
                     </q-list>
                   </q-scroll-area>
-                  <!-- <q-list separator>
-
-                    <q-item v-for="file in scope.files" :key="file.name">
-                      <q-item-section>
-                        <q-item-label class="full-width ellipsis">
-                          {{ file.name }}
-                        </q-item-label>
-
-                        <q-item-label caption>
-                          Status: {{ file.__status }}
-                        </q-item-label>
-
-                        <q-item-label caption>
-                          {{ file.__sizeLabel }} / {{ file.__progressLabel }}
-                        </q-item-label>
-                      </q-item-section>
-
-                      <q-item-section
-                        v-if="file.__img"
-                        thumbnail
-                        class="gt-xs"
-                      >
-                        <img :src="file.__img.src">
-                      </q-item-section>
-
-                      <q-item-section top side>
-                        <q-btn
-                          class="gt-xs"
-                          size="12px"
-                          flat
-                          dense
-                          round
-                          icon="delete"
-                          @click="scope.removeFile(file)"
-                        />
-                      </q-item-section>
-                    </q-item>
-
-                  </q-list> -->
                 </template>
               </q-uploader>
           </div>
@@ -640,6 +584,4 @@ transition-hide="slide-down"
       </div>
     </div>
   </div>
-  <!-- <q-bar> -->
-  <!-- </q-bar> -->
 </q-dialog>

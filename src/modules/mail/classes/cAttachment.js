@@ -39,7 +39,7 @@ function cAttachment () {
   this.sDownloadLink = ''
   this.sExtension = ''
   this.sFileName = ''
-  this.sHash = ''
+  this.sHash = Math.random()
   this.iMimePartIndex = 0
   this.sLocalPath = ''
   this.sTempName = ''
@@ -54,7 +54,7 @@ cAttachment.prototype.getFriendlySize = function () {
 
 cAttachment.prototype.getProgressPercent = function () {
   if (this.oFile) {
-    this.iProgressPercent = Math.ceil(this.oFile.__progress * 100)
+    this.iProgressPercent = this.bUploadFailed ? 100 : Math.ceil(this.oFile.__progress * 100)
     return this.iProgressPercent
   }
   return this.iProgressPercent
@@ -119,7 +119,6 @@ cAttachment.prototype.onUploadComplete = function () {
 
 cAttachment.prototype.onUploadFailed = function () {
   this.bUploadFailed = true
-  this.iProgressPercent = 100
 }
 
 cAttachment.prototype.setTempName = function (sTempName) {

@@ -58,7 +58,7 @@
       </q-tooltip>
     </span>
 
-    <span>
+    <!-- <span>
       <q-btn-dropdown flat color="primary" icon="import_export">
         <q-list class="non-selectable">
           <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
@@ -81,7 +81,7 @@
       <q-tooltip>
         More
       </q-tooltip>
-    </span>
+    </span> -->
 
     <q-space/>
 

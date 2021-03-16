@@ -71,12 +71,7 @@
               Forward
             </q-tooltip>
           </q-btn>
-          <!-- <q-btn flat color="primary" icon="open_in_new">
-            <q-tooltip>
-              Open in a new window
-            </q-tooltip>
-          </q-btn> -->
-          <q-btn-dropdown flat color="primary" icon="more_horiz">
+          <!-- <q-btn-dropdown flat color="primary" icon="more_horiz">
             <template v-slot:label>
               <q-tooltip>
                 More
@@ -118,7 +113,7 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </q-btn-dropdown>
+          </q-btn-dropdown> -->
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
           <div class="non-selectable" v-if="!showDetails">

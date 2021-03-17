@@ -407,17 +407,21 @@ ipcRenderer.on('mail-delete-messages', (event, { bResult, iAccountId, sFolderFul
   _removeStartedGroupOperation('mail-delete-messages', { iAccountId, sFolderFullName, aUids }, bResult)
 })
 
-export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { aUids }) {
-  commit('setMessagesDeleted', {
-    aUids,
-  })
-  let oCurrentMessage = getters.getCurrentMessage
-  if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
-    commit('setCurrentMessage', null)
+export function asyncDeleteMessages ({ state, commit, dispatch, getters }, { iAccountId, sFolderFullName, aUids }) {
+  iAccountId = iAccountId || getters.getCurrentAccountId
+  sFolderFullName = sFolderFullName || getters.getCurrentFolderFullName
+
+  if (iAccountId === getters.getCurrentAccountId && iAccountId === getters.getCurrentAccountId) {
+    commit('setMessagesDeleted', {
+      aUids,
+    })
+
+    let oCurrentMessage = getters.getCurrentMessage
+    if (oCurrentMessage && _.indexOf(aUids, oCurrentMessage.Uid) !== -1) {
+      commit('setCurrentMessage', null)
+    }
   }
 
-  let iAccountId = getters.getCurrentAccountId
-  let sFolderFullName = getters.getCurrentFolderFullName
   _addStartedGroupOperation('mail-delete-messages', { iAccountId, sFolderFullName, aUids })
 
   ipcRenderer.send('mail-delete-messages', {

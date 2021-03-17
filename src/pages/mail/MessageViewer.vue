@@ -408,9 +408,53 @@ export default {
     },
   },
 
+  mounted: function () {
+    this.clearAll()
+    this.populateMessageData()
+    this.initSubscriptions()
+  },
+
+  beforeDestroy () {
+    this.destroySubscriptions()
+  },
+
   methods: {
     cancelSending () {
-      notification.showReport('Coming soon')
+      if (this.isScheduledFolder) {
+        let oComposeParams = {
+          aDraftInfo: this.message.DraftInfo,
+          oIdentity: composeUtils.getIdentityForCompose(this.message.From),
+          aToContacts: messageUtils.getContactsToSend(this.message.To),
+          aCcContacts: messageUtils.getContactsToSend(this.message.Cc),
+          aBccContacts: messageUtils.getContactsToSend(this.message.Bcc),
+          sSubject: this.message.Subject,
+          sText: this.message.Html ? this.message.Html : this.message.Plain,
+          bPlainText: !this.message.Html && !!this.message.Plain,
+          aAttachments: this.message.Attachments && _.isArray(this.message.Attachments['@Collection']) ? this.message.Attachments['@Collection'] : [],
+          sInReplyTo: this.message.InReplyTo,
+          sReferences: this.message.References,
+          iImportance: this.message.Importance,
+          bReadingConfirmation: typesUtils.isNonEmptyString(this.message.ReadingConfirmationAddressee),
+          sAnotherMessageComposedText: 'You are about to cancel the scheduled message sending. However, another message is already being composed.',
+          bSaveImmediately: true,
+        }
+        this.deleteAfterSaveMessage = {
+          iAccountId: this.message.AccountId,
+          sFolder: this.message.Folder,
+          sUid: this.message.Uid,
+        }
+        this.openCompose(oComposeParams)
+      }
+    },
+    onSaveMessage () {
+      if (this.deleteAfterSaveMessage) {
+        this.$store.dispatch('mail/asyncDeleteMessages', {
+          iAccountId: this.deleteAfterSaveMessage.iAccountId,
+          sFolderFullName: this.deleteAfterSaveMessage.sFolder,
+          aUids: [this.deleteAfterSaveMessage.sUid],
+        })
+        this.deleteAfterSaveMessage = null
+      }
     },
     viewAttach: function (sViewUrl, sFileName) {
       webApi.viewByUrlInNewWindow(sViewUrl, sFileName)
@@ -676,10 +720,12 @@ export default {
     dummyAction() {
       notification.showReport('Coming soon')
     },
-  },
-  mounted: function () {
-    this.clearAll()
-    this.populateMessageData()
+    initSubscriptions () {
+      this.$root.$on('save-message', this.onSaveMessage)
+    },
+    destroySubscriptions () {
+      this.$root.$off('save-message', this.onSaveMessage)
+    },
   },
 }
 </script>

@@ -39,6 +39,7 @@ export default {
       dialog: false,
       maximizedToggle: false,
       discardPreviousDraftDialog: false,
+      discardPreviousDraftText: '',
       composeParameters: null,
 
       allowInsertImage: false,
@@ -868,6 +869,7 @@ export default {
             } else {
               notification.showError(errors.getText(oError, 'Error occurred while saving message'))
             }
+            this.$root.$emit('save-message')
           }
         )
       }
@@ -903,6 +905,7 @@ export default {
             // Ask what to do. Also expand compose dialog.
             this.composeParameters = oComposeParameters
             this.discardPreviousDraftDialog = true
+            this.discardPreviousDraftText = typesUtils.pString(oComposeParameters.sAnotherMessageComposedText, 'Another message is already being composed.')
           } else {
             // Continue opening compose. Also expand compose dialog.
             this.continueOpeningCompose(oComposeParameters)
@@ -923,7 +926,9 @@ export default {
       this.save()
       this.continueOpeningCompose(this.composeParameters)
     },
-    async continueOpeningCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, sInReplyTo, sReferences, iImportance, bReadingConfirmation }) {
+    async continueOpeningCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, 
+                                    sInReplyTo, sReferences, iImportance, bReadingConfirmation, bSaveImmediately }) {
+      let bPendingSave = false
       this.composeParameters = null
       this.$store.dispatch('contacts/asyncGetContactsOpenPgpExternalKeys')
       this.allowInsertImage = mailSettings.bAllowInsertImage
@@ -980,6 +985,7 @@ export default {
           }
         })
         if (aHashes.length > 0) {
+          bPendingSave = true
           webApi.sendRequest({
             sApiHost: this.sApiHost,
             sModule: 'Mail',
@@ -1003,9 +1009,13 @@ export default {
               } else {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
+              if (bSaveImmediately) {
+                this.save()
+              }
             },
           })
         } else if (typesUtils.isNonEmptyString(aAttachments[0].Content)) {
+          bPendingSave = true
           webApi.sendRequest({
             sApiHost: this.sApiHost,
             sModule: 'Core',
@@ -1025,9 +1035,13 @@ export default {
               } else {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
+              if (bSaveImmediately) {
+                this.save()
+              }
             },
           })
         } else if (typesUtils.isNonEmptyString(aAttachments[0].ContactUUID)) {
+          bPendingSave = true
           webApi.sendRequest({
             sApiHost: this.sApiHost,
             sModule: 'Contacts',
@@ -1043,6 +1057,9 @@ export default {
                 this.commitMessageData()
               } else {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
+              }
+              if (bSaveImmediately) {
+                this.save()
               }
             },
           })
@@ -1063,6 +1080,10 @@ export default {
       await this.$nextTick()
       this.commitMessageData()
       this.setAutosaveTimer()
+
+      if (bSaveImmediately && !bPendingSave) {
+        this.save()
+      }
     },
     closeCompose () {
       this.dialog = false

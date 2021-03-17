@@ -459,6 +459,7 @@ export default {
           aUids: [this.deleteAfterSaveMessage.sUid],
         })
         this.deleteAfterSaveMessage = null
+        notification.showReport('Sending canceled successfully. Your message has been moved to Drafts folder.')
       }
     },
     viewAttach: function (sViewUrl, sFileName) {

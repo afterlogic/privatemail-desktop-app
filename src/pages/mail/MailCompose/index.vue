@@ -850,7 +850,7 @@ export default {
         )
       }
     },
-    save () {
+    save (bSilently) {
       if (!this.saving && !this.sending) {
         this.commitMessageData()
         this.clearAutosaveTimer()
@@ -860,7 +860,9 @@ export default {
           (oResult, oError, oParameters) => {
             this.saving = false
             if (oResult) {
-              notification.showReport('Your message has been saved.')
+              if (!bSilently) {
+                notification.showReport('Your message has been saved.')
+              }
               if (oParameters && oParameters.DraftUid === this.draftUid) {
                 this.draftUid = typesUtils.pString(oResult.NewUid)
               }
@@ -923,7 +925,7 @@ export default {
       this.continueOpeningCompose(this.composeParameters)
     },
     savePreviousDraft () {
-      this.save()
+      this.save(true)
       this.continueOpeningCompose(this.composeParameters)
     },
     async continueOpeningCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, 
@@ -1010,7 +1012,7 @@ export default {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
               if (bSaveImmediately) {
-                this.save()
+                this.save(true)
               }
             },
           })
@@ -1036,7 +1038,7 @@ export default {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
               if (bSaveImmediately) {
-                this.save()
+                this.save(true)
               }
             },
           })
@@ -1059,7 +1061,7 @@ export default {
                 notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
               }
               if (bSaveImmediately) {
-                this.save()
+                this.save(true)
               }
             },
           })
@@ -1082,7 +1084,7 @@ export default {
       this.setAutosaveTimer()
 
       if (bSaveImmediately && !bPendingSave) {
-        this.save()
+        this.save(true)
       }
     },
     closeCompose () {

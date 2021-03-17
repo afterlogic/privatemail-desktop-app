@@ -86,6 +86,7 @@ export default {
           UnseenCount: oOldFolder ? oOldFolder.UnseenCount : 0,
           NextUid: oOldFolder ? oOldFolder.NextUid : '',
           Hash: oOldFolder ? oOldFolder.Hash : oFolderFromServer.FullNameRaw,
+          AllowMoveTo: iType !== mailEnums.FolderType.Scheduled
         }
 
         oNewFolder.SubFolders = []

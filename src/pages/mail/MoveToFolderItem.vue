@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="folder.AllowMoveTo">
     <q-item clickable v-close-popup @click="moveMessagesToFolder(folder.FullName)" :style="{ paddingLeft: level * 16 + 'px' }">
       <q-item-section>
         <q-item-label>{{folder.Name}}</q-item-label>

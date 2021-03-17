@@ -166,13 +166,19 @@
       </div>
       <div class="col">
         <q-scroll-area class="full-height">
-        <div class="q-pa-md information-panel non-selectable" v-if="isScheduledMessage">
+        <div class="q-px-md q-py-sm information-panel non-selectable" v-if="isScheduledMessage">
           <template>
-            <div>
-              <q-icon name="schedule_send" />
-              {{ scheduledMessageText }}
-              <q-btn unelevated outline color="primary" class="q-ml-md" label="Cancel sending" @click="cancelSending" />
-            </div>
+            <q-item class="q-pa-none">
+              <q-item-section avatar style="padding-right: 6px; min-width: auto;">
+                <q-icon name="schedule_send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ scheduledMessageText }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn unelevated outline color="primary" class="q-ml-md" label="Cancel sending" @click="cancelSending" />
+              </q-item-section>
+            </q-item>
           </template>
         </div>
           <div class="q-pa-md" v-html="text"></div>
@@ -268,7 +274,6 @@
 .information-panel {
   background: #dff6eb;
   border-bottom: 1px solid #b7ebd2;
-  padding: 15px;
 }
 .expand-header-handler {
     margin-bottom: -19px;

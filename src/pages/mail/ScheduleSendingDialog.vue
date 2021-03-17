@@ -1,37 +1,41 @@
 <template>
   <div>
   <q-dialog v-model="scheduleSendingDialog" persistent>
-    <q-card class="q-px-sm" style="min-width: 300px;">
+    <q-card class="q-px-sm" style="min-width: 350px;">
       <q-card-section class="non-selectable">
         <div class="text-h6">Schedule sending</div>
       </q-card-section>
-      <q-card-section>
-        <q-item class="q-px-xs q-py-xs" clickable v-ripple :active="selectedDatetime === option.Unix" active-class="bg-grey-3 text-grey-10"
+      <q-card-section class="q-pa-none">
+        <q-item class="q-px-md q-py-none" clickable v-ripple :active="selectedDatetime === option.Unix" active-class="bg-grey-3 text-grey-10"
             v-for="option in predefinedOptions" :key="option.Unix" @click="selectDate(option.Unix)">
           <q-item-section>{{ option.LeftLabel }}</q-item-section>
           <q-item-section side>{{ option.RightLabel }}</q-item-section>
         </q-item>
       </q-card-section>
-      <q-item align="center">
-        <q-item-section side top>
-          <span>or select custom date and time</span>
-        </q-item-section>
-      </q-item>
-      <q-card-section>
-        <q-input filled v-model="selectedDate" mask="date" :rules="['date']" >
-          <template v-slot:append>
-            <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                <q-date v-model="selectedDate">
-                  <div class="row items-center justify-end">
-                    <q-btn v-close-popup label="Close" color="primary" flat />
-                  </div>
-                </q-date>
-              </q-popup-proxy>
-            </q-icon>
-          </template>
-        </q-input>
-        <q-select dense outlined v-model="selectedTime" :options="timeOptions" label="Time" />
+      <q-card-section class="q-pa-none">
+        <q-item>
+          <q-item-section side class="text-center">
+            or select custom date and time
+          </q-item-section>
+        </q-item>
+      </q-card-section>
+      <q-card-section class="q-pt-none">
+        <q-item class="q-pa-none">
+          <q-item-section>
+            <q-input dense outlined bg-color="white" class="input-size" v-model="selectedDate" mask="####.##.##" label="Date">
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy ref="qSelectDate" transition-show="scale" transition-hide="scale">
+                    <q-date v-model="selectedDate" @input="() => $refs.qSelectDate.hide()" mask="YYYY.MM.DD" today-btn minimal/>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </q-item-section>
+          <q-item-section side>
+            <q-select dense outlined v-model="selectedTime" :options="timeOptions" label="Time" style="min-width: 90px;" />
+          </q-item-section>
+        </q-item>
       </q-card-section>
       <q-card-actions align="right" class="non-selectable">
         <q-btn flat label="Schedule" color="primary" @click="schedule" />
@@ -61,7 +65,7 @@ export default {
 
       selectedDate: '',
       selectedTime: '',
-      selectedDatetime: '',
+      selectedDatetime: 0,
 
       saveScheduledMessageHandler: null,
 
@@ -92,13 +96,17 @@ export default {
       this.saveScheduledMessageHandler = saveScheduledMessageHandler
       this.selectedDate = ''
       this.selectedTime = ''
-      this.selectedDatetime = ''
+      this.selectedDatetime = 0
       this.scheduleSendingDialog = true
     },
     selectDate (iUnix) {
       this.selectedDate = ''
       this.selectedTime = ''
-      this.selectedDatetime = iUnix
+      if (this.selectedDatetime === iUnix) {
+        this.selectedDatetime = 0
+      } else {
+        this.selectedDatetime = iUnix
+      }
     },
     selectDateTime () {
       let oMoment = moment(this.selectedDate + ' ' + this.selectedTime, 'YYYY/MM/DD ' + calendarUtils.getTimeFormat())
@@ -106,7 +114,9 @@ export default {
     },
     schedule () {
       if (_.isFunction(this.saveScheduledMessageHandler)) {
-        if (this.selectedDatetime < moment().unix()) {
+        if (this.selectedDatetime === 0) {
+          notification.showError('Please select a scheduled time.')
+        } else if (this.selectedDatetime < moment().unix()) {
           notification.showError('Please select a scheduled time later than the current one.')
         } else {
           this.saveScheduledMessageHandler(this.selectedDatetime)

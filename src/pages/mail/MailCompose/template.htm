@@ -228,7 +228,22 @@ transition-hide="slide-down"
   </div>
   <div class="column no-wrap bg-white non-selectable" style="width: 90%; max-width: initial; height: 90%; " v-show="!maximizedToggle">
     <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
-      <q-btn flat icon="send" label="Send" @click="send" :disable="!isEnableSending" />
+      <q-btn-dropdown split color="primary" class="glossy" icon="send" label="Send"
+      content-style="color: white; background: var(--q-color-primary) !important; text-transform: uppercase;"
+      :disable-main-btn="!isEnableSending" @click="send">
+        <q-list class="non-selectable">
+          <q-item clickable v-close-popup @click="openScheduleSendingDialog" :disable="!isEnableSending || saving">
+            <q-item-section>
+              <q-item-label>Schedule sending</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="openSelfDestructingEmailDialog">
+            <q-item-section>
+              <q-item-label>Send a self-destructing email</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
       <q-btn flat icon="save" label="Save" @click="save" />
       <q-btn-dropdown flat icon-color="grey" text-color="white" icon="priority_high" label="Importance">
         <q-list class="non-selectable">
@@ -252,8 +267,6 @@ transition-hide="slide-down"
       <q-btn flat :icon="bReadingConfirmation ? 'check_box' : 'check_box_outline_blank'" label="Reading confirmation" @click="triggerReadingConfirmation" />
       <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
       <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
-      <q-btn flat icon="mail_outline" label="Schedule sending" :disable="!isEnableSending || saving" @click="openScheduleSendingDialog" v-show="mailScheduledAllowed" />
-      <q-btn flat icon="mail_outline" label="Send a self-destructing email" @click="openSelfDestructingEmailDialog" />
       <q-space />
       <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
         <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->

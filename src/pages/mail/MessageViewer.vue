@@ -71,7 +71,7 @@
               Forward
             </q-tooltip>
           </q-btn>
-          <!-- <q-btn-dropdown flat color="primary" icon="more_horiz">
+           <q-btn-dropdown flat color="primary" icon="more_horiz">
             <template v-slot:label>
               <q-tooltip>
                 More
@@ -87,7 +87,7 @@
                 </q-item-section>
               </q-item>
 
-              <q-item clickable @click="dummyAction">
+              <q-item clickable @click="downloadAsUml">
                 <q-item-section side>
                   <q-icon name="arrow_downward" />
                 </q-item-section>
@@ -113,7 +113,7 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </q-btn-dropdown> -->
+          </q-btn-dropdown>
         </q-toolbar>
         <div class="q-pt-xs q-px-md">
           <div class="non-selectable" v-if="!showDetails">
@@ -204,7 +204,7 @@
                 >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
-              <q-btn flat icon="get_app" color="primary" 
+              <q-btn flat icon="get_app" color="primary"
                 v-if="attach.sDownloadLink"
                 @click="downloadAttach(attach.sDownloadLink, attach.sFileName)"
                 >
@@ -732,6 +732,9 @@ export default {
     destroySubscriptions () {
       this.$root.$off('save-message', this.onSaveMessage)
     },
+    downloadAsUml: function () {
+      webApi.downloadByUrl(this.message.DownloadAsEmlUrl, 'download-as-eml')
+    }
   },
 }
 </script>

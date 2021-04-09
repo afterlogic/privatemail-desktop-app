@@ -580,7 +580,7 @@ export default {
       this.pgpApplied = false
     },
     onBeforeHide () {
-      this.clearAutosaveTimer() 
+      this.clearAutosaveTimer()
     },
     getEditorTextForSend () {
       let sEditortext = this.editortext
@@ -674,7 +674,7 @@ export default {
           aRecipientsSimple.push(oRecipientInfo.email)
         }
       })
-      
+
       if (aRecipientsSimple.length > 0) {
         iSendingCount++
       }
@@ -687,7 +687,7 @@ export default {
       if (aRecipientsSignEncrypt.length > 0) {
         iSendingCount++
       }
-      
+
       return {
         simple: aRecipientsSimple,
         encrypt: aRecipientsEncrypt,
@@ -718,7 +718,7 @@ export default {
           sConfirm = 'Please note that not all recipients support signing. They will recieve unsigned copy of the message. You can go back and edit list of the recipients.'
         }
       }
-      
+
       if (sConfirm !== null) {
         this.confirmNotAllRecipientsEncryptSignText = sConfirm;
         this.showConfirmNotAllRecipientsEncryptSign = true;
@@ -928,7 +928,7 @@ export default {
       this.save(true)
       this.continueOpeningCompose(this.composeParameters)
     },
-    async continueOpeningCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments, 
+    async continueOpeningCompose ({ aDraftInfo, sDraftUid, oIdentity, aToContacts, aCcContacts, aBccContacts, sSubject, sText, aAttachments,
                                     sInReplyTo, sReferences, iImportance, bReadingConfirmation, bSaveImmediately }) {
       let bPendingSave = false
       this.composeParameters = null
@@ -1049,6 +1049,34 @@ export default {
             sModule: 'Contacts',
             sMethod: 'SaveContactAsTempFile',
             oParameters: { 'UUID': aAttachments[0].ContactUUID, 'FileName': aAttachments[0].FileName },
+            fCallback: (oResult, oError) => {
+              if (oResult) {
+                let oAttach = this.attachments[0]
+                if (oAttach) {
+                  oAttach.parseDataFromServer(oResult)
+                  oAttach.onUploadComplete()
+                }
+                this.commitMessageData()
+              } else {
+                notification.showError(errors.getText(oError, 'Error occurred while preparing attachments'))
+              }
+              if (bSaveImmediately) {
+                this.save(true)
+              }
+            },
+          })
+        } else if (aAttachments[0].MessageData) {
+          bPendingSave = true
+          webApi.sendRequest({
+            sApiHost: this.sApiHost,
+            sModule: 'Mail',
+            sMethod: 'SaveMessageAsTempFile',
+            oParameters: {
+              AccountID: aAttachments[0].MessageData.AccountID,
+              MessageFolder: aAttachments[0].MessageData.MessageFolder,
+              MessageUid: aAttachments[0].MessageData.MessageUid,
+              FileName: aAttachments[0].FileName
+            },
             fCallback: (oResult, oError) => {
               if (oResult) {
                 let oAttach = this.attachments[0]
@@ -1340,7 +1368,7 @@ export default {
             this.selfDestructingEmailDialog = false
           } else {
             //send not encrypted message
-            //if the recipient does not have a key, the message can only be encrypted with a password 
+            //if the recipient does not have a key, the message can only be encrypted with a password
             if (sPassword) {
               sBody = 'Hello,%BR%%EMAIL% user sent you a self-destructing secure email.%BR%You can read it by the following link: <a href=\"%URL%\">%URL%</a>%BR%The message will be accessible for %HOURS% hours starting from %CREATING_TIME_GMT%'
               sBody = sBody

@@ -96,7 +96,7 @@
                 </q-item-section>
               </q-item>
 
-              <q-item clickable @click="dummyAction" v-if="!isDraftsFolder && !isScheduledFolder">
+              <q-item clickable @click="forwardAsAttachment" v-if="!isDraftsFolder && !isScheduledFolder">
                 <q-item-section side>
                   <q-icon name="forward" />
                 </q-item-section>
@@ -754,6 +754,20 @@ export default {
     },
     downloadAsUml: function () {
       webApi.downloadByUrl(this.message.DownloadAsEmlUrl, 'download-as-eml')
+    },
+    forwardAsAttachment () {
+      this.openCompose({
+        aAttachments: [
+          {
+            FileName: this.message.Subject,
+            MessageData: {
+              "AccountID": this.message.AccountId,
+              "MessageFolder": this.message.Folder,
+              "MessageUid": this.message.Uid
+            }
+          }
+        ],
+      })
     }
   }
 }

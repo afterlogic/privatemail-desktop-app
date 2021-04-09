@@ -759,7 +759,7 @@ export default {
       this.openCompose({
         aAttachments: [
           {
-            FileName: this.message.Subject,
+            FileName: this.message.Subject + '.eml',
             MessageData: {
               "AccountID": this.message.AccountId,
               "MessageFolder": this.message.Folder,

@@ -78,7 +78,7 @@
               </q-tooltip>
             </template>
             <q-list class="non-selectable">
-              <q-item clickable @click="dummyAction">
+              <q-item clickable @click="printMessage">
                 <q-item-section side>
                   <q-icon name="print" />
                 </q-item-section>
@@ -238,13 +238,17 @@
           <div class="text-h6">Message headers</div>
         </q-card-section>
         <q-card-section>
-          <q-input outlined type="textarea" v-model="headers" ref="viewKeysInput" rows="100" style="width: 500px; height: 300px; font-size: 12px" />
+          <q-input outlined type="textarea" v-model="headers" ref="viewKeysInput" rows="100"
+                   style="width: 500px; height: 300px; font-size: 12px"/>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+          <q-btn flat label="Cancel" color="grey-6" v-close-popup/>
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <PrintMessageView v-bind:message="message" ref="PrintMessageView"></PrintMessageView>
+
   </div>
 </template>
 
@@ -325,6 +329,8 @@ import mailEnums from 'src/modules/mail/enums.js'
 import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
+import PrintMessageView from "./PrintMessageView";
+
 
 export default {
   name: 'MessageViewer',
@@ -360,6 +366,7 @@ export default {
 
   components: {
     ContactCard,
+    PrintMessageView
   },
 
   computed: {
@@ -768,6 +775,9 @@ export default {
           }
         ],
       })
+    },
+    printMessage () {
+      this.$refs.PrintMessageView.printMessage()
     }
   }
 }

@@ -63,4 +63,8 @@ export default {
 
 }
 </script>
-
+<style scoped>
+.print-dn {
+  display: none;
+}
+</style>

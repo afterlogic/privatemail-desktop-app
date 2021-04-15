@@ -24,6 +24,7 @@ export default {
     editable: false,
     contact: {},
   },
+  stateImportContact: false,
   stateForCreatingContact: false,
   stateForCreatingGroup: false,
   selectedContact: null,

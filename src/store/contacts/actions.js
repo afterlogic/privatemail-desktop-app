@@ -166,6 +166,7 @@ export function setCurrentContactByUUID({ state, commit, dispatch, getters }, sU
     contact: _.find(state.contacts.list, { 'UUID': sUUID }) || {},
   }
   commit('setContactByUUID', contactByUUID)
+  commit('disableImportContacts', false)
 }
 
 export function openEditContact({ state, commit, dispatch, getters }) {
@@ -173,7 +174,11 @@ export function openEditContact({ state, commit, dispatch, getters }) {
     commit('changeEditContact', true)
   }
 }
-
+export function openImportContacts({ state, commit, dispatch, getters }) {
+  if (!state.stateImportContact) {
+    commit('importContacts', true)
+  }
+}
 export function closeEditContact({ state, commit, dispatch, getters }) {
   if (state.contactByUUID.editable) {
     commit('changeEditContact', false)

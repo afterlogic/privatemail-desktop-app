@@ -92,6 +92,14 @@ export function changeEditContact(state, editable) {
   state.contactByUUID.editable = editable
 }
 
+export function importContacts(state, stateImport) {
+  state.stateImportContact = stateImport
+}
+
+export function disableImportContacts(state, stateImport) {
+  state.stateImportContact = stateImport
+}
+
 export function setNewContactToEdit(state, oNewContactToEdit) {
   state.newContactToEdit = oNewContactToEdit
 }

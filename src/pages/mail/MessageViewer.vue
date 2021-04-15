@@ -247,7 +247,7 @@
       </q-card>
     </q-dialog>
 
-    <PrintMessageView v-bind:message="message" ref="PrintMessageView"></PrintMessageView>
+    <PrintMessageView v-if="message !== null" v-bind:message="message" ref="PrintMessageView"></PrintMessageView>
 
   </div>
 </template>

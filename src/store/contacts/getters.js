@@ -55,6 +55,10 @@ export function isCurrentContactEditMode(state) {
   return (state.contactByUUID.contact && state.contactByUUID.contact instanceof CContact) ? state.contactByUUID.editable : false
 }
 
+export function getImportState(state) {
+  return state.stateImportContact
+}
+
 export function getNewContactToEdit (state) {
   return state.newContactToEdit
 }

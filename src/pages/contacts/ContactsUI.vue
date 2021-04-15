@@ -50,9 +50,11 @@
                 </div>
 
                 <template v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup">
-                  <contactView v-if="!editMode"/>
+                  <contactView v-if="!editMode && !importMode"/>
                   <contactEditView v-if="editMode" :contact="currentContact" />
                 </template>
+
+                <ContactImport v-if="!editMode && importMode"></ContactImport>
 
                 <contactEditView v-if="stateForCreatingContact && !stateForCreatingGroup" />
                 <!-- <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" /> -->
@@ -90,6 +92,7 @@ import GroupCreateView from './GroupCreateView.vue'
 
 import CContact from 'src/modules/contacts/classes/CContact.js'
 import CGroup from 'src/modules/contacts/classes/CGroup.js'
+import ContactImport from "./ContactImport";
 
 import hotkeys from 'src/utils/hotkeys.js'
 
@@ -108,6 +111,8 @@ export default {
 
     Pagination,
     GroupCreateView,
+
+    ContactImport
   },
 
   data () {
@@ -122,6 +127,9 @@ export default {
   computed: {
     editMode () {
       return this.$store.getters['contacts/isCurrentContactEditMode']
+    },
+    importMode () {
+      return this.$store.getters['contacts/getImportState']
     },
     contacts () {
       return this.$store.getters['contacts/getContacts'].list

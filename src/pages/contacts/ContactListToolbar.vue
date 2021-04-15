@@ -58,7 +58,7 @@
       </q-tooltip>
     </span>
 
-    <!-- <span>
+     <span>
       <q-btn-dropdown flat color="primary" icon="import_export">
         <q-list class="non-selectable">
           <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
@@ -71,7 +71,7 @@
               <q-item-label>Export as VCF</q-item-label>
             </q-item-section>
           </q-item>
-          <q-item clickable @click="dummyAction" v-if="currentStorage !== 'team' || currentGroupUUID !== ''">
+          <q-item clickable @click="openImportContacts" v-if="currentStorage !== 'team' || currentGroupUUID !== ''">
             <q-item-section>
               <q-item-label>Import</q-item-label>
             </q-item-section>
@@ -81,7 +81,7 @@
       <q-tooltip>
         More
       </q-tooltip>
-    </span> -->
+    </span>
 
     <q-space/>
 
@@ -347,10 +347,14 @@ export default {
     dummyAction () {
       notification.showReport('Coming soon')
     },
+    openImportContacts() {
+      this.$store.dispatch('contacts/openImportContacts')
+    }
   },
 
   beforeDestroy () {
     this.destroySubscriptions()
   },
+
 }
 </script>

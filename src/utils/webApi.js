@@ -1,8 +1,8 @@
 import _ from 'lodash'
-// import axios from 'axios'
+import axios from 'axios'
 import store from 'src/store'
 import typesUtils from 'src/utils/types.js'
-// import { saveAs } from 'file-saver'
+import { saveAs } from 'file-saver'
 
 import { ipcRenderer } from 'electron'
 
@@ -43,7 +43,6 @@ export default {
   //     headers: oHeaders,
   //     // transformRequest: [function (data, headers) {
   //     //   console.log('transformRequest', data, headers);
-    
   //     //   return data;
   //     // }],
   //     // withCredentials: false,
@@ -124,4 +123,28 @@ export default {
     //     saveAs(oResponse.data, sFileName)
     //   })
   },
+  downloadExportFile: function (oParameters, oFileName) {
+    let oHeaders = {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': 'Bearer ' + store.getters['user/getAuthToken']
+    }
+    let url = store.getters['main/getApiHost'] + '/?/Api/'
+    let oBodyFormData = new FormData()
+    oBodyFormData.set('Module', 'Contacts')
+    oBodyFormData.set('Method', 'Export')
+    oBodyFormData.set('Parameters', JSON.stringify(oParameters))
+    axios({
+      method: 'post',
+      url,
+      data: oBodyFormData,
+      headers: oHeaders
+    })
+      .then((oResponse) => {
+        let resData = oResponse.data.split("\n")
+        resData.pop()
+        resData = resData.join('\n')
+        let oBlob = new Blob([resData])
+        saveAs(oBlob, oFileName)
+           })
+  }
 }

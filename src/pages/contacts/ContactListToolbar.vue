@@ -61,12 +61,12 @@
      <span>
       <q-btn-dropdown flat color="primary" icon="import_export">
         <q-list class="non-selectable">
-          <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
+          <q-item clickable @click="exportContacts('csv')" :disable="contactsCount === 0">
             <q-item-section>
               <q-item-label>Export as CSV</q-item-label>
             </q-item-section>
           </q-item>
-          <q-item clickable @click="dummyAction" :disable="contactsCount === 0">
+          <q-item clickable @click="exportContacts('vcf')" :disable="contactsCount === 0">
             <q-item-section>
               <q-item-label>Export as VCF</q-item-label>
             </q-item-section>
@@ -120,7 +120,7 @@ import notification from 'src/utils/notification.js'
 import typesUtils from 'src/utils/types.js'
 
 import coreSettings from 'src/modules/core/settings.js'
-
+import webApi from "../../utils/webApi";
 export default {
   name: 'ContactsListToolbar',
 
@@ -349,6 +349,17 @@ export default {
     },
     openImportContacts() {
       this.$store.dispatch('contacts/openImportContacts')
+    },
+    exportContacts(format) {
+      let fileName = 'export.' + format
+      let contacts = this.checkedContacts.length ? this.checkedContacts : []
+      let oParameters = {
+        Format: format,
+        Storage: this.currentStorage,
+        GroupUUID: this.currentGroupUUID,
+        ContactUUIDs: contacts,
+      }
+      webApi.downloadExportFile(oParameters, fileName)
     }
   },
 

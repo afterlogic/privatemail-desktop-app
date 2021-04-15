@@ -93,7 +93,11 @@ export default {
     },
     showReport(info) {
       let importedCount = JSON.parse(info.xhr.response)
-      notification.showReport(`You have imported ${importedCount.Result.ImportedCount} new contact into your contacts list.`)
+      if (!importedCount.ErrorMessage) {
+        notification.showReport(`You have imported ${importedCount.Result.ImportedCount} new contact into your contacts list.`)
+      } else {
+        notification.showError('Error uploading file')
+      }
       this.importBtnValue = 'Import'
     }
   },

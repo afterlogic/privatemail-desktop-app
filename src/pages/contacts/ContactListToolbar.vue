@@ -36,7 +36,7 @@
       <q-tooltip>Delete</q-tooltip>
     </span>
 
-    <span v-if="currentStorage === 'personal' && currentGroupUUID === ''">
+    <span v-if="currentStorage === 'personal' && currentGroupUUID === '' && isShareStorage">
       <q-btn flat color="primary"
         :disable="checkedContactsCount === 0" @click="updateSharedContacts">
         <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
@@ -164,6 +164,10 @@ export default {
     checkedContactsCount () {
       return this.checkedContacts.length
     },
+    isShareStorage () {
+      let storageList = JSON.stringify(this.$store.getters['contacts/getStorageList'])
+      return storageList.indexOf('share') !== -1
+    }
   },
 
   mounted: function () {
@@ -335,7 +339,7 @@ export default {
       }
     },
     updateSharedContacts () {
-      ipcRenderer.send('contacts-update-shared-contacts', {
+    ipcRenderer.send('contacts-update-shared-contacts', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
         sStorage: this.currentStorage,

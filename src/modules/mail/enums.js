@@ -6,7 +6,9 @@ export default {
     'Spam': 4,
     'Trash': 5,
     'Starred': 7,
+    'Common': 10,
     'Scheduled': 11,
+    'Notes' : 12
   },
   ReplyType: {
     'Reply': 'reply',

@@ -11,7 +11,7 @@ import messagesDbManager from './messages-db-manager.js'
 
 import mailEnums from '../../../src/modules/mail/enums.js'
 
-function _getIconName (sType, sFolderFullName) {
+function _getIconName (sType) {
   let sIconName = ''
   switch (sType) {
     case mailEnums.FolderType.Inbox:
@@ -35,13 +35,33 @@ function _getIconName (sType, sFolderFullName) {
     case mailEnums.FolderType.Starred:
       sIconName = 'star'
       break
+    case mailEnums.FolderType.Notes:
+      sIconName = 'edit'
+      break
     default:
-      if (sFolderFullName === 'Notes') {
-        sIconName = 'edit'
-      }
+      sIconName = ''
       break
   }
   return sIconName
+}
+
+function getTypeFolder(oFolderFromServer, sNamespace) {
+  let fullNameRaw = oFolderFromServer.FullNameRaw
+  let iType = ''
+  fullNameRaw = fullNameRaw.replace(sNamespace, '')
+  switch (fullNameRaw) {
+    case 'Scheduled':
+      iType = mailEnums.FolderType.Scheduled
+      break
+    case 'Notes':
+      iType = mailEnums.FolderType.Notes
+      break
+    default:
+      iType = oFolderFromServer.Type
+      break
+  }
+
+  return iType
 }
 
 export default {
@@ -70,14 +90,14 @@ export default {
       _.each(aFoldersTree, function (oFolderFromServer) {
         let oOldFolder = oOldFoldersByNames[oFolderFromServer.FullNameRaw]
         delete oOldFoldersByNames[oFolderFromServer.FullNameRaw]
-        let iType = oFolderFromServer.FullNameRaw === 'Scheduled' ? mailEnums.FolderType.Scheduled : oFolderFromServer.Type
+        let iType = getTypeFolder(oFolderFromServer, sNamespace)
         let oNewFolder = {
           FullName: oFolderFromServer.FullNameRaw,
           Name: oFolderFromServer.Name,
           Type: iType,
           Delimiter: oFolderFromServer.Delimiter,
           Namespaced: oFolderFromServer.FullNameRaw + oFolderFromServer.Delimiter === sNamespace,
-          IconName: _getIconName(iType, oFolderFromServer.FullNameRaw),
+          IconName: _getIconName(iType),
           IsSubscribed: oFolderFromServer.IsSubscribed,
           IsSelectable: oFolderFromServer.IsSelectable,
           Exists: oFolderFromServer.Exists,
@@ -268,7 +288,7 @@ export default {
                   this._markFolderHasChanges(iAccountId, sFolderFullName, true).then(() => {}, () => {})
                   reject(oError)
                 } else if (appState.isLastMessagesInfoTime(iAccountId, sFolderFullName, sLastMessagesInfoTime)) {
-                  let 
+                  let
                     aUidsToDelete = [],
                     aMessagesInfoToSync = [],
                     aUidsToRetrieve = [],

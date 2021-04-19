@@ -45,10 +45,11 @@ function _getIconName (sType) {
   return sIconName
 }
 
-function getTypeFolder(oFolderFromServer, sNamespace) {
+function getTypeFolder(oFolderFromServer) {
   let fullNameRaw = oFolderFromServer.FullNameRaw
   let iType = ''
-  fullNameRaw = fullNameRaw.replace(sNamespace, '')
+  fullNameRaw = fullNameRaw.split('.')
+  fullNameRaw = fullNameRaw[fullNameRaw.length - 1]
   switch (fullNameRaw) {
     case 'Scheduled':
       iType = mailEnums.FolderType.Scheduled

@@ -21,7 +21,7 @@
                   flat
                   ref="uploader"
                   auto-upload
-                  accept=".csv, .vcf"
+                  :accept= "importExportFormats"
                   hide-upload-btn
                   :factory="importContacts"
                   @added="onFileAdded"
@@ -108,6 +108,14 @@ export default {
     importFile: function () {
       this.importContacts()
     }
+  },
+  computed: {
+  importExportFormats () {
+    let formats = this.$store.getters['contacts/contactsSettingImportExportFormats'].map(function (format) {
+      return '.' + format
+    })
+    return  formats.join()
+  }
   }
 }
 </script>

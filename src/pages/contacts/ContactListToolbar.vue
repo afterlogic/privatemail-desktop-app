@@ -59,14 +59,14 @@
     </span>
 
      <span>
-      <q-btn-dropdown flat color="primary" icon="import_export">
+      <q-btn-dropdown flat color="primary" icon="import_export" v-if="importExportFormats.length">
         <q-list class="non-selectable">
-          <q-item clickable @click="exportContacts('csv')" :disable="contactsCount === 0">
+          <q-item v-if="importExportFormats.indexOf('csv') + 1" clickable @click="exportContacts('csv')" :disable="contactsCount === 0">
             <q-item-section>
               <q-item-label>Export as CSV</q-item-label>
             </q-item-section>
           </q-item>
-          <q-item clickable @click="exportContacts('vcf')" :disable="contactsCount === 0">
+          <q-item v-if="importExportFormats.indexOf('vcf') + 1" clickable @click="exportContacts('vcf')" :disable="contactsCount === 0">
             <q-item-section>
               <q-item-label>Export as VCF</q-item-label>
             </q-item-section>
@@ -167,6 +167,9 @@ export default {
     isShareStorage () {
       let storageList = JSON.stringify(this.$store.getters['contacts/getStorageList'])
       return storageList.indexOf('share') !== -1
+    },
+    importExportFormats () {
+      return this.$store.getters['contacts/contactsSettingImportExportFormats']
     }
   },
 

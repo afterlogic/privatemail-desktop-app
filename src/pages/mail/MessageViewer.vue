@@ -238,7 +238,7 @@
           <div class="text-h6">Message headers</div>
         </q-card-section>
         <q-card-section>
-          <q-input outlined type="textarea" v-model="message.Headers" ref="viewKeysInput" rows="100"
+          <q-input outlined type="textarea" v-if="message !== null" v-model="message.Headers" ref="viewKeysInput" rows="100"
                    style="width: 500px; height: 300px; font-size: 12px"/>
         </q-card-section>
         <q-card-actions align="right">
@@ -359,7 +359,7 @@ export default {
 
       isScheduledMessage: false,
       scheduledMessageText: '',
-      viewDialogHeaders: false
+      viewDialogHeaders: false,
     }
   },
 

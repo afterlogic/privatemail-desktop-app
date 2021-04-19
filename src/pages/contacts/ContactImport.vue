@@ -24,6 +24,7 @@
                   flat
                   ref="uploader"
                   auto-upload
+                  accept=".csv, .vcf"
                   hide-upload-btn
                   :factory="importContacts"
                   @added="onFileAdded"

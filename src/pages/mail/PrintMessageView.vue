@@ -56,7 +56,7 @@ export default {
       let sHtml = this.$refs.PrintMessageView.innerHTML
       sHtml = sHtml.replace(/\'/g, "\\'")
       sHtml = sHtml.replace(/\n/g, '')
-      /*the picture is needed to run the "print" command*/
+      // the picture is needed to run the "print" command
       oWin.eval("window.document.write('" + sHtml + "<img src=\"src/assets/sad.svg\" onerror= \"window.print()\" style=\"width: 0;height: 0;\" />')")
     }
   }

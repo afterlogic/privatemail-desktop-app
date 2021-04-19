@@ -348,9 +348,6 @@ export default {
       this.$store.commit('contacts/markContactsDeleted', this.checkedContacts)
       this.$store.commit('contacts/setCheckedContacts', [])
     },
-    dummyAction () {
-      notification.showReport('Coming soon')
-    },
     openImportContacts() {
       this.$store.dispatch('contacts/openImportContacts')
     },

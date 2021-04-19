@@ -238,7 +238,7 @@
           <div class="text-h6">Message headers</div>
         </q-card-section>
         <q-card-section>
-          <q-input outlined type="textarea" v-model="headers" ref="viewKeysInput" rows="100"
+          <q-input outlined type="textarea" v-model="message.Headers" ref="viewKeysInput" rows="100"
                    style="width: 500px; height: 300px; font-size: 12px"/>
         </q-card-section>
         <q-card-actions align="right">
@@ -359,8 +359,7 @@ export default {
 
       isScheduledMessage: false,
       scheduledMessageText: '',
-      viewDialogHeaders: false,
-      headers: ''
+      viewDialogHeaders: false
     }
   },
 
@@ -746,9 +745,6 @@ export default {
         })
       }
     },
-    dummyAction() {
-      notification.showReport('Coming soon')
-    },
     initSubscriptions () {
       this.$root.$on('save-message', this.onSaveMessage)
     },
@@ -757,7 +753,6 @@ export default {
     },
     viewMessageHeaders () {
       this.viewDialogHeaders = true
-      this.headers = this.message.Headers
     },
     downloadAsUml: function () {
       webApi.downloadByUrl(this.message.DownloadAsEmlUrl, 'download-as-eml')

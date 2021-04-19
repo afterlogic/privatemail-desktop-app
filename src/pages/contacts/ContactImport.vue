@@ -13,9 +13,6 @@
             <div class="frame-without-top">
               <q-item-label class="info-line">Use Import to copy contacts from a CSV or VCF file into your contacts list.</q-item-label>
               <div class="buttons head">
-<!--                <label>
-                  <input style="display: none" type="file" id="importFile" ref="importFile" v-on:change="handleFileUpload()"/>
-                </label>-->
                 <q-btn no-wrap no-caps unelevated color="primary" @click="chooseFiles">{{importBtnValue}}</q-btn>
                 <div class="attachments-uploader col column full-height full-width">
                 <q-uploader
@@ -47,7 +44,6 @@
 </template>
 
 <script>
-import {ipcRenderer} from "electron";
 import typesUtils from "../../utils/types";
 import cAttachment from "../../modules/mail/classes/cAttachment";
 import notification from "../../utils/notification";
@@ -110,7 +106,6 @@ export default {
   },
   watch: {
     importFile: function () {
-      console.log(this.importFile)
       this.importContacts()
     }
   }

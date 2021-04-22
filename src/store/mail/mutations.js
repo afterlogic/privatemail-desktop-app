@@ -104,7 +104,7 @@ export function setIdentities (state, aIdentities) {
 
 /**
  * Resets current folder list. The method is used when user changes account or logs out.
- * @param {object} state 
+ * @param {object} state
  */
 export function resetCurrentFolderList (state) {
   state.currentFolderList = {
@@ -286,4 +286,8 @@ export function removeCurrentMessageReadingConfirmAddressee (state, payload) {
 
 export function setCurrentFolder (state, payload) {
   state.currentFolderList.Current = state.currentFolderList.Flat[payload]
+}
+
+export function removeCurrentMessage (state) {
+  state.currentMessage = null
 }

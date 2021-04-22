@@ -101,7 +101,8 @@
               </div>
             </template>
             <template v-slot:after>
-              <MessageViewer class="panel-rounded" />
+              <MessageViewer class="panel-rounded" v-if="currentFolder !== 'Notes'" :message="message"/>
+              <NoteViewer class="panel-rounded" v-else :message="message"/>
             </template>
           </q-splitter>
         </template>
@@ -128,6 +129,7 @@ import FolderList from './FolderList.vue'
 import MessageList from './MessageList.vue'
 import MailListToolbar from './MailListToolbar.vue'
 import MessageViewer from './MessageViewer.vue'
+import NoteViewer from "./NoteViewer";
 import Pagination from '../Pagination.vue'
 
 export default {
@@ -139,6 +141,7 @@ export default {
     MailListToolbar,
     MessageViewer,
     Pagination,
+    NoteViewer
   },
 
   data () {
@@ -197,6 +200,20 @@ export default {
     currentMessage () {
       return this.$store.getters['mail/getCurrentMessage']
     },
+    message () {
+      let oMessage = this.$store.getters['mail/getCurrentMessage']
+      let aMessages = this.$store.getters['mail/getCurrentMessages']
+      let bInArray = oMessage ? !!_.find(aMessages, (oTmpMessage) => {
+        return oTmpMessage.Uid === oMessage.Uid
+      }) : false
+      return bInArray ? oMessage : null
+    },
+    currentFolder () {
+      if (this.$store.getters['mail/getCurrentFolder'] !== null) {
+        return this.$store.getters['mail/getCurrentFolder'].Name
+      }
+      return ''
+    }
   },
 
   watch: {

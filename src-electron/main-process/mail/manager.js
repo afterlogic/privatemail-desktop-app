@@ -748,5 +748,23 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-save-note', (oEvent, { iAccountId, sFolderFullName, messageUid, sApiHost, sAuthToken, sText, sSubject }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'MailNotesPlugin',
+        sMethod: 'SaveNote',
+        oParameters: {
+          AccountId: iAccountId,
+          FolderFullName: sFolderFullName,
+          MessageUid: messageUid,
+          Text: sText,
+          Subject: sSubject
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-save-note', {bResult})
+        },
+      })
+    })
   },
 }

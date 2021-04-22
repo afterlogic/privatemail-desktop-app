@@ -24,7 +24,7 @@
           <q-item-label v-if="contact.LastName">Last name: {{ contact.LastName }}</q-item-label>
           <q-item-label v-if="contact.Skype">Skype: {{ contact.Skype }}</q-item-label>
           <q-item-label v-if="contact.Facebook">Facebook: {{ contact.Facebook }}</q-item-label>
-          <q-item-label v-if="contact.PersonalEmail || 
+          <q-item-label v-if="contact.PersonalEmail ||
             contact.PersonalAddress || contact.PersonalCity || contact.PersonalState ||contact.PersonalCountry ||
             contact.PersonalZip || contact.PersonalWeb || contact.PersonalFax || contact.PersonalPhone ||
             contact.PersonalMobile">Basic info</q-item-label>
@@ -40,9 +40,9 @@
           <q-item-label v-if="contact.PersonalPhone">Personal Phone: {{ contact.PersonalPhone }}</q-item-label>
           <q-item-label v-if="contact.PersonalMobile">Personal Mobile: {{ contact.PersonalMobile }}</q-item-label>
 
-          <q-item-label v-if="contact.BusinessEmail || 
-            contact.BusinessCompany || contact.BusinessDepartment || contact.BusinessJobTitle || contact.BusinessOffice || 
-            contact.BusinessAddress || contact.BusinessCity || contact.BusinessState || contact.BusinessZip || contact.BusinessCountry || 
+          <q-item-label v-if="contact.BusinessEmail ||
+            contact.BusinessCompany || contact.BusinessDepartment || contact.BusinessJobTitle || contact.BusinessOffice ||
+            contact.BusinessAddress || contact.BusinessCity || contact.BusinessState || contact.BusinessZip || contact.BusinessCountry ||
             contact.BusinessWeb || contact.BusinessFax || contact.BusinessPhone">Business info</q-item-label>
 
           <q-item-label v-if="contact.BusinessEmail">Business E-mail: {{ contact.BusinessEmail }}</q-item-label>
@@ -59,7 +59,7 @@
           <q-item-label v-if="contact.BusinessFax">Business Fax: {{ contact.BusinessFax }}</q-item-label>
           <q-item-label v-if="contact.BusinessPhone">Business Phone: {{ contact.BusinessPhone }}</q-item-label>
 
-          <q-item-label v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay || 
+          <q-item-label v-if="contact.BirthYear && contact.BirthMonth && contact.BirthDay ||
             contact.OtherEmail || contact.Notes">Other info</q-item-label>
 
           <q-item-label v-if="contact.BirthDay">Birthday: {{sBirthDate}}</q-item-label>
@@ -76,7 +76,7 @@
         </q-card-actions>
       </q-card>
     </q-popup-proxy>
-    
+
     <q-dialog v-model="bNewContactDialog" persistent>
       <q-card class="non-selectable">
         <q-card-section>
@@ -136,7 +136,7 @@
           <a href="javascript:void(0)" @click="showAdditionalFields">Show additional fields</a>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Creating..." color="primary" v-if="bSaving" />
+          <q-btn flat label= "Creating..." color="primary" v-if="bSaving" />
           <q-btn flat label="Create" color="primary" v-if="!bSaving" @click="saveNewContact" />
           <q-btn flat label="Cancel" color="grey-6" v-close-popup />
         </q-card-actions>
@@ -155,7 +155,7 @@
   color: var(--q-color-primary);
   background: var(--q-color-primary-pale);
   // background: lighten(var(--q-color-primary), 0.5);
-  
+
 }
 .q-chip.no_contact {
   min-width: 2em;

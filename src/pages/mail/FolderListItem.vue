@@ -10,9 +10,10 @@
         @click="selectFolder(folder.FullName)"
     >
       <q-item-section avatar>
-        <q-icon :name="folder.IconName" />
+        <q-icon v-if="folder.IconName" :name="folder.IconName" />
+        <q-icon v-else :name="'panorama_fish_eye'" size="9px" style="margin: auto"/>
       </q-item-section>
-      
+
       <q-item-section>
         <q-item-label lines="1">{{folder.Name}}</q-item-label>
       </q-item-section>
@@ -51,8 +52,6 @@
 </style>
 
 <script>
-import { ipcRenderer } from 'electron'
-
 import mailEnums from 'src/modules/mail/enums.js'
 
 import FolderListItem from './FolderListItem.vue'

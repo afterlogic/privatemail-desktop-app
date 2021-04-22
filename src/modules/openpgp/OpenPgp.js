@@ -5,6 +5,7 @@ const openpgp = require('openpgp')
 
 import addressUtils from 'src/utils/address.js'
 import typesUtils from 'src/utils/types.js'
+import notification from 'src/utils/notification.js'
 
 /**
  * @constructor
@@ -148,7 +149,7 @@ COpenPgp.prototype.getArmorInfo = async function (sArmor) {
         if (oKey && !oKey.err && oKey.keys && oKey.keys[0]) {
           aResult.push(oKey.keys[0])
         }
-        
+
         iCount++
       } catch (e) {
         aResult.push(null)
@@ -265,7 +266,7 @@ COpenPgp.prototype.findKeyById = async function (sKeyId, bPublic) {
 }
 
 /**
- * @param {String} sArmoredMessage 
+ * @param {String} sArmoredMessage
  * @retunr {Object|null}
  */
 COpenPgp.prototype.getEncryptionKeyFromArmoredMessage = async function (sArmoredMessage) {
@@ -515,7 +516,6 @@ COpenPgp.prototype.getCurrentPrivateOwnKey = function () {
       let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
       return !oKey.bPublic && oKeyEmail.email === oCurrentAccount.sEmail
     })
-
   if (oPrivateCurrentKey) {
     return oPrivateCurrentKey
   } else {

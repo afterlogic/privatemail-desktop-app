@@ -166,9 +166,9 @@ transition-hide="slide-down"
           <q-item-label v-if="selfDestructingEncryptType === 'key'" caption>The Key based encryption will be used.</q-item-label>
         </q-item-section>
       </q-item>
-      <q-item tag="label" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" v-if="selfDestructingShowPassword === ''">
+      <q-item tag="label" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password' || !privateKey" v-if="selfDestructingShowPassword === ''">
         <q-item-section side top>
-          <q-checkbox v-model="selfDestructingAddSignature" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password'" />
+          <q-checkbox v-model="selfDestructingAddSignature" :disable="!selfDestructingRecipient || selfDestructingEncryptType === 'password' || !privateKey" />
         </q-item-section>
         <q-item-section class="non-selectable">
           <q-item-label>Add digital signature</q-item-label>
@@ -455,9 +455,9 @@ transition-hide="slide-down"
               },
             }" -->
           </div>
-          <div class="col q-pa-md full-width "> 
+          <div class="col q-pa-md full-width ">
             <q-editor class="full-height"
-              ref="editor" 
+              ref="editor"
               v-model="editortext"
               height="calc(100% - 32px)"
               :disable="disableEditor"
@@ -495,7 +495,7 @@ transition-hide="slide-down"
                       <q-item>
                         <q-input outlined dense type="text" class="full-width" v-model="imageUrl" />
                       </q-item>
-              
+
                     <q-card-actions align="right">
                       <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
                       <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
@@ -539,7 +539,7 @@ transition-hide="slide-down"
           <div class="col-auto">
             <q-separator />
           </div>
-          
+
           <div class="attachments-uploader col column full-height full-width">
             <q-uploader
                 style="max-height: initial"
@@ -579,10 +579,10 @@ transition-hide="slide-down"
                             <span v-if="!attach.bUploadFailed">{{ attach.getProgressPercent() }}%</span>
                           </q-item-label>
                         </q-item-section>
-                        <q-item-section side 
+                        <q-item-section side
                           v-if="attach.sThumbnailLink"
                           class="gt-xs thumb"
-                          
+
                         >
                           <img :src="sApiHost + '/' + attach.sThumbnailLink">
                         </q-item-section>

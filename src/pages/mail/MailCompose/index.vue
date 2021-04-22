@@ -108,6 +108,7 @@ export default {
       proceedEncryptSignFromEmail: '',
 
       mailScheduledAllowed: false,
+      privateKey: false
     }
   },
 
@@ -264,7 +265,11 @@ export default {
       }
     },
     selfDestructingEncryptType () {
-      this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key'
+      if (this.selfDestructingEncryptType === 'key') {
+        this.privateKey = OpenPgp.getCurrentPrivateOwnKey()
+      }
+      this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key' && this.privateKey !== null
+
     },
     selfDestructingRecipient () {
       if (this.selfDestructingRecipient) {

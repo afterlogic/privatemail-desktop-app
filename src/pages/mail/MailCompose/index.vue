@@ -108,7 +108,8 @@ export default {
       proceedEncryptSignFromEmail: '',
 
       mailScheduledAllowed: false,
-      privateKey: false
+      privateKey: false,
+      isSelfDestructingMail: false
     }
   },
 
@@ -544,7 +545,7 @@ export default {
           this.plainText = true
           this.disableEditor = true
           this.disableRecipients = true
-          this.pgpApplied = true
+          this.pgpApplied = false
           this.editortextBeforePgp = this.editortext
           this.editortext = '<pre>' + sEncryptedData + '</pre>'
           this.pgpSignEncryptDialog = false
@@ -568,13 +569,14 @@ export default {
           this.plainText = true
           this.disableEditor = true
           this.disableRecipients = true
-          this.pgpApplied = true
+          this.pgpApplied = this.isSelfDestructingMail ? false : true
           this.editortextBeforePgp = this.editortext
           this.editortext = '<pre>' + sEncryptedSignedData + '</pre>'
           this.pgpSignEncryptDialog = false
         } else {
           notification.showError(sError)
         }
+        this.isSelfDestructingMail = false
       }
     },
     undoPGP () {
@@ -1311,6 +1313,7 @@ export default {
       }
     },
     async sendSelfDestructingSecureEmail () {
+      this.isSelfDestructingMail = true
       this.isEncrypting = true
       let sUserEmail = this.currentAccount ? this.currentAccount.sEmail : ''
       const { sEncryptedData, sPassword, sError, sPassphrase } = await OpenPgp.encryptData(

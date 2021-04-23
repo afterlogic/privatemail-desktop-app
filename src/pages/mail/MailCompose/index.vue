@@ -109,7 +109,8 @@ export default {
 
       mailScheduledAllowed: false,
       privateKey: false,
-      isSelfDestructingMail: false
+      isSelfDestructingMail: false,
+      captionForEncryption: ''
     }
   },
 
@@ -267,7 +268,12 @@ export default {
     },
     selfDestructingEncryptType () {
       if (this.selfDestructingEncryptType === 'key') {
-        this.privateKey = OpenPgp.getCurrentPrivateOwnKey()
+        this.privateKey = OpenPgp.getCurrentPrivateOwnKey(true)
+        if (this.privateKey === null) {
+          this.captionForEncryption = 'Requires your PGP private key in Settings.'
+        }
+      } else {
+        this.captionForEncryption = ''
       }
       this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key' && this.privateKey !== null
 

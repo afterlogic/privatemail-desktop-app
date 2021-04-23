@@ -508,7 +508,7 @@ COpenPgp.prototype.getAllKeys = function () {
 /**
  * @return {Object|null}
  */
-COpenPgp.prototype.getCurrentPrivateOwnKey = function () {
+COpenPgp.prototype.getCurrentPrivateOwnKey = function (isSelfDestructingMail = false) {
   let
     aOpenPgpKeys = store.getters['main/getOpenPgpKeys'],
     oCurrentAccount = store.getters['mail/getCurrentAccount'],
@@ -519,7 +519,9 @@ COpenPgp.prototype.getCurrentPrivateOwnKey = function () {
   if (oPrivateCurrentKey) {
     return oPrivateCurrentKey
   } else {
-    notification.showError('No private key found for ' + oCurrentAccount.sEmail + ' user.')
+    if (!isSelfDestructingMail) {
+      notification.showError('No private key found for ' + oCurrentAccount.sEmail + ' user.')
+    }
     return null
   }
 },

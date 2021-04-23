@@ -23,6 +23,7 @@
                   auto-upload
                   :accept= "importExportFormats"
                   hide-upload-btn
+                  :filter="checkFileType"
                   :factory="importContacts"
                   @added="onFileAdded"
                   @uploaded="showReport"
@@ -96,12 +97,21 @@ export default {
         notification.showError('Error uploading file')
       }
       this.importBtnValue = 'Import'
-    }
+    },
+    checkFileType (files) {
+      let file = files[0].name.split('.')
+      let fileType = file[file.length - 1].toLowerCase()
+      file = fileType !== 'csv' && fileType !== 'vcf' ? [] : [files[0]]
+      if (file.length === 0) {
+        notification.showError('File does not match the required format')
+      }
+      return file
+    },
   },
   data(){
     return {
       attachments: [],
-      importBtnValue: 'Import'
+      importBtnValue: 'Import',
     }
   },
   watch: {
@@ -116,7 +126,7 @@ export default {
     })
     return  formats.join()
   }
-  }
+  },
 }
 </script>
 

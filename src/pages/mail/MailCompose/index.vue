@@ -228,7 +228,6 @@ export default {
       })
     },
   },
-
   watch: {
     allIdentities () {
       this.setSelectedIdentity()
@@ -268,12 +267,17 @@ export default {
     },
     selfDestructingEncryptType () {
       if (this.selfDestructingEncryptType === 'key') {
-        this.privateKey = OpenPgp.getCurrentPrivateOwnKey(true)
         if (this.privateKey === null) {
           this.captionForEncryption = 'Requires your PGP private key in Settings.'
+        } else {
+          this.captionForEncryption = ''
         }
       } else {
-        this.captionForEncryption = ''
+        if (this.privateKey === null) {
+          this.captionForEncryption = 'Requires key-based encryption.'
+        } else {
+          this.captionForEncryption = ''
+        }
       }
       this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key' && this.privateKey !== null
 
@@ -1291,6 +1295,23 @@ export default {
       }
       this.selfDestructingShowPassword = ''
       this.selfDestructingEmailDialog = true
+
+      this.privateKey = OpenPgp.getCurrentPrivateOwnKey(true)
+
+      if (this.selfDestructingEncryptType === 'key') {
+        if (this.privateKey === null) {
+          this.captionForEncryption = 'Requires your PGP private key in Settings.'
+        } else {
+          this.captionForEncryption = ''
+        }
+      } else {
+        if (this.privateKey === null) {
+          this.captionForEncryption = 'Requires key-based encryption.'
+        } else {
+          this.captionForEncryption = ''
+        }
+      }
+
     },
     async createSelfDestrucPublicLink (sSubject, sData, sRecipientEmail, sEncryptionBasedMode, iLifetimeHrs) {
       const oPromiseCreateSelfDestrucPublicLink = new Promise( (resolve, reject) => {

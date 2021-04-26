@@ -755,7 +755,7 @@ export default {
         sModule: 'MailNotesPlugin',
         sMethod: 'SaveNote',
         oParameters: {
-          AccountId: iAccountId,
+          AccountID: iAccountId,
           FolderFullName: sFolderFullName,
           MessageUid: messageUid,
           Text: sText,

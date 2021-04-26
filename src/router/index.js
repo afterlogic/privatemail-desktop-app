@@ -10,7 +10,7 @@ Vue.use(VueRouter)
  * directly export the Router instantiation
  */
 
-export default new VueRouter({
+const router = new VueRouter({
   scrollBehavior: () => ({ x: 0, y: 0 }),
   routes,
 
@@ -20,3 +20,8 @@ export default new VueRouter({
   mode: process.env.VUE_ROUTER_MODE,
   base: process.env.VUE_ROUTER_BASE,
 })
+router.beforeEach((to, from, next) => {
+  console.log(to)
+   next()
+})
+export default router

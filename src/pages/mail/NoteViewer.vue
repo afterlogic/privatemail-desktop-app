@@ -50,11 +50,6 @@ export default {
     }
   },
   watch: {
-    sText(val, oldVal) {
-    /*  if (oldVal !== val && this.confirm) {
-        this.oldText = oldVal
-      }*/
-    },
     message(val, oldVal) {
       if (val !== null) {
         if (this.sTextSource !== this.sText) {
@@ -74,15 +69,12 @@ export default {
     //document.addEventListener('click', () => this.getTextForInput());
   },
   methods: {
-    getTextForInput() {
-      console.log()
-    },
     saveNote() {
       this.$store.dispatch('mail/saveNote', {
         messageUid: this.message.Uid,
         sFolderFullName: this.message.Folder,
         sText: this.sText,
-        sSubject: this.message.Subject ? this.message.Subject : this.sText.split('\n')[0]
+        sSubject: this.sText.split('\n')[0]
       })
     },
     cancelNote() {
@@ -98,12 +90,6 @@ export default {
       this.sText = textUtils.htmlToPlain(this.message.Html)
     },
   },
-  beforeDestroy() {
-    console.log(this)
-  },
-/*   created() {
-     console.log(this.sText,'beforeCreate')
-   }*/
 }
 </script>
 

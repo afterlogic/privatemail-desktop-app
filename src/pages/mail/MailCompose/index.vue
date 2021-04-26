@@ -373,22 +373,22 @@ export default {
             short: oEmailParts.name || oEmailParts.email,
             value: 'rand_' + Math.round(Math.random() * 10000),
           })
+          _.each(aPublicKeys, (oKey) => {
+            let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
+            if (oKey.sEmail.indexOf(sSearch) !== -1 && _.indexOf(aEmailsToExclude, oKeyEmail.email) === -1) {
+              aOptions.push({
+                email: oKeyEmail.email,
+                full: oKeyEmail.full,
+                hasPgpKey: true,
+                label: oKeyEmail.full,
+                pgpEncrypt: false,
+                pgpSign: false,
+                short: oEmailParts.name || oEmailParts.email,
+                value: 'keyid_' + oKey.sId,
+              })
+            }
+          })
         }
-        _.each(aPublicKeys, (oKey) => {
-          let oKeyEmail = addressUtils.getEmailParts(oKey.sEmail)
-          if (oKey.sEmail.indexOf(sSearch) !== -1 && _.indexOf(aEmailsToExclude, oKeyEmail.email) === -1) {
-            aOptions.push({
-              email: oKeyEmail.email,
-              full: oKeyEmail.full,
-              hasPgpKey: true,
-              label: oKeyEmail.full,
-              pgpEncrypt: false,
-              pgpSign: false,
-              short: oEmailParts.name || oEmailParts.email,
-              value: 'keyid_' + oKey.sId,
-            })
-          }
-        })
         update(async () => {
           this.selfDestructingRecipientOptions = aOptions
           if (bAddFirstOption) {

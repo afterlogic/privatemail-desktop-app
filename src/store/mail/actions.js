@@ -515,3 +515,25 @@ export function logout ({ commit }) {
   commit('setCurrentAccount', null)
   commit('resetCurrentFolderList')
 }
+
+export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sFolderFullName, sText, sSubject }) {
+
+  let iAccountId = getters.getCurrentAccountId
+
+  ipcRenderer.send('mail-save-note', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId,
+    sFolderFullName,
+    messageUid,
+    sText,
+    sSubject
+  })
+}
+
+ipcRenderer.on('mail-save-note', (event, { bResult }) => {
+  if (bResult) {
+    store.commit('mail/removeCurrentMessage')
+    store.dispatch('mail/asyncRefresh', true)
+  }
+})

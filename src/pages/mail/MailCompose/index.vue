@@ -110,7 +110,8 @@ export default {
       mailScheduledAllowed: false,
       privateKey: false,
       isSelfDestructingMail: false,
-      captionForEncryption: ''
+      sCaptionForEncryption: '',
+      bEncryptAction: false
     }
   },
 
@@ -268,15 +269,15 @@ export default {
     selfDestructingEncryptType () {
       if (this.selfDestructingEncryptType === 'key') {
         if (this.privateKey === null) {
-          this.captionForEncryption = 'Requires your PGP private key in Settings.'
+          this.sCaptionForEncryption = 'Requires your PGP private key in Settings.'
         } else {
-          this.captionForEncryption = ''
+          this.sCaptionForEncryption = ''
         }
       } else {
         if (this.privateKey === null) {
-          this.captionForEncryption = 'Requires key-based encryption.'
+          this.sCaptionForEncryption = 'Requires key-based encryption.'
         } else {
-          this.captionForEncryption = ''
+          this.sCaptionForEncryption = ''
         }
       }
       this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key' && this.privateKey !== null
@@ -292,6 +293,7 @@ export default {
   },
 
   beforeDestroy: function () {
+    console.log('beforeDestroy')
     this.clearAutosaveTimer()
   },
 
@@ -1256,6 +1258,7 @@ export default {
       if (this.isMessageDataChanged()) {
         this.save()
       }
+      this.bEncryptAction = false
       this.closeCompose()
     },
     openScheduleSendingDialog () {
@@ -1300,15 +1303,15 @@ export default {
 
       if (this.selfDestructingEncryptType === 'key') {
         if (this.privateKey === null) {
-          this.captionForEncryption = 'Requires your PGP private key in Settings.'
+          this.sCaptionForEncryption = 'Requires your PGP private key in Settings.'
         } else {
-          this.captionForEncryption = ''
+          this.sCaptionForEncryption = ''
         }
       } else {
         if (this.privateKey === null) {
-          this.captionForEncryption = 'Requires key-based encryption.'
+          this.sCaptionForEncryption = 'Requires key-based encryption.'
         } else {
-          this.captionForEncryption = ''
+          this.sCaptionForEncryption = ''
         }
       }
 
@@ -1340,6 +1343,7 @@ export default {
       }
     },
     async sendSelfDestructingSecureEmail () {
+      this.bEncryptAction = true
       this.isSelfDestructingMail = true
       this.isEncrypting = true
       let sUserEmail = this.currentAccount ? this.currentAccount.sEmail : ''

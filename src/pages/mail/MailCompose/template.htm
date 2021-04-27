@@ -177,7 +177,7 @@ transition-hide="slide-down"
       <q-item style="padding-top: 0; margin-top: -14px;" v-if="selfDestructingShowPassword === ''" class="non-selectable">
         <q-item-section>
           <q-item-label v-if="selfDestructingAddSignature" caption>Will sign the data with your private key.</q-item-label>
-          <q-item-label v-if="!selfDestructingAddSignature" caption>Will not sign the data.</q-item-label>
+          <q-item-label v-if="!selfDestructingAddSignature" caption>Will not sign the data. {{sCaptionForEncryption}}</q-item-label>
         </q-item-section>
       </q-item>
 
@@ -265,7 +265,7 @@ transition-hide="slide-down"
         </q-list>
       </q-btn-dropdown>
       <q-btn flat :icon="bReadingConfirmation ? 'check_box' : 'check_box_outline_blank'" label="Reading confirmation" @click="triggerReadingConfirmation" />
-      <q-btn flat icon="vpn_key" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
+      <q-btn flat icon="vpn_key" :disable="bEncryptAction" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
       <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
       <q-space />
       <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">

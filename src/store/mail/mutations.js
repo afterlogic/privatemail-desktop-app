@@ -291,3 +291,15 @@ export function setCurrentFolder (state, payload) {
 export function removeCurrentMessage (state) {
   state.currentMessage = null
 }
+
+export function setHasChanges (state, bValue) {
+  state.hasChanges = bValue
+}
+
+export function setTriggerChangesDialogue (state, bValue) {
+  state.triggerChangesDialogue = bValue
+}
+
+export function setSelectedItem (state, oValue) {
+  state.selectedItem = oValue
+}

@@ -45,31 +45,37 @@ export default {
       sText: '',
       sTextSource: '',
       bConfirm: false,
-      oldMessage: {},
-      oldText: ''
+      //oldMessage: {},
+      oldText: '',
+      hasChanges: false
     }
   },
   watch: {
-    message(val, oldVal) {
-      if (val !== null) {
-        if (this.sTextSource !== this.sText) {
-          this.bConfirm = true
-          this.oldMessage = oldVal
-        } else {
-            this.sTextSource = textUtils.htmlToPlain(this.message.Html)
-            this.sText = textUtils.htmlToPlain(this.message.Html)
-        }
-      } else {
-        this.sTextSource = ''
-        this.sText = ''
+    sText() {
+      this.$store.commit('mail/setHasChanges', this.sText !== this.sTextSource)
+    },
+    message() {
+      if (this.message !== null) {
+        this.sTextSource = textUtils.htmlToPlain(this.message.Html)
+        this.sText = textUtils.htmlToPlain(this.message.Html)
       }
+    },
+    triggerChangesDialogue() {
+      this.bConfirm = this.triggerChangesDialogue
     }
   },
   created() {
     //document.addEventListener('click', () => this.getTextForInput());
   },
+  computed: {
+    triggerChangesDialogue() {
+      return this.$store.getters['mail/getTriggerChangesDialogue']
+    }
+  },
   methods: {
     saveNote() {
+      this.$store.commit('mail/setHasChanges', false)
+      this.$store.commit('mail/setTriggerChangesDialogue', false)
       this.$store.dispatch('mail/saveNote', {
         messageUid: this.message.Uid,
         sFolderFullName: this.message.Folder,
@@ -81,11 +87,28 @@ export default {
       this.sText = textUtils.htmlToPlain(this.message.Html)
     },
     cancelQDialog() {
-      if (this.message !== null) {
-        this.$store.commit('mail/setCurrentMessage', this.oldMessage)
-      }
+      this.$store.commit('mail/setTriggerChangesDialogue', false)
     },
     returnPreviousValue() {
+      this.$store.commit('mail/setHasChanges', false)
+      let selectedItem = this.$store.getters['mail/getSelectedItem']
+      if (selectedItem.route) {
+        this.$router.push({ path: selectedItem.route })
+      }
+      if (selectedItem.messageUid) {
+        let selectedMessage = this.$store.getters['mail/getMessageByUid'](selectedItem.messageUid)
+        this.$store.dispatch('mail/setCurrentMessage', selectedMessage)
+      }
+      if (selectedItem.folder) {
+        this.$store.dispatch('mail/setCurrentFolder', selectedItem.folder)
+      }
+      if (selectedItem.openCompose) {
+        this.openCompose({})
+      }
+      if (selectedItem.deleteMessage) {
+        this.$store.dispatch('mail/asyncClearCurrentFolder')
+      }
+      this.$store.commit('mail/setTriggerChangesDialogue', false)
       this.sTextSource = textUtils.htmlToPlain(this.message.Html)
       this.sText = textUtils.htmlToPlain(this.message.Html)
     },

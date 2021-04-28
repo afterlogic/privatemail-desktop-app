@@ -83,7 +83,7 @@ hr.unread {
     }
     &.forwarded::before {
         border-right-color: #e4be36;
-    }   
+    }
     &.forwarded.answered::before {
         border-right-color: #f18c6e;
     }
@@ -182,12 +182,17 @@ export default {
   methods: {
     selectMessage: function (oMouseEvent) {
       if (oMouseEvent && oMouseEvent.isTrusted) {
-        if (oMouseEvent.ctrlKey) {
-          this.checked = true
-        } else if (oMouseEvent.shiftKey) {
-          this.$root.$emit('message-shift-checked', this.message.Uid)
+        if (this.$store.getters['mail/getHasChanges']) {
+          this.$store.commit('mail/setSelectedItem', {messageUid: this.message.Uid})
+          this.$store.commit('mail/setTriggerChangesDialogue', true)
         } else {
-          this.$store.dispatch('mail/setCurrentMessage', this.message)
+          if (oMouseEvent.ctrlKey) {
+            this.checked = true
+          } else if (oMouseEvent.shiftKey) {
+            this.$root.$emit('message-shift-checked', this.message.Uid)
+          } else {
+            this.$store.dispatch('mail/setCurrentMessage', this.message)
+          }
         }
       }
     },

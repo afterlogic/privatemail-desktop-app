@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-
+import store from 'src/store'
 import routes from './routes'
 
 Vue.use(VueRouter)
@@ -21,7 +21,11 @@ const router = new VueRouter({
   base: process.env.VUE_ROUTER_BASE,
 })
 router.beforeEach((to, from, next) => {
-  console.log(to)
-   next()
+  if (store.getters['mail/getHasChanges']) {
+    store.commit('mail/setSelectedItem', {route: to.fullPath})
+    store.commit('mail/setTriggerChangesDialogue', true)
+  } else {
+    next()
+  }
 })
 export default router

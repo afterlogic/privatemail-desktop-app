@@ -161,3 +161,21 @@ export function getDisplayedFolders (state) {
     return oFolder.FullName
   })
 }
+
+export function getHasChanges (state) {
+  return state.hasChanges
+}
+
+export function getTriggerChangesDialogue (state) {
+  return state.triggerChangesDialogue
+}
+
+export function getSelectedItem (state) {
+  return state.selectedItem
+}
+
+export function getMessageByUid (state) {
+  return function (messageUid) {
+    return state.currentMessages.find(message => message.Uid === messageUid)
+  }
+}

@@ -34,4 +34,8 @@ export default {
 
   messagesCache: {},
   currentMessage: null,
+
+  hasChanges: false,
+  triggerChangesDialogue: false,
+  selectedItem: {}
 }

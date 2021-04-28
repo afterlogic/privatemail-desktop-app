@@ -29,7 +29,7 @@
   .offset-3x {
     width: 84px + 14px;
   }
-  
+
 }
 </style>
 
@@ -51,7 +51,12 @@ export default {
   },
   methods: {
     selectFolder (folderFullName) {
-      this.$store.dispatch('mail/setCurrentFolder', folderFullName)
+      if (this.$store.getters['mail/getHasChanges']) {
+        this.$store.commit('mail/setSelectedItem', {folder: folderFullName})
+        this.$store.commit('mail/setTriggerChangesDialogue', true)
+      } else {
+        this.$store.dispatch('mail/setCurrentFolder', folderFullName)
+      }
     },
   },
 }

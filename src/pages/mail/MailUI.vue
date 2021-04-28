@@ -331,7 +331,12 @@ export default {
       }
     },
     openNewMessageCompose () {
-      this.openCompose({})
+      if (this.$store.getters['mail/getHasChanges']) {
+        this.$store.commit('mail/setSelectedItem', {openCompose: 'New message'})
+        this.$store.commit('mail/setTriggerChangesDialogue', true)
+      } else {
+        this.openCompose({})
+      }
     },
     onMessageChecked (iUid, bChecked) {
       if (bChecked) {

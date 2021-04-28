@@ -1,6 +1,6 @@
 <template>
   <div class="row q-pa-sm items-center non-selectable">
-    <span>
+    <span v-if="!isNotesFolder">
       <q-btn-dropdown split flat color="primary" icon="drafts" :disable-main-btn="checkedCount === 0" @click="setMessagesRead(true)">
         <q-list class="non-selectable">
           <q-item clickable v-close-popup @click="setAllMessagesRead">
@@ -18,7 +18,7 @@
       <q-tooltip>Mark As Read</q-tooltip>
     </span>
 
-    <span>
+    <span v-if="!isNotesFolder">
       <q-btn-dropdown flat color="primary" icon="move_to_inbox" v-if="!isScheduledFolder" :disable="checkedCount === 0">
         <q-list class="non-selectable">
           <MoveToFolderItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :level="1" :moveMessagesToFolder="moveMessagesToFolder"></MoveToFolderItem>
@@ -50,7 +50,7 @@
       <q-tooltip>Not Spam</q-tooltip>
     </span>
 
-    <span v-if="!isSpamFolder && !isScheduledFolder">
+    <span v-if="!isSpamFolder && !isScheduledFolder && !isNotesFolder">
       <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam" />
       <q-tooltip>Spam</q-tooltip>
     </span>
@@ -147,6 +147,9 @@ export default {
     isScheduledFolder () {
       return this.currentFolder && this.currentFolder.Type === mailEnums.FolderType.Scheduled
     },
+    isNotesFolder() {
+      return this.currentFolder && this.currentFolder.Type === mailEnums.FolderType.Notes
+    }
   },
 
   watch: {
@@ -183,10 +186,15 @@ export default {
       }
     },
     deleteMessages () {
-      if (this.currentFolder.Type === mailEnums.FolderType.Spam || this.currentFolder.Type === mailEnums.FolderType.Trash) {
-        this.confirmDeletePermanently = true
+      if (this.$store.getters['mail/getHasChanges']) {
+        this.$store.commit('mail/setSelectedItem', {deleteMessage: 'delete'})
+        this.$store.commit('mail/setTriggerChangesDialogue', true)
       } else {
-        this.moveMessagesToTrash()
+        if (this.currentFolder.Type === mailEnums.FolderType.Spam || this.currentFolder.Type === mailEnums.FolderType.Trash) {
+          this.confirmDeletePermanently = true
+        } else {
+          this.moveMessagesToTrash()
+        }
       }
     },
     moveMessagesToTrash () {
@@ -225,8 +233,13 @@ export default {
       }
     },
     fullSync () {
-      clearTimeout(this.iRefreshTimer)
-      this.$store.dispatch('mail/asyncRefresh', true)
+      if (this.$store.getters['mail/getHasChanges']) {
+        this.$store.commit('mail/setSelectedItem', {deleteMessage: 'delete'})
+        this.$store.commit('mail/setTriggerChangesDialogue', true)
+      } else {
+        clearTimeout(this.iRefreshTimer)
+        this.$store.dispatch('mail/asyncRefresh', true)
+      }
     },
   },
 }

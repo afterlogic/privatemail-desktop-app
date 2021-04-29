@@ -8,7 +8,7 @@
 
     <div class="full-height" v-else>
       <div class="q-pa-md" style="height: 90%">
-        <textarea class="" v-model="sText" type="textarea"
+        <textarea v-model="sText" type="textarea"
                   style="resize: none; width: 100%; height: 100%; border: none"/>
       </div>
       <q-toolbar class="buttons" style="height: 10%">
@@ -75,11 +75,17 @@ export default {
     saveNote() {
       this.$store.commit('mail/setHasChanges', false)
       this.$store.commit('mail/setTriggerChangesDialogue', false)
+      let sSubject =  this.sText.split('\n').filter(num => {
+        if (num !== "") {
+          return num
+        }
+      })
+
       this.$store.dispatch('mail/saveNote', {
         messageUid: this.message.Uid,
         sFolderFullName: this.message.Folder,
         sText: this.sText,
-        sSubject: this.sText.split('\n')[0]
+        sSubject: sSubject[0]
       })
     },
     cancelNote() {
@@ -134,6 +140,8 @@ export default {
   },
 }
 </script>
-
 <style scoped>
+.note-text-area:focus {
+  border: 2px solid #6d5d7e;
+}
 </style>

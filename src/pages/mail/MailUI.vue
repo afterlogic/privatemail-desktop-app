@@ -5,7 +5,8 @@
         <template v-slot:before>
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
-              <q-btn flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openNewMessageCompose" label="New message"/>
+              <q-btn v-if="currentFolder !== 'Notes'" flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openNewMessageCompose" label="New message"/>
+              <q-btn v-else flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="showNewNoteWindow" label="New Note"/>
             </div>
             <div class="col" style="overflow: hidden;">
               <q-scroll-area class="full-height full-width">
@@ -102,7 +103,7 @@
             </template>
             <template v-slot:after>
               <MessageViewer class="panel-rounded" v-if="currentFolder !== 'Notes'" :message="message"/>
-              <NoteViewer class="panel-rounded" v-else :checkedMessagesUids="checkedUidsForToolbar" :message="message" :searchInputText="searchInputText"/>
+              <NoteViewer class="panel-rounded" v-else ref="noteViewerComponent" :checkedMessagesUids="checkedUidsForToolbar" :message="message" :searchInputText="searchInputText"/>
             </template>
           </q-splitter>
         </template>
@@ -341,6 +342,9 @@ export default {
       } else {
         this.openCompose({})
       }
+    },
+    showNewNoteWindow () {
+      this.$refs.noteViewerComponent.newNote()
     },
     onMessageChecked (iUid, bChecked) {
       if (bChecked) {

@@ -1,6 +1,6 @@
 <template>
   <div class="full-height bg-white text-grey-8" style="overflow:hidden">
-    <div class="pannel-hint non-selectable" v-if="message === null">
+    <div class="pannel-hint non-selectable" v-if="currentNote === null">
       No note selected.
       <br/>
       <div class="sub-hint">Click any note in the list to preview it here or double-click to view it full size.</div>
@@ -46,18 +46,21 @@ export default {
       sText: '',
       sTextSource: '',
       bConfirm: false,
-      hasChanges: false
+      currentNote: null
     }
   },
   watch: {
     sText() {
       this.$store.commit('mail/setHasChanges', this.sText !== this.sTextSource)
     },
-    message() {
-      if (this.message !== null) {
-        this.sTextSource = textUtils.htmlToPlain(this.message.HtmlRaw)
-        this.sText = textUtils.htmlToPlain(this.message.HtmlRaw)
+    currentNote() {
+      if (this.currentNote !== null) {
+        this.sTextSource = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
+        this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
       }
+    },
+    message() {
+      this.currentNote = this.message
     },
     triggerChangesDialogue() {
       this.bConfirm = this.triggerChangesDialogue
@@ -68,7 +71,7 @@ export default {
       return this.$store.getters['mail/getTriggerChangesDialogue']
     },
     checkedCount () {
-      return this.checkedMessagesUids.length
+      return this.currentNote.length
     },
   },
   methods: {
@@ -80,16 +83,31 @@ export default {
           return num
         }
       })
-
-      this.$store.dispatch('mail/saveNote', {
-        messageUid: this.message.Uid,
-        sFolderFullName: this.message.Folder,
-        sText: this.sText,
-        sSubject: sSubject[0]
-      })
+      if (this.currentNote.Uid === '') {
+        this.$store.dispatch('mail/saveNote', {
+          messageUid: '',
+          sFolderFullName: this.currentNote.Folder,
+          sText: this.sText,
+          sSubject: sSubject[0]
+        })
+      } else {
+        this.$store.dispatch('mail/saveNote', {
+          messageUid: this.currentNote.Uid,
+          sFolderFullName: this.currentNote.Folder,
+          sText: this.sText,
+          sSubject: sSubject[0]
+        })
+      }
+    },
+    newNote() {
+      this.currentNote = {
+        HtmlRaw: '',
+        Folder: this.$store.getters['mail/getCurrentFolderFullName'],
+        Uid: ''
+      }
     },
     cancelNote() {
-      this.sText = textUtils.htmlToPlain(this.message.HtmlRaw)
+      this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
     },
     cancelQDialog() {
       this.$store.commit('mail/setTriggerChangesDialogue', false)
@@ -126,8 +144,8 @@ export default {
         })
       }
       this.$store.commit('mail/setTriggerChangesDialogue', false)
-      this.sTextSource = textUtils.htmlToPlain(this.message.HtmlRaw)
-      this.sText = textUtils.htmlToPlain(this.message.HtmlRaw)
+      this.sTextSource = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
+      this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
     },
     moveMessagesToFolder (sFolder) {
       if (this.checkedCount > 0) {

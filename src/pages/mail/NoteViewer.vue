@@ -19,7 +19,6 @@
     <q-dialog v-model="bConfirm" persistent>
       <q-card>
         <q-card-section class="row items-center">
-          <q-avatar icon="signal_wifi_off" color="primary" text-color="white"/>
           <span class="q-ml-sm">Discard unsaved changes?</span>
         </q-card-section>
 

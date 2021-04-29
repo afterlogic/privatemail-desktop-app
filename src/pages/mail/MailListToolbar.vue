@@ -234,7 +234,7 @@ export default {
     },
     fullSync () {
       if (this.$store.getters['mail/getHasChanges']) {
-        this.$store.commit('mail/setSelectedItem', {deleteMessage: 'delete'})
+        this.$store.commit('mail/setSelectedItem', {fullSync: 'sync'})
         this.$store.commit('mail/setTriggerChangesDialogue', true)
       } else {
         clearTimeout(this.iRefreshTimer)

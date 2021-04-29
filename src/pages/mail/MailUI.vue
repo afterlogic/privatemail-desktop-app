@@ -102,7 +102,7 @@
             </template>
             <template v-slot:after>
               <MessageViewer class="panel-rounded" v-if="currentFolder !== 'Notes'" :message="message"/>
-              <NoteViewer class="panel-rounded" v-else :message="message"/>
+              <NoteViewer class="panel-rounded" v-else :checkedMessagesUids="checkedUidsForToolbar" :message="message" :searchInputText="searchInputText"/>
             </template>
           </q-splitter>
         </template>
@@ -164,7 +164,6 @@ export default {
       iLastCheckedUid: null,
     }
   },
-
   computed: {
     currentAccount () {
       return this.$store.getters['mail/getCurrentAccount']
@@ -317,11 +316,16 @@ export default {
       }, 10)
     },
     search: function () {
-      this.$store.dispatch('mail/asyncGetMessages', {
-        iPage: 1,
-        sSearch: this.searchInputText,
-        sFilter: '',
-      })
+      if (this.$store.getters['mail/getHasChanges']) {
+        this.$store.commit('mail/setSelectedItem', {search: 'search'})
+        this.$store.commit('mail/setTriggerChangesDialogue', true)
+      } else {
+        this.$store.dispatch('mail/asyncGetMessages', {
+          iPage: 1,
+          sSearch: this.searchInputText,
+          sFilter: '',
+        })
+      }
     },
     changePage (iPage) {
       if (iPage !== this.currentPage) {

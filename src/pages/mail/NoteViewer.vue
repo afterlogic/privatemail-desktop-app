@@ -38,15 +38,15 @@ import textUtils from "../../utils/text";
 export default {
   name: "NoteViewer",
   props: {
-    message: Object
+    message: Object,
+    checkedMessagesUids: Array,
+    searchInputText: String
   },
   data() {
     return {
       sText: '',
       sTextSource: '',
       bConfirm: false,
-      //oldMessage: {},
-      oldText: '',
       hasChanges: false
     }
   },
@@ -64,13 +64,13 @@ export default {
       this.bConfirm = this.triggerChangesDialogue
     }
   },
-  created() {
-    //document.addEventListener('click', () => this.getTextForInput());
-  },
   computed: {
     triggerChangesDialogue() {
       return this.$store.getters['mail/getTriggerChangesDialogue']
-    }
+    },
+    checkedCount () {
+      return this.checkedMessagesUids.length
+    },
   },
   methods: {
     saveNote() {
@@ -92,6 +92,7 @@ export default {
     returnPreviousValue() {
       this.$store.commit('mail/setHasChanges', false)
       let selectedItem = this.$store.getters['mail/getSelectedItem']
+
       if (selectedItem.route) {
         this.$router.push({ path: selectedItem.route })
       }
@@ -106,12 +107,31 @@ export default {
         this.openCompose({})
       }
       if (selectedItem.deleteMessage) {
-        this.$store.dispatch('mail/asyncClearCurrentFolder')
+        let sTrashFullName = this.$store.getters['mail/getTrashFullName']
+        this.moveMessagesToFolder(sTrashFullName)
+      }
+      if (selectedItem.fullSync) {
+        this.$store.dispatch('mail/asyncRefresh', true)
+      }
+      if (selectedItem.search) {
+        this.$store.dispatch('mail/asyncGetMessages', {
+          iPage: 1,
+          sSearch: this.searchInputText,
+          sFilter: '',
+        })
       }
       this.$store.commit('mail/setTriggerChangesDialogue', false)
       this.sTextSource = textUtils.htmlToPlain(this.message.Html)
       this.sText = textUtils.htmlToPlain(this.message.Html)
     },
+    moveMessagesToFolder (sFolder) {
+      if (this.checkedCount > 0) {
+        this.$store.dispatch('mail/asyncMoveMessagesToFolder', {
+          aUids: this.checkedMessagesUids,
+          sToFolderFullName: sFolder,
+        })
+      }
+    }
   },
 }
 </script>

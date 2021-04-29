@@ -55,8 +55,8 @@ export default {
     },
     message() {
       if (this.message !== null) {
-        this.sTextSource = textUtils.htmlToPlain(this.message.Html)
-        this.sText = textUtils.htmlToPlain(this.message.Html)
+        this.sTextSource = textUtils.htmlToPlain(this.message.HtmlRaw)
+        this.sText = textUtils.htmlToPlain(this.message.HtmlRaw)
       }
     },
     triggerChangesDialogue() {
@@ -89,7 +89,7 @@ export default {
       })
     },
     cancelNote() {
-      this.sText = textUtils.htmlToPlain(this.message.Html)
+      this.sText = textUtils.htmlToPlain(this.message.HtmlRaw)
     },
     cancelQDialog() {
       this.$store.commit('mail/setTriggerChangesDialogue', false)
@@ -126,8 +126,8 @@ export default {
         })
       }
       this.$store.commit('mail/setTriggerChangesDialogue', false)
-      this.sTextSource = textUtils.htmlToPlain(this.message.Html)
-      this.sText = textUtils.htmlToPlain(this.message.Html)
+      this.sTextSource = textUtils.htmlToPlain(this.message.HtmlRaw)
+      this.sText = textUtils.htmlToPlain(this.message.HtmlRaw)
     },
     moveMessagesToFolder (sFolder) {
       if (this.checkedCount > 0) {

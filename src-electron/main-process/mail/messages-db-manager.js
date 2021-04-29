@@ -29,6 +29,7 @@ let aMessageDbMap = [
   {Name: 'Hash', DbName: 'hash', Type: 'TEXT'},
   {Name: 'Headers', DbName: 'headers', Type: 'TEXT'},
   {Name: 'Html', DbName: 'html', Type: 'TEXT'},
+  {Name: 'HtmlRaw', DbName: 'html_raw', Type: 'TEXT'},
   {Name: 'Importance', DbName: 'importance', Type: 'INTEGER'},
   {Name: 'InReplyTo', DbName: 'in_reply_to', Type: 'TEXT'},
   {Name: 'InternalTimeStampInUTC', DbName: 'internal_timestamp_in_utc', Type: 'INTEGER'},
@@ -259,7 +260,7 @@ export default {
             aParams.push(true)
           }
         }
-        
+
         oDb.get('SELECT COUNT(*) AS count FROM messages WHERE ' + aWhere.join(' AND '), aParams, (oError, oRow) => {
           let iTotalCount = typesUtils.pInt(oRow && oRow.count)
           if (iTotalCount > 0) {

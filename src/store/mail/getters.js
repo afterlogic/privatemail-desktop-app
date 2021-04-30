@@ -176,6 +176,22 @@ export function getSelectedItem (state) {
 
 export function getMessageByUid (state) {
   return function (messageUid) {
-    return state.currentMessages.find(message => message.Uid === messageUid)
+    let oFoundMessage = null
+    _.each(state.currentMessages, (oMessage) => {
+      if (oMessage.Uid === messageUid) {
+        oFoundMessage = oMessage
+      } else if (_.isArray(oMessage.Threads) && oMessage.ThreadOpened) {
+        _.each(oMessage.Threads, (oThreadMessage) => {
+          if (oThreadMessage.Uid === messageUid) {
+            oFoundMessage = oThreadMessage
+            return false // break each
+          }
+        })
+      }
+      if (oFoundMessage) {
+        return false // break each
+      }
+    })
+    return oFoundMessage
   }
 }

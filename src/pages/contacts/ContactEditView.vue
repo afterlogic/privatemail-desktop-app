@@ -50,7 +50,7 @@
                   <label class="label-size">Address:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.BusinessAddress"/>
                 </div>
-                
+
                 <div class="input-line ">
                   <label class="label-size">Skype:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.Skype"/>
@@ -134,7 +134,7 @@
                   <label class="label-size">Country/Region:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalCountry"/>
                 </div>
-                
+
                 <div class="input-line">
                   <label class="label-size">Web Page:</label>
                   <q-input outlined dense class="input-size" v-model="oContact.PersonalWeb"/>
@@ -276,7 +276,7 @@
 }
 
 .frame-top {
-  height: 5px; 
+  height: 5px;
   border: 1px solid #ccc;
   border-bottom: 0;
   border-radius: 5px 5px 0px 0px;
@@ -307,13 +307,13 @@
   .q-select {
     max-width: 65%;
     flex-grow: 2;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
     overflow: hidden;
   }
 }
 
 .input-size {
-  flex-grow: 2; 
+  flex-grow: 2;
   max-width: 65%;
 }
 
@@ -326,9 +326,9 @@
 }
 
 .caption-style {
-  margin: 30px 20px; 
-  font-size: 10.5pt; 
-  color: #3d3d3d; 
+  margin: 30px 20px;
+  font-size: 10.5pt;
+  color: #3d3d3d;
   font-weight: 600;
 }
 
@@ -522,9 +522,17 @@ export default {
         this.oContact.BirthMonth = oBirthDate.month() + 1
         this.oContact.BirthDay = oBirthDate.date()
       }
-
       let oContactSource = this.$store.getters['contacts/getCurrentContact']
       let bEqual = _.isEqual(this.oContact, oContactSource)
+
+      let bKeyMatches = true
+      if (this.oContact.ViewEmail) {
+        let contact = this.$store.getters['contacts/getCurrentContact'].OpenPgpKeyUser
+        contact = contact.slice(contact.indexOf('<') + 1, contact.length - 1)
+        if (this.oContact.ViewEmail !== contact) {
+          bKeyMatches = false
+        }
+      }
 
       if (bEqual) {
         notification.showReport('The contact has not been changed.')
@@ -537,6 +545,8 @@ export default {
         }
         if (!typesUtils.isNonEmptyString(oContactToSave.ViewEmail) && !typesUtils.isNonEmptyString(oContactToSave.FullName)) {
           notification.showError('At least email address or display name must be set.')
+        } else if (!bKeyMatches) {
+          notification.showError('Key and contact emails do not match')
         } else {
           this.bSaving = true
           ipcRenderer.send('contacts-save-contact', {

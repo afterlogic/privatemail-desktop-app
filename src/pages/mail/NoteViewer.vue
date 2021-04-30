@@ -8,12 +8,17 @@
 
     <div class="full-height" v-else>
       <div class="q-pa-md" style="height: 90%">
-        <textarea v-model="sText" type="textarea"
-                  style="resize: none; width: 100%; height: 100%; border: none"/>
+        <textarea
+          ref="noteInput" v-model="sText" type="textarea"
+          style="resize: none; width: 100%; height: 100%; border: none"
+          placeholder="Enter your note here"
+          v-on:keyup.ctrl.s="saveNote"
+        />
       </div>
       <q-toolbar class="buttons" style="height: 10%">
         <q-btn unelevated color="primary" label="Save" @click="saveNote"/>
         <q-btn unelevated outline color="primary" label="Cancel" @click="cancelNote"/>
+        <span>Ctrl+S to save</span>
       </q-toolbar>
     </div>
     <q-dialog v-model="bConfirm" persistent>
@@ -55,8 +60,11 @@ export default {
     },
     currentNote() {
       if (this.currentNote !== null) {
-        this.sTextSource = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
-        this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
+        this.$nextTick(() => {
+          this.$refs.noteInput.focus()
+        })
+        this.sTextSource = textUtils.htmlToPlain(this.currentNote.HtmlRaw ? this.currentNote.HtmlRaw : this.currentNote.PlainRaw)
+        this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw ? this.currentNote.HtmlRaw : this.currentNote.PlainRaw)
       }
     },
     message() {
@@ -71,8 +79,11 @@ export default {
       return this.$store.getters['mail/getTriggerChangesDialogue']
     },
     checkedCount () {
-      return this.currentNote.length
+      return this.checkedMessagesUids.length
     },
+  },
+  beforeDestroy() {
+    this.currentNote = null
   },
   methods: {
     saveNote() {
@@ -101,13 +112,14 @@ export default {
     },
     newNote() {
       this.currentNote = {
-        HtmlRaw: '',
+        HtmlRaw: null,
+        PlainRaw: '',
         Folder: this.$store.getters['mail/getCurrentFolderFullName'],
         Uid: ''
       }
     },
     cancelNote() {
-      this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
+      this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw ? this.currentNote.HtmlRaw : this.currentNote.PlainRaw)
     },
     cancelQDialog() {
       this.$store.commit('mail/setTriggerChangesDialogue', false)
@@ -143,9 +155,12 @@ export default {
           sFilter: '',
         })
       }
+      if (selectedItem.changePage) {
+        this.$emit('changePageNotes', selectedItem.changePage);
+      }
       this.$store.commit('mail/setTriggerChangesDialogue', false)
-      this.sTextSource = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
-      this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw)
+      this.sTextSource = textUtils.htmlToPlain(this.currentNote.HtmlRaw ? this.currentNote.HtmlRaw : this.currentNote.PlainRaw)
+      this.sText = textUtils.htmlToPlain(this.currentNote.HtmlRaw ? this.currentNote.HtmlRaw : this.currentNote.PlainRaw)
     },
     moveMessagesToFolder (sFolder) {
       if (this.checkedCount > 0) {
@@ -159,7 +174,4 @@ export default {
 }
 </script>
 <style scoped>
-.note-text-area:focus {
-  border: 2px solid #6d5d7e;
-}
 </style>

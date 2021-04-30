@@ -103,7 +103,7 @@
             </template>
             <template v-slot:after>
               <MessageViewer class="panel-rounded" v-if="currentFolder !== 'Notes'" :message="message"/>
-              <NoteViewer class="panel-rounded" v-else ref="noteViewerComponent" :checkedMessagesUids="checkedUidsForToolbar" :message="message" :searchInputText="searchInputText"/>
+              <NoteViewer class="panel-rounded" v-else ref="noteViewerComponent" @changePageNotes="changePage" :checkedMessagesUids="checkedUidsForToolbar" :message="message" :searchInputText="searchInputText"/>
             </template>
           </q-splitter>
         </template>
@@ -329,10 +329,15 @@ export default {
       }
     },
     changePage (iPage) {
-      if (iPage !== this.currentPage) {
-        this.$store.dispatch('mail/asyncGetMessages', {
-          iPage,
-        })
+      if (this.$store.getters['mail/getHasChanges']) {
+        this.$store.commit('mail/setSelectedItem', {changePage: iPage})
+        this.$store.commit('mail/setTriggerChangesDialogue', true)
+      } else {
+        if (iPage !== this.currentPage) {
+          this.$store.dispatch('mail/asyncGetMessages', {
+            iPage,
+          })
+        }
       }
     },
     openNewMessageCompose () {

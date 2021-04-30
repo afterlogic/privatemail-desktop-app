@@ -48,7 +48,7 @@ function _getIconName (sType) {
 function getTypeFolder(oFolderFromServer) {
   let fullNameRaw = oFolderFromServer.FullNameRaw
   let iType = ''
-  fullNameRaw = fullNameRaw.split('.')
+  fullNameRaw = fullNameRaw.split(/[^a-zA-Z0-9]/)
   fullNameRaw = fullNameRaw[fullNameRaw.length - 1]
   switch (fullNameRaw) {
     case 'Scheduled':

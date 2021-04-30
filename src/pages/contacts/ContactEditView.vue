@@ -236,7 +236,7 @@
                   <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.PublicPgpKey" type="textarea"/>
                 </div>
                 <div class="input-line" v-if="oContact.OpenPgpKeyUser">{{ oContact.OpenPgpKeyUser }}</div>
-                <div class="input-line">If you want messages to this contact to be automatically encrypted and/or signed, check the boxes below. Please note that these messages will be converted to plain text. Attachments will not be encrypted.</div>
+                <div class="input-line" v-if="oContact.OpenPgpKeyUser">If you want messages to this contact to be automatically encrypted and/or signed, check the boxes below. Please note that these messages will be converted to plain text. Attachments will not be encrypted.</div>
                 <div class="input-line" v-if="oContact.OpenPgpKeyUser">
                   <q-checkbox v-model="oContact.PgpEncryptMessages" label="Encrypt" />
                 </div>
@@ -526,7 +526,7 @@ export default {
       let bEqual = _.isEqual(this.oContact, oContactSource)
 
       let bKeyMatches = true
-      if (this.oContact.ViewEmail) {
+      if (this.oContact.PublicPgpKey) {
         let contact = this.$store.getters['contacts/getCurrentContact'].OpenPgpKeyUser
         contact = contact.slice(contact.indexOf('<') + 1, contact.length - 1)
         if (this.oContact.ViewEmail !== contact) {

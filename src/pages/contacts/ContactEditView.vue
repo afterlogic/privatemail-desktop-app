@@ -235,9 +235,9 @@
                   <label class="label-size">Public PGP key:</label>
                   <q-input outlined dense style="flex-grow: 2; max-width: 65%; min-height: 36px;" v-model="oContact.PublicPgpKey" type="textarea"/>
                 </div>
-                <div class="input-line" v-if="oContact.OpenPgpKeyUser">{{ oContact.OpenPgpKeyUser }}</div>
-                <div class="input-line" v-if="oContact.OpenPgpKeyUser">If you want messages to this contact to be automatically encrypted and/or signed, check the boxes below. Please note that these messages will be converted to plain text. Attachments will not be encrypted.</div>
-                <div class="input-line" v-if="oContact.OpenPgpKeyUser">
+                <div class="input-line" v-if="publicPgpKeyUser.sUserId">{{ publicPgpKeyUser.sUserId }} {{publicPgpKeyUser.sAddInfo}}</div>
+                <div class="input-line" v-if="publicPgpKeyUser.sUserId">If you want messages to this contact to be automatically encrypted and/or signed, check the boxes below. Please note that these messages will be converted to plain text. Attachments will not be encrypted.</div>
+                <div class="input-line" v-if="publicPgpKeyUser.sUserId">
                   <q-checkbox v-model="oContact.PgpEncryptMessages" label="Encrypt" />
                 </div>
                 <div class="input-line" v-if="oContact.OpenPgpKeyUser">
@@ -383,7 +383,7 @@ import typesUtils from 'src/utils/types.js'
 
 import contactsEnums from 'src/modules/contacts/enums.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
-
+const openpgp = require('openpgp')
 export default {
   name: 'ContactEditView',
   props: {
@@ -406,6 +406,7 @@ export default {
       bSaving: false,
 
       contactsEnums: contactsEnums,
+      publicPgpKeyUser: {},
     }
   },
 
@@ -461,6 +462,11 @@ export default {
         this.oContact.GroupUUIDs = v
       }
     },
+    'oContact.PublicPgpKey': function () {
+      this.oKeysInfo().then((res) => {
+        this.publicPgpKeyUser = res
+      })
+    }
   },
 
   computed: {
@@ -515,6 +521,18 @@ export default {
   },
 
   methods: {
+    async oKeysInfo() {
+      let oKeysInfo = await openpgp.key.readArmored(this.oContact.PublicPgpKey)
+      if (oKeysInfo.keys.length) {
+        let iBitSize = oKeysInfo.keys[0].primaryKey.params[0].byteLength() * 8
+        let oKeyData = {}
+        oKeyData.sAddInfo = oKeysInfo.keys[0].isPublic() ? '(' + iBitSize + '-bit, public)' : '(' + iBitSize + '-bit, private)'
+        oKeyData.sUserId = oKeysInfo.keys[0].users[0].userId.userid
+        oKeyData.sMail = oKeysInfo.keys[0].users[0].userId.email
+        return oKeyData
+      }
+      return {}
+    },
     onSave () {
       if (this.sBirthDatePrev !== this.sBirthDate) {
         let oBirthDate = moment(this.sBirthDate, 'YYYY/MM/DD')
@@ -527,9 +545,7 @@ export default {
 
       let bKeyMatches = true
       if (this.oContact.PublicPgpKey) {
-        let contact = this.$store.getters['contacts/getCurrentContact'].OpenPgpKeyUser
-        contact = contact.slice(contact.indexOf('<') + 1, contact.length - 1)
-        if (this.oContact.ViewEmail !== contact) {
+        if (this.oContact.ViewEmail !== this.publicPgpKeyUser.sMail) {
           bKeyMatches = false
         }
       }

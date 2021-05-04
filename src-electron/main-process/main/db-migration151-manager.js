@@ -20,13 +20,27 @@ export default {
   start: function (oDb) {
     return new Promise((resolve, reject) => {
       oDb.serialize(() => {
-        oDb.run('ALTER TABLE messages ADD COLUMN html_raw TEXT', [], (oError, aRows) => {
-          if (oError) {
+        oDb.all('SELECT * FROM messages LIMIT 1', [], (oError, aRows) => {
+          if (!aRows[0].html_raw) {
+            oDb.run('ALTER TABLE messages ADD COLUMN html_raw TEXT', [], (oError, aRows) => {
+              if (oError) {
+                _logMigrationError('Error while adding html_raw field', oError)
+                reject({sError: 'Error while adding html_raw field', oError})
+              } else {
+                oDb.all('SELECT * FROM messages WHERE html_raw IS NULL', [], (oError, aRows) => {
+                  this._updateMessagesRows(oDb, aRows).then(resolve, reject)
+                })
+              }
+            })
+          } else if (oError) {
             _logMigrationError('Error while adding html_raw field', oError)
-            reject({ sError: 'Error while adding html_raw field', oError })
+            reject({sError: 'Error while adding html_raw field', oError})
           } else {
-            dbManager.updateMigrationStatus({ iApproximateTimeSeconds: Math.round(aRows.length / 15), iStartedTime: moment().unix()})
-            this._updateMessagesRows(oDb, aRows).then(resolve, reject)
+            dbManager.updateMigrationStatus({
+              iApproximateTimeSeconds: Math.round(aRows.length / 15),
+              iStartedTime: moment().unix()
+            })
+            resolve()
           }
         })
       })

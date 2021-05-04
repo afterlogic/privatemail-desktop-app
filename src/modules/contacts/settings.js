@@ -3,6 +3,7 @@ import store from 'src/store'
 
 function CSettings () {
   this.iContactsPerPage = 20
+  this.contactsSettingImportExportFormats = []
 }
 
 CSettings.prototype.parse = function (oData) {
@@ -20,8 +21,8 @@ CSettings.prototype.setContactsPerPage = function (iContactsPerPage) {
     store.dispatch('contacts/asyncGetContacts')
   }
 }
-CSettings.prototype.setSettingImportExportFormats = function (ImportExportFormats) {
-  store.commit('contacts/setSettingImportExportFormats', ImportExportFormats)
+CSettings.prototype.setSettingImportExportFormats = function (importExportFormats) {
+  this.contactsSettingImportExportFormats =  typesUtils.pArray(importExportFormats)
 }
 
 export default new CSettings()

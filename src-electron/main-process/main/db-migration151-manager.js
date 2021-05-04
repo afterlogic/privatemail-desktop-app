@@ -23,10 +23,7 @@ export default {
         oDb.run('ALTER TABLE messages ADD COLUMN html_raw TEXT', [], (oError, aRows) => {
           if (oError) {
             _logMigrationError('Error while adding html_raw field', oError)
-            reject({ sError: 'oError selecting from messages table', oError })
-          } else if (!_.isArray(aRows)) {
-            _logMigrationError('oError selecting from messages table: aRows is not an array')
-            reject({ sError: 'oError selecting from messages table' })
+            reject({ sError: 'Error while adding html_raw field', oError })
           } else {
             dbManager.updateMigrationStatus({ iApproximateTimeSeconds: Math.round(aRows.length / 15), iStartedTime: moment().unix()})
             this._updateMessagesRows(oDb, aRows).then(resolve, reject)

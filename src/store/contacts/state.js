@@ -10,7 +10,6 @@ export default {
   currentPage: 1,
   contactsPerPage: 20,
   searchText: '',
-  contactsSettingImportExportFormats: [],
 
   contacts: {
     list: [], // list of contacts on the current page

@@ -121,6 +121,7 @@ import typesUtils from 'src/utils/types.js'
 
 import coreSettings from 'src/modules/core/settings.js'
 import webApi from "../../utils/webApi";
+import contactsSettings from "../../modules/contacts/settings";
 export default {
   name: 'ContactsListToolbar',
 
@@ -169,7 +170,7 @@ export default {
       return storageList.indexOf('share') !== -1
     },
     importExportFormats () {
-      return this.$store.getters['contacts/contactsSettingImportExportFormats']
+      return contactsSettings.contactsSettingImportExportFormats
     }
   },
 

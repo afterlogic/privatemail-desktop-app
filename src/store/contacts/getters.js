@@ -94,7 +94,3 @@ export function getCheckedContacts(state) {
 export function getOpenPgpExternalKeys(state) {
   return state.openPgpExternalKeys
 }
-
-export function contactsSettingImportExportFormats(state) {
-  return state.contactsSettingImportExportFormats
-}

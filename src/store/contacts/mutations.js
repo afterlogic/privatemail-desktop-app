@@ -139,7 +139,3 @@ export function setCheckedContacts(state, val) {
 export function setOpenPgpExternalKeys(state, { aOpenPgpExternalKeys }) {
   state.openPgpExternalKeys = aOpenPgpExternalKeys
 }
-
-export function setSettingImportExportFormats(state, ImportExportFormats) {
-  state.contactsSettingImportExportFormats = ImportExportFormats
-}

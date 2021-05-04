@@ -48,6 +48,7 @@
 import typesUtils from "../../utils/types";
 import cAttachment from "../../modules/mail/classes/cAttachment";
 import notification from "../../utils/notification";
+import contactsSettings from 'src/modules/contacts/settings.js'
 
 export default {
   name: "ContactImport",
@@ -121,7 +122,7 @@ export default {
   },
   computed: {
   importExportFormats () {
-    let formats = this.$store.getters['contacts/contactsSettingImportExportFormats'].map(function (format) {
+    let formats = contactsSettings.contactsSettingImportExportFormats.map(function (format) {
       return '.' + format
     })
     return  formats.join()

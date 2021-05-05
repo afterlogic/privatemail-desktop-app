@@ -293,7 +293,6 @@ export default {
   },
 
   beforeDestroy: function () {
-    console.log('beforeDestroy')
     this.clearAutosaveTimer()
   },
 
@@ -1299,7 +1298,7 @@ export default {
       this.selfDestructingShowPassword = ''
       this.selfDestructingEmailDialog = true
 
-      this.privateKey = OpenPgp.getCurrentPrivateOwnKey(true)
+      this.privateKey = OpenPgp.getCurrentPrivateOwnKey(false)
 
       if (this.selfDestructingEncryptType === 'key') {
         if (this.privateKey === null) {

@@ -11,7 +11,7 @@
     >
       <q-item-section avatar>
         <q-icon v-if="folder.IconName" :name="folder.IconName" />
-        <q-icon v-else :name="'panorama_fish_eye'" size="9px" style="margin: auto"/>
+        <q-icon v-else name="panorama_fish_eye" size="9px" style="margin: auto"/>
       </q-item-section>
 
       <q-item-section>

@@ -5,7 +5,7 @@
         <template v-slot:before>
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
-              <q-btn v-if="currentFolder !== 'Notes'" flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openNewMessageCompose" label="New message"/>
+              <q-btn v-if="!bCurrentNoteFolder" flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="openNewMessageCompose" label="New message"/>
               <q-btn v-else flat no-caps no-wrap size=18px color="primary" class="full-width big-button" @click="showNewNoteWindow" label="New Note"/>
             </div>
             <div class="col" style="overflow: hidden;">
@@ -102,7 +102,7 @@
               </div>
             </template>
             <template v-slot:after>
-              <MessageViewer class="panel-rounded" v-if="currentFolder !== 'Notes'" :message="message"/>
+              <MessageViewer class="panel-rounded" v-if="!bCurrentNoteFolder" :message="message"/>
               <NoteViewer class="panel-rounded" v-else ref="noteViewerComponent" @changePageNotes="changePage" :checkedMessagesUids="checkedUidsForToolbar" :message="message" :searchInputText="searchInputText"/>
             </template>
           </q-splitter>
@@ -120,6 +120,7 @@
 
 <script>
 import { ipcRenderer } from 'electron'
+import mailEnums from 'src/modules/mail/enums.js'
 
 import errors from 'src/utils/errors.js'
 import hotkeys from 'src/utils/hotkeys.js'
@@ -208,11 +209,8 @@ export default {
       }) : false
       return bInArray ? oMessage : null
     },
-    currentFolder () {
-      if (this.$store.getters['mail/getCurrentFolder'] !== null) {
-        return this.$store.getters['mail/getCurrentFolder'].Name
-      }
-      return ''
+    bCurrentNoteFolder() {
+      return this.$store.getters['mail/getCurrentFolder'].Type === mailEnums.FolderType.Notes
     }
   },
 

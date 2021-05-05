@@ -210,7 +210,10 @@ export default {
       return bInArray ? oMessage : null
     },
     bCurrentNoteFolder() {
-      return this.$store.getters['mail/getCurrentFolder'].Type === mailEnums.FolderType.Notes
+      if (this.$store.getters['mail/getCurrentFolder']) {
+        return this.$store.getters['mail/getCurrentFolder'].Type === mailEnums.FolderType.Notes
+      }
+      return false
     }
   },
 

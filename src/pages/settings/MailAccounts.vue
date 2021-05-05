@@ -15,7 +15,7 @@
               <q-item-label class="text-weight-medium">{{ oAccount.sEmail }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              
+
               <q-btn flat color="primary" :text-color="iEditAccountId === oAccount.iAccountId ? 'white' : ''" v-if="bAllowAliases && oAccount.bDefault" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
             </q-item-section>
             <q-item-section side>
@@ -69,10 +69,10 @@
       class="flex-start"
     >
       <q-tab name="props" label="Properties" />
-      <!-- <q-tab name="folders" label="Folders" />
-      <q-tab name="forward" label="Forward" />
-      <q-tab name="autoresponder" label="Autoresponder" />
-      <q-tab name="filters" label="Filters" /> -->
+      <q-tab name="folders" label="Folders" />
+      <!-- <q-tab name="forward" label="Forward" />
+       <q-tab name="autoresponder" label="Autoresponder" />
+       <q-tab name="filters" label="Filters" /> -->
     </q-tabs>
 
     <q-separator v-if="editAccount" />
@@ -125,7 +125,11 @@
           <q-btn unelevated color="primary" v-if="bAllowChangePasswordOnMailServer" label="Change Password" @click="openChangePassword" />
         </div>
       </q-tab-panel>
-
+      <q-tab-panel name="folders">
+        <q-list padding bordered>
+          <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+        </q-list>
+      </q-tab-panel>
       <!-- <q-tab-panel name="folders">
         <q-list padding>
           <q-item-label header>User Controls</q-item-label>
@@ -181,7 +185,7 @@
         <q-separator spaced />
         <q-btn color="primary" label="Save" />
       </q-tab-panel>
-      
+
       <q-tab-panel name="autoresponder" class="autoresponder">
         <div class="q-pa-md">
           <q-item tag="label">
@@ -633,11 +637,14 @@ import mailSettings from 'src/modules/mail/settings.js'
 
 import MailAccountsSignatureTab from './MailAccountsSignatureTab.vue'
 
+import ManageFolders from "./ManageFolders";
+
 export default {
   name: 'MailAccounts',
 
   components: {
     MailAccountsSignatureTab,
+    ManageFolders
   },
 
   data () {
@@ -774,6 +781,9 @@ export default {
       }
 
       return null
+    },
+    foldersTree () {
+      return this.$store.getters['mail/getCurrentFoldersTree']
     },
   },
 

@@ -16,13 +16,25 @@
           flat no-wrap color="primary" :icon="bHideFolder? 'visibility' : 'visibility_off'"
           @click="subscribeFolder"/>
         <q-btn :disable="folder.SubFolders.length > 0 || folder.Type !== 10" flat no-wrap color="primary"
-               icon="delete_outline" @click="deleteFolder"/>
+               icon="delete_outline" @click="triggerDialogue"/>
       </q-toolbar>
     </q-item-section>
   </q-item>
   <template v-if="folder.SubFolders">
     <ManageFolders v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></ManageFolders>
   </template>
+  <q-dialog v-model="bConfirm" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <span class="q-ml-sm">Are you sure you want to delete folder?</span>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="Ok" color="primary" v-close-popup @click="deleteFolder"/>
+        <q-btn flat label="Cancel" color="grey" v-close-popup/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </div>
 </template>
 
@@ -44,7 +56,8 @@ export default {
   },
   data() {
     return {
-      bHideFolder: true
+      bHideFolder: true,
+      bConfirm: false
     }
   },
   mounted() {
@@ -78,9 +91,13 @@ export default {
       })
       ipcRenderer.once('mail-delete-folder', (event, { bResult, bError}) => {
         if (bResult) {
+          this.bConfirm = false
           this.$store.dispatch('mail/removeCurrentFolderTree', {folderName: this.folder.FullName})
         }
       })
+    },
+    triggerDialogue() {
+      this.bConfirm = true
     }
   }
 }

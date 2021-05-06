@@ -766,5 +766,23 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-subscribe-folder', (oEvent, { sApiHost, sAuthToken, iAccountId, sFolderName, bSetAction }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'SubscribeFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderName,
+          SetAction: bSetAction
+        },
+        fCallback: (bResult) => {
+          if (bResult) {
+            oEvent.sender.send('mail-subscribe-folder-reject', {bResult})
+          }
+        },
+      })
+    })
   },
 }

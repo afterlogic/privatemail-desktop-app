@@ -303,3 +303,22 @@ export function setTriggerChangesDialogue (state, bValue) {
 export function setSelectedItem (state, oValue) {
   state.selectedItem = oValue
 }
+
+export function setFolderTree (state, {folderName, bHideFolder}) {
+  function findCurrentFolder(currentTree, folderName) {
+    let subFolders = []
+    for (let i = 0; i < currentTree.length; i++) {
+      if (currentTree[i].FullName === folderName) {
+        currentTree[i].IsSubscribed = bHideFolder
+        return
+      } else if (currentTree[i].SubFolders.length > 0) {
+        subFolders = subFolders.concat(currentTree[i].SubFolders)
+      }
+    }
+    if (subFolders.length > 0) {
+      return findCurrentFolder(subFolders, folderName)
+    }
+    return null
+  }
+  findCurrentFolder(state.currentFolderList.Tree, folderName)
+}

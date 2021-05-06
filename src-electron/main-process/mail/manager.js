@@ -784,5 +784,22 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-delete-folder', (oEvent, { sApiHost, sAuthToken, iAccountId, sFolderFullName }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'DeleteFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderFullName
+        },
+        fCallback: (bResult, bError) => {
+          if (bResult) {
+            oEvent.sender.send('mail-delete-folder', {bResult, bError})
+          }
+        },
+      })
+    })
   },
 }

@@ -70,6 +70,17 @@ export default {
       })
     },
     deleteFolder() {
+      ipcRenderer.send('mail-delete-folder', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sFolderFullName: this.folder.FullName,
+      })
+      ipcRenderer.once('mail-delete-folder', (event, { bResult, bError}) => {
+        if (bResult) {
+          this.$store.dispatch('mail/removeCurrentFolderTree', {folderName: this.folder.FullName})
+        }
+      })
     }
   }
 }

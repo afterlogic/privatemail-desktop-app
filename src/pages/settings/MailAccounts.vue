@@ -128,6 +128,20 @@
       <q-tab-panel name="folders">
         <q-list padding bordered>
           <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+          <q-item  clickable v-ripple style="height: 50px">
+          <q-item-section avatar>
+            Total
+          </q-item-section>
+          <q-item-section avatar style="margin-left: auto; padding-right: 100px">
+            {{ totalScore() }}
+          </q-item-section>
+          </q-item>
+          <div class="folders-line">
+            Deleting non-empty folders is not allowed. To delete such folder, delete its contents first.
+          </div>
+          <div class="folders-line">
+            To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
+          </div>
         </q-list>
       </q-tab-panel>
       <!-- <q-tab-panel name="folders">
@@ -728,6 +742,7 @@ export default {
       sNewAliasDomain: '',
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
+      nTotal: 0
     }
   },
 
@@ -1302,6 +1317,26 @@ export default {
       ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
       ipcRenderer.removeListener('mail-change-password', this.onChangePassword)
     },
+    totalScore() {
+      function removeFolderTree(currentTree) {
+        let score = 0
+        for (let i = 0; i < currentTree.length; i++) {
+          score += currentTree[i].Count
+        if (currentTree[i].SubFolders.length > 0) {
+          score += removeFolderTree(currentTree[i].SubFolders)
+          }
+        }
+        return score
+      }
+     return removeFolderTree(this.foldersTree)
+    }
   },
 }
 </script>
+
+<style scoped>
+.folders-line {
+  padding: 0 0 5px 15px;
+  font-size: 9pt;
+}
+</style>

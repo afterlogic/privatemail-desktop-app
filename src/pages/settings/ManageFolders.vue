@@ -11,7 +11,10 @@
     <q-item-section>
       <q-toolbar style="margin-left: auto; width: auto;">
         <span>{{ folder.Count }}</span>
-        <q-btn :disable="folder.Type !== 10" flat no-wrap color="primary" :icon="bHideFolder? 'visibility' : 'visibility_off'" @click="subscribeFolder"/>
+        <q-btn
+          :disable="folder.Type !== 10 && folder.Type !== 12 && folder.Type !== 11"
+          flat no-wrap color="primary" :icon="bHideFolder? 'visibility' : 'visibility_off'"
+          @click="subscribeFolder"/>
         <q-btn :disable="folder.SubFolders.length > 0 || folder.Type !== 10" flat no-wrap color="primary"
                icon="delete_outline" @click="deleteFolder"/>
       </q-toolbar>

@@ -75,8 +75,8 @@
                             </q-icon>
                           </template>
                         </q-input>
-                        <span @click.stop.prevent="focusAttachments" style="margin-top: 16px; display: inline-block;">
-                          <q-input outlined dense bg-color="white" class="cursor-none"
+                        <span @click.stop.prevent="focusAttachments" style="margin-top: 16px; display: block">
+                          <q-input  outlined dense bg-color="white" class="cursor-none"
                             label="Attachment name" ref="advSearchAttachments" v-model="advSearchAttachments"
                             :disable=advSearchDisableAttachments
                             @keyup.enter.stop.prevent="advancedSearch"

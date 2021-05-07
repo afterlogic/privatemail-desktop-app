@@ -142,6 +142,23 @@
           <div class="folders-line">
             To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
           </div>
+          <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
+          <q-dialog v-model="bCreateFolder">
+            <q-card>
+              <q-card-section>
+                <div class="text-h6">Alert</div>
+              </q-card-section>
+
+              <q-card-section class="q-pt-none">
+               test
+              </q-card-section>
+
+              <q-card-actions align="right">
+                <q-btn flat label="OK" color="primary" v-close-popup />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+
         </q-list>
       </q-tab-panel>
       <!-- <q-tab-panel name="folders">
@@ -742,7 +759,8 @@ export default {
       sNewAliasDomain: '',
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
-      nTotal: 0
+      nTotal: 0,
+      bCreateFolder: false
     }
   },
 
@@ -1329,6 +1347,9 @@ export default {
         return score
       }
      return removeFolderTree(this.foldersTree)
+    },
+    createFolder() {
+      this.bCreateFolder = true
     }
   },
 }

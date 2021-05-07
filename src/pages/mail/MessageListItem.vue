@@ -3,15 +3,15 @@
     <q-item clickable v-ripple :class="{checked: checked, selected: selected, unread: !message.IsSeen}" @click="selectMessage" @dblclick="dblClickHandler">
       <q-item-section side class="items-center">
         <q-checkbox v-model="checked" />
-        <q-icon name="star" color="orange" v-if="message.IsFlagged" @click.native.stop="toggleFlagged" />
-        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged" @click.native.stop="toggleFlagged" />
-        <q-icon name="star_border" class="innactive_icon" v-if="!message.IsFlagged && !message.PartialFlagged" @click.native.stop="toggleFlagged" />
+        <q-icon name="star" color="orange" v-if="message.IsFlagged && !isNotesFolder" @click.native.stop="toggleFlagged" />
+        <q-icon name="star_border" color="orange" v-if="!message.IsFlagged && message.PartialFlagged && !isNotesFolder" @click.native.stop="toggleFlagged" />
+        <q-icon name="star_border" class="innactive_icon" v-if="!message.IsFlagged && !message.PartialFlagged && !isNotesFolder" @click.native.stop="toggleFlagged" />
       </q-item-section>
 
       <q-item-section>
-        <q-item-label lines="1" class="text-body2">{{fromTo}}</q-item-label>
+        <q-item-label v-if="!isNotesFolder" lines="1" class="text-body2">{{fromTo}}</q-item-label>
         <q-item-label lines="1" v-if="message.Subject" class="text-body1">
-          <q-icon v-if="message.Importance === 1" name="priority_high" />
+          <q-icon v-if="message.Importance === 1 && !isNotesFolder" name="priority_high" />
           {{message.Subject}}
         </q-item-label>
         <q-item-label v-else lines="1" class="nodata text-body1 non-selectable">
@@ -28,7 +28,7 @@
         </q-item-label>
 
         <q-item-label>
-          <q-icon flat name="attachment" class="q-mr-md text-weight-thin" style="font-size: 1.5em;" v-if="message.HasAttachments" />
+          <q-icon flat name="attachment" class="q-mr-md text-weight-thin" style="font-size: 1.5em;" v-if="message.HasAttachments && !isNotesFolder" />
           <span class="text-caption">{{ shortDate }}</span>
         </q-item-label>
 
@@ -168,6 +168,10 @@ export default {
     shortDate () {
       return dateUtils.getShortDate(this.message.TimeStampInUTC, false)
     },
+    isNotesFolder() {
+      let oFolder = this.$store.getters['mail/getCurrentFolder']
+      return mailEnums.FolderType.Notes === oFolder.Type
+    }
   },
 
   mounted () {

@@ -761,7 +761,7 @@ export default {
           Text: sText,
           Subject: sSubject
         },
-        fCallback: (bResult, oError) => {
+        fCallback: (bResult) => {
           oEvent.sender.send('mail-save-note', {bResult})
         },
       })

@@ -394,23 +394,7 @@ export default {
       return aUids
     },
     getMessageByUid (iUid) {
-      let oFoundMessage = null
-      _.each(this.messages, (oMessage) => {
-        if (oMessage.Uid === iUid) {
-          oFoundMessage = oMessage
-        } else if (_.isArray(oMessage.Threads) && oMessage.ThreadOpened) {
-          _.each(oMessage.Threads, (oThreadMessage) => {
-            if (oThreadMessage.Uid === iUid) {
-              oFoundMessage = oThreadMessage
-              return false // break each
-            }
-          })
-        }
-        if (oFoundMessage) {
-          return false // break each
-        }
-      })
-      return oFoundMessage
+      return this.$store.getters['mail/getMessageByUid'](iUid)
     },
     onKeydown (oKeyboardEvent) {
       if (!hotkeys.isTextFieldFocused()) {

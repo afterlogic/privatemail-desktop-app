@@ -703,4 +703,20 @@ COpenPgp.prototype.encryptDataWithPassphrase = async function (mData, sUserEmail
   }
 }
 
+COpenPgp.prototype.oKeysInfo = async function (pgpKeys) {
+  let oKeysInfo = await openpgp.key.readArmored(pgpKeys)
+  let aKeysInfo = []
+  if (oKeysInfo.keys.length) {
+    for (let i = 0; i < oKeysInfo.keys.length; i++) {
+      let oKeyData = {}
+      oKeyData.iBitSize = oKeysInfo.keys[0].primaryKey.params[i].byteLength() * 8
+      oKeyData.sType = oKeysInfo.keys[i].isPublic() ? 'public' : 'private'
+      oKeyData.sUserId = oKeysInfo.keys[i].users[0].userId.userid
+      oKeyData.sMail = oKeysInfo.keys[i].users[0].userId.email
+      aKeysInfo.push(oKeyData)
+    }
+  }
+  return aKeysInfo
+}
+
 export default new COpenPgp()

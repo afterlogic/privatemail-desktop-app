@@ -383,7 +383,7 @@ import typesUtils from 'src/utils/types.js'
 
 import contactsEnums from 'src/modules/contacts/enums.js'
 import CContact from 'src/modules/contacts/classes/CContact.js'
-const openpgp = require('openpgp')
+import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 export default {
   name: 'ContactEditView',
   props: {
@@ -463,9 +463,7 @@ export default {
       }
     },
     'oContact.PublicPgpKey': function () {
-      this.oKeysInfo().then((res) => {
-        this.publicPgpKeyUser = res
-      })
+      this.oKeysInfo()
     }
   },
 
@@ -522,16 +520,12 @@ export default {
 
   methods: {
     async oKeysInfo() {
-      let oKeysInfo = await openpgp.key.readArmored(this.oContact.PublicPgpKey)
-      if (oKeysInfo.keys.length) {
-        let iBitSize = oKeysInfo.keys[0].primaryKey.params[0].byteLength() * 8
-        let oKeyData = {}
-        oKeyData.sAddInfo = oKeysInfo.keys[0].isPublic() ? '(' + iBitSize + '-bit, public)' : '(' + iBitSize + '-bit, private)'
-        oKeyData.sUserId = oKeysInfo.keys[0].users[0].userId.userid
-        oKeyData.sMail = oKeysInfo.keys[0].users[0].userId.email
-        return oKeyData
-      }
-      return {}
+      await OpenPgp.oKeysInfo(this.oContact.PublicPgpKey).then((res) => {
+        if (res.length) {
+          this.publicPgpKeyUser = res[0]
+          this.publicPgpKeyUser.sAddInfo = this.publicPgpKeyUser.sType === 'public' ? '(' + this.publicPgpKeyUser.iBitSize + '-bit, public)' : '(' + this.publicPgpKeyUser.iBitSize + '-bit, private)'
+        }
+      })
     },
     onSave () {
       if (this.sBirthDatePrev !== this.sBirthDate) {

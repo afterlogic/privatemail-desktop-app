@@ -22,7 +22,7 @@ export default {
       oDb.serialize(() => {
         oDb.all('SELECT * FROM messages LIMIT 1', [], (oError, aRows) => {
           if (!aRows[0].html_raw) {
-            oDb.run('ALTER TABLE messages ADD COLUMN html_raw TEXT', [], (oError, aRows) => {
+            oDb.run('ALTER TABLE messages ADD COLUMN html_raw TEXT', [], (oError) => {
               if (oError) {
                 _logMigrationError('Error while adding html_raw field', oError)
                 reject({sError: 'Error while adding html_raw field', oError})
@@ -36,10 +36,6 @@ export default {
             _logMigrationError('Error while adding html_raw field', oError)
             reject({sError: 'Error while adding html_raw field', oError})
           } else {
-            dbManager.updateMigrationStatus({
-              iApproximateTimeSeconds: Math.round(aRows.length / 15),
-              iStartedTime: moment().unix()
-            })
             resolve()
           }
         })

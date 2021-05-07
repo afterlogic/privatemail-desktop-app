@@ -122,7 +122,7 @@ export default {
   },
   computed: {
   importExportFormats () {
-    let formats = contactsSettings.contactsSettingImportExportFormats.map(function (format) {
+    let formats = contactsSettings.aImportExportFormats.map(function (format) {
       return '.' + format
     })
     return  formats.join()

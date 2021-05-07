@@ -170,7 +170,7 @@ export default {
       return storageList.indexOf('share') !== -1
     },
     importExportFormats () {
-      return contactsSettings.contactsSettingImportExportFormats
+      return contactsSettings.aImportExportFormats
     }
   },
 

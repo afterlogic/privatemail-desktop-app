@@ -110,7 +110,8 @@ export default {
       mailScheduledAllowed: false,
       privateKey: false,
       isSelfDestructingMail: false,
-      captionForEncryption: ''
+      sCaptionForEncryption: '',
+      bEncryptAction: false
     }
   },
 
@@ -228,7 +229,6 @@ export default {
       })
     },
   },
-
   watch: {
     allIdentities () {
       this.setSelectedIdentity()
@@ -268,12 +268,17 @@ export default {
     },
     selfDestructingEncryptType () {
       if (this.selfDestructingEncryptType === 'key') {
-        this.privateKey = OpenPgp.getCurrentPrivateOwnKey(true)
         if (this.privateKey === null) {
-          this.captionForEncryption = 'Requires your PGP private key in Settings.'
+          this.sCaptionForEncryption = 'Requires your PGP private key in Settings.'
+        } else {
+          this.sCaptionForEncryption = ''
         }
       } else {
-        this.captionForEncryption = ''
+        if (this.privateKey === null) {
+          this.sCaptionForEncryption = 'Requires key-based encryption.'
+        } else {
+          this.sCaptionForEncryption = ''
+        }
       }
       this.selfDestructingAddSignature = this.selfDestructingEncryptType === 'key' && this.privateKey !== null
 
@@ -1252,6 +1257,7 @@ export default {
       if (this.isMessageDataChanged()) {
         this.save()
       }
+      this.bEncryptAction = false
       this.closeCompose()
     },
     openScheduleSendingDialog () {
@@ -1291,6 +1297,23 @@ export default {
       }
       this.selfDestructingShowPassword = ''
       this.selfDestructingEmailDialog = true
+
+      this.privateKey = OpenPgp.getCurrentPrivateOwnKey(false)
+
+      if (this.selfDestructingEncryptType === 'key') {
+        if (this.privateKey === null) {
+          this.sCaptionForEncryption = 'Requires your PGP private key in Settings.'
+        } else {
+          this.sCaptionForEncryption = ''
+        }
+      } else {
+        if (this.privateKey === null) {
+          this.sCaptionForEncryption = 'Requires key-based encryption.'
+        } else {
+          this.sCaptionForEncryption = ''
+        }
+      }
+
     },
     async createSelfDestrucPublicLink (sSubject, sData, sRecipientEmail, sEncryptionBasedMode, iLifetimeHrs) {
       const oPromiseCreateSelfDestrucPublicLink = new Promise( (resolve, reject) => {
@@ -1319,6 +1342,7 @@ export default {
       }
     },
     async sendSelfDestructingSecureEmail () {
+      this.bEncryptAction = true
       this.isSelfDestructingMail = true
       this.isEncrypting = true
       let sUserEmail = this.currentAccount ? this.currentAccount.sEmail : ''

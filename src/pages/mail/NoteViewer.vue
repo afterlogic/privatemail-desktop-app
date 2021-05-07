@@ -38,6 +38,7 @@
 
 <script>
 import textUtils from "../../utils/text";
+import $ from "lodash/string";
 
 export default {
   name: "NoteViewer",
@@ -89,24 +90,30 @@ export default {
     saveNote() {
       this.$store.commit('mail/setHasChanges', false)
       this.$store.commit('mail/setTriggerChangesDialogue', false)
-      let sSubject =  this.sText.split('\n').filter(num => {
-        if (num !== "") {
-          return num
-        }
-      })
+
+      let aText = this.sText.split(/\r\n|\n/i)
+      let sSubject = _.find(aText, function (sTextPart) {
+          return $.trim(sTextPart) !== ''
+        })
+      sSubject = $.trim(sSubject)
+      if (sSubject.length > 50)
+      {
+        sSubject = sSubject.substring(0, 50);
+      }
+
       if (this.currentNote.Uid === '') {
         this.$store.dispatch('mail/saveNote', {
           messageUid: '',
           sFolderFullName: this.currentNote.Folder,
           sText: this.sText,
-          sSubject: sSubject[0]
+          sSubject: sSubject
         })
       } else {
         this.$store.dispatch('mail/saveNote', {
           messageUid: this.currentNote.Uid,
           sFolderFullName: this.currentNote.Folder,
           sText: this.sText,
-          sSubject: sSubject[0]
+          sSubject: sSubject
         })
       }
     },

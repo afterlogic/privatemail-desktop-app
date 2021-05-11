@@ -318,13 +318,31 @@ transition-hide="slide-down"
                   >
                     <template v-slot:selected>
                       <span v-if="selectedToAddr">
-                        <q-chip flat v-for="oAddr in selectedToAddr" :key="oAddr.value" removable @remove="removeSelectedToAddr(oAddr.value)">
-                          {{ oAddr.short }}
-                          <q-icon v-if="!autoEncryptSignMessage && oAddr.hasPgpKey" color="green" name="vpn_key" />
-                          <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green" name="lock" />
-                          <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && !oAddr.pgpEncrypt" color="orange" name="lock_open" />
-                          <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && oAddr.pgpSign" color="green" name="edit" />
-                          <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                        <q-chip flat v-for="oAddr in selectedToAddr" :key="oAddr.value">
+                          <div>
+                            {{ oAddr.short }}
+                             <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && !oAddr.pgpEncrypt"
+                                     color="orange"
+                                     name="lock_open"/>
+                             <q-tooltip content-class="text-caption">{{ oAddr.full }}</q-tooltip>
+                          </div>
+                          <div>
+                            <q-icon v-if="!autoEncryptSignMessage && oAddr.hasPgpKey" color="green" name="vpn_key"/>
+                            <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && oAddr.pgpEncrypt" color="green"
+                                    name="lock"/>
+                            <q-tooltip
+                              content-class="text-caption">The message will be encrypted with this contact key</q-tooltip>
+                          </div>
+                          <div>
+                            <q-icon v-if="autoEncryptSignMessage && oAddr.hasPgpKey && oAddr.pgpSign" color="green"
+                                    name="edit"/>
+                            <q-tooltip
+                              content-class="text-caption">The message will be signed width your private key</q-tooltip>
+                          </div>
+                          <div>
+                            <q-btn round color="grey" dense size="xs" icon="clear" style="margin-left: 5px" @click="removeSelectedToAddr(oAddr.value)"/>
+                             <q-tooltip content-class="text-caption">click to delete</q-tooltip>
+                          </div>
                         </q-chip>
                       </span>
                     </template>

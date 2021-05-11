@@ -118,6 +118,8 @@ export default {
           notification.showError('Please select a scheduled time.')
         } else if (this.selectedDatetime < moment().unix()) {
           notification.showError('Please select a scheduled time later than the current one.')
+        } else if (!this.selectedDatetime){
+          notification.showError('Please select the correct scheduled time.')
         } else {
           this.saveScheduledMessageHandler(this.selectedDatetime)
           this.scheduleSendingDialog = false

@@ -266,7 +266,7 @@ transition-hide="slide-down"
       </q-btn-dropdown>
       <q-btn flat :icon="bReadingConfirmation ? 'check_box' : 'check_box_outline_blank'" label="Reading confirmation" @click="triggerReadingConfirmation" />
       <q-btn flat icon="vpn_key" :disable="bEncryptAction" v-if="!pgpApplied" label="PGP Sign/Encrypt" @click="confirmOpenPgp" />
-      <q-btn flat icon="vpn_key" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
+      <q-btn flat icon="vpn_key" :disable="isSelfDestructingMail" v-if="pgpApplied" label="Undo PGP" @click="undoPGP" />
       <q-space />
       <q-btn flat icon="minimize" @click="maximizedToggle = true" :disable="maximizedToggle">
         <!-- <q-tooltip content-class="bg-white text-primary">Minimize</q-tooltip> -->
@@ -283,7 +283,7 @@ transition-hide="slide-down"
         <div class="col column full-height">
           <div class="col-auto">
             <q-list>
-              <q-item :class="'notice-auto-encrypt' + (autoEncryptSignMessage ? ' notice-auto-encrypt-checked' : '')" v-show="allowAtoEncryptSignMessage && !pgpApplied">
+              <q-item :class="'notice-auto-encrypt' + (autoEncryptSignMessage ? ' notice-auto-encrypt-checked' : '')" v-show="(allowAtoEncryptSignMessage && !pgpApplied) && !bEncryptAction">
                 <q-item-section side>
                   <q-icon :color="autoEncryptSignMessage ? 'white' : ''" name="lock" />
                 </q-item-section>

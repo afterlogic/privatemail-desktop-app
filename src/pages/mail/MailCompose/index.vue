@@ -479,6 +479,7 @@ export default {
       }
     },
     openPgpSignEncryptDialog () {
+      this.isSelfDestructingMail = false
       this.signCheckbox = true
       this.encryptCheckbox = true
       this.pgpSignEncryptDialog = true
@@ -556,7 +557,7 @@ export default {
           this.plainText = true
           this.disableEditor = true
           this.disableRecipients = true
-          this.pgpApplied = false
+          this.pgpApplied = true
           this.editortextBeforePgp = this.editortext
           this.editortext = '<pre>' + sEncryptedData + '</pre>'
           this.pgpSignEncryptDialog = false
@@ -580,14 +581,13 @@ export default {
           this.plainText = true
           this.disableEditor = true
           this.disableRecipients = true
-          this.pgpApplied = this.isSelfDestructingMail ? false : true
+          this.pgpApplied = true
           this.editortextBeforePgp = this.editortext
           this.editortext = '<pre>' + sEncryptedSignedData + '</pre>'
           this.pgpSignEncryptDialog = false
         } else {
           notification.showError(sError)
         }
-        this.isSelfDestructingMail = false
       }
     },
     undoPGP () {

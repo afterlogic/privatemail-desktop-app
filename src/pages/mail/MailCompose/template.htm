@@ -228,7 +228,7 @@ transition-hide="slide-down"
   </div>
   <div class="column no-wrap bg-white non-selectable" style="width: 90%; max-width: initial; height: 90%; " v-show="!maximizedToggle">
     <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
-      <q-btn-dropdown split color="primary" class="glossy" icon="send" label="Send"
+      <q-btn-dropdown split color="primary" class="glossy" icon="send" label="Send" :menu-offset="[-8,0]" menu-self="top middle"
       content-style="color: white; background: var(--q-color-primary) !important; text-transform: uppercase;"
       :disable-main-btn="!isEnableSending" @click="send">
         <q-list class="non-selectable">

@@ -801,5 +801,23 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-create-folder', (oEvent, { sFolderParentFullNameRaw, sFolderName, sDelimiter, iAccountId, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'CreateFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          FolderNameInUtf8: sFolderName,
+          FolderParentFullNameRaw: sFolderParentFullNameRaw,
+          Delimiter: sDelimiter
+
+        },
+        fCallback: (bResult, oError) => {
+            oEvent.sender.send('mail-create-folder', { bResult, oError })
+        },
+      })
+    })
   },
 }

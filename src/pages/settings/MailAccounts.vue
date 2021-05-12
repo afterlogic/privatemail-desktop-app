@@ -69,7 +69,7 @@
       class="flex-start"
     >
       <q-tab name="props" label="Properties" />
-      <q-tab name="folders" label="Folders" />
+      <q-tab name="folders" label="Manage Folders" />
       <!-- <q-tab name="forward" label="Forward" />
        <q-tab name="autoresponder" label="Autoresponder" />
        <q-tab name="filters" label="Filters" /> -->
@@ -143,18 +143,39 @@
             To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
           </div>
           <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
-          <q-dialog v-model="bCreateFolder">
+          <q-dialog v-model="bCreateFolder" persistent>
             <q-card>
-              <q-card-section>
-                <div class="text-h6">Alert</div>
+              <q-card-section class="row items-center">
+                <span class="q-ml-sm">New Folder</span>
               </q-card-section>
-
-              <q-card-section class="q-pt-none">
-               test
+              <q-card-section class="row">
+                  <q-card-section class="row items-center">
+                    <span class="q-ml-sm">Parent Folder</span>
+                    <q-select
+                      v-model="sParentName"
+                      :options="aFolderList"
+                      name="preferred_genre"
+                      style="width: 250px; margin-left: 100px"
+                      color="primary"
+                      filled
+                      clearable
+                      label="Preferred genre"
+                    />
+                  </q-card-section>
+                  <q-card-section class="row items-center">
+                    <span class="q-ml-sm">Folder Name</span>
+                    <q-input
+                      name="preferred_genre1"
+                      style="width: 250px; margin-left: 102px"
+                      filled
+                      v-model="sNewFolderName"
+                      lazy-rules
+                    />
+                  </q-card-section>
               </q-card-section>
-
               <q-card-actions align="right">
-                <q-btn flat label="OK" color="primary" v-close-popup />
+                <q-btn color="purple" label="OK" @click="createNewFolder"/>
+                <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
               </q-card-actions>
             </q-card>
           </q-dialog>
@@ -760,7 +781,10 @@ export default {
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
       nTotal: 0,
-      bCreateFolder: false
+      bCreateFolder: false,
+      aFolderList: [],
+      sNewFolderName: '',
+      sParentName: 'No Parent'
     }
   },
 
@@ -1349,7 +1373,49 @@ export default {
      return removeFolderTree(this.foldersTree)
     },
     createFolder() {
+      this.createFoldersArray(this.foldersTree)
       this.bCreateFolder = true
+    },
+    createFoldersArray(foldersTree) {
+      let aFolderList = ['No Parent']
+      function removeFolderTree(currentTree) {
+        for (let i = 0; i < currentTree.length; i++) {
+          if (currentTree[i].SubFolders.length > 0) {
+            aFolderList.push(currentTree[i].FullName)
+            removeFolderTree(currentTree[i].SubFolders)
+          } else {
+            aFolderList.push(currentTree[i].FullName)
+          }
+        }
+      }
+      removeFolderTree(foldersTree)
+      this.aFolderList = aFolderList
+    },
+    resetForm() {
+      this.sNewFolderName = ''
+      this.sParentName = 'No Parent'
+    },
+    createNewFolder() {
+      if (this.sParentName === 'No Parent' || this.sParentName === '') {
+        this.sParentName = this.foldersTree[0].FullName
+      }
+      ipcRenderer.send('mail-create-folder', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sFolderParentFullNameRaw: this.sParentName,
+        sFolderName: this.sNewFolderName,
+        sDelimiter: '.'
+      })
+      ipcRenderer.once('mail-create-folder', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.bCreateFolder = false
+          this.$store.commit('mail/resetCurrentFolderList')
+          this.$store.dispatch('mail/asyncGetFolderList')
+        } else {
+          notification.showError(errors.getText(oError, 'Error creating folder.'))
+        }
+      })
     }
   },
 }

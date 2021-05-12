@@ -18,6 +18,8 @@ export default {
           case 4001:
             sErrorText = 'Error while connecting to mail server.'
             break
+          case 4004:
+            sErrorText = 'Folder name contains delimiter.'
         }
       } else {
         switch (oError.ErrorCode) {

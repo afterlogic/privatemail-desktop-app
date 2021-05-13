@@ -146,35 +146,35 @@
             <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
           </q-card-actions>
           <q-dialog v-model="bCreateFolder" persistent>
-            <q-card>
+            <q-card style="width: 500px">
               <q-card-section class="row items-center">
                 <span style="margin-left: 20px; font-size: 18px;font-weight: bold;">
                   New Folder
                 </span>
               </q-card-section>
-              <q-card-section class="row">
+              <q-card-section class="row" style="width: 500px">
                   <q-card-section class="row items-center">
                     <span class="q-ml-sm">Parent Folder</span>
                     <q-select
                       v-model="sParentName"
                       :options="aFolderList"
-                      style="width: 250px; margin-left: 100px;"
+                      style="width: 320px; margin-left: 20px;"
                       color="primary"
                       filled
-                      clearable
+
                     />
                   </q-card-section>
                   <q-card-section class="row items-center">
                     <span class="q-ml-sm">Folder Name</span>
                     <q-input
-                      style="width: 250px; margin-left: 102px"
+                      style="width: 320px; margin-left: 20px;"
                       filled
                       v-model="sNewFolderName"
                       lazy-rules
                     />
                   </q-card-section>
               </q-card-section>
-              <q-card-actions align="right">
+              <q-card-actions align="right" style="margin: 0 35px 10px 0">
                 <q-btn color="purple" label="OK" @click="createNewFolder"/>
                 <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
               </q-card-actions>

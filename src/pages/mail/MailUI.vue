@@ -27,6 +27,7 @@
                 <div class="col-auto">
                   <mail-list-toolbar :checkedMessagesUids="checkedUidsForToolbar" ref="mailListToolbar" />
                   <q-expansion-item
+                    v-if="!bCurrentNoteFolder"
                     expand-separator
                     icon="mail"
                     label="Inbox"
@@ -90,6 +91,17 @@
                       </div>
                     </div>
                   </q-expansion-item>
+                  <q-item v-if="bCurrentNoteFolder" class="bg-grey-3" clickable>
+                    <q-checkbox v-model="checkboxAll" />
+                    <q-input outlined rounded dense bg-color="white" class="search-field full-width"
+                             v-model="searchInputText"
+                             @click.stop.prevent
+                             @keyup.enter.stop.prevent="search">
+                      <template v-slot:prepend>
+                        <q-icon name="search" @click.stop.prevent="search"></q-icon>
+                      </template>
+                    </q-input>
+                  </q-item>
                 </div>
                 <div class="col" @keydown="onKeydown">
                   <q-scroll-area ref="messageListScrollArea" class="full-height non-selectable">

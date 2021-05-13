@@ -129,7 +129,7 @@
         <q-list padding bordered>
           <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
           <q-item  clickable v-ripple style="height: 50px">
-          <q-item-section avatar>
+          <q-item-section avatar style="margin-left: 15px">
             Total
           </q-item-section>
           <q-item-section avatar style="margin-left: auto; padding-right: 100px">
@@ -142,11 +142,15 @@
           <div class="folders-line">
             To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
           </div>
-          <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
+          <q-card-actions align="right">
+            <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
+          </q-card-actions>
           <q-dialog v-model="bCreateFolder" persistent>
             <q-card>
               <q-card-section class="row items-center">
-                <span class="q-ml-sm">New Folder</span>
+                <span style="margin-left: 20px; font-size: 18px;font-weight: bold;">
+                  New Folder
+                </span>
               </q-card-section>
               <q-card-section class="row">
                   <q-card-section class="row items-center">
@@ -154,18 +158,15 @@
                     <q-select
                       v-model="sParentName"
                       :options="aFolderList"
-                      name="preferred_genre"
-                      style="width: 250px; margin-left: 100px"
+                      style="width: 250px; margin-left: 100px;"
                       color="primary"
                       filled
                       clearable
-                      label="Preferred genre"
                     />
                   </q-card-section>
                   <q-card-section class="row items-center">
                     <span class="q-ml-sm">Folder Name</span>
                     <q-input
-                      name="preferred_genre1"
                       style="width: 250px; margin-left: 102px"
                       filled
                       v-model="sNewFolderName"
@@ -784,7 +785,7 @@ export default {
       bCreateFolder: false,
       aFolderList: [],
       sNewFolderName: '',
-      sParentName: 'No Parent'
+      sParentName: 'No Parent',
     }
   },
 
@@ -1378,17 +1379,22 @@ export default {
     },
     createFoldersArray(foldersTree) {
       let aFolderList = ['No Parent']
-      function removeFolderTree(currentTree) {
+      function createFoldersArray(currentTree, spaces, level) {
         for (let i = 0; i < currentTree.length; i++) {
           if (currentTree[i].SubFolders.length > 0) {
-            aFolderList.push(currentTree[i].FullName)
-            removeFolderTree(currentTree[i].SubFolders)
+            aFolderList.push({value: currentTree[i].FullName, label: spaces + currentTree[i].Name})
+            level++
+            if (level === 1) {
+              createFoldersArray(currentTree[i].SubFolders, spaces, level)
+            } else {
+              createFoldersArray(currentTree[i].SubFolders, spaces + '&nbsp;&nbsp;&nbsp;&nbsp;', level)
+            }
           } else {
-            aFolderList.push(currentTree[i].FullName)
+            aFolderList.push({value: currentTree[i].FullName, label: spaces + currentTree[i].Name})
           }
         }
       }
-      removeFolderTree(foldersTree)
+      createFoldersArray(foldersTree, '', 0)
       this.aFolderList = aFolderList
     },
     resetForm() {
@@ -1403,12 +1409,14 @@ export default {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
         iAccountId: this.$store.getters['mail/getCurrentAccountId'],
-        sFolderParentFullNameRaw: this.sParentName,
+        sFolderParentFullNameRaw: this.sParentName.value,
         sFolderName: this.sNewFolderName,
-        sDelimiter: '.'
+        sDelimiter: this.foldersTree[0].Delimiter
       })
       ipcRenderer.once('mail-create-folder', (event, {bResult, oError}) => {
         if (bResult) {
+          this.sNewFolderName = ''
+          this.sParentName = 'No Parent'
           this.bCreateFolder = false
           this.$store.commit('mail/resetCurrentFolderList')
           this.$store.dispatch('mail/asyncGetFolderList')

@@ -1,6 +1,6 @@
 <template>
 <div>
-  <q-item  clickable v-ripple style="height: 50px">
+  <q-item  clickable v-ripple style="height: 50px" :style="{ paddingLeft: 16 + level * 20 + 'px' }">
     <q-item-section avatar>
       <q-icon v-if="folder.IconName" :name="folder.IconName" style="margin: auto"/>
       <q-icon v-else :name="'panorama_fish_eye'" size="8px" style="margin: auto"/>
@@ -20,6 +20,7 @@
       </q-toolbar>
     </q-item-section>
   </q-item>
+  <q-separator inset />
   <template v-if="folder.SubFolders">
     <ManageFolders v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></ManageFolders>
   </template>

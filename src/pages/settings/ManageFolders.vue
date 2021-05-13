@@ -6,7 +6,7 @@
       <q-icon v-else :name="'panorama_fish_eye'" size="8px" style="margin: auto"/>
     </q-item-section>
     <q-item-section>
-      <q-item-label>{{folder.Name}}</q-item-label>
+      <q-item-label>{{folder.Name}} {{folder.DisplayName ? `used as ${folder.DisplayName}`: ''}}</q-item-label>
     </q-item-section>
     <q-item-section>
       <q-toolbar style="margin-left: auto; width: auto;">

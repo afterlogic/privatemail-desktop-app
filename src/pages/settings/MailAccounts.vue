@@ -1381,8 +1381,9 @@ export default {
       let aFolderList = ['No Parent']
       function createFoldersArray(currentTree, spaces, level) {
         for (let i = 0; i < currentTree.length; i++) {
+          let displayName = currentTree[i].DisplayName ? currentTree[i].DisplayName : currentTree[i].Name
           if (currentTree[i].SubFolders.length > 0) {
-            aFolderList.push({value: currentTree[i].FullName, label: spaces + currentTree[i].Name})
+            aFolderList.push({value: currentTree[i].FullName, label: spaces + displayName})
             level++
             if (level === 1) {
               createFoldersArray(currentTree[i].SubFolders, spaces, level)
@@ -1390,7 +1391,7 @@ export default {
               createFoldersArray(currentTree[i].SubFolders, spaces + '&nbsp;&nbsp;&nbsp;&nbsp;', level)
             }
           } else {
-            aFolderList.push({value: currentTree[i].FullName, label: spaces + currentTree[i].Name})
+            aFolderList.push({value: currentTree[i].FullName, label: spaces + displayName})
           }
         }
       }
@@ -1402,6 +1403,7 @@ export default {
       this.sParentName = 'No Parent'
     },
     createNewFolder() {
+      console.log(this.foldersTree)
       if (this.sParentName === 'No Parent' || this.sParentName === '') {
         this.sParentName = this.foldersTree[0].FullName
       }

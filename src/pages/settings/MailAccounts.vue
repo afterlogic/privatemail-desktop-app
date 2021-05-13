@@ -1403,7 +1403,6 @@ export default {
       this.sParentName = 'No Parent'
     },
     createNewFolder() {
-      console.log(this.foldersTree)
       if (this.sParentName === 'No Parent' || this.sParentName === '') {
         this.sParentName = this.foldersTree[0].FullName
       }

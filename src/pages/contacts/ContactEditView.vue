@@ -240,7 +240,7 @@
                 <div class="input-line" v-if="publicPgpKeyUser.sUserId">
                   <q-checkbox v-model="oContact.PgpEncryptMessages" label="Encrypt" />
                 </div>
-                <div class="input-line" v-if="oContact.OpenPgpKeyUser">
+                <div class="input-line" v-if="oContact.OpenPgpKeyUser && publicPgpKeyUser.sUserId">
                   <q-checkbox v-model="oContact.PgpSignMessages" label="Sign" />
                 </div>
 
@@ -524,6 +524,8 @@ export default {
         if (res.length) {
           this.publicPgpKeyUser = res[0]
           this.publicPgpKeyUser.sAddInfo = this.publicPgpKeyUser.sType === 'public' ? '(' + this.publicPgpKeyUser.iBitSize + '-bit, public)' : '(' + this.publicPgpKeyUser.iBitSize + '-bit, private)'
+        } else {
+          this.publicPgpKeyUser = {}
         }
       })
     },

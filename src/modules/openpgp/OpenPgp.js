@@ -715,6 +715,8 @@ COpenPgp.prototype.oKeysInfo = async function (pgpKeys) {
       oKeyData.sMail = oKeysInfo.keys[i].users[0].userId.email
       aKeysInfo.push(oKeyData)
     }
+  } else {
+    aKeysInfo = []
   }
   return aKeysInfo
 }

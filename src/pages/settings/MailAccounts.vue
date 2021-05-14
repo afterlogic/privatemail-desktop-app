@@ -1471,7 +1471,7 @@ export default {
     },
     createNewFolder() {
       if (this.sParentName === 'No Parent' || this.sParentName === '') {
-        this.sParentName = this.foldersTree[0].FullName
+        this.sParentName = {value: this.foldersTree[0].FullName, label: 'No Parent'}
       }
       ipcRenderer.send('mail-create-folder', {
         sApiHost: this.$store.getters['main/getApiHost'],

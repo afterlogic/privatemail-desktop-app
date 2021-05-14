@@ -132,7 +132,6 @@ export default {
     ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
-          if (_.isEmpty(oFolderList)) {
             webApi.sendRequest({
               sApiHost,
               sAuthToken,
@@ -149,9 +148,6 @@ export default {
                 }
               },
             })
-          } else {
-            oEvent.sender.send('mail-get-folders', oFolderList)
-          }
         },
         (oResult) => {
           oEvent.sender.send('mail-get-folders', oResult)

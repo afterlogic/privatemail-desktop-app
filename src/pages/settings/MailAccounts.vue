@@ -1486,7 +1486,6 @@ export default {
           this.sNewFolderName = ''
           this.sParentName = 'No Parent'
           this.bCreateFolder = false
-          this.$store.commit('mail/resetCurrentFolderList')
           this.$store.dispatch('mail/asyncGetFolderList')
         } else {
           notification.showError(errors.getText(oError, 'Error creating folder.'))
@@ -1577,7 +1576,6 @@ export default {
       })
       ipcRenderer.once('mail-setup-system-folder', (event, {bResult, oError}) => {
         if (bResult) {
-          this.$store.commit('mail/resetCurrentFolderList')
           this.$store.dispatch('mail/asyncGetFolderList')
           this.bDisplaySpecialFoldersDialog = false
         } else {

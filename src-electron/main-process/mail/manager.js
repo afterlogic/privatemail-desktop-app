@@ -819,5 +819,17 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-setup-system-folder', (oEvent, { sApiHost, sAuthToken, oParameters }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'SetupSystemFolders',
+        oParameters: oParameters,
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-setup-system-folder', { bResult, oError })
+        },
+      })
+    })
   },
 }

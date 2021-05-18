@@ -14,9 +14,13 @@
         <q-btn
           :disable="folder.Type !== 10 && folder.Type !== 12 && folder.Type !== 11"
           flat no-wrap color="primary" :icon="bHideFolder? 'visibility' : 'visibility_off'"
-          @click="subscribeFolder"/>
+          @click="subscribeFolder">
+          <q-tooltip content-class="text-caption">{{ bHideFolder? 'Hide folder' : 'Show folder' }}</q-tooltip>
+        </q-btn>
         <q-btn :disable="folder.SubFolders.length > 0 || folder.Type !== 10" flat no-wrap color="primary"
-               icon="delete_outline" @click="triggerDialogue"/>
+               icon="delete_outline" @click="triggerDialogue">
+          <q-tooltip content-class="text-caption">Delete folder</q-tooltip>
+        </q-btn>
       </q-toolbar>
     </q-item-section>
   </q-item>

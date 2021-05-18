@@ -464,6 +464,9 @@ export default {
     },
     'oContact.PublicPgpKey': function () {
       this.oKeysInfo()
+    },
+    'aPrimaryMailOptions': function () {
+      this.oPrimaryEmail = this.aPrimaryMailOptions[0]
     }
   },
 
@@ -481,7 +484,6 @@ export default {
           aOptions.push({ label: 'Other: ' + this.oContact.OtherEmail, value: contactsEnums.PrimaryEmail.Other })
         }
       }
-
       return aOptions
     },
     'aPrimaryPhoneOptions': function () {
@@ -539,12 +541,6 @@ export default {
       let oContactSource = this.$store.getters['contacts/getCurrentContact']
       let bEqual = _.isEqual(this.oContact, oContactSource)
 
-      let bKeyMatches = true
-      if (this.oContact.PublicPgpKey) {
-        if (this.oContact.ViewEmail !== this.publicPgpKeyUser.sMail) {
-          bKeyMatches = false
-        }
-      }
 
       if (bEqual) {
         notification.showReport('The contact has not been changed.')
@@ -552,6 +548,12 @@ export default {
       } else {
         let oContactToSave = _.cloneDeep(this.oContact)
         oContactToSave.setViewEmail()
+        let bKeyMatches = true
+        if (this.oContact.PublicPgpKey) {
+          if (oContactToSave.ViewEmail !== this.publicPgpKeyUser.sMail) {
+            bKeyMatches = false
+          }
+        }
         if (!typesUtils.isNonEmptyString(oContactToSave.Storage)) {
           oContactToSave.Storage = 'personal' // creating contact is allowed only for personal storage
         }

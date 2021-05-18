@@ -139,8 +139,9 @@ export default {
               sMethod: 'GetFolders',
               oParameters: { AccountID: iAccountId },
               fCallback: (oResult, oError) => {
+                let oFlatFoldersFromDb = oFolderList && oFolderList.Tree ? foldersManager.getFlatFolders(oFolderList.Tree) : {}
                 if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
-                  let oFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, {}, [], [])
+                  let oFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFoldersFromDb, [], [])
                   foldersDbManager.setFolders(iAccountId, oFolderList)
                   oEvent.sender.send('mail-get-folders', oFolderList)
                 } else {

@@ -65,6 +65,37 @@ function getTypeFolder(oFolderFromServer) {
   return iType
 }
 
+function getFriendlyNamesFolder(sType) {
+  let sFriendlyName = ''
+  switch (sType) {
+    case mailEnums.FolderType.Inbox:
+      sFriendlyName = 'Inbox'
+      break
+    case mailEnums.FolderType.Sent:
+      sFriendlyName = 'Sent'
+      break
+    case mailEnums.FolderType.Scheduled:
+      sFriendlyName = 'Scheduled'
+      break
+    case mailEnums.FolderType.Drafts:
+      sFriendlyName = 'Drafts'
+      break
+    case mailEnums.FolderType.Spam:
+      sFriendlyName = 'Spam'
+      break
+    case mailEnums.FolderType.Trash:
+      sFriendlyName = 'Trash'
+      break
+    case mailEnums.FolderType.Notes:
+      sFriendlyName = 'Notes'
+      break
+    default:
+      sFriendlyName = ''
+      break
+  }
+  return sFriendlyName
+}
+
 export default {
   getFlatFolders: function (oFolderList) {
     let oFlatFolders = {}
@@ -99,6 +130,7 @@ export default {
           Delimiter: oFolderFromServer.Delimiter,
           Namespaced: oFolderFromServer.FullNameRaw + oFolderFromServer.Delimiter === sNamespace,
           IconName: _getIconName(iType),
+          DisplayName: getFriendlyNamesFolder(iType),
           IsSubscribed: oFolderFromServer.IsSubscribed,
           IsSelectable: oFolderFromServer.IsSelectable,
           Exists: oFolderFromServer.Exists,

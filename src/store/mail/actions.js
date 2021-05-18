@@ -537,3 +537,12 @@ ipcRenderer.on('mail-save-note', (event, { bResult }) => {
     store.dispatch('mail/asyncRefresh', true)
   }
 })
+
+export function saveCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, bHideFolder }) {
+  commit('setFolderTree', {folderName, bHideFolder})
+}
+
+export function removeCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, bHideFolder }) {
+  commit('removeFolderTree', {folderName, bHideFolder})
+}
+

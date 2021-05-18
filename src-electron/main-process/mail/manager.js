@@ -132,7 +132,6 @@ export default {
     ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
-          if (_.isEmpty(oFolderList)) {
             webApi.sendRequest({
               sApiHost,
               sAuthToken,
@@ -149,9 +148,6 @@ export default {
                 }
               },
             })
-          } else {
-            oEvent.sender.send('mail-get-folders', oFolderList)
-          }
         },
         (oResult) => {
           oEvent.sender.send('mail-get-folders', oResult)
@@ -763,6 +759,71 @@ export default {
         },
         fCallback: (bResult) => {
           oEvent.sender.send('mail-save-note', {bResult})
+        },
+      })
+    })
+    ipcMain.on('mail-subscribe-folder', (oEvent, { sApiHost, sAuthToken, iAccountId, sFolderName, bSetAction }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'SubscribeFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderName,
+          SetAction: bSetAction
+        },
+        fCallback: (bResult) => {
+          if (bResult) {
+            oEvent.sender.send('mail-subscribe-folder-reject', {bResult})
+          }
+        },
+      })
+    })
+    ipcMain.on('mail-delete-folder', (oEvent, { sApiHost, sAuthToken, iAccountId, sFolderFullName }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'DeleteFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          Folder: sFolderFullName
+        },
+        fCallback: (bResult, bError) => {
+          if (bResult) {
+            oEvent.sender.send('mail-delete-folder', {bResult, bError})
+          }
+        },
+      })
+    })
+    ipcMain.on('mail-create-folder', (oEvent, { sFolderParentFullNameRaw, sFolderName, sDelimiter, iAccountId, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'CreateFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          FolderNameInUtf8: sFolderName,
+          FolderParentFullNameRaw: sFolderParentFullNameRaw,
+          Delimiter: sDelimiter
+
+        },
+        fCallback: (bResult, oError) => {
+            oEvent.sender.send('mail-create-folder', { bResult, oError })
+        },
+      })
+    })
+    ipcMain.on('mail-setup-system-folder', (oEvent, { sApiHost, sAuthToken, oParameters }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'SetupSystemFolders',
+        oParameters: oParameters,
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-setup-system-folder', { bResult, oError })
         },
       })
     })

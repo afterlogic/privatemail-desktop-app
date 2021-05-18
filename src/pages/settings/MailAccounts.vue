@@ -15,7 +15,7 @@
               <q-item-label class="text-weight-medium">{{ oAccount.sEmail }}</q-item-label>
             </q-item-section>
             <q-item-section side>
-              
+
               <q-btn flat color="primary" :text-color="iEditAccountId === oAccount.iAccountId ? 'white' : ''" v-if="bAllowAliases && oAccount.bDefault" label="add alias" @click.native.stop="openAddNewAliasDialog(oAccount.iAccountId)" />
             </q-item-section>
             <q-item-section side>
@@ -69,10 +69,10 @@
       class="flex-start"
     >
       <q-tab name="props" label="Properties" />
-      <!-- <q-tab name="folders" label="Folders" />
-      <q-tab name="forward" label="Forward" />
-      <q-tab name="autoresponder" label="Autoresponder" />
-      <q-tab name="filters" label="Filters" /> -->
+      <q-tab name="folders" label="Manage Folders" />
+      <!-- <q-tab name="forward" label="Forward" />
+       <q-tab name="autoresponder" label="Autoresponder" />
+       <q-tab name="filters" label="Filters" /> -->
     </q-tabs>
 
     <q-separator v-if="editAccount" />
@@ -125,7 +125,124 @@
           <q-btn unelevated color="primary" v-if="bAllowChangePasswordOnMailServer" label="Change Password" @click="openChangePassword" />
         </div>
       </q-tab-panel>
+      <q-tab-panel name="folders">
+        <q-list padding bordered>
+          <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+          <q-item  clickable v-ripple style="height: 50px">
+          <q-item-section avatar style="margin-left: 15px">
+            Total
+          </q-item-section>
+          <q-item-section avatar style="margin-left: auto; padding-right: 100px">
+            {{ totalScore() }}
+          </q-item-section>
+          </q-item>
+          <div class="folders-line">
+            Deleting non-empty folders is not allowed. To delete such folder, delete its contents first.
+          </div>
+          <div class="folders-line">
+            To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
+          </div>
+          <q-card-actions align="right">
+            <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
+            <q-btn color="purple" label="Setup special folders" @click="displaySpecialFoldersDialog"/>
+          </q-card-actions>
+          <q-dialog v-model="bCreateFolder" persistent>
+            <q-card style="width: 500px">
+              <q-card-section class="row items-center">
+                <span style="margin-left: 20px; font-size: 18px;font-weight: bold;">
+                  New Folder
+                </span>
+              </q-card-section>
+              <q-card-section class="row" style="width: 500px">
+                  <q-card-section class="row items-center">
+                    <span class="q-ml-sm">Parent Folder</span>
+                    <q-select
+                      v-model="sParentName"
+                      :options="createFoldersArray(foldersTree)"
+                      style="width: 320px; margin-left: 20px;"
+                      color="primary"
+                      filled
 
+                    />
+                  </q-card-section>
+                  <q-card-section class="row items-center">
+                    <span class="q-ml-sm">Folder Name</span>
+                    <q-input
+                      style="width: 320px; margin-left: 20px;"
+                      filled
+                      v-model="sNewFolderName"
+                      lazy-rules
+                    />
+                  </q-card-section>
+              </q-card-section>
+              <q-card-actions align="right" style="margin: 0 35px 10px 0">
+                <q-btn color="purple" label="OK" @click="createNewFolder"/>
+                <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+          <q-dialog v-model="bDisplaySpecialFoldersDialog" persistent>
+            <q-card style="width: 500px">
+              <q-card-section class="row items-center">
+                <span style="margin-left: 20px; font-size: 18px;font-weight: bold;">
+                  Setup special folders
+                </span>
+              </q-card-section>
+              <q-card-section class="row" style="width: 500px">
+                <span style="margin-left: 20px;">Which IMAP mailboxes to use for pre-defined folders.</span>
+                <q-card-section class="row items-center">
+                  <span class="q-ml-sm">Sent</span>
+                  <q-select
+                    v-model="oSpecialFoldersOptions['Sent']"
+                    :options="specialFoldersOptions()"
+                    style="width: 360px; margin-left: 30px;"
+                    color="primary"
+                    filled
+
+                  />
+                </q-card-section>
+                <q-card-section class="row items-center">
+                  <span class="q-ml-sm">Drafts</span>
+                  <q-select
+                    v-model="oSpecialFoldersOptions['Drafts']"
+                    :options="specialFoldersOptions()"
+                    style="width: 360px; margin-left: 20px;"
+                    color="primary"
+                    filled
+
+                  />
+                </q-card-section>
+                <q-card-section class="row items-center">
+                  <span class="q-ml-sm">Trash</span>
+                  <q-select
+                    v-model="oSpecialFoldersOptions['Trash']"
+                    :options="specialFoldersOptions()"
+                    style="width: 360px; margin-left: 23px;"
+                    color="primary"
+                    filled
+
+                  />
+                </q-card-section>
+                <q-card-section class="row items-center">
+                  <span class="q-ml-sm">Spam</span>
+                  <q-select
+                    v-model="oSpecialFoldersOptions['Spam']"
+                    :options="specialFoldersOptions()"
+                    style="width: 360px; margin-left: 20px;"
+                    color="primary"
+                    filled
+
+                  />
+                </q-card-section>
+              </q-card-section>
+              <q-card-actions align="right" style="margin: 0 35px 10px 0">
+                <q-btn color="purple" label="OK" @click="setupSpecialFolders"/>
+                <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+        </q-list>
+      </q-tab-panel>
       <!-- <q-tab-panel name="folders">
         <q-list padding>
           <q-item-label header>User Controls</q-item-label>
@@ -181,7 +298,7 @@
         <q-separator spaced />
         <q-btn color="primary" label="Save" />
       </q-tab-panel>
-      
+
       <q-tab-panel name="autoresponder" class="autoresponder">
         <div class="q-pa-md">
           <q-item tag="label">
@@ -633,11 +750,15 @@ import mailSettings from 'src/modules/mail/settings.js'
 
 import MailAccountsSignatureTab from './MailAccountsSignatureTab.vue'
 
+import ManageFolders from "./ManageFolders";
+import mailEnums from "../../modules/mail/enums";
+
 export default {
   name: 'MailAccounts',
 
   components: {
     MailAccountsSignatureTab,
+    ManageFolders
   },
 
   data () {
@@ -721,6 +842,18 @@ export default {
       sNewAliasDomain: '',
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
+      nTotal: 0,
+      bCreateFolder: false,
+      aFolderList: [],
+      sNewFolderName: '',
+      sParentName: 'No Parent',
+      bDisplaySpecialFoldersDialog: false,
+      oSpecialFoldersOptions: {
+        'Sent': '',
+        'Drafts': '',
+        'Trash': '',
+        'Spam': ''
+      }
     }
   },
 
@@ -774,6 +907,9 @@ export default {
       }
 
       return null
+    },
+    foldersTree () {
+      return this.$store.getters['mail/getCurrentFoldersTree']
     },
   },
 
@@ -1292,6 +1428,169 @@ export default {
       ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
       ipcRenderer.removeListener('mail-change-password', this.onChangePassword)
     },
+    totalScore() {
+      function removeFolderTree(currentTree) {
+        let score = 0
+        for (let i = 0; i < currentTree.length; i++) {
+          score += currentTree[i].Count
+        if (currentTree[i].SubFolders.length > 0) {
+          score += removeFolderTree(currentTree[i].SubFolders)
+          }
+        }
+        return score
+      }
+     return removeFolderTree(this.foldersTree)
+    },
+    createFolder() {
+      this.bCreateFolder = true
+    },
+    createFoldersArray(foldersTree) {
+      let aFolderList = ['No Parent']
+      function createFoldersArray(currentTree, spaces, level) {
+        for (let i = 0; i < currentTree.length; i++) {
+          let displayName = currentTree[i].DisplayName !== '' ? currentTree[i].DisplayName : currentTree[i].Name
+          if (currentTree[i].SubFolders.length > 0) {
+            aFolderList.push({value: currentTree[i].FullName, label: spaces + displayName, type: currentTree[i].Type, delimiter: currentTree[i].Delimiter})
+            level++
+            if (level === 1) {
+              createFoldersArray(currentTree[i].SubFolders, spaces, level)
+            } else {
+              createFoldersArray(currentTree[i].SubFolders, spaces + '&nbsp;&nbsp;&nbsp;&nbsp;', level)
+            }
+          } else {
+            aFolderList.push({value: currentTree[i].FullName, label: spaces + displayName, type: currentTree[i].Type,  delimiter: currentTree[i].Delimiter})
+          }
+        }
+      }
+      createFoldersArray(foldersTree, '', 0)
+      return aFolderList
+    },
+    resetForm() {
+      this.sNewFolderName = ''
+      this.sParentName = 'No Parent'
+    },
+    createNewFolder() {
+      if (this.sParentName === 'No Parent' || this.sParentName === '') {
+        this.sParentName = {value: this.foldersTree[0].FullName, label: 'No Parent'}
+      }
+      ipcRenderer.send('mail-create-folder', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sFolderParentFullNameRaw: this.sParentName.value,
+        sFolderName: this.sNewFolderName,
+        sDelimiter: this.foldersTree[0].Delimiter
+      })
+      ipcRenderer.once('mail-create-folder', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.sNewFolderName = ''
+          this.sParentName = 'No Parent'
+          this.bCreateFolder = false
+          this.$store.dispatch('mail/asyncGetFolderList')
+        } else {
+          notification.showError(errors.getText(oError, 'Error creating folder.'))
+        }
+      })
+    },
+    displaySpecialFoldersDialog() {
+     let arr = this.createFoldersArray(this.foldersTree)
+      arr.map(oFolder => {
+      if (oFolder.type) {
+        let folderName = oFolder['value'].split(oFolder.delimiter)
+        folderName = folderName[folderName.length - 1]
+        switch (oFolder.type) {
+          case mailEnums.FolderType.Sent:
+            this.oSpecialFoldersOptions.Sent = {
+              label: folderName,
+              value: oFolder['value']
+            }
+            break
+          case mailEnums.FolderType.Drafts:
+            this.oSpecialFoldersOptions.Drafts = {
+              label: folderName,
+              value: oFolder['value']
+            }
+            break
+          case mailEnums.FolderType.Trash:
+            this.oSpecialFoldersOptions.Trash = {
+              label: folderName,
+              value: oFolder['value']
+            }
+            break
+          case mailEnums.FolderType.Spam:
+            this.oSpecialFoldersOptions.Spam = {
+              label: folderName,
+              value: oFolder['value']
+            }
+            break
+        }
+      }
+      })
+      this.bDisplaySpecialFoldersDialog = true
+    },
+    specialFoldersOptions() {
+        let aFolderList =  this.createFoldersArray(this.foldersTree)
+        let aFolders = aFolderList.map(oFolder => {
+          if (oFolder.type) {
+            let folderName = oFolder['value'].split(oFolder.delimiter)
+            folderName = folderName[folderName.length - 1]
+            switch (oFolder.type) {
+              case mailEnums.FolderType.Inbox:
+                oFolder.disable = true
+                oFolder.label = folderName
+                break
+              case mailEnums.FolderType.Sent:
+                oFolder.disable = true
+                oFolder.label = folderName
+                break
+              case mailEnums.FolderType.Drafts:
+                oFolder.disable = true
+                oFolder.label = folderName
+                break
+              case mailEnums.FolderType.Spam:
+                oFolder.disable = true
+                oFolder.label = folderName
+                break
+              case mailEnums.FolderType.Trash:
+                oFolder.disable = true
+                oFolder.label = folderName
+                break
+            }
+          }
+        return oFolder
+      })
+      return aFolders
+    },
+    setupSpecialFolders() {
+      let oParameters = {
+        AccountID: this.$store.getters['mail/getCurrentAccountId'],
+        Sent: this.oSpecialFoldersOptions.Sent.value,
+        Drafts: this.oSpecialFoldersOptions.Drafts.value,
+        Trash: this.oSpecialFoldersOptions.Trash.value,
+        Spam: this.oSpecialFoldersOptions.Spam.value,
+      }
+      ipcRenderer.send('mail-setup-system-folder', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        oParameters: oParameters
+      })
+      ipcRenderer.once('mail-setup-system-folder', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.$store.dispatch('mail/asyncGetFolderList')
+          this.bDisplaySpecialFoldersDialog = false
+        } else {
+          notification.showError(errors.getText(oError, 'Error setup special folder.'))
+        }
+      })
+    },
   },
+
 }
 </script>
+
+<style scoped>
+.folders-line {
+  padding: 0 0 5px 15px;
+  font-size: 9pt;
+}
+</style>

@@ -30,15 +30,8 @@ export default {
     }
   },
   methods: {
-    test() {
-      console.log('test')
-    },
     async verify () {
       let sKey = this.key
-      console.log('verify');
-
-      console.log(await openpgp.signature.readArmored(this.signature))
-
       const input = await openpgp.armor.decode(this.signature);
       // console.log(input)
       // console.log(openpgp.enums.armor)
@@ -47,7 +40,7 @@ export default {
       // const reader = input.data.getReader();
       // console.log(reader);
 
-      
+
       // const packetlist = new openpgp.packet.List();
       // await packetlist.read(input.data);
       // verifyHeaders(input.headers, packetlist);
@@ -60,10 +53,10 @@ export default {
       //         return;
       //     }
       //     // Enqueue the next data chunk into our target stream
-          
+
       //     console.log('value', value)
       //   });
-      
+
 
       if (sKey) {
         // let sPlain = this.signature.replace('SHA256', 'SHA512').replace('Version: BCPG v1.62', 'Version: OpenPGP.js v4.5.2\r\nComment: https://openpgpjs.org')
@@ -74,11 +67,9 @@ export default {
           message: await openpgp.cleartext.readArmored(sText),
           publicKeys: (await openpgp.key.readArmored(sKey)).keys
         }
-        console.log(oOptions);
 
         try {
             let oPgpResult = await openpgp.verify(oOptions)
-            console.log('oPgpResult', oPgpResult);
 
             if (typesUtils.isNonEmptyArray(oPgpResult.signatures) && oPgpResult.signatures[0].valid) {
               return { sVerifiedData: oPgpResult.data }

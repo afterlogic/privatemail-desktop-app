@@ -200,7 +200,7 @@ export default {
           oMessageInfo.flags = _.without(oMessageInfo.flags, '\\seen')
         }
       }
-  
+
       this.getMessagesInfo({ iAccountId, sFolderFullName }).then(
         (aMessagesInfo) => {
           _.each(aMessagesInfo, (oMessageInfo) => {
@@ -250,7 +250,7 @@ export default {
       )
     })
   },
-  
+
   deleteMessages: function (iAccountId, sFolderFullName, aUids) {
     return new Promise((resolve, reject) => {
       if (aUids.length === 0) {
@@ -273,7 +273,7 @@ export default {
       }
     })
   },
-  
+
   deleteAllMessages: function ({ iAccountId, sFolderFullName }) {
     return new Promise((resolve, reject) => {
       this.setMessagesInfo({ iAccountId, sFolderFullName, aMessagesInfo: [] }).then(resolve, reject)

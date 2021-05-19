@@ -129,7 +129,7 @@ export default {
       }
     })
 
-    ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-get-folders', (oEvent, { iAccountId, sApiHost, sAuthToken, bEditAccount}) => {
       foldersDbManager.getFolders(iAccountId).then(
         (oFolderList) => {
             webApi.sendRequest({
@@ -143,7 +143,11 @@ export default {
                 if (oResult && oResult.Folders && oResult.Folders['@Collection']) {
                   let oFolderList = foldersManager.prepareFolderListFromServer(iAccountId, oResult.Namespace || '', oResult.Folders, oFlatFoldersFromDb, [], [])
                   foldersDbManager.setFolders(iAccountId, oFolderList)
-                  oEvent.sender.send('mail-get-folders', oFolderList)
+                  if (!bEditAccount) {
+                    oEvent.sender.send('mail-get-folders', oFolderList)
+                  } else {
+                    oEvent.sender.send('mail-get-folders', oFolderList, bEditAccount)
+                  }
                 } else {
                   oEvent.sender.send('mail-get-folders', { oError })
                 }
@@ -151,7 +155,7 @@ export default {
             })
         },
         (oResult) => {
-          oEvent.sender.send('mail-get-folders', oResult)
+          oEvent.sender.send('mail-get-folders', oResult, bEditAccount)
         }
       )
     })

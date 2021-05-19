@@ -172,7 +172,7 @@ export function asyncGetServers ({ state, commit, dispatch }) {
     })
 }
 
-ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {
+ipcRenderer.on('mail-get-folders', (event, oDbFolderList, bEditAccount = false) => {
   if (store.state.mail.currentAccount) {
     if (oDbFolderList && oDbFolderList.Tree) {
       let bFirstTime = typesUtils.pInt(store.getters['mail/getCurrentFolderList'] && store.getters['mail/getCurrentFolderList'].AccountId) === 0
@@ -180,7 +180,11 @@ ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {
       if (!bFirstTime) {
         oFolderList.Current = oFolderList.Flat[store.state.mail.currentFolderList.Current.FullName]
       }
-      store.commit('mail/setCurrentFolderList', oFolderList)
+      if (!bEditAccount) {
+        store.commit('mail/setCurrentFolderList', oFolderList)
+      } else {
+        store.commit('mail/setEditFolderList', oDbFolderList)
+      }
       if (oFolderList.Current.HasChanges) {
         store.dispatch('mail/asyncRefresh')
       } else {
@@ -195,12 +199,13 @@ ipcRenderer.on('mail-get-folders', (event, oDbFolderList) => {
   }
 })
 
-export function asyncGetFolderList ({ state, commit, dispatch, getters }) {
+export function asyncGetFolderList ({ state, commit, dispatch, getters }, parameters = {bEditAccount: false, iEditAccountId: ''}  ) {
   if (state.currentAccount) {
     ipcRenderer.send('mail-get-folders', {
       sApiHost: store.getters['main/getApiHost'],
       sAuthToken: store.getters['user/getAuthToken'],
-      iAccountId: getters.getCurrentAccountId,
+      iAccountId: !parameters.bEditAccount ? getters.getCurrentAccountId: parameters.iEditAccountId,
+      bEditAccount: parameters.bEditAccount
     })
   }
 }

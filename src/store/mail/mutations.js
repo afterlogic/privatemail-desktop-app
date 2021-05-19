@@ -131,6 +131,10 @@ export function setCurrentFolderList (state, oFolderList) {
   }
 }
 
+export function setEditFolderList (state, oFolderList) {
+    state.editFolderList = oFolderList
+}
+
 export function setCurrentMessagesTotalCount (state, iTotalCount) {
   state.totalMessagesCount = iTotalCount
 }

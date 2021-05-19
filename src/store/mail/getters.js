@@ -91,6 +91,10 @@ export function getCurrentFoldersTree (state) {
   return state.currentFolderList.Tree
 }
 
+export function getEditFoldersTree (state) {
+  return state.editFolderList.Tree
+}
+
 export function getCurrentMessages (state) {
   return state.currentMessages
 }
@@ -184,12 +188,12 @@ export function getMessageByUid (state) {
         _.each(oMessage.Threads, (oThreadMessage) => {
           if (oThreadMessage.Uid === messageUid) {
             oFoundMessage = oThreadMessage
-            return false // break each
+            return false
           }
         })
       }
       if (oFoundMessage) {
-        return false // break each
+        return false
       }
     })
     return oFoundMessage

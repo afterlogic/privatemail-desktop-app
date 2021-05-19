@@ -127,7 +127,12 @@
       </q-tab-panel>
       <q-tab-panel name="folders">
         <q-list padding bordered>
-          <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+          <div v-if="!isEditAccount">
+            <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+          </div>
+          <div v-else>
+            <ManageFolders v-for="folder in editFoldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+          </div>
           <q-item  clickable v-ripple style="height: 50px">
           <q-item-section avatar style="margin-left: 15px">
             Total
@@ -853,7 +858,8 @@ export default {
         'Drafts': '',
         'Trash': '',
         'Spam': ''
-      }
+      },
+      isEditAccount: false
     }
   },
 
@@ -905,12 +911,14 @@ export default {
           return oAlias.iEntityId === this.iEditAliasId
         })
       }
-
       return null
     },
     foldersTree () {
       return this.$store.getters['mail/getCurrentFoldersTree']
     },
+   editFoldersTree () {
+      return this.$store.getters['mail/getEditFoldersTree']
+    }
   },
 
   watch: {
@@ -1012,6 +1020,13 @@ export default {
 
   methods: {
     changeEditAccount (iAccountId) {
+      if (iAccountId !== this.$store.getters['mail/getCurrentAccountId']) {
+        this.isEditAccount = true
+        let parameters = {bEditAccount: true, iEditAccountId: iAccountId}
+        this.$store.dispatch('mail/asyncGetFolderList', parameters)
+      } else {
+        this.isEditAccount = false
+      }
       this.iEditAccountId = iAccountId
       this.iEditIdentityAccountId = -1
       this.iEditIdentityId = -1

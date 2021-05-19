@@ -35,7 +35,13 @@
   </q-item>
   <q-separator inset />
   <template v-if="folder.SubFolders">
-    <ManageFolders v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></ManageFolders>
+    <ManageFolders
+      v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder"
+      :level="folder.Namespaced ? level : level + 1"
+      :currentFolderFullName="currentFolderFullName"
+      :isEditAccount="isEditAccount"
+      :iAccountId="iAccountId">
+    </ManageFolders>
   </template>
   <q-dialog v-model="bConfirm" persistent>
     <q-card>
@@ -69,6 +75,14 @@ export default {
       type: Number,
       default: 0,
     },
+    isEditAccount: {
+      type: Boolean,
+      default: false
+    },
+    iAccountId: {
+      type: Number,
+      default: 0
+    }
   },
   data() {
     return {
@@ -87,7 +101,7 @@ export default {
       ipcRenderer.send('mail-subscribe-folder', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        iAccountId: this.iAccountId,
         sFolderName: this.folder.FullName,
         bSetAction: this.bHideFolder
       })
@@ -96,7 +110,8 @@ export default {
           this.$store.dispatch('mail/saveCurrentFolderTree', {
             folderName: this.folder.FullName,
             sProperty: 'IsSubscribed',
-            value: this.bHideFolder
+            value: this.bHideFolder,
+            isEditAccount: this.isEditAccount
           })
         }
       })

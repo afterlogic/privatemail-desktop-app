@@ -543,8 +543,8 @@ ipcRenderer.on('mail-save-note', (event, { bResult }) => {
   }
 })
 
-export function saveCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, sProperty, value }) {
-  commit('changeFolderTree', {folderName, sProperty, value})
+export function saveCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, sProperty, value , isEditAccount}) {
+  commit('changeFolderTree', {folderName, sProperty, value, isEditAccount})
 }
 
 export function removeCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, bHideFolder }) {

@@ -128,10 +128,10 @@
       <q-tab-panel name="folders">
         <q-list padding bordered>
           <div v-if="!isEditAccount">
-            <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+            <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :isEditAccount="isEditAccount" :iAccountId="iEditAccountId"></ManageFolders>
           </div>
           <div v-else>
-            <ManageFolders v-for="folder in editFoldersTree" :key="folder.Hash" :folder="folder"></ManageFolders>
+            <ManageFolders v-for="folder in editFoldersTree" :key="folder.Hash" :folder="folder" :isEditAccount="isEditAccount" :iAccountId="iEditAccountId"></ManageFolders>
           </div>
           <q-item  clickable v-ripple style="height: 50px">
           <q-item-section avatar style="margin-left: 15px">

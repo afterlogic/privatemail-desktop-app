@@ -308,7 +308,14 @@ export function setSelectedItem (state, oValue) {
   state.selectedItem = oValue
 }
 
-export function changeFolderTree (state, {folderName, sProperty, value}) {
+export function changeFolderTree(state, {folderName, sProperty, value, isEditAccount}) {
+  let currentFolderTree = []
+  if (isEditAccount) {
+    currentFolderTree = state.editFolderList.Tree
+  } else {
+    currentFolderTree = state.editFolderList.Tree
+  }
+
   function findCurrentFolder(currentTree, folderName, sProperty, value) {
     for (let i = 0; i < currentTree.length; i++) {
       if (currentTree[i].FullName === folderName) {
@@ -319,7 +326,8 @@ export function changeFolderTree (state, {folderName, sProperty, value}) {
       }
     }
   }
-  findCurrentFolder(state.currentFolderList.Tree, folderName,  sProperty, value)
+
+  findCurrentFolder(currentFolderTree, folderName, sProperty, value)
 }
 
 export function removeFolderTree (state, {folderName}) {

@@ -304,18 +304,18 @@ export function setSelectedItem (state, oValue) {
   state.selectedItem = oValue
 }
 
-export function setFolderTree (state, {folderName, bHideFolder}) {
-  function findCurrentFolder(currentTree, folderName) {
+export function changeFolderTree (state, {folderName, sProperty, value}) {
+  function findCurrentFolder(currentTree, folderName, sProperty, value) {
     for (let i = 0; i < currentTree.length; i++) {
       if (currentTree[i].FullName === folderName) {
-        currentTree[i].IsSubscribed = bHideFolder
+        currentTree[i][sProperty] = value
         return
       } else if (currentTree[i].SubFolders.length > 0) {
-        findCurrentFolder(currentTree[i].SubFolders, folderName)
+        findCurrentFolder(currentTree[i].SubFolders, folderName, sProperty, value)
       }
     }
   }
-  findCurrentFolder(state.currentFolderList.Tree, folderName)
+  findCurrentFolder(state.currentFolderList.Tree, folderName,  sProperty, value)
 }
 
 export function removeFolderTree (state, {folderName}) {

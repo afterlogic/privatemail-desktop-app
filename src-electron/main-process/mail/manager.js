@@ -828,5 +828,23 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-change-folder-name', (oEvent, { sApiHost, sAuthToken, iAccountId, sPrevFolderFullName, sNewFolderFullName }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'RenameFolder',
+        oParameters: {
+          AccountID: iAccountId,
+          PrevFolderFullNameRaw: sPrevFolderFullName,
+          NewFolderNameInUtf8: sNewFolderFullName
+        },
+        fCallback: (bResult, bError) => {
+          if (bResult) {
+            oEvent.sender.send('mail-change-folder-name', {bResult, bError})
+          }
+        },
+      })
+    })
   },
 }

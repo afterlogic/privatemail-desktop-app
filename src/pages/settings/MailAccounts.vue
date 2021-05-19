@@ -143,8 +143,8 @@
             To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
           </div>
           <q-card-actions align="right">
-            <q-btn color="purple" label="Add New Folder" @click="createFolder"/>
-            <q-btn color="purple" label="Setup special folders" @click="displaySpecialFoldersDialog"/>
+            <q-btn color="primary" label="Add New Folder" @click="createFolder"/>
+            <q-btn color="primary" label="Setup special folders" @click="displaySpecialFoldersDialog"/>
           </q-card-actions>
           <q-dialog v-model="bCreateFolder" persistent>
             <q-card style="width: 500px">
@@ -176,7 +176,7 @@
                   </q-card-section>
               </q-card-section>
               <q-card-actions align="right" style="margin: 0 35px 10px 0">
-                <q-btn color="purple" label="OK" @click="createNewFolder"/>
+                <q-btn color="primary" label="OK" @click="createNewFolder"/>
                 <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
               </q-card-actions>
             </q-card>
@@ -236,8 +236,8 @@
                 </q-card-section>
               </q-card-section>
               <q-card-actions align="right" style="margin: 0 35px 10px 0">
-                <q-btn color="purple" label="OK" @click="setupSpecialFolders"/>
-                <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
+                <q-btn color="primary" label="OK" @click="setupSpecialFolders"/>
+                <q-btn color="white" text-color="black" label="Cancel" v-close-popup/>
               </q-card-actions>
             </q-card>
           </q-dialog>

@@ -6,7 +6,16 @@
       <q-icon v-else :name="'panorama_fish_eye'" size="8px" style="margin: auto"/>
     </q-item-section>
     <q-item-section>
-      <q-item-label>{{folder.Name}} {{folder.DisplayName ? `used as ${folder.DisplayName}`: ''}}</q-item-label>
+      <q-item-label v-if="!bEditFolderName && folder.DisplayName && folder.Type !== 11 && folder.Type !== 12">
+        {{folder.Name}} {{folder.DisplayName ? `used as ${folder.DisplayName}`: ''}}
+      </q-item-label>
+      <q-item-label v-else-if="!bEditFolderName && (folder.Type === 11 || folder.Type === 12)" style="color: #98387b" @click="editFolderName">
+        {{folder.Name}} {{folder.DisplayName ? `used as ${folder.DisplayName}`: ''}}
+      </q-item-label>
+      <q-item-label side v-else-if="!bEditFolderName" @click="editFolderName" style="color: #98387b">
+        {{folder.Name}}
+      </q-item-label>
+      <q-input @keyup.enter="changeFolderName" @blur="bEditFolderName = !bEditFolderName" ref="folderNameInput" v-else outlined  dense v-model="sFolderName" />
     </q-item-section>
     <q-item-section>
       <q-toolbar style="margin-left: auto; width: auto;">
@@ -46,6 +55,8 @@
 <script>
 import ManageFolders  from './ManageFolders'
 import {ipcRenderer} from "electron";
+import notification from "../../utils/notification";
+import errors from "../../utils/errors";
 export default {
   name: "ManageFolders",
   components: {
@@ -62,7 +73,9 @@ export default {
   data() {
     return {
       bHideFolder: true,
-      bConfirm: false
+      bConfirm: false,
+      sFolderName: this.folder.Name,
+      bEditFolderName: false
     }
   },
   mounted() {
@@ -82,7 +95,8 @@ export default {
         if (bResult) {
           this.$store.dispatch('mail/saveCurrentFolderTree', {
             folderName: this.folder.FullName,
-            bHideFolder: this.bHideFolder
+            sProperty: 'IsSubscribed',
+            value: this.bHideFolder
           })
         }
       })
@@ -103,6 +117,31 @@ export default {
     },
     triggerDialogue() {
       this.bConfirm = true
+    },
+    editFolderName() {
+      this.sFolderName = this.folder.Name
+      this.bEditFolderName = true
+      this.$nextTick(() => {
+        this.$refs.folderNameInput.focus()
+      })
+    },
+    changeFolderName() {
+      this.bEditFolderName = false
+      ipcRenderer.send('mail-change-folder-name', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        sPrevFolderFullName: this.folder.FullName,
+        sNewFolderFullName: this.sFolderName,
+      })
+      ipcRenderer.once('mail-change-folder-name', (event, { bResult, bError}) => {
+        if (bResult) {
+          this.$store.dispatch('mail/asyncGetFolderList')
+          this.sFolderName = ''
+        } else {
+          notification.showError(errors.getText(oError, 'Error changed folder name.'))
+        }
+      })
     }
   }
 }

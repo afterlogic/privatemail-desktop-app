@@ -163,7 +163,7 @@
                     <span class="q-ml-sm">Parent Folder</span>
                     <q-select
                       v-model="sParentName"
-                      :options="createFoldersArray(foldersTree)"
+                      :options="createFoldersArray(isEditAccount? editFoldersTree: foldersTree)"
                       style="width: 320px; margin-left: 20px;"
                       color="primary"
                       filled
@@ -1491,24 +1491,25 @@ export default {
       ipcRenderer.send('mail-create-folder', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        iAccountId: this.iEditAccountId,
         sFolderParentFullNameRaw: this.sParentName.value,
         sFolderName: this.sNewFolderName,
-        sDelimiter: this.foldersTree[0].Delimiter
+        sDelimiter: this.isEditAccount ? this.editFoldersTree[0].Delimiter: this.foldersTree[0].Delimiter
       })
       ipcRenderer.once('mail-create-folder', (event, {bResult, oError}) => {
         if (bResult) {
           this.sNewFolderName = ''
           this.sParentName = 'No Parent'
           this.bCreateFolder = false
-          this.$store.dispatch('mail/asyncGetFolderList')
+          let parameters = {bEditAccount: this.isEditAccount, iEditAccountId: this.iEditAccountId}
+          this.$store.dispatch('mail/asyncGetFolderList', parameters)
         } else {
           notification.showError(errors.getText(oError, 'Error creating folder.'))
         }
       })
     },
     displaySpecialFoldersDialog() {
-     let arr = this.createFoldersArray(this.foldersTree)
+     let arr = this.createFoldersArray(this.isEditAccount ? this.editFoldersTree : this.foldersTree)
       arr.map(oFolder => {
       if (oFolder.type) {
         let folderName = oFolder['value'].split(oFolder.delimiter)
@@ -1544,41 +1545,40 @@ export default {
       this.bDisplaySpecialFoldersDialog = true
     },
     specialFoldersOptions() {
-        let aFolderList =  this.createFoldersArray(this.foldersTree)
-        let aFolders = aFolderList.map(oFolder => {
-          if (oFolder.type) {
-            let folderName = oFolder['value'].split(oFolder.delimiter)
-            folderName = folderName[folderName.length - 1]
-            switch (oFolder.type) {
-              case mailEnums.FolderType.Inbox:
-                oFolder.disable = true
-                oFolder.label = folderName
-                break
-              case mailEnums.FolderType.Sent:
-                oFolder.disable = true
-                oFolder.label = folderName
-                break
-              case mailEnums.FolderType.Drafts:
-                oFolder.disable = true
-                oFolder.label = folderName
-                break
-              case mailEnums.FolderType.Spam:
-                oFolder.disable = true
-                oFolder.label = folderName
-                break
-              case mailEnums.FolderType.Trash:
-                oFolder.disable = true
-                oFolder.label = folderName
-                break
-            }
+      let aFolderList = this.createFoldersArray(this.isEditAccount ? this.editFoldersTree : this.foldersTree)
+      return aFolderList.map(oFolder => {
+        if (oFolder.type) {
+          let folderName = oFolder['value'].split(oFolder.delimiter)
+          folderName = folderName[folderName.length - 1]
+          switch (oFolder.type) {
+            case mailEnums.FolderType.Inbox:
+              oFolder.disable = true
+              oFolder.label = folderName
+              break
+            case mailEnums.FolderType.Sent:
+              oFolder.disable = true
+              oFolder.label = folderName
+              break
+            case mailEnums.FolderType.Drafts:
+              oFolder.disable = true
+              oFolder.label = folderName
+              break
+            case mailEnums.FolderType.Spam:
+              oFolder.disable = true
+              oFolder.label = folderName
+              break
+            case mailEnums.FolderType.Trash:
+              oFolder.disable = true
+              oFolder.label = folderName
+              break
           }
+        }
         return oFolder
       })
-      return aFolders
     },
     setupSpecialFolders() {
       let oParameters = {
-        AccountID: this.$store.getters['mail/getCurrentAccountId'],
+        AccountID: this.iEditAccountId,
         Sent: this.oSpecialFoldersOptions.Sent.value,
         Drafts: this.oSpecialFoldersOptions.Drafts.value,
         Trash: this.oSpecialFoldersOptions.Trash.value,
@@ -1591,7 +1591,8 @@ export default {
       })
       ipcRenderer.once('mail-setup-system-folder', (event, {bResult, oError}) => {
         if (bResult) {
-          this.$store.dispatch('mail/asyncGetFolderList')
+          let parameters = {bEditAccount: this.isEditAccount, iEditAccountId: this.iEditAccountId}
+          this.$store.dispatch('mail/asyncGetFolderList', parameters)
           this.bDisplaySpecialFoldersDialog = false
         } else {
           notification.showError(errors.getText(oError, 'Error setup special folder.'))

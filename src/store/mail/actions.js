@@ -547,7 +547,7 @@ export function saveCurrentFolderTree ({ state, commit, dispatch, getters }, {fo
   commit('changeFolderTree', {folderName, sProperty, value, isEditAccount})
 }
 
-export function removeCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, bHideFolder }) {
-  commit('removeFolderTree', {folderName, bHideFolder})
+export function removeCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, bHideFolder, isEditAccount }) {
+  commit('removeFolderTree', {folderName, bHideFolder, isEditAccount})
 }
 

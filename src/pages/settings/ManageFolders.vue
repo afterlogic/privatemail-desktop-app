@@ -120,13 +120,16 @@ export default {
       ipcRenderer.send('mail-delete-folder', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        iAccountId: this.iAccountId,
         sFolderFullName: this.folder.FullName,
       })
       ipcRenderer.once('mail-delete-folder', (event, { bResult, bError}) => {
         if (bResult) {
           this.bConfirm = false
-          this.$store.dispatch('mail/removeCurrentFolderTree', {folderName: this.folder.FullName})
+          this.$store.dispatch('mail/removeCurrentFolderTree', {
+            folderName: this.folder.FullName,
+            isEditAccount: this.isEditAccount
+          })
         }
       })
     },

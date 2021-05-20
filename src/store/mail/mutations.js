@@ -330,8 +330,13 @@ export function changeFolderTree(state, {folderName, sProperty, value, isEditAcc
   findCurrentFolder(currentFolderTree, folderName, sProperty, value)
 }
 
-export function removeFolderTree (state, {folderName}) {
-  let tree = state.currentFolderList.Tree
+export function removeFolderTree (state, {folderName, isEditAccount}) {
+  let folderTree = []
+  if (isEditAccount) {
+    folderTree = state.editFolderList.Tree
+  } else {
+    folderTree = state.currentFolderList.Tree
+  }
   function removeFolderTree(currentTree, folderName) {
     for (let i = 0; i < currentTree.length; i++) {
       if (currentTree[i].FullName === folderName) {
@@ -342,5 +347,5 @@ export function removeFolderTree (state, {folderName}) {
       }
     }
   }
-  removeFolderTree(tree, folderName)
+  removeFolderTree(folderTree, folderName)
 }

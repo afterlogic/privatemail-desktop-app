@@ -850,5 +850,31 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-update-forward', (oEvent, { sApiHost, sAuthToken, oParameters }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'UpdateForward',
+        oParameters: oParameters,
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-update-forward', { bResult, oError })
+        },
+      })
+    })
+    ipcMain.on('mail-get-forward', (oEvent, { sApiHost, sAuthToken, iAccountId }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'GetForward',
+        oParameters: {
+          AccountID: iAccountId
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-get-forward', { bResult, oError })
+        },
+      })
+    })
   },
 }

@@ -70,9 +70,9 @@
     >
       <q-tab name="props" label="Properties" />
       <q-tab name="folders" label="Manage Folders" />
-      <!-- <q-tab name="forward" label="Forward" />
-       <q-tab name="autoresponder" label="Autoresponder" />
-       <q-tab name="filters" label="Filters" /> -->
+      <q-tab name="forward" label="Forward" @click="getForward"/>
+      <!--<q-tab name="autoresponder" label="Autoresponder" />
+     <q-tab name="filters" label="Filters" />-->
     </q-tabs>
 
     <q-separator v-if="editAccount" />
@@ -247,6 +247,30 @@
             </q-card>
           </q-dialog>
         </q-list>
+      </q-tab-panel>
+      <q-tab-panel name="forward">
+        <div class="q-pa-md">
+          <q-item>
+            <q-item-section side top>
+              <q-checkbox v-model="bEnableForward"  label="Enable forward" />
+            </q-item-section>
+          </q-item>
+          <q-item class="items-center">
+            <q-item-section  side top>
+              <span class="q-ml-sm">Email</span>
+            </q-item-section>
+            <q-item-section side top>
+              <q-input v-model="forwardEmail" outlined :dense=true style="width: 300px"/>
+            </q-item-section>
+          </q-item>
+        </div>
+        <q-separator spaced />
+        <q-item>
+          <q-item-section side top>
+            <q-btn style="margin-left: 20px" color="primary" label="Save" @click="updateForward"/>
+          </q-item-section>
+        </q-item>
+
       </q-tab-panel>
       <!-- <q-tab-panel name="folders">
         <q-list padding>
@@ -782,7 +806,7 @@ export default {
       // autoresponderSubject: '',
       // autoresponderMessage: '',
       // enableForward: '',
-      // forwardEmail: '',
+       forwardEmail: '',
 
       bDefaultAccount: false,
       bUseThreading: false,
@@ -859,7 +883,8 @@ export default {
         'Trash': '',
         'Spam': ''
       },
-      isEditAccount: false
+      isEditAccount: false,
+      bEnableForward: false,
     }
   },
 
@@ -1003,6 +1028,9 @@ export default {
         this.sAliasSignature = this.editAlias.sSignature
       }
     },
+    iEditAccountId () {
+      this.getForward()
+    }
   },
 
   mounted () {
@@ -1599,6 +1627,40 @@ export default {
         }
       })
     },
+    updateForward() {
+      let oParameters = {
+        AccountID: this.iEditAccountId,
+        Enable: this.bEnableForward,
+        Email: this.forwardEmail
+      }
+      ipcRenderer.send('mail-update-forward', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        oParameters: oParameters
+      })
+      ipcRenderer.once('mail-update-forward', (event, {bResult, oError}) => {
+        if (bResult) {
+
+        } else {
+          notification.showError(errors.getText(oError, 'Error setup forward email.'))
+        }
+      })
+    },
+    getForward() {
+      if (this.iEditAccountId !== -1) {
+        ipcRenderer.send('mail-get-forward', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditAccountId
+        })
+      }
+      ipcRenderer.once('mail-get-forward', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.forwardEmail = bResult.Email
+          this.bEnableForward = bResult.Enable
+        }
+      })
+    }
   },
 
 }

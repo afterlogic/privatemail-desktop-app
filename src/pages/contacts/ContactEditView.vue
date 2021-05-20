@@ -578,10 +578,11 @@ export default {
         this.$store.commit('contacts/changeStateForCreatingContact', false)
       }
     },
-    onSaveContact (oEvent, { oContactWithUpdatedETag, oError }) {
+    onSaveContact (oEvent, { oContactWithUpdatedETag, bNewContact, oError }) {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
-        notification.showReport('The contact has been updated.')
+        console.log(bNewContact)
+        notification.showReport(bNewContact ? 'Contact was successfully added.' : 'Contact was successfully updated.')
         this.$store.commit('contacts/setHasChanges', true)
         this.closeEditContact()
       } else {

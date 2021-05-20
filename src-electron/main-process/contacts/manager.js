@@ -116,6 +116,7 @@ export default {
         oParameters: { Contact: oContactToSave },
         fCallback: (mResult, oError) => {
           if (mResult && (mResult.UUID === oContactToSave.UUID || bNewContact)) {
+            let bNewContact = oContactToSave.UUID === ''
             oContactToSave.ETag = mResult.ETag
             oContactToSave.UUID = mResult.UUID
             oContactToSave['OpenPgpWebclient::PgpKey'] = oContactToSave.PublicPgpKey
@@ -124,7 +125,7 @@ export default {
             contactsDbManager.setContacts({ sStorage: oContactToSave.Storage, aContacts: [oContactToSave], bCreateInfo: bNewContact })
             .then(
               () => {
-                oEvent.sender.send('contacts-save-contact', { oContactWithUpdatedETag: oContactToSave })
+                oEvent.sender.send('contacts-save-contact', { oContactWithUpdatedETag: oContactToSave, bNewContact: bNewContact })
               },
               (oError) => {
                 oEvent.sender.send('contacts-save-contact', { oError })

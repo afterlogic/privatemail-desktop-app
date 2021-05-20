@@ -148,13 +148,14 @@ export default {
       ipcRenderer.send('mail-change-folder-name', {
         sApiHost: this.$store.getters['main/getApiHost'],
         sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.$store.getters['mail/getCurrentAccountId'],
+        iAccountId: this.iAccountId,
         sPrevFolderFullName: this.folder.FullName,
         sNewFolderFullName: this.sFolderName,
       })
       ipcRenderer.once('mail-change-folder-name', (event, { bResult, bError}) => {
         if (bResult) {
-          this.$store.dispatch('mail/asyncGetFolderList')
+          let parameters = {bEditAccount: this.isEditAccount, iEditAccountId: this.iAccountId}
+          this.$store.dispatch('mail/asyncGetFolderList', parameters)
           this.sFolderName = ''
         } else {
           notification.showError(errors.getText(oError, 'Error changed folder name.'))

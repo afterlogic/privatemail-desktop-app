@@ -313,7 +313,7 @@ export function changeFolderTree(state, {folderName, sProperty, value, isEditAcc
   if (isEditAccount) {
     currentFolderTree = state.editFolderList.Tree
   } else {
-    currentFolderTree = state.editFolderList.Tree
+    currentFolderTree = state.currentFolderList.Tree
   }
 
   function findCurrentFolder(currentTree, folderName, sProperty, value) {

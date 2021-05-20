@@ -876,5 +876,31 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-update-autoresponder', (oEvent, { sApiHost, sAuthToken, oParameters }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'UpdateAutoresponder',
+        oParameters: oParameters,
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-update-autoresponder', { bResult, oError })
+        },
+      })
+    })
+    ipcMain.on('mail-get-autoresponder', (oEvent, { sApiHost, sAuthToken, iAccountId }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'GetAutoresponder',
+        oParameters: {
+          AccountID: iAccountId
+        },
+        fCallback: (bResult, oError) => {
+          oEvent.sender.send('mail-get-autoresponder', { bResult, oError })
+        },
+      })
+    })
   },
 }

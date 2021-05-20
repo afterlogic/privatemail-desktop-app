@@ -71,8 +71,8 @@
       <q-tab name="props" label="Properties" />
       <q-tab name="folders" label="Manage Folders" />
       <q-tab name="forward" label="Forward" @click="getForward"/>
-      <!--<q-tab name="autoresponder" label="Autoresponder" />
-     <q-tab name="filters" label="Filters" />-->
+      <q-tab name="autoresponder" label="Autoresponder" @click="getAutoresponder"/>
+      <!--<q-tab name="filters" label="Filters" />-->
     </q-tabs>
 
     <q-separator v-if="editAccount" />
@@ -252,11 +252,11 @@
         <div class="q-pa-md">
           <q-item>
             <q-item-section side top>
-              <q-checkbox v-model="bEnableForward"  label="Enable forward" />
+              <q-checkbox v-model="bEnableForward" label="Enable forward"/>
             </q-item-section>
           </q-item>
           <q-item class="items-center">
-            <q-item-section  side top>
+            <q-item-section side top>
               <span class="q-ml-sm">Email</span>
             </q-item-section>
             <q-item-section side top>
@@ -264,10 +264,51 @@
             </q-item-section>
           </q-item>
         </div>
+        <q-separator spaced/>
+        <q-card-actions align="right">
+          <q-btn style="margin-left: 20px; width: 80px" color="primary" label="Save" @click="updateForward"/>
+        </q-card-actions>
+      </q-tab-panel>
+      <q-tab-panel name="autoresponder" class="autoresponder">
+        <div class="q-pa-md">
+          <q-item tag="label">
+            <q-item-section side top>
+              <q-checkbox v-model="oAutoresponder.enableAutoresponder"/>
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Enable autoresponder</q-item-label>
+            </q-item-section>
+          </q-item>
+          <div class="row" style="margin-left: 18px">
+            <div class="col-2">
+              <span class="q-ml-sm">Subject</span>
+            </div>
+            <div class="col">
+              <q-input v-model="oAutoresponder.subject" outlined   :dense=true style="width: 100%;"/>
+            </div>
+          </div>
+
+          <div class="row" style="margin-left: 18px">
+            <div class="col-2">
+              <span class="q-ml-sm">Message</span>
+            </div>
+            <div class="col">
+              <q-editor
+                v-model="oAutoresponder.message"
+                :definitions="{
+                  bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
+                }"
+              />
+            </div>
+          </div>
+        </div>
         <q-separator spaced />
-          <q-card-actions align="right">
-            <q-btn style="margin-left: 20px; width: 80px" color="primary" label="Save" @click="updateForward"/>
-          </q-card-actions>
+        <q-card-actions align="right">
+          <q-btn style="margin-right: 10px; width: 80px" color="primary" label="Save" @click="updateAutoresponder"/>
+        </q-card-actions>
+      </q-tab-panel>
+      <q-tab-panel name="filters">
+        <q-item-label header>Filters</q-item-label>
       </q-tab-panel>
       <!-- <q-tab-panel name="folders">
         <q-list padding>
@@ -882,6 +923,11 @@ export default {
       },
       isEditAccount: false,
       bEnableForward: false,
+      oAutoresponder: {
+        enableAutoresponder: false,
+        subject: '',
+        message: ''
+      }
     }
   },
 
@@ -1027,6 +1073,7 @@ export default {
     },
     iEditAccountId () {
       this.getForward()
+      this.getAutoresponder()
     }
   },
 
@@ -1655,6 +1702,46 @@ export default {
         if (bResult) {
           this.forwardEmail = bResult.Email
           this.bEnableForward = bResult.Enable
+        }
+      })
+    },
+    updateAutoresponder() {
+      let oParameters = {
+        AccountID: this.iEditAccountId,
+        Enable: this.oAutoresponder.enableAutoresponder,
+        Subject: this.oAutoresponder.subject,
+        Message: this.oAutoresponder.message
+      }
+      ipcRenderer.send('mail-update-autoresponder', {
+        sApiHost: this.$store.getters['main/getApiHost'],
+        sAuthToken: this.$store.getters['user/getAuthToken'],
+        oParameters: oParameters
+      })
+      ipcRenderer.once('mail-update-autoresponder', (event, {bResult, oError}) => {
+        if (bResult) {
+          notification.showReport('Autoresponder has been updated successfully.')
+        } else {
+          notification.showError(errors.getText(oError, 'Error setup forward email.'))
+        }
+      })
+    },
+    getAutoresponder() {
+      if (this.iEditAccountId !== -1) {
+        ipcRenderer.send('mail-get-autoresponder', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditAccountId
+        })
+      }
+      ipcRenderer.once('mail-get-autoresponder', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.oAutoresponder.enableAutoresponder = bResult.Enable
+          this.oAutoresponder.subject = bResult.Subject
+          this.oAutoresponder.message = bResult.Message
+        } else {
+          this.oAutoresponder.enableAutoresponder = false
+          this.oAutoresponder.subject = ''
+          this.oAutoresponder.message = ''
         }
       })
     }

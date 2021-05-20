@@ -125,7 +125,7 @@
           <q-btn unelevated color="primary" v-if="bAllowChangePasswordOnMailServer" label="Change Password" @click="openChangePassword" />
         </div>
       </q-tab-panel>
-      <q-tab-panel name="folders">
+      <q-tab-panel name="folders" class="bg-grey-1">
         <q-list padding bordered>
           <div v-if="!isEditAccount">
             <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :isEditAccount="isEditAccount" :iAccountId="iEditAccountId"></ManageFolders>
@@ -260,7 +260,7 @@
               <span class="q-ml-sm">Email</span>
             </q-item-section>
             <q-item-section side top>
-              <q-input v-model="forwardEmail" outlined :dense=true style="width: 350px; margin-left: 100px"/>
+              <q-input :disable="!bEnableForward" v-model="forwardEmail" outlined bg-color="white" :dense=true style="width: 350px; margin-left: 100px"/>
             </q-item-section>
           </q-item>
         </div>
@@ -269,7 +269,7 @@
           <q-btn style="margin-left: 20px; width: 80px" color="primary" label="Save" @click="updateForward"/>
         </q-card-actions>
       </q-tab-panel>
-      <q-tab-panel name="autoresponder" class="autoresponder">
+      <q-tab-panel name="autoresponder" class="autoresponder bg-grey-1">
         <div class="q-pa-md">
           <q-item tag="label">
             <q-item-section side top>
@@ -284,7 +284,11 @@
               <span class="q-ml-sm">Subject</span>
             </div>
             <div class="col">
-              <q-input v-model="oAutoresponder.subject" outlined   :dense=true style="width: 100%;"/>
+              <q-input
+                :disable="!oAutoresponder.enableAutoresponder"
+                v-model="oAutoresponder.subject" outlined
+                :dense=true bg-color="white" style="width: 100%;"
+              />
             </div>
           </div>
 
@@ -294,6 +298,8 @@
             </div>
             <div class="col">
               <q-editor
+                bg-color="white"
+                :disable="!oAutoresponder.enableAutoresponder"
                 v-model="oAutoresponder.message"
                 :definitions="{
                   bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
@@ -1672,23 +1678,26 @@ export default {
       })
     },
     updateForward() {
-      let oParameters = {
-        AccountID: this.iEditAccountId,
-        Enable: this.bEnableForward,
-        Email: this.forwardEmail
-      }
-      ipcRenderer.send('mail-update-forward', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        oParameters: oParameters
-      })
-      ipcRenderer.once('mail-update-forward', (event, {bResult, oError}) => {
-        if (bResult) {
-
-        } else {
-          notification.showError(errors.getText(oError, 'Error setup forward email.'))
+      if (this.bEnableForward) {
+        let oParameters = {
+          AccountID: this.iEditAccountId,
+          Enable: this.bEnableForward,
+          Email: this.forwardEmail
         }
-      })
+        ipcRenderer.send('mail-update-forward', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          oParameters: oParameters
+        })
+
+        ipcRenderer.once('mail-update-forward', (event, {bResult, oError}) => {
+          if (bResult) {
+
+          } else {
+            notification.showError(errors.getText(oError, 'Error setup forward email.'))
+          }
+        })
+      }
     },
     getForward() {
       if (this.iEditAccountId !== -1) {

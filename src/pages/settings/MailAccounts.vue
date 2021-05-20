@@ -248,7 +248,7 @@
           </q-dialog>
         </q-list>
       </q-tab-panel>
-      <q-tab-panel name="forward">
+      <q-tab-panel name="forward" class="bg-grey-1">
         <div class="q-pa-md">
           <q-item>
             <q-item-section side top>
@@ -260,17 +260,14 @@
               <span class="q-ml-sm">Email</span>
             </q-item-section>
             <q-item-section side top>
-              <q-input v-model="forwardEmail" outlined :dense=true style="width: 300px"/>
+              <q-input v-model="forwardEmail" outlined :dense=true style="width: 350px; margin-left: 100px"/>
             </q-item-section>
           </q-item>
         </div>
         <q-separator spaced />
-        <q-item>
-          <q-item-section side top>
-            <q-btn style="margin-left: 20px" color="primary" label="Save" @click="updateForward"/>
-          </q-item-section>
-        </q-item>
-
+          <q-card-actions align="right">
+            <q-btn style="margin-left: 20px; width: 80px" color="primary" label="Save" @click="updateForward"/>
+          </q-card-actions>
       </q-tab-panel>
       <!-- <q-tab-panel name="folders">
         <q-list padding>

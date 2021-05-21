@@ -380,12 +380,14 @@ export default {
                   }, () => {
                     oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
                   })
+                  accountsDbManager.saveAccountSettings({
+                    iAccountId: oResult.AccountID,
+                    bUseThreading: oResult.UseThreading,
+                    bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder,
+                  })
+                } else {
+                  oEvent.sender.send('mail-save-account-settings', { bResult, iAccountId, bUseThreading: oResult.UseThreading, bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder, oError })
                 }
-                accountsDbManager.saveAccountSettings({
-                  iAccountId: oResult.AccountID,
-                  bUseThreading: oResult.UseThreading,
-                  bSaveRepliesToCurrFolder: oResult.SaveRepliesToCurrFolder,
-                })
               },
               (oResult) => {
                 oEvent.sender.send('mail-save-account-settings', oResult)

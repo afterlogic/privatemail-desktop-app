@@ -147,102 +147,126 @@
           <div class="folders-line">
             To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
           </div>
-          <q-card-actions align="right">
-            <q-btn color="primary" label="Add New Folder" @click="createFolder"/>
-            <q-btn color="primary" label="Setup special folders" @click="displaySpecialFoldersDialog"/>
-          </q-card-actions>
-          <q-dialog v-model="bCreateFolder" persistent>
-            <q-card style="width: 500px">
-              <q-card-section class="row items-center">
-                <span style="margin-left: 20px; font-size: 18px;font-weight: bold;">
-                  New Folder
-                </span>
-              </q-card-section>
-              <q-card-section class="row" style="width: 500px">
-                  <q-card-section class="row items-center">
-                    <span class="q-ml-sm">Parent Folder</span>
-                    <q-select
-                      v-model="sParentName"
-                      :options="createFoldersArray(isEditAccount? editFoldersTree: foldersTree)"
-                      style="width: 320px; margin-left: 20px;"
-                      color="primary"
-                      filled
 
-                    />
-                  </q-card-section>
-                  <q-card-section class="row items-center">
-                    <span class="q-ml-sm">Folder Name</span>
-                    <q-input
-                      style="width: 320px; margin-left: 20px;"
-                      filled
-                      v-model="sNewFolderName"
-                      lazy-rules
-                    />
-                  </q-card-section>
-              </q-card-section>
-              <q-card-actions align="right" style="margin: 0 35px 10px 0">
-                <q-btn color="primary" label="OK" @click="createNewFolder"/>
-                <q-btn color="white" text-color="black" label="Cancel" @click="resetForm" v-close-popup/>
+            <div class="buttons q-mb-md q-mt-md q-mr-md" v-if="allowAddNewAccount">
+              <q-btn unelevated color="primary" label="Add New Folder" @click="createFolder"/>
+              <q-btn unelevated color="primary" class="on-left" label="Setup special folders" @click="displaySpecialFoldersDialog" />
+            </div>
+
+          <q-dialog v-model="bCreateFolder" persistent>
+            <q-card class="q-px-sm non-selectable">
+                <q-card-section>
+                  <div class="text-h6"> New Folder</div>
+                </q-card-section>
+              <q-item>
+                <q-item-section>
+                  <q-item-label>Parent Folder</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-select
+                    flat
+                    outlined
+                    dense
+                    v-model="sParentName"
+                    :options="createFoldersArray(isEditAccount? editFoldersTree: foldersTree)"
+                    style="width: 300px;"
+                    color="primary"
+                  />
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label>Folder Name</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-input
+                    class="q-ml-md"
+                    flat
+                    outlined
+                    dense
+                    style="width: 300px;"
+                    v-model="sNewFolderName"
+                    lazy-rules
+                  />
+                </q-item-section>
+              </q-item>
+              <q-card-actions align="right">
+                <q-btn flat color="primary" label="OK" @click="createNewFolder"/>
+                <q-btn flat color="grey-6" label="Cancel" @click="resetForm" v-close-popup/>
               </q-card-actions>
             </q-card>
           </q-dialog>
           <q-dialog v-model="bDisplaySpecialFoldersDialog" persistent>
-            <q-card style="width: 500px">
-              <q-card-section class="row items-center">
-                <span style="margin-left: 20px; font-size: 18px;font-weight: bold;">
-                  Setup special folders
-                </span>
+            <q-card class="q-px-sm non-selectable">
+              <q-card-section>
+                <div class="text-h6">Setup special folders</div>
               </q-card-section>
-              <q-card-section class="row" style="width: 500px">
-                <span style="margin-left: 20px;">Which IMAP mailboxes to use for pre-defined folders.</span>
-                <q-card-section class="row items-center">
-                  <span class="q-ml-sm">Sent</span>
+              <q-card-section>
+                <div>Which IMAP mailboxes to use for pre-defined folders.</div>
+              </q-card-section>
+              <q-item>
+                <q-item-section>
+                  <q-item-label>Sent</q-item-label>
+                </q-item-section>
+                <q-item-section side>
                   <q-select
+                    outlined
+                    dense
                     v-model="oSpecialFoldersOptions['Sent']"
                     :options="specialFoldersOptions()"
-                    style="width: 360px; margin-left: 30px;"
+                    style="width: 300px;"
                     color="primary"
-                    filled
-
                   />
-                </q-card-section>
-                <q-card-section class="row items-center">
-                  <span class="q-ml-sm">Drafts</span>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label>Drafts</q-item-label>
+                </q-item-section>
+                <q-item-section side>
                   <q-select
+                    outlined
+                    dense
                     v-model="oSpecialFoldersOptions['Drafts']"
                     :options="specialFoldersOptions()"
-                    style="width: 360px; margin-left: 20px;"
+                    style="width: 300px;"
                     color="primary"
-                    filled
-
                   />
-                </q-card-section>
-                <q-card-section class="row items-center">
-                  <span class="q-ml-sm">Trash</span>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label>Trash</q-item-label>
+                </q-item-section>
+                <q-item-section side>
                   <q-select
+                    outlined
+                    dense
                     v-model="oSpecialFoldersOptions['Trash']"
                     :options="specialFoldersOptions()"
-                    style="width: 360px; margin-left: 23px;"
+                    style="width: 300px;"
                     color="primary"
-                    filled
-
                   />
-                </q-card-section>
-                <q-card-section class="row items-center">
-                  <span class="q-ml-sm">Spam</span>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label>Spam</q-item-label>
+                </q-item-section>
+                <q-item-section side>
                   <q-select
+                    outlined
+                    dense
                     v-model="oSpecialFoldersOptions['Spam']"
                     :options="specialFoldersOptions()"
-                    style="width: 360px; margin-left: 20px;"
+                    style="width: 300px;"
                     color="primary"
-                    filled
-
                   />
-                </q-card-section>
-              </q-card-section>
-              <q-card-actions align="right" style="margin: 0 35px 10px 0">
-                <q-btn color="primary" label="OK" @click="setupSpecialFolders"/>
-                <q-btn color="white" text-color="black" label="Cancel" v-close-popup/>
+                </q-item-section>
+              </q-item>
+              <q-card-actions align="right">
+                <q-btn  flat color="primary" label="OK" @click="setupSpecialFolders"/>
+                <q-btn flat color="grey-6" label="Cancel" v-close-popup/>
               </q-card-actions>
             </q-card>
           </q-dialog>

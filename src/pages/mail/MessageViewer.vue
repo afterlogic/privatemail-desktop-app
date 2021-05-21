@@ -28,8 +28,8 @@
       </div>
       <div class="q-pa-md pgp-notification-panel non-selectable" v-if="isEcryptedMessage || isSignedMessage" :class="{'success-report': isDecrypted || isVerified}">
         <template v-if="isEcryptedMessage && !isDecrypted">
-          <div class="q-mb-md hint" v-if="!oOpenPgpgKeyToDecrypt">The message is encrypted. But there is no appropriate PGP private key in OpenPGP section in Settings.</div>
-          <div class="q-mb-md hint" v-if="oOpenPgpgKeyToDecrypt">OpenPGP encrypted message.</div>
+          <div class="hint" v-if="!oOpenPgpgKeyToDecrypt">The message is encrypted. But there is no appropriate PGP private key in OpenPGP section in Settings.</div>
+          <div class="hint" v-if="oOpenPgpgKeyToDecrypt">OpenPGP encrypted message.</div>
           <div class="row" v-if="oOpenPgpgKeyToDecrypt">
             <q-btn unelevated outline color="primary" label="Click to decrypt" @click="decrypt" />
           </div>

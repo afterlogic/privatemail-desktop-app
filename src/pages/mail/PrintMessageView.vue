@@ -20,7 +20,7 @@
             <td style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 1px 1px 0">
               <span>Date:</span>
             </td>
-            <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ new Date(message.ReceivedOrDateTimeStampInUTC) }}</td>
+            <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ fullDate }}</td>
           </tr>
           <tr>
             <td style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 1px 1px 0">
@@ -29,7 +29,7 @@
             <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ message.Subject }}</td>
           </tr>
           <tr>
-            <td colspan="3" v-html="message.Html" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 1px 0 0 0"></td>
+            <td colspan="3" v-html="message.Html === '' ? message.Plain : message.Html" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 1px 0 0 0"></td>
           </tr>
           </tbody>
         </table>
@@ -39,9 +39,13 @@
 </template>
 
 <script>
+import dateUtils from "../../utils/date";
+import Menu from "electron"
+
 export default {
   name: "MessageHTML",
   mounted() {
+
   },
   props: {
     message: Object
@@ -50,9 +54,14 @@ export default {
     prop: 'open',
     event: 'close'
   },
+  computed: {
+    fullDate () {
+      return dateUtils.getFullDate(this.message.TimeStampInUTC)
+    },
+  },
   methods: {
     printMessage() {
-      let oWin = window.open('', 'modal')
+      let oWin = window.open('', 'Print')
       let sHtml = this.$refs.PrintMessageView.innerHTML
       sHtml = sHtml.replace(/\'/g, "\\'")
       sHtml = sHtml.replace(/\n/g, '')

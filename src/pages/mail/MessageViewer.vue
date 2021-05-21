@@ -240,7 +240,7 @@
         <q-card-section>
              <div style="user-select: text; white-space: pre; height: 500px; font-size: 12px; word-wrap: inherit">
                <q-scroll-area class="full-height" >
-               {{message.Headers}}
+               {{message ? message.Headers : ''}}
                </q-scroll-area>
              </div>
 

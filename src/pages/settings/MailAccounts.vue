@@ -652,7 +652,7 @@
     <q-dialog v-model="bChangeAccountPasswordDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
-          <div class="text-h6"></div>
+          <div class="text-h6">Change password</div>
         </q-card-section>
 
         <q-item>

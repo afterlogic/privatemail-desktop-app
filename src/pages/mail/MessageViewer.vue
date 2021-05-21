@@ -232,14 +232,18 @@
       </q-slide-transition>
     </div>
 
-    <q-dialog  v-model="viewDialogHeaders" persistent>
-      <q-card class="q-px-sm non-selectable">
+    <q-dialog  v-model="viewDialogHeaders">
+      <q-card class="q-px-sm non-selectable" style="min-width: 600px">
         <q-card-section>
           <div class="text-h6">Message headers</div>
         </q-card-section>
         <q-card-section>
-          <q-input outlined type="textarea" v-if="message !== null" v-model="message.Headers" ref="viewKeysInput" rows="100"
-                   style="width: 500px; height: 300px; font-size: 12px"/>
+             <div style="user-select: text; white-space: pre; height: 500px; font-size: 12px; word-wrap: inherit">
+               <q-scroll-area class="full-height" >
+               {{message.Headers}}
+               </q-scroll-area>
+             </div>
+
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancel" color="grey-6" v-close-popup/>

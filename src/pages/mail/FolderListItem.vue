@@ -28,9 +28,6 @@
         <q-chip color="transparent" dense>{{folder.Count}}</q-chip>
       </q-item-section>
     </q-item>
-    <template v-if="folder.SubFolders">
-      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></FolderListItem>
-    </template>
     <template v-if="showStarred">
       <q-item
         clickable v-ripple
@@ -38,12 +35,15 @@
         @click="selectFolder('Starred')"
       >
         <q-item-section avatar>
-          <q-icon name="star" :color="folder.FlaggedCount ? 'orange' : 'grey'" />
+          <q-icon name="star" :color="isStarredFilter? 'orange' : 'grey'" />
         </q-item-section>
         <q-item-section>
           <q-item-label lines="1">Starred</q-item-label>
         </q-item-section>
       </q-item>
+    </template>
+    <template v-if="folder.SubFolders">
+      <FolderListItem v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder" :level="folder.Namespaced ? level : level + 1" :currentFolderFullName="currentFolderFullName"></FolderListItem>
     </template>
   </div>
 </template>

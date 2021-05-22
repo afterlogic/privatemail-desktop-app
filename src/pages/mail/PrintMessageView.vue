@@ -61,12 +61,19 @@ export default {
   },
   methods: {
     printMessage() {
-      let oWin = window.open('', 'Print')
+      const electron = require('electron');
+      const BrowserWindow = electron.remote.BrowserWindow;
       let sHtml = this.$refs.PrintMessageView.innerHTML
       sHtml = sHtml.replace(/\'/g, "\\'")
       sHtml = sHtml.replace(/\n/g, '')
-      // the picture is needed to run the "print" command
-      oWin.eval("window.document.write('" + sHtml + "<img src=\"src/assets/sad.svg\" onerror= \"window.print()\" style=\"width: 0;height: 0;\" />')")
+      sHtml = sHtml + "<img src=\"src/assets/sad.svg\" onerror= \"window.print()\" style=\"width: 0;height: 0;\" />"
+      const printWindow = new BrowserWindow({
+        width: 1200,
+        height: 600,
+      })
+      printWindow.loadURL(("data:text/html;charset=utf-8," + encodeURI(sHtml)))
+      printWindow.removeMenu()
+      printWindow.setTitle('Print message')
     }
   }
 

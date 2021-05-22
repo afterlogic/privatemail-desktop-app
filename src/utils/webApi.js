@@ -90,7 +90,17 @@ export default {
 
   viewByUrlInNewWindow: function (sViewUrl, sFileName) {
     let url = store.getters['main/getApiHost'] + '/' + sViewUrl
-    window.open(url, sFileName)
+
+    const electron = require('electron');
+    const BrowserWindow = electron.remote.BrowserWindow;
+
+    const window = new BrowserWindow({
+      width: 1200,
+      height: 600,
+    })
+    window.loadURL(url)
+    window.removeMenu()
+    window.setTitle(sFileName)
   },
 
   downloadByUrl: function (sDownloadUrl, sFileName) {

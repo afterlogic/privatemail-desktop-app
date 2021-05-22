@@ -282,6 +282,10 @@ export function setCurrentMessage (state, oMessage) {
   }
 }
 
+export function setStarredMessages (state, aMessages) {
+  state.starredMessages = aMessages
+}
+
 export function removeCurrentMessageReadingConfirmAddressee (state, payload) {
   if (state.currentMessage) {
     state.currentMessage.ReadingConfirmationAddressee = ''

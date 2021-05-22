@@ -35,7 +35,7 @@
         @click="selectFolder('Starred')"
       >
         <q-item-section avatar>
-          <q-icon name="star" :color="isStarredFilter? 'orange' : 'grey'" />
+          <q-icon name="star" :color="sIconStarColor" />
         </q-item-section>
         <q-item-section>
           <q-item-label lines="1">Starred</q-item-label>
@@ -72,6 +72,7 @@ export default {
   data () {
     return {
       subfolders: [],
+      sIconStarColor: 'grey'
     }
   },
 
@@ -88,8 +89,15 @@ export default {
     isStarredFilter () {
       return this.$store.getters['mail/getCurrentFilter'] === 'flagged'
     },
+    starredMessages () {
+      return this.$store.getters['mail/getStarredMessages']
+    }
   },
-
+  watch: {
+    starredMessages() {
+      this.sIconStarColor = this.starredMessages.length ? 'orange' : 'grey'
+    }
+  },
   methods: {
     selectFolder: function (folderFullName) {
       if (folderFullName === 'Starred') {
@@ -115,6 +123,13 @@ export default {
         sFilter: 'unseen',
       })
     },
+    changeColorForStar() {
+      if (this.starredMessages) {
+        return this.starredMessages.length? 'orange' : 'grey'
+      } else {
+        return 'grey'
+      }
+    }
   },
 }
 </script>

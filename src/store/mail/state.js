@@ -42,6 +42,7 @@ export default {
   },
 
   currentMessages: [], // list of messages for current page
+  starredMessages: [],
   totalMessagesCount: 0,
   currentPage: 1,
   currentFilter: '',

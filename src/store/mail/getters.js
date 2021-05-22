@@ -99,6 +99,10 @@ export function getCurrentMessages (state) {
   return state.currentMessages
 }
 
+export function getStarredMessages (state) {
+  return state.starredMessages
+}
+
 export function getCurrentPage (state) {
   return state.currentPage
 }

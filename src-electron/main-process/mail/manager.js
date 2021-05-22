@@ -160,11 +160,15 @@ export default {
       )
     })
 
-    ipcMain.on('mail-get-messages', (oEvent, { iAccountId, bUseThreading, sFolderFullName, iFolderType, iPage, iMessagesPerPage, sSearch, sFilter, sApiHost, sAuthToken }) => {
+    ipcMain.on('mail-get-messages', (oEvent, { iAccountId, bUseThreading, sFolderFullName, iFolderType, iPage, iMessagesPerPage, sSearch, sFilter, sApiHost, sAuthToken, bStarredType = false }) => {
       if (typesUtils.isNonEmptyString(sSearch) || typesUtils.isNonEmptyString(sFilter)) {
         messagesDbManager.getFilteredMessages({ iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, sFilter }).then(
           ({ aMessages, iTotalCount, oAdvancedSearch }) => {
-            oEvent.sender.send('mail-get-messages', { iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount })
+            if (!bStarredType) {
+              oEvent.sender.send('mail-get-messages', { iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount })
+            } else {
+              oEvent.sender.send('mail-get-messages', { iAccountId, sFolderFullName, iPage, iMessagesPerPage, sSearch, oAdvancedSearch, sFilter, aMessages, iTotalCount, bStarredType })
+            }
           },
           (oResult) => {
             oEvent.sender.send('mail-get-messages', oResult)

@@ -261,7 +261,7 @@ export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders)
   }
 }
 
-ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError } ) => {
+ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSearch, oAdvancedSearch, sFilter, iPage, aMessages, iTotalCount, sError, oError, bStarredType = false } ) => {
   if (!_hasStartedGroupOperation(iAccountId, sFolderFullName)) {
     if (sError || oError) {
       store.commit('mail/setMessagesSyncing', false)
@@ -274,7 +274,11 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
       if (bSameList) {
         store.commit('mail/setMessagesSyncing', false)
         store.commit('mail/setCurrentMessagesTotalCount', iTotalCount)
-        store.commit('mail/setCurrentMessages', aMessages)
+        if (!bStarredType) {
+          store.commit('mail/setCurrentMessages', aMessages)
+        } else {
+          store.commit('mail/setStarredMessages', aMessages)
+        }
         store.commit('mail/setCurrentAdvancedSearch', oAdvancedSearch)
         let oCurrentMessage = store.getters['mail/getCurrentMessage']
         if (oCurrentMessage) {
@@ -287,8 +291,22 @@ ipcRenderer.on('mail-get-messages', (oEvent, { iAccountId, sFolderFullName, sSea
             store.commit('mail/setCurrentMessage', null)
           }
         }
+      } else {
+        if (bStarredType) {
+          store.commit('mail/setStarredMessages', aMessages)
+        }
       }
     }
+  if (!bStarredType) {
+    let folderName = store.getters['mail/getCurrentFoldersTree'][0].FullName
+    store.dispatch('mail/asyncGetStarredMessages', {
+      sFolderFullName: folderName,
+      iPage: 1,
+      sSearch: '',
+      sFilter: 'flagged',
+      bStarredType: true
+    })
+  }
   }
 })
 
@@ -342,6 +360,25 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       })
     }
   }
+}
+
+export function asyncGetStarredMessages ({ state, commit, getters, dispatch }, { sFolderFullName, iPage, sSearch, sFilter }) {
+  let oCurrentAccount = getters.getCurrentAccount
+
+      let oFolder = getters.getFolderByFullName(sFolderFullName)
+      ipcRenderer.send('mail-get-messages', {
+        sApiHost: store.getters['main/getApiHost'],
+        sAuthToken: store.getters['user/getAuthToken'],
+        iAccountId: oCurrentAccount.iAccountId,
+        bUseThreading: oCurrentAccount.bUseThreading,
+        sFolderFullName,
+        iFolderType: oFolder.Type,
+        iPage,
+        iMessagesPerPage: getters.getMessagesPerPage,
+        sSearch,
+        sFilter,
+        bStarredType: true
+      })
 }
 
 export function setCurrentFolder ({ state, commit, dispatch, getters }, sFolderFullName) {

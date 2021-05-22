@@ -238,7 +238,7 @@
           <div class="text-h6">Message headers</div>
         </q-card-section>
         <q-card-section>
-             <div style="user-select: text; white-space: pre; height: 500px; font-size: 12px; word-wrap: inherit">
+             <div style="user-select: text; white-space: pre-wrap; height: 500px; font-size: 12px; word-wrap: inherit">
                <q-scroll-area class="full-height" >
                {{message ? message.Headers : ''}}
                </q-scroll-area>

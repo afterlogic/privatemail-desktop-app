@@ -233,20 +233,19 @@
     </div>
 
     <q-dialog  v-model="viewDialogHeaders">
-      <q-card class="q-px-sm non-selectable" style="min-width: 600px">
+      <q-card class="q-px-sm non-selectable" style="min-width: 650px">
         <q-card-section>
           <div class="text-h6">Message headers</div>
         </q-card-section>
         <q-card-section>
-             <div style="user-select: text; white-space: pre-wrap; height: 500px; font-size: 12px; word-wrap: inherit">
+             <div style="height: calc(100vh - 200px); max-height: 500px; user-select: text; white-space: pre-wrap; font-size: 12px;">
                <q-scroll-area class="full-height" >
-               {{message ? message.Headers : ''}}
+                 <div>{{message ? message.Headers : ''}}</div>
                </q-scroll-area>
              </div>
-
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup/>
+          <q-btn flat label="Close" color="grey-6" v-close-popup/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -334,6 +333,7 @@ import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 import PrintMessageView from "./PrintMessageView";
+import message from "src/modules/mail/utils/message.js";
 
 
 export default {

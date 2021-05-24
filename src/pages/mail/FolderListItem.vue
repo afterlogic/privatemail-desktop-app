@@ -72,7 +72,7 @@ export default {
   data () {
     return {
       subfolders: [],
-      sIconStarColor: 'grey'
+      sIconStarColor: 'white'
     }
   },
 
@@ -95,7 +95,7 @@ export default {
   },
   watch: {
     starredMessages() {
-      this.sIconStarColor = this.starredMessages.length ? 'orange' : 'grey'
+      this.sIconStarColor = this.starredMessages.length ? 'orange' : 'white'
     }
   },
   methods: {

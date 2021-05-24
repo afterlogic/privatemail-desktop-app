@@ -1673,6 +1673,10 @@ export default {
               oFolder.disable = true
               oFolder.label = folderName
               break
+            case mailEnums.FolderType.Scheduled:
+              oFolder.disable = true
+              oFolder.label = folderName
+              break
           }
         }
         return oFolder

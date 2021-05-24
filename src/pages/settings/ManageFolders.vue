@@ -15,7 +15,7 @@
       <q-item-label side v-else-if="!bEditFolderName" @click="editFolderName" style="color: #98387b">
         {{folder.Name}}
       </q-item-label>
-      <q-input @keyup.enter="changeFolderName" @blur="bEditFolderName = !bEditFolderName" ref="folderNameInput" v-else outlined  dense v-model="sFolderName" />
+      <q-input bg-color="white" @keyup.enter="changeFolderName" @blur="bEditFolderName = !bEditFolderName" ref="folderNameInput" v-else outlined  dense v-model="sFolderName" />
     </q-item-section>
     <q-item-section>
       <q-toolbar style="margin-left: auto; width: auto;">

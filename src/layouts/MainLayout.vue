@@ -79,6 +79,7 @@ export default {
     },
     changeAccount (oAccount) {
       this.$store.commit('mail/setCurrentAccount', oAccount)
+      this.$store.dispatch('mail/asyncGetQuota')
       this.$store.commit('mail/resetCurrentFolderList')
       let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
       if (sCurrentPath !== '/mail') {
@@ -92,7 +93,7 @@ export default {
 <style lang="scss">
   $startColor: var(--q-color-t-gradient-start);
   $endColor: var(--q-color-t-gradient-stop);
-  
+
   .main-background {
     background: var(--q-color-t-gradient-start);
     background: -moz-linear-gradient(top, var(--q-color-t-gradient-start) 0%, var(--q-color-t-gradient-stop) 100%);

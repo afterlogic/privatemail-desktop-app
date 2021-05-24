@@ -3,12 +3,6 @@
     <q-list class="folder-list">
       <FolderListItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :currentFolderFullName="currentFolderFullName"></FolderListItem>
     </q-list>
-    <div class="progress-bar">
-      <div id="myProgress" @click="move">
-        <div id="myBar"></div>
-      </div>
-      <br>
-    </div>
   </div>
 </template>
 
@@ -66,42 +60,6 @@ export default {
         this.$store.dispatch('mail/setCurrentFolder', folderFullName)
       }
     },
-    move() {
-      let elem = document.getElementById("myBar");
-      let width = 1;
-      let id = setInterval(frame, 10);
-      function frame() {
-        if (width >= 100) {
-          clearInterval(id);
-        } else {
-          width++;
-          elem.style.width = width + '%';
-        }
-      }
-    }
   },
 }
 </script>
-<style scoped>
-.progress-bar {
-  display: flex;
-  align-items: center;
-}
-#myProgress {
-  margin: auto;
-  height: 10px;
-  width: 60%;
-  background-color: transparent;
-  padding: 2px 4px 2px 4px;
-  border: 1px solid #7922CC;
-  border-radius: 15px;
-}
-
-#myBar {
-  overflow:hidden;
-
-  width: 0;
-  height: 4px;
-  background-color: #BC4799;
-}
-</style>

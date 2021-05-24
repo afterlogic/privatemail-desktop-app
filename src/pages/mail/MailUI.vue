@@ -17,6 +17,7 @@
               <q-btn flat no-caps label="Manage folders" class="full-width"/>
               <q-btn flat no-caps label="Clear all user data" @click="clearAllUserData" class="full-width"/>
             </div> -->
+            <!--<tooltip></tooltip>-->
           </div>
         </template>
 
@@ -145,6 +146,7 @@ import MailListToolbar from './MailListToolbar.vue'
 import MessageViewer from './MessageViewer.vue'
 import NoteViewer from "./NoteViewer";
 import Pagination from '../Pagination.vue'
+import Tooltip from "./Tooltip";
 
 export default {
   name: 'MailUI',
@@ -155,7 +157,8 @@ export default {
     MailListToolbar,
     MessageViewer,
     Pagination,
-    NoteViewer
+    NoteViewer,
+    //Tooltip
   },
 
   data () {

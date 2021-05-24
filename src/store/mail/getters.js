@@ -182,6 +182,15 @@ export function getSelectedItem (state) {
   return state.selectedItem
 }
 
+export function getAccountQuota (state) {
+  if (state.currentAccount) {
+    let currentAccount = state.currentAccount
+    return currentAccount.aQuota ? currentAccount.aQuota : []
+  } else {
+    return []
+  }
+}
+
 export function getMessageByUid (state) {
   return function (messageUid) {
     let oFoundMessage = null

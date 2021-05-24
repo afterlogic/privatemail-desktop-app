@@ -908,5 +908,19 @@ export default {
         },
       })
     })
+    ipcMain.on('mail-get-quota', (oEvent, { iAccountId, sApiHost, sAuthToken }) => {
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Mail',
+        sMethod: 'GetQuota',
+        oParameters: {
+          AccountID: iAccountId
+        },
+        fCallback: async (oResult, oError) => {
+          oEvent.sender.send('mail-get-quota', { oResult, iAccountId, oError })
+        },
+      })
+    })
   },
 }

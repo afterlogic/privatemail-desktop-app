@@ -60,7 +60,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       commit('setAccounts', aAccounts)
       commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
       commit('resetCurrentFolderList')
-
+      //dispatch('asyncGetQuota')
       dispatch('asyncGetIdentities')
       dispatch('asyncGetAliases')
       dispatch('asyncGetServers')
@@ -588,3 +588,19 @@ export function removeCurrentFolderTree ({ state, commit, dispatch, getters }, {
   commit('removeFolderTree', {folderName, bHideFolder, isEditAccount})
 }
 
+export function asyncGetQuota ({ state, commit, dispatch, getters }) {
+  let iAccountId = store.getters['mail/getCurrentAccountId']
+  ipcRenderer.send('mail-get-quota', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    iAccountId: iAccountId
+  })
+
+  ipcRenderer.once('mail-get-quota', (event, { oResult, iAccountId, oError }) => {
+    dispatch('setAccountQuota',{iAccountId: iAccountId, aQuota: oResult})
+  })
+}
+
+export function setAccountQuota({state}, {iAccountId, aQuota}) {
+  store.commit('mail/setAccountQuota',{iAccountId, aQuota})
+}

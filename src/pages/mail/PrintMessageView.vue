@@ -14,7 +14,19 @@
             <td style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 1px 1px 0">
               <span>To:</span>
             </td>
-            <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ message.To }}</td>
+            <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ splitMailboxes(message.To) }}</td>
+          </tr>
+          <tr v-if="message.Cc">
+            <td style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 1px 1px 0">
+              <span>CC:</span>
+            </td>
+            <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ splitMailboxes(message.Cc) }}</td>
+          </tr>
+          <tr v-if="message.Bcc">
+            <td style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 1px 1px 0">
+              <span>BCC:</span>
+            </td>
+            <td colspan="2" style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 0 1px 1px;">{{ splitMailboxes(message.Bcc) }}</td>
           </tr>
           <tr>
             <td style="padding: 4px;border: solid #666666;font: normal 11px Tahoma, Arial, Helvetica, sans-serif;text-align: left;border-width: 0 1px 1px 0">
@@ -74,6 +86,9 @@ export default {
       printWindow.loadURL(("data:text/html;charset=utf-8," + encodeURI(sHtml)))
       printWindow.removeMenu()
       printWindow.setTitle('Print message')
+    },
+    splitMailboxes(sMailboxes) {
+      return sMailboxes.split('\n').join(', ')
     }
   }
 

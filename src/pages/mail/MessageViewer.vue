@@ -176,7 +176,7 @@
                 <q-item-label>{{ scheduledMessageText }}</q-item-label>
               </q-item-section>
               <q-item-section side>
-                <q-btn unelevated outline color="primary" class="q-ml-md" label="Cancel sending" @click="cancelSending" />
+                <q-btn  unelevated color="white" text-color="primary"  class="q-ml-md" style="border: 1px solid;" label="Cancel sending" @click="cancelSending" />
               </q-item-section>
             </q-item>
           </template>
@@ -309,6 +309,9 @@
     .q-btn {
         background: #fff;
     }
+}
+.q-btn-color-white {
+  background-color: white;
 }
 </style>
 

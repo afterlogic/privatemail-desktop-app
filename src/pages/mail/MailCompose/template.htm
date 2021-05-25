@@ -228,10 +228,10 @@ transition-hide="slide-down"
   </div>
   <div class="column no-wrap bg-white non-selectable" style="width: 90%; max-width: initial; height: 90%; " v-show="!maximizedToggle">
     <q-toolbar class="col-auto q-pa-md bg-grey-9 theme-text">
-      <q-btn-dropdown split color="primary" class="glossy" icon="send" label="Send" :menu-offset="[-8,0]" menu-self="top middle"
-      content-style="color: white; background: var(--q-color-primary) !important; text-transform: uppercase;"
+      <q-btn-dropdown unelevated split color="primary" class="glossy" icon="send" label="Send" :menu-offset="[-8,1]" menu-self="top middle"
+      content-style="color: white; background: var(--q-color-primary) !important; text-transform: uppercase; box-shadow: none;"
       :disable-main-btn="!isEnableSending" @click="send">
-        <q-list class="non-selectable">
+        <q-list style="">
           <q-item clickable v-close-popup @click="openScheduleSendingDialog" :disable="!isEnableSending || saving">
             <q-item-section>
               <q-item-label>Schedule sending</q-item-label>

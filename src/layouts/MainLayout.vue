@@ -120,4 +120,7 @@ export default {
       text-transform: uppercase;
     }
   }
+  .q-date__today:not( .bg-primary){
+    background: #fff4cf;
+  }
 </style>

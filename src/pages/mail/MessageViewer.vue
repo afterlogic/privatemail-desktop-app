@@ -50,7 +50,7 @@
         </template>
       </div>
       <div class="col-auto">
-        <q-toolbar style="float: right; width: auto;">
+        <q-toolbar style="float: right;">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder && !isScheduledFolder" @click="reply">
             <q-tooltip>
               Reply

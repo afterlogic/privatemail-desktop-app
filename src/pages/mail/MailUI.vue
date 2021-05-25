@@ -95,9 +95,9 @@
                   <q-item v-if="bCurrentNoteFolder" class="bg-grey-3" clickable>
                     <q-checkbox v-model="checkboxAll" />
                     <q-input outlined rounded dense bg-color="white" class="search-field full-width"
-                             v-model="searchInputText"
+                             v-model="advSearchText"
                              @click.stop.prevent
-                             @keyup.enter.stop.prevent="search">
+                             @keyup.enter.stop.prevent="advancedSearch">
                       <template v-slot:prepend>
                         <q-icon name="search" @click.stop.prevent="search"></q-icon>
                       </template>
@@ -321,9 +321,9 @@ export default {
         }
       }
       this.searchInputText = aSearch.join(' ')
-
-      this.$refs.advSearchExpansion.hide()
-
+      if (!this.bCurrentNoteFolder) {
+        this.$refs.advSearchExpansion.hide()
+      }
       this.search()
     },
     focusAttachments () {

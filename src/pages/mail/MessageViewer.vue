@@ -216,7 +216,7 @@
         </q-item>
       </div>
       <q-slide-transition>
-        <div class="col-auto" v-if="!isSentFolder && !isDraftsFolder" v-show="!isSendingOrSaving">
+        <div class="col-auto" v-if="!isSentFolder && !isDraftsFolder && !isScheduledFolder" v-show="!isSendingOrSaving">
           <q-separator />
           <div class="q-px-md q-pt-md">
             <q-editor v-model="replyText" height="6rem" :toolbar="[]" v-on:keyup.enter="onEditorEnter" />
@@ -413,11 +413,7 @@ export default {
       return false
     },
     isScheduledFolder () {
-      if (this.message && this.currentFolderList) {
-        let sScheduledFolder = this.currentFolderList.Scheduled ? this.currentFolderList.Scheduled.FullName : ''
-        return this.message.Folder === sScheduledFolder
-      }
-      return false
+      return this.$store.getters['mail/getCurrentFolder'].Type === mailEnums.FolderType.Scheduled
     },
     /**
      * Determines if sending a message is allowed.

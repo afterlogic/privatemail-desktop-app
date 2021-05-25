@@ -558,10 +558,8 @@ export function logout ({ commit }) {
   commit('resetCurrentFolderList')
 }
 
-export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sFolderFullName, sText, sSubject }) {
-
+export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sFolderFullName, sText, sSubject, isSaveNote }) {
   let iAccountId = getters.getCurrentAccountId
-
   ipcRenderer.send('mail-save-note', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -569,16 +567,17 @@ export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sF
     sFolderFullName,
     messageUid,
     sText,
-    sSubject
+    sSubject,
   })
-}
 
-ipcRenderer.on('mail-save-note', (event, { bResult }) => {
-  if (bResult) {
-    store.commit('mail/removeCurrentMessage')
-    store.dispatch('mail/asyncRefresh', true)
-  }
-})
+  ipcRenderer.once('mail-save-note', (event, { bResult }) => {
+    if (bResult) {
+      store.dispatch('mail/asyncRefresh', true)
+      isSaveNote(bResult)
+    }
+  })
+
+}
 
 export function saveCurrentFolderTree ({ state, commit, dispatch, getters }, {folderName, sProperty, value , isEditAccount}) {
   commit('changeFolderTree', {folderName, sProperty, value, isEditAccount})

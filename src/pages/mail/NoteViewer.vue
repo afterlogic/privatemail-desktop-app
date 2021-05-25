@@ -16,7 +16,8 @@
         />
       </div>
       <q-toolbar class="buttons" style="height: 10%">
-        <q-btn unelevated color="primary" label="Save" @click="saveNote"/>
+        <q-btn v-if="!bSavingNote" unelevated color="primary" label="Save" @click="saveNote"/>
+        <q-btn v-else unelevated color="primary" label="Saving..."/>
         <q-btn unelevated outline color="primary" label="Cancel" @click="cancelNote"/>
         <span>Ctrl+S to save</span>
       </q-toolbar>
@@ -52,7 +53,8 @@ export default {
       sText: '',
       sTextSource: '',
       bConfirm: false,
-      currentNote: null
+      currentNote: null,
+      bSavingNote: false
     }
   },
   watch: {
@@ -69,10 +71,22 @@ export default {
       }
     },
     message() {
-      this.currentNote = this.message
+      if (this.bSavingNote) {
+        this.$store.commit('mail/setCurrentMessage', this.currentMessages[0])
+        this.bSavingNote = false
+      } else {
+        this.currentNote = this.message
+      }
     },
     triggerChangesDialogue() {
       this.bConfirm = this.triggerChangesDialogue
+    },
+    currentMessages() {
+      if (this.bSavingNote) {
+        this.$store.commit('mail/setCurrentMessage', this.currentMessages[0])
+        this.currentNote = this.currentMessages[0]
+        this.bSavingNote = false
+      }
     }
   },
   computed: {
@@ -82,12 +96,16 @@ export default {
     checkedCount () {
       return this.checkedMessagesUids.length
     },
+    currentMessages() {
+      return this.$store.getters['mail/getCurrentMessages']
+    }
   },
   beforeDestroy() {
     this.currentNote = null
   },
   methods: {
     saveNote() {
+      this.bSavingNote = true
       this.$store.commit('mail/setHasChanges', false)
       this.$store.commit('mail/setTriggerChangesDialogue', false)
 
@@ -106,15 +124,22 @@ export default {
           messageUid: '',
           sFolderFullName: this.currentNote.Folder,
           sText: this.sText,
-          sSubject: sSubject
+          sSubject: sSubject,
+          isSaveNote: this.isSaveNote
         })
       } else {
         this.$store.dispatch('mail/saveNote', {
           messageUid: this.currentNote.Uid,
           sFolderFullName: this.currentNote.Folder,
           sText: this.sText,
-          sSubject: sSubject
+          sSubject: sSubject,
+          isSaveNote: this.isSaveNote
         })
+      }
+    },
+    isSaveNote(bResult) {
+      if (bResult) {
+        this.currentNote = null
       }
     },
     newNote() {

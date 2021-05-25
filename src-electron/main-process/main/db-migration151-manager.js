@@ -27,7 +27,7 @@ export default {
                 _logMigrationError('Error while adding html_raw field', oError)
                 reject({sError: 'Error while adding html_raw field', oError})
               } else {
-                oDb.all('SELECT * FROM messages WHERE html_raw IS NULL', [], (oError, aRows) => {
+                oDb.all("SELECT * FROM messages WHERE folder LIKE  '%Notes'", [], (oError, aRows) => {
                   this._updateMessagesRows(oDb, aRows).then(resolve, reject)
                 })
               }
@@ -45,7 +45,7 @@ export default {
 
   _updateMessagesRows: function (oDb, aRows) {
     return new Promise((resolve, reject) => {
-      let oStatement = oDb.prepare('UPDATE messages SET html_raw = ? WHERE account_id = ? AND folder = ? AND uid = ?')
+      let oStatement = oDb.prepare('UPDATE messages SET html_raw = ? WHERE account_id = ? AND folder = ?  AND uid = ?')
       _.each(aRows, (oRow) => {
         let sHtmlRaw = ''
         sHtmlRaw = textUtils.unescapeHTMLSymbols(textUtils.htmlToTextSearch(oRow.html))

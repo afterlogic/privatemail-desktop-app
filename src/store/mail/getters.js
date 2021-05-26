@@ -183,12 +183,13 @@ export function getSelectedItem (state) {
 }
 
 export function getAccountQuota (state) {
-  if (state.currentAccount) {
+/*  if (state.currentAccount) {
     let currentAccount = state.currentAccount
     return currentAccount.aQuota ? currentAccount.aQuota : []
   } else {
     return []
-  }
+  }*/
+  return state.currentAccountQuota
 }
 
 export function getMessageByUid (state) {

@@ -17,7 +17,7 @@
               <q-btn flat no-caps label="Manage folders" class="full-width"/>
               <q-btn flat no-caps label="Clear all user data" @click="clearAllUserData" class="full-width"/>
             </div> -->
-            <!--<tooltip></tooltip>-->
+           <MailboxBusyIndicator></MailboxBusyIndicator>
           </div>
         </template>
 
@@ -146,7 +146,7 @@ import MailListToolbar from './MailListToolbar.vue'
 import MessageViewer from './MessageViewer.vue'
 import NoteViewer from "./NoteViewer";
 import Pagination from '../Pagination.vue'
-import Tooltip from "./Tooltip";
+import MailboxBusyIndicator from "./MailboxBusyIndicator";
 
 export default {
   name: 'MailUI',
@@ -158,7 +158,7 @@ export default {
     MessageViewer,
     Pagination,
     NoteViewer,
-    //Tooltip
+    MailboxBusyIndicator
   },
 
   data () {

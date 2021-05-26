@@ -60,7 +60,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       commit('setAccounts', aAccounts)
       commit('setCurrentAccount', typesUtils.isNonEmptyArray(state.accounts) ? state.accounts[0] : null)
       commit('resetCurrentFolderList')
-      //dispatch('asyncGetQuota')
+      dispatch('asyncGetQuota')
       dispatch('asyncGetIdentities')
       dispatch('asyncGetAliases')
       dispatch('asyncGetServers')
@@ -345,19 +345,20 @@ export function asyncGetMessages ({ state, commit, getters, dispatch }, { sFolde
       }
 
       let oFolder = getters.getFolderByFullName(sFolderFullName)
-
-      ipcRenderer.send('mail-get-messages', {
-        sApiHost: store.getters['main/getApiHost'],
-        sAuthToken: store.getters['user/getAuthToken'],
-        iAccountId: oCurrentAccount.iAccountId,
-        bUseThreading: oCurrentAccount.bUseThreading,
-        sFolderFullName,
-        iFolderType: oFolder.Type,
-        iPage,
-        iMessagesPerPage: getters.getMessagesPerPage,
-        sSearch,
-        sFilter,
-      })
+      if (oFolder) {
+        ipcRenderer.send('mail-get-messages', {
+          sApiHost: store.getters['main/getApiHost'],
+          sAuthToken: store.getters['user/getAuthToken'],
+          iAccountId: oCurrentAccount.iAccountId,
+          bUseThreading: oCurrentAccount.bUseThreading,
+          sFolderFullName,
+          iFolderType: oFolder.Type,
+          iPage,
+          iMessagesPerPage: getters.getMessagesPerPage,
+          sSearch,
+          sFilter,
+        })
+      }
     }
   }
 }

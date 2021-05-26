@@ -355,11 +355,12 @@ export function removeFolderTree (state, {folderName, isEditAccount}) {
 }
 
 export function setAccountQuota (state, {iAccountId, aQuota}) {
-  let accounts = state.accounts
+ /* let accounts = state.accounts
   for (let i = 0; i < accounts.length; i++ ) {
     if (accounts[i].iAccountId === iAccountId) {
       accounts[i].aQuota = aQuota
       break
     }
-  }
+  }*/
+  state.currentAccountQuota = aQuota
 }

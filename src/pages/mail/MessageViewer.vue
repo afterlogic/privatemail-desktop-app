@@ -164,7 +164,26 @@
         </div>
         <q-separator />
       </div>
-
+      <div class="col">
+        <q-scroll-area class="full-height">
+        <div class="q-px-md q-py-sm information-panel non-selectable" v-if="isScheduledMessage">
+          <template>
+            <q-item class="q-pa-none">
+              <q-item-section avatar style="padding-right: 6px; min-width: auto;">
+                <q-icon name="schedule_send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ scheduledMessageText }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn  unelevated color="white" text-color="primary"  class="q-ml-md" style="border: 1px solid;" label="Cancel sending" @click="cancelSending" />
+              </q-item-section>
+            </q-item>
+          </template>
+        </div>
+          <div class="q-pa-md" v-html="text"></div>
+        </q-scroll-area>
+      </div>
       <div class="col-auto attachments-panel" v-if="message.HasAttachments && aAttachments.length > 0">
         <q-item class="attachment-item" v-for="attach in aAttachments" :key="attach.sHash" v-show="!attach.bLinked">
           <q-item-section avatar v-if="!attach.sThumbnailLink">

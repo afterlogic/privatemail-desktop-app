@@ -49,8 +49,8 @@
           {{ verifyReport }}
         </template>
       </div>
-      <div class="col-auto">
-        <q-toolbar style="float: right;">
+      <div class="col-auto" :style="{height: !showDetails ? '108px' : 'auto'}">
+        <q-toolbar style="float: right; width: auto">
           <q-btn flat color="primary" icon="reply" v-if="!isSentFolder && !isDraftsFolder && !isScheduledFolder" @click="reply">
             <q-tooltip>
               Reply
@@ -154,7 +154,7 @@
         <div class="expand-header-handler" :class="{'expanded': showDetails}">
           <q-btn
             :icon="showDetails ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-            flat dense
+            flat
             color="grey-5"
             @click="showDetails = !showDetails"
           >

@@ -45,24 +45,23 @@ function _getIconName (sType) {
   return sIconName
 }
 
-function getTypeFolder(oFolderFromServer) {
-  let fullNameRaw = oFolderFromServer.FullNameRaw
-  let iType = ''
-  fullNameRaw = fullNameRaw.split(oFolderFromServer.Delimiter)
-  fullNameRaw = fullNameRaw[fullNameRaw.length - 1]
-  switch (fullNameRaw) {
+function getTypeFolder(folderFromServer) {
+  let type = ''
+  const fullNameParts = folderFromServer.FullNameRaw.split(folderFromServer.Delimiter)
+  const folderName = fullNameParts[fullNameParts.length - 1]
+  switch (folderName) {
     case 'Scheduled':
-      iType = mailEnums.FolderType.Scheduled
+      type = mailEnums.FolderType.Scheduled
       break
     case 'Notes':
-      iType = mailEnums.FolderType.Notes
+      type = mailEnums.FolderType.Notes
       break
     default:
-      iType = oFolderFromServer.Type
+      type = folderFromServer.Type
       break
   }
 
-  return iType
+  return type
 }
 
 function getFriendlyNamesFolder(sType) {

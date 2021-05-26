@@ -43,14 +43,6 @@ export default {
     }
   },
   computed: {
-  /*  userQuota() {
-      //TODO make this.$store.getters['mail/getAccountQuota'] work
-      let oAccount = this.$store.getters['mail/getCurrentAccount'];
-      // console.log('test function', oAccount.aQuota, oAccount);
-      console.log('account', this.$store.getters['mail/getCurrentAccount']);
-      return oAccount && oAccount.aQuota ? oAccount.aQuota : [];
-      // return this.$store.getters['mail/getAccountQuota']
-    },*/
     userSpace() {
       let accountQuota = this.$store.getters['mail/getAccountQuota']
       if (accountQuota.length) {

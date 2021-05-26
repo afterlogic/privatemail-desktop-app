@@ -68,6 +68,7 @@ function cAccount (oData) {
   this.bUseSignature = false
   this.bUseThreading = false
   this.aAliases = []
+  this.aQuota = []
 
   if (typesUtils.isNonEmptyObject(oData)) {
     this.parse(oData)

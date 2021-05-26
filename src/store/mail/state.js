@@ -52,7 +52,6 @@ export default {
 
   messagesCache: {},
   currentMessage: null,
-  currentAccountQuota: [],
 
   hasChanges: false,
   triggerChangesDialogue: false,

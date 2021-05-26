@@ -408,9 +408,6 @@ export default {
       })
       return aUids
     },
-    getMessageByUid (iUid) {
-      return this.$store.getters['mail/getMessageByUid'](iUid)
-    },
     onKeydown (oKeyboardEvent) {
       if (!hotkeys.isTextFieldFocused()) {
         let iKeyCode = oKeyboardEvent.keyCode
@@ -436,7 +433,7 @@ export default {
                 break
             }
             if (iNewMessageIndex >= 0 && iNewMessageIndex < aUids.length) {
-              let oNewMessage = this.getMessageByUid(aUids[iNewMessageIndex])
+              let oNewMessage = this.$store.getters['mail/getMessageByUid'](aUids[iNewMessageIndex])
               this.$store.dispatch('mail/setCurrentMessage', oNewMessage)
             }
             oKeyboardEvent.preventDefault()

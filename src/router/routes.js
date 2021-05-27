@@ -14,7 +14,24 @@ const routes = [
       {path: 'contacts', component: () => import('pages/contacts/ContactsUI.vue') },
       // {path: 'files', component: () => import('pages/files/FilesUI.vue') },
       // {path: 'calendar', component: () => import('pages/calendar/CalendarUI.vue') },
-      {path: 'settings', component: () => import('pages/settings/SettingsUI.vue') },
+      {
+        path: 'settings',
+        component: () => import('pages/settings/SettingsUI.vue'),
+        children: [
+          { path: 'common', component: () => import('pages/settings/Common.vue')},
+          { path: 'mail', component: () => import('pages/settings/Mail.vue') },
+          {
+            path: 'accounts',
+            component: () => import('pages/settings/MailAccounts.vue'),
+            children: [
+              { path: 'props', component: () => import('pages/settings/edit-accounts/Properties.vue') }
+            ]
+          },
+          { path: 'contacts', component: () => import('pages/settings/Contacts.vue') },
+          { path: 'open-pgp', component: () => import('pages/settings/OpenPgp.vue') },
+          { path: 'about', component: () => import('pages/settings/About.vue') },
+        ]
+      },
     ]
   },
 ]

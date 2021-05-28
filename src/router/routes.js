@@ -24,7 +24,9 @@ const routes = [
             path: 'accounts',
             component: () => import('pages/settings/MailAccounts.vue'),
             children: [
-              { path: 'props', component: () => import('pages/settings/edit-accounts/Properties.vue') }
+              { path: 'account/:accountId', component: () => import('pages/settings/edit-accounts/editAccountsUI.vue') },
+              { path: 'identity/:accountId/:identityId', component: () => import('pages/settings/edit-accounts/editIdentityUI.vue') },
+              { path: 'alias/:accountId/:aliasId', component: () => import('pages/settings/edit-accounts/editAliasUI.vue') },
             ]
           },
           { path: 'contacts', component: () => import('pages/settings/Contacts.vue') },

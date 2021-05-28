@@ -61,473 +61,7 @@
       </span>
     </q-list>
 
-    <q-tabs v-if="editAccount"
-      v-model="mailTab"
-      inline-label
-      :no-caps=true
-      align="left"
-      class="flex-start"
-    >
-      <q-tab name="props" label="Properties" />
-      <q-tab name="folders" label="Manage Folders" />
-      <q-tab name="forward" label="Forward" @click="getForward"/>
-      <q-tab name="autoresponder" label="Autoresponder" @click="getAutoresponder"/>
-      <!--<q-tab name="filters" label="Filters" />-->
-    </q-tabs>
-
-    <q-separator v-if="editAccount" />
-
-    <q-tab-panels v-if="editAccount"
-      v-model="mailTab"
-      animated
-      transition-prev="jump-up"
-      transition-next="jump-up"
-    >
-      <q-tab-panel name="props" class="bg-grey-1">
-        <router-view
-          :bUseThreading="bUseThreading"
-          :bSaveRepliesToCurrFolder="bSaveRepliesToCurrFolder"
-          :bDefaultAccount="bDefaultAccount"
-          :bAccountSaving="bAccountSaving"
-          :bAllowChangePasswordOnMailServer="bAllowChangePasswordOnMailServer"
-          :openRemoveAccountDialog="openRemoveAccountDialog"
-          :saveAccountSettings="saveAccountSettings"
-          :openChangePassword="openChangePassword"
-        />
-      </q-tab-panel>
-      <q-tab-panel name="folders" class="bg-grey-1">
-        <q-list padding bordered>
-          <div v-if="!isEditAccount">
-            <ManageFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :isEditAccount="isEditAccount" :iAccountId="iEditAccountId"></ManageFolders>
-          </div>
-          <div v-else>
-            <ManageFolders v-for="folder in editFoldersTree" :key="folder.Hash" :folder="folder" :isEditAccount="isEditAccount" :iAccountId="iEditAccountId"></ManageFolders>
-          </div>
-          <q-item  clickable v-ripple style="height: 50px">
-          <q-item-section avatar style="margin-left: 15px">
-            Total
-          </q-item-section>
-          <q-item-section avatar style="margin-left: auto; padding-right: 100px">
-            {{ totalScore() }}
-          </q-item-section>
-          </q-item>
-          <div class="folders-line">
-            Deleting non-empty folders is not allowed. To delete such folder, delete its contents first.
-          </div>
-          <div class="folders-line">
-            To match a special folder (like Sent) and certain IMAP mailbox, click Setup special folders.
-          </div>
-
-            <div class="buttons q-mb-md q-mt-md q-mr-md" v-if="allowAddNewAccount">
-              <q-btn unelevated color="primary" label="Add New Folder" @click="createFolder"/>
-              <q-btn unelevated color="primary" class="on-left" label="Setup special folders" @click="displaySpecialFoldersDialog" />
-            </div>
-
-          <q-dialog v-model="bCreateFolder" persistent>
-            <q-card class="q-px-sm non-selectable">
-                <q-card-section>
-                  <div class="text-h6"> New Folder</div>
-                </q-card-section>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Parent Folder</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-select
-                    flat
-                    outlined
-                    dense
-                    v-model="sParentName"
-                    :options="createFoldersArray(isEditAccount? editFoldersTree: foldersTree)"
-                    style="width: 300px;"
-                    color="primary"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Folder Name</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-input
-                    class="q-ml-md"
-                    flat
-                    outlined
-                    dense
-                    style="width: 300px;"
-                    v-model="sNewFolderName"
-                    lazy-rules
-                  />
-                </q-item-section>
-              </q-item>
-              <q-card-actions align="right">
-                <q-btn flat color="primary" label="OK" @click="createNewFolder"/>
-                <q-btn flat color="grey-6" label="Cancel" @click="resetForm" v-close-popup/>
-              </q-card-actions>
-            </q-card>
-          </q-dialog>
-          <q-dialog v-model="bDisplaySpecialFoldersDialog" persistent>
-            <q-card class="q-px-sm non-selectable">
-              <q-card-section>
-                <div class="text-h6">Setup special folders</div>
-              </q-card-section>
-              <q-card-section>
-                <div>Which IMAP mailboxes to use for pre-defined folders.</div>
-              </q-card-section>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Sent</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-select
-                    outlined
-                    dense
-                    v-model="oSpecialFoldersOptions['Sent']"
-                    :options="specialFoldersOptions()"
-                    style="width: 300px;"
-                    color="primary"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Drafts</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-select
-                    outlined
-                    dense
-                    v-model="oSpecialFoldersOptions['Drafts']"
-                    :options="specialFoldersOptions()"
-                    style="width: 300px;"
-                    color="primary"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Trash</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-select
-                    outlined
-                    dense
-                    v-model="oSpecialFoldersOptions['Trash']"
-                    :options="specialFoldersOptions()"
-                    style="width: 300px;"
-                    color="primary"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Spam</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-select
-                    outlined
-                    dense
-                    v-model="oSpecialFoldersOptions['Spam']"
-                    :options="specialFoldersOptions()"
-                    style="width: 300px;"
-                    color="primary"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-card-actions align="right">
-                <q-btn  flat color="primary" label="OK" @click="setupSpecialFolders"/>
-                <q-btn flat color="grey-6" label="Cancel" v-close-popup/>
-              </q-card-actions>
-            </q-card>
-          </q-dialog>
-        </q-list>
-      </q-tab-panel>
-      <q-tab-panel name="forward" class="bg-grey-1">
-        <div class="q-pa-md">
-          <q-item>
-            <q-item-section side top>
-              <q-checkbox v-model="bEnableForward" label="Enable forward"/>
-            </q-item-section>
-          </q-item>
-          <q-item class="items-center">
-            <q-item-section side top>
-              <span class="q-ml-sm">Email</span>
-            </q-item-section>
-            <q-item-section side top>
-              <q-input :disable="!bEnableForward" v-model="forwardEmail" outlined bg-color="white" :dense=true style="width: 350px; margin-left: 100px"/>
-            </q-item-section>
-          </q-item>
-        </div>
-        <q-separator spaced/>
-        <q-card-actions align="right">
-          <q-btn style="margin-left: 20px; width: 80px" color="primary" label="Save" @click="updateForward"/>
-        </q-card-actions>
-      </q-tab-panel>
-      <q-tab-panel name="autoresponder" class="autoresponder bg-grey-1">
-        <div class="q-pa-md">
-          <q-item tag="label">
-            <q-item-section side top>
-              <q-checkbox v-model="oAutoresponder.enableAutoresponder"/>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Enable autoresponder</q-item-label>
-            </q-item-section>
-          </q-item>
-          <div class="row" style="margin-left: 18px">
-            <div class="col-2">
-              <span class="q-ml-sm">Subject</span>
-            </div>
-            <div class="col">
-              <q-input
-                :disable="!oAutoresponder.enableAutoresponder"
-                v-model="oAutoresponder.subject" outlined
-                :dense=true bg-color="white" style="width: 100%;"
-              />
-            </div>
-          </div>
-
-          <div class="row" style="margin-left: 18px">
-            <div class="col-2">
-              <span class="q-ml-sm">Message</span>
-            </div>
-            <div class="col">
-              <q-editor
-                bg-color="white"
-                :disable="!oAutoresponder.enableAutoresponder"
-                v-model="oAutoresponder.message"
-                :definitions="{
-                  bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
-                }"
-              />
-            </div>
-          </div>
-        </div>
-        <q-separator spaced />
-        <q-card-actions align="right">
-          <q-btn style="margin-right: 10px; width: 80px" color="primary" label="Save" @click="updateAutoresponder"/>
-        </q-card-actions>
-      </q-tab-panel>
-      <q-tab-panel name="filters">
-        <q-item-label header>Filters</q-item-label>
-      </q-tab-panel>
-      <!-- <q-tab-panel name="folders">
-        <q-list padding>
-          <q-item-label header>User Controls</q-item-label>
-
-          <q-item clickable v-ripple>
-            <q-item-section>
-              <q-item-label>Content filtering</q-item-label>
-              <q-item-label caption>
-                Set the content filtering level to restrict
-                apps that can be downloaded
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple>
-            <q-item-section>
-              <q-item-label>Password</q-item-label>
-              <q-item-label caption>
-                Require password for purchase or use
-                password to restrict purchase
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-tab-panel>
-
-      <q-tab-panel name="forward">
-        <div class="q-pa-md">
-          <q-item tag="label">
-            <q-item-section side top>
-              <q-checkbox v-model="enableForward" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Enable forward</q-item-label>
-            </q-item-section>
-          </q-item>
-          <div class="row">
-            <div class="col-2">
-              <q-item-label>Email</q-item-label>
-            </div>
-            <div class="col">
-              <q-input outlined rounded v-model="forwardEmail" :dense=true style="width: 100%;">
-                <template v-slot:prepend>
-                  <q-icon name="search" ></q-icon>
-                </template>
-                <template v-slot:after>
-                  <q-btn round dense flat icon="send" ></q-btn>
-                </template>
-              </q-input>
-            </div>
-          </div>
-        </div>
-        <q-separator spaced />
-        <q-btn color="primary" label="Save" />
-      </q-tab-panel>
-
-      <q-tab-panel name="autoresponder" class="autoresponder">
-        <div class="q-pa-md">
-          <q-item tag="label">
-            <q-item-section side top>
-              <q-checkbox v-model="enableAutoresponder" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Enable autoresponder</q-item-label>
-            </q-item-section>
-          </q-item>
-          <div class="row">
-            <div class="col-2">
-              <q-item-label>Subject</q-item-label>
-            </div>
-            <div class="col">
-              <q-input outlined rounded v-model="autoresponderSubject" :dense=true style="width: 100%;">
-                <template v-slot:prepend>
-                  <q-icon name="search" ></q-icon>
-                </template>
-                <template v-slot:after>
-                  <q-btn round dense flat icon="send" ></q-btn>
-                </template>
-              </q-input>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-2">
-              <q-item-label>Message</q-item-label>
-            </div>
-            <div class="col">
-              <q-editor
-                v-model="autoresponderMessage"
-                :definitions="{
-                  bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
-                }"
-              />
-            </div>
-          </div>
-        </div>
-        <q-separator spaced />
-        <q-btn color="primary" label="Save" />
-      </q-tab-panel>
-      <q-tab-panel name="filters">
-        <q-item-label header>Filters</q-item-label>
-      </q-tab-panel> -->
-    </q-tab-panels>
-
-    <q-tabs v-if="editIdentity"
-      v-model="identityTab"
-      inline-label
-      :no-caps=true
-      align="left"
-      class="flex-start"
-    >
-      <q-tab name="props" label="Properties" />
-      <q-tab name="signature" label="Signature" />
-    </q-tabs>
-
-    <q-separator v-if="editIdentity" />
-
-    <q-tab-panels v-if="editIdentity"
-      v-model="identityTab"
-      animated
-      transition-prev="jump-up"
-      transition-next="jump-up"
-    >
-      <q-tab-panel name="props" class="bg-grey-1">
-        <q-list class="non-selectable" style="width: 450px;">
-          <q-item tag="label" :disable="bIdentityDisableDefault">
-            <q-item-section side top>
-              <q-checkbox v-model="bIdentityDefault" :disable="bIdentityDisableDefault" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Set default</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-item-label>Your name</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-input outlined dense bg-color="white" class="input-size" v-model="sIdentityName" v-on:keyup.enter="saveIdentitySettings" />
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-item-label>Email</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-input outlined dense bg-color="white" class="input-size" v-if="aIdentityEmailOptions.length === 0" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
-              <q-select outlined dense bg-color="white" class="input-size" v-if="aIdentityEmailOptions.length > 0" v-model="sIdentityEmail" :options="aIdentityEmailOptions" />
-            </q-item-section>
-          </q-item>
-          <q-item v-if="!bIdentityIsAccountPart">
-            <q-item-section>
-              <q-item-label>
-                <q-btn unelevated outline color="warning" label="Remove identity" @click="openRemoveIdentityDialog" />
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-        <q-separator spaced />
-        <div class="q-pa-md">
-          <q-btn unelevated color="primary" v-if="bIdentitySaving" label="Saving..." />
-          <q-btn unelevated color="primary" v-if="!bIdentitySaving" label="Save" @click="saveIdentitySettings" />
-        </div>
-      </q-tab-panel>
-
-      <q-tab-panel name="signature" class="bg-grey-1">
-        <MailAccountsSignatureTab :noSignature="bIdentityNoSignature" :signature="sIdentitySignature" :isSaving="bIdentitySaving" :saveSignature="saveIdentitySettings" />
-      </q-tab-panel>
-    </q-tab-panels>
-
-    <q-tabs v-if="editAlias"
-      v-model="aliasTab"
-      inline-label
-      :no-caps=true
-      align="left"
-      class="flex-start"
-    >
-      <q-tab name="props" label="Properties" />
-      <q-tab name="signature" label="Signature" />
-    </q-tabs>
-
-    <q-separator v-if="editAlias" />
-
-    <q-tab-panels v-if="editAlias"
-      v-model="aliasTab"
-      animated
-      transition-prev="jump-up"
-      transition-next="jump-up"
-    >
-      <q-tab-panel name="props" class="bg-grey-1">
-        <q-list class="non-selectable" style="width: 450px;">
-          <q-item>
-            <q-item-section>
-              <q-item-label>Your name</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-input outlined dense bg-color="white" class="input-size" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-item-label>
-                <q-btn unelevated outline color="warning" label="Remove alias" @click="openRemoveAliasDialog" />
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-        <q-separator spaced />
-        <div class="q-pa-md">
-          <q-btn unelevated color="primary" v-if="bAliasSaving" label="Saving..." />
-          <q-btn unelevated color="primary" v-if="!bAliasSaving" label="Save" @click="saveAliasSettings" />
-        </div>
-      </q-tab-panel>
-
-      <q-tab-panel name="signature" class="bg-grey-1">
-        <MailAccountsSignatureTab :noSignature="bAliasNoSignature" :signature="sAliasSignature" :isSaving="bAliasSaving" :saveSignature="saveAliasSettings" />
-      </q-tab-panel>
-    </q-tab-panels>
+    <router-view></router-view>
 
     <q-dialog v-model="bAddNewAccountDialog" persistent>
       <q-card class="q-px-sm non-selectable">
@@ -626,23 +160,6 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="bRemoveAccountDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
-        <q-card-section>
-          <div class="text-h6">{{ editAccount ? editAccount.sEmail : '' }}</div>
-        </q-card-section>
-
-        <q-item>
-          <q-item-label>Are you sure you want to remove account?</q-item-label>
-        </q-item>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Ok" color="primary" @click="removeAccount" v-close-popup />
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <q-dialog v-model="bChangeAccountPasswordDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
@@ -728,22 +245,6 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="bRemoveIdentityDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
-        <q-card-section>
-          <div class="text-h6">{{ editIdentity ? editIdentity.getFull() : '' }}</div>
-        </q-card-section>
-
-        <q-item>
-          <q-item-label>Are you sure you want to remove identity?</q-item-label>
-        </q-item>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Ok" color="primary" @click="removeIdentity" v-close-popup />
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
 
     <q-dialog v-model="bNewAliasDialog" persistent>
       <q-card class="q-px-sm non-selectable" style="width: 700px;">
@@ -773,22 +274,6 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="bRemoveAliasDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
-        <q-card-section>
-          <div class="text-h6">{{ editAlias ? editAlias.getFull() : '' }}</div>
-        </q-card-section>
-
-        <q-item>
-          <q-item-label>Are you sure you want to remove alias? It will be deleted from the mail server too.</q-item-label>
-        </q-item>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Ok" color="primary" @click="removeAlias" v-close-popup />
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
@@ -815,18 +300,11 @@ import cServer from 'src/modules/mail/classes/cServer.js'
 
 import mailSettings from 'src/modules/mail/settings.js'
 
-import MailAccountsSignatureTab from './MailAccountsSignatureTab.vue'
 
-import ManageFolders from "./ManageFolders";
 import mailEnums from "../../modules/mail/enums";
 
 export default {
   name: 'MailAccounts',
-
-  components: {
-    MailAccountsSignatureTab,
-    ManageFolders
-  },
 
   data () {
     return {
@@ -850,7 +328,6 @@ export default {
       bUseThreading: false,
       bSaveRepliesToCurrFolder: false,
       bAccountSaving: false,
-      bRemoveAccountDialog: false,
       bAddNewAccountDialog: false,
       sNewAccountName: '',
       sNewAccountEmail: '',
@@ -995,14 +472,6 @@ export default {
         this.iEditAccountId = this.accounts[0].iAccountId
       }
     },
-    editAccount () {
-      if (this.editAccount) {
-        this.bDefaultAccount = this.editAccount.bDefault
-        this.bUseThreading = this.editAccount.bUseThreading
-        this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
-        this.bAllowChangePasswordOnMailServer = !!this.editAccount.oExtend.AllowChangePasswordOnMailServer
-      }
-    },
     editIdentity () {
       if (this.editIdentity) {
         this.bIdentityIsAccountPart = this.iEditIdentityId === 0
@@ -1052,7 +521,6 @@ export default {
         this.iNewAccountSmtpPort = oServer.iOutgoingPort
         this.bNewAccountSmtpSsl = oServer.bOutgoingUseSsl
         let sSmtpAuthTypeUseUserCredentials = '2'
-        let sSmtpAuthTypeNoAuthentication = '0'
         this.bNewAccountSmtpAuth = sSmtpAuthTypeUseUserCredentials === oServer.sSmtpAuthType
       } else {
         this.sNewAccountImapServer = ''
@@ -1071,16 +539,10 @@ export default {
         this.sAliasSignature = this.editAlias.sSignature
       }
     },
-    iEditAccountId () {
-      this.getForward()
-      this.getAutoresponder()
-    }
   },
 
   mounted () {
-    if (this.iEditAccountId === -1 && this.accounts.length > 0) {
-      this.changeEditAccount(this.accounts[0].iAccountId)
-    }
+    this.$router.push(`/settings/accounts/account/${this.accounts[0].iAccountId}`)
     this.bAllowIdentities = mailSettings.bAllowIdentities
     this.bAllowAliases = mailSettings.bAllowAliases
     this.initSubscriptions()
@@ -1091,8 +553,7 @@ export default {
   },
 
   methods: {
-    changeEditAccount (iAccountId) {
-      this.$router.push('/settings/accounts/props')
+    changeEditAccount(iAccountId) {
       if (iAccountId !== this.$store.getters['mail/getCurrentAccountId']) {
         this.isEditAccount = true
         let parameters = {bEditAccount: true, iEditAccountId: iAccountId}
@@ -1105,36 +566,29 @@ export default {
       this.iEditIdentityId = -1
       this.iEditAliasAccountId = -1
       this.iEditAliasId = -1
+      this.$router.push(`/settings/accounts/account/${iAccountId}`)
     },
-    changeEditIdentity (iIdentityId, iIdentityAccountId) {
+    changeEditIdentity(iIdentityId, iIdentityAccountId) {
       this.iEditAccountId = -1
       this.iEditIdentityAccountId = iIdentityAccountId
       this.iEditIdentityId = iIdentityId
       this.iEditAliasAccountId = -1
       this.iEditAliasId = -1
+      this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}`)
     },
-    changeEditAlias (iAliasId, iAliasAccountId) {
+    changeEditAlias(iAliasId, iAliasAccountId) {
       this.iEditAccountId = -1
       this.iEditIdentityAccountId = -1
       this.iEditIdentityId = -1
       this.iEditAliasAccountId = iAliasAccountId
       this.iEditAliasId = iAliasId
+      this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}`)
     },
-    saveAccountSettings () {
-      this.bAccountSaving = true
-      ipcRenderer.send('mail-save-account-settings', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.iEditAccountId,
-        bUseThreading: this.bUseThreading,
-        bSaveRepliesToCurrFolder: this.bSaveRepliesToCurrFolder,
-      })
-    },
-    onSaveAccountSettings (oEvent, { bResult, iAccountId, bUseThreading, bSaveRepliesToCurrFolder, oError }) {
+    onSaveAccountSettings(oEvent, {bResult, iAccountId, bUseThreading, bSaveRepliesToCurrFolder, oError}) {
       this.bAccountSaving = false
       if (bResult) {
         notification.showReport('Settings have been updated successfully.')
-        this.$store.commit('mail/setAccountSettings', { iAccountId, bUseThreading, bSaveRepliesToCurrFolder })
+        this.$store.commit('mail/setAccountSettings', {iAccountId, bUseThreading, bSaveRepliesToCurrFolder})
         this.$store.dispatch('mail/asyncRefresh', false)
         if (iAccountId === this.iEditAccountId) {
           this.bUseThreading = bUseThreading
@@ -1144,29 +598,16 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
       }
     },
-    openRemoveAccountDialog () {
-      if (!this.bDefaultAccount) {
-        this.bRemoveAccountDialog = true
-      }
-    },
-    removeAccount () {
-      if (!this.bDefaultAccount) {
-        ipcRenderer.send('mail-remove-account', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iEditAccountId,
-        })
-      }
-    },
-    onRemoveAccount (oEvent, { bResult, iAccountId, oError }) {
+
+    onRemoveAccount(oEvent, {bResult, iAccountId, oError}) {
       if (bResult) {
         notification.showReport('Account was successfully removed.')
-        this.$store.commit('mail/removeAccount', { iAccountId })
+        this.$store.commit('mail/removeAccount', {iAccountId})
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while removing account.'))
       }
     },
-    openAddNewAccountDialog () {
+    openAddNewAccountDialog() {
       if (this.allowAddNewAccount) {
         this.bAddingNewAccount = false
         this.sNewAccountName = ''
@@ -1188,13 +629,13 @@ export default {
         this.bAddNewAccountDialog = true
       }
     },
-    openChangePassword () {
+    openChangePassword() {
       this.bChangeAccountPasswordDialog = true
       this.sChangePasswordCurrent = ''
       this.sChangePasswordNew = ''
       this.sChangePasswordConfirmNew = ''
     },
-    changePassword () {
+    changePassword() {
       if (this.sChangePasswordNew !== this.sChangePasswordConfirmNew) {
         notification.showError('Passwords do not match')
       } else {
@@ -1208,7 +649,7 @@ export default {
         })
       }
     },
-    onChangePassword (oEvent, { bResult, oError }) {
+    onChangePassword(oEvent, {bResult, oError}) {
       this.bChangingPassword = false
       if (bResult) {
         notification.showReport('Password was successfully changed.')
@@ -1217,20 +658,20 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while changing password.'))
       }
     },
-    logoutAfterChangePassword () {
-      this.$router.push({ path: '/login' })
+    logoutAfterChangePassword() {
+      this.$router.push({path: '/login'})
     },
-    addNewAccount () {
+    addNewAccount() {
       if (this.bSecondStepOfAddAccount) {
         this.addNewAccountFull()
       } else {
         this.addNewAccountShort()
       }
     },
-    addNewAccountFull () {
+    addNewAccountFull() {
       if (this.allowAddNewAccount) {
         if (_.trim(this.sNewAccountEmail) === '' || _.trim(this.sNewAccountPassword) === '' || _.trim(this.sNewAccountImapServer) === ''
-            || _.trim(this.iNewAccountImapPort) === '' || _.trim(this.sNewAccountSmtpServer) === '' || _.trim(this.iNewAccountSmtpPort) === '') {
+          || _.trim(this.iNewAccountImapPort) === '' || _.trim(this.sNewAccountSmtpServer) === '' || _.trim(this.iNewAccountSmtpPort) === '') {
           notification.showError('Not all required fields are filled.')
         } else {
           this.bAddingNewAccount = true
@@ -1253,7 +694,7 @@ export default {
         }
       }
     },
-    addNewAccountShort () {
+    addNewAccountShort() {
       if (this.allowAddNewAccount) {
         if (_.trim(this.sNewAccountEmail) === '' || _.trim(this.sNewAccountPassword) === '') {
           notification.showError('Not all required fields are filled.')
@@ -1273,12 +714,12 @@ export default {
         }
       }
     },
-    onAddNewAccount (oEvent, { bResult, oAccountData, bUnknownDomain, oError }) {
+    onAddNewAccount(oEvent, {bResult, oAccountData, bUnknownDomain, oError}) {
       this.bAddingNewAccount = false
       if (bResult) {
         this.bAddNewAccountDialog = false
         notification.showReport('Account was successfully added.')
-        this.$store.commit('mail/addAccount', { oAccountData })
+        this.$store.commit('mail/addAccount', {oAccountData})
         this.$store.dispatch('mail/asyncGetIdentities')
       } else if (bUnknownDomain) {
         this.sNewAccountLogin = this.sNewAccountEmail
@@ -1287,49 +728,7 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while adding account.'))
       }
     },
-    saveIdentitySettings (bIdentityNoSignature, sIdentitySignature) {
-      if (this.editIdentity) {
-        this.bIdentitySaving = true
-        ipcRenderer.send('mail-save-identity-settings', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.editIdentity.iIdAccount,
-          iIdentityId: this.iEditIdentityId,
-          bDefault: (this.identityTab === 'props') ? this.bIdentityDefault : undefined,
-          sName: (this.identityTab === 'props') ? this.sIdentityName : undefined,
-          sEmail: (this.identityTab === 'props') ? this.sIdentityEmail : undefined,
-          bNoSignature: (this.identityTab === 'signature') ? bIdentityNoSignature : undefined,
-          sSignature: (this.identityTab === 'signature') ? sIdentitySignature : undefined,
-        })
-      }
-    },
-    onSaveIdentitySettings (oEvent, { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, oError }) {
-      this.bIdentitySaving = false
-      if (bResult) {
-        notification.showReport('Settings have been updated successfully.')
-        if (iIdentityId === 0) {
-          this.$store.commit('mail/setAccountSettings', { iAccountId, sName, bNoSignature, sSignature })
-        }
-        this.$store.dispatch('mail/asyncGetIdentities')
-        if (iIdentityId === this.iEditIdentityId) {
-          if (typeof bDefault === 'boolean') {
-            this.bIdentityDefault = bDefault
-          }
-          if (typeof sName === 'string') {
-            this.sIdentityName = sName
-          }
-          if (typeof bNoSignature === 'boolean') {
-            this.bIdentityNoSignature = bNoSignature
-          }
-          if (typeof sSignature === 'string') {
-            this.sIdentitySignature = sSignature
-          }
-        }
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
-      }
-    },
-    openAddNewIdentityDialog (iAccountId) {
+    openAddNewIdentityDialog(iAccountId) {
       let oAccount = _.find(this.accounts, (oTmpAccount) => {
         return oTmpAccount.iAccountId === iAccountId
       })
@@ -1351,7 +750,7 @@ export default {
         this.aNewIdentityEmailOptions.unshift(oAccount.sEmail)
       }
     },
-    addNewIdentity () {
+    addNewIdentity() {
       if (_.trim(this.sNewIdentityEmail) === '') {
         notification.showError('Not all required fields are filled.')
       } else {
@@ -1365,41 +764,18 @@ export default {
         })
       }
     },
-    onAddNewIdentity (oEvent, { iNewIdentityId, iAccountId, oError }) {
+    onAddNewIdentity(oEvent, {iNewIdentityId, iAccountId, oError}) {
       this.bNewIdentityAdding = false
       if (typeof iNewIdentityId === 'number') {
         this.bNewIdentityDialog = false
-        this.changeEditIdentity (iNewIdentityId, iAccountId)
+        this.changeEditIdentity(iNewIdentityId, iAccountId)
         notification.showReport('Identity was successfully added.')
         this.$store.dispatch('mail/asyncGetIdentities')
       } else {
         notification.showError(errors.getText(oError, 'Error occurred while adding identity.'))
       }
     },
-    openRemoveIdentityDialog () {
-      if (!this.bIdentityIsAccountPart) {
-        this.bRemoveIdentityDialog = true
-      }
-    },
-    removeIdentity () {
-      if (!this.bIdentityIsAccountPart) {
-        ipcRenderer.send('mail-remove-identity', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iEditIdentityAccountId,
-          iIdentityId: this.iEditIdentityId,
-        })
-      }
-    },
-    onRemoveIdentity (oEvent, { bResult, oError }) {
-      if (bResult) {
-        notification.showReport('Identity was successfully removed.')
-        this.$store.dispatch('mail/asyncGetIdentities')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
-      }
-    },
-    saveAliasSettings (bAliasNoSignature, sAliasSignature) {
+    saveAliasSettings(bAliasNoSignature, sAliasSignature) {
       if (this.editAlias) {
         this.bAliasSaving = true
         ipcRenderer.send('mail-save-alias-settings', {
@@ -1413,30 +789,7 @@ export default {
         })
       }
     },
-    onSaveAliasSettings (oEvent, { bResult, iAccountId, iAliasId, sName, sEmail, bNoSignature, sSignature, oError }) {
-      this.bAliasSaving = false
-      if (bResult) {
-        notification.showReport('Settings have been updated successfully.')
-        if (iAliasId === 0) {
-          this.$store.commit('mail/setAccountSettings', { iAccountId, sName, bNoSignature, sSignature })
-        }
-        this.$store.dispatch('mail/asyncGetAliases')
-        if (iAliasId === this.iEditAliasId) {
-          if (typeof sName === 'string') {
-            this.sAliasName = sName
-          }
-          if (typeof bNoSignature === 'boolean') {
-            this.bAliasNoSignature = bNoSignature
-          }
-          if (typeof sSignature === 'string') {
-            this.sAliasSignature = sSignature
-          }
-        }
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
-      }
-    },
-    openAddNewAliasDialog (iAccountId) {
+    openAddNewAliasDialog(iAccountId) {
       let oAccount = _.find(this.accounts, (oTmpAccount) => {
         return oTmpAccount.iAccountId === iAccountId
       })
@@ -1446,7 +799,7 @@ export default {
       this.sNewAliasDomain = oAccount.aServerDomains.length > 0 ? oAccount.aServerDomains[0] : ''
       this.bNewAliasDialog = true
     },
-    addNewAlias () {
+    addNewAlias() {
       if (_.trim(this.sNewAliasName) === '') {
         notification.showError('Not all required fields are filled.')
       } else {
@@ -1459,7 +812,7 @@ export default {
         })
       }
     },
-    onAddNewAlias (oEvent, { bResult, oError }) {
+    onAddNewAlias(oEvent, {bResult, oError}) {
       this.bNewAliasAdding = false
       if (bResult) {
         this.bNewAliasDialog = false
@@ -1469,292 +822,38 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while adding alias.'))
       }
     },
-    openRemoveAliasDialog () {
+    openRemoveAliasDialog() {
       this.bRemoveAliasDialog = true
     },
-    removeAlias () {
-      if (this.editAlias) {
-        ipcRenderer.send('mail-remove-alias', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          sAliasEmail: this.editAlias.sEmail,
-        })
-      }
-    },
-    onRemoveAlias (oEvent, { bResult, oError }) {
-      if (bResult) {
-        notification.showReport('Alias was successfully removed.')
-        this.$store.dispatch('mail/asyncGetAliases')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while removing alias.'))
-      }
-    },
 
-    initSubscriptions () {
-      ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
+
+    initSubscriptions() {
+      //ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.on('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.on('mail-add-new-account-full', this.onAddNewAccount)
-      ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
+     // ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
       ipcRenderer.on('mail-add-new-identity', this.onAddNewIdentity)
-      ipcRenderer.on('mail-remove-identity', this.onRemoveIdentity)
-      ipcRenderer.on('mail-save-alias-settings', this.onSaveAliasSettings)
+      //ipcRenderer.on('mail-remove-identity', this.onRemoveIdentity)
+      //ipcRenderer.on('mail-save-alias-settings', this.onSaveAliasSettings)
       ipcRenderer.on('mail-add-new-alias', this.onAddNewAlias)
-      ipcRenderer.on('mail-remove-alias', this.onRemoveAlias)
+      //ipcRenderer.on('mail-remove-alias', this.onRemoveAlias)
       ipcRenderer.on('mail-change-password', this.onChangePassword)
     },
-    destroySubscriptions () {
-      ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
+    destroySubscriptions() {
+      //ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.removeListener('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.removeListener('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.removeListener('mail-add-new-account-full', this.onAddNewAccount)
-      ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
+     // ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
       ipcRenderer.removeListener('mail-add-new-identity', this.onAddNewIdentity)
-      ipcRenderer.removeListener('mail-remove-identity', this.onRemoveIdentity)
-      ipcRenderer.removeListener('mail-save-alias-settings', this.onSaveAliasSettings)
+      //ipcRenderer.removeListener('mail-remove-identity', this.onRemoveIdentity)
+      //ipcRenderer.removeListener('mail-save-alias-settings', this.onSaveAliasSettings)
       ipcRenderer.removeListener('mail-add-new-alias', this.onAddNewAlias)
-      ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
+      //ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
       ipcRenderer.removeListener('mail-change-password', this.onChangePassword)
     },
-    totalScore() {
-      function removeFolderTree(currentTree) {
-        let score = 0
-        for (let i = 0; i < currentTree.length; i++) {
-          score += currentTree[i].Count
-        if (currentTree[i].SubFolders.length > 0) {
-          score += removeFolderTree(currentTree[i].SubFolders)
-          }
-        }
-        return score
-      }
-     return removeFolderTree(this.foldersTree)
-    },
-    createFolder() {
-      this.bCreateFolder = true
-    },
-    createFoldersArray(foldersTree) {
-      let aFolderList = ['No Parent']
-      function createFoldersArray(currentTree, spaces, level) {
-        for (let i = 0; i < currentTree.length; i++) {
-          let displayName = currentTree[i].DisplayName !== '' ? currentTree[i].DisplayName : currentTree[i].Name
-          if (currentTree[i].SubFolders.length > 0) {
-            aFolderList.push({value: currentTree[i].FullName, label: spaces + displayName, type: currentTree[i].Type, delimiter: currentTree[i].Delimiter})
-            level++
-            if (level === 1) {
-              createFoldersArray(currentTree[i].SubFolders, spaces, level)
-            } else {
-              createFoldersArray(currentTree[i].SubFolders, spaces + '&nbsp;&nbsp;&nbsp;&nbsp;', level)
-            }
-          } else {
-            aFolderList.push({value: currentTree[i].FullName, label: spaces + displayName, type: currentTree[i].Type,  delimiter: currentTree[i].Delimiter})
-          }
-        }
-      }
-      createFoldersArray(foldersTree, '', 0)
-      return aFolderList
-    },
-    resetForm() {
-      this.sNewFolderName = ''
-      this.sParentName = 'No Parent'
-    },
-    createNewFolder() {
-      if (this.sParentName === 'No Parent' || this.sParentName === '') {
-        this.sParentName = {value: this.foldersTree[0].FullName, label: 'No Parent'}
-      }
-      ipcRenderer.send('mail-create-folder', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        iAccountId: this.iEditAccountId,
-        sFolderParentFullNameRaw: this.sParentName.value,
-        sFolderName: this.sNewFolderName,
-        sDelimiter: this.isEditAccount ? this.editFoldersTree[0].Delimiter: this.foldersTree[0].Delimiter
-      })
-      ipcRenderer.once('mail-create-folder', (event, {bResult, oError}) => {
-        if (bResult) {
-          this.sNewFolderName = ''
-          this.sParentName = 'No Parent'
-          this.bCreateFolder = false
-          let parameters = {bEditAccount: this.isEditAccount, iEditAccountId: this.iEditAccountId}
-          this.$store.dispatch('mail/asyncGetFolderList', parameters)
-        } else {
-          notification.showError(errors.getText(oError, 'Error creating folder.'))
-        }
-      })
-    },
-    displaySpecialFoldersDialog() {
-     let arr = this.createFoldersArray(this.isEditAccount ? this.editFoldersTree : this.foldersTree)
-      arr.map(oFolder => {
-      if (oFolder.type) {
-        let folderName = oFolder['value'].split(oFolder.delimiter)
-        folderName = folderName[folderName.length - 1]
-        switch (oFolder.type) {
-          case mailEnums.FolderType.Sent:
-            this.oSpecialFoldersOptions.Sent = {
-              label: folderName,
-              value: oFolder['value']
-            }
-            break
-          case mailEnums.FolderType.Drafts:
-            this.oSpecialFoldersOptions.Drafts = {
-              label: folderName,
-              value: oFolder['value']
-            }
-            break
-          case mailEnums.FolderType.Trash:
-            this.oSpecialFoldersOptions.Trash = {
-              label: folderName,
-              value: oFolder['value']
-            }
-            break
-          case mailEnums.FolderType.Spam:
-            this.oSpecialFoldersOptions.Spam = {
-              label: folderName,
-              value: oFolder['value']
-            }
-            break
-        }
-      }
-      })
-      this.bDisplaySpecialFoldersDialog = true
-    },
-    specialFoldersOptions() {
-      let aFolderList = this.createFoldersArray(this.isEditAccount ? this.editFoldersTree : this.foldersTree)
-      return aFolderList.map(oFolder => {
-        if (oFolder.type) {
-          let folderName = oFolder['value'].split(oFolder.delimiter)
-          folderName = folderName[folderName.length - 1]
-          switch (oFolder.type) {
-            case mailEnums.FolderType.Inbox:
-              oFolder.disable = true
-              oFolder.label = folderName
-              break
-            case mailEnums.FolderType.Sent:
-              oFolder.disable = true
-              oFolder.label = folderName
-              break
-            case mailEnums.FolderType.Drafts:
-              oFolder.disable = true
-              oFolder.label = folderName
-              break
-            case mailEnums.FolderType.Spam:
-              oFolder.disable = true
-              oFolder.label = folderName
-              break
-            case mailEnums.FolderType.Trash:
-              oFolder.disable = true
-              oFolder.label = folderName
-              break
-            case mailEnums.FolderType.Scheduled:
-              oFolder.disable = true
-              oFolder.label = folderName
-              break
-          }
-        }
-        return oFolder
-      })
-    },
-    setupSpecialFolders() {
-      let oParameters = {
-        AccountID: this.iEditAccountId,
-        Sent: this.oSpecialFoldersOptions.Sent.value,
-        Drafts: this.oSpecialFoldersOptions.Drafts.value,
-        Trash: this.oSpecialFoldersOptions.Trash.value,
-        Spam: this.oSpecialFoldersOptions.Spam.value,
-      }
-      ipcRenderer.send('mail-setup-system-folder', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        oParameters: oParameters
-      })
-      ipcRenderer.once('mail-setup-system-folder', (event, {bResult, oError}) => {
-        if (bResult) {
-          let parameters = {bEditAccount: this.isEditAccount, iEditAccountId: this.iEditAccountId}
-          this.$store.dispatch('mail/asyncGetFolderList', parameters)
-          this.bDisplaySpecialFoldersDialog = false
-        } else {
-          notification.showError(errors.getText(oError, 'Error setup special folder.'))
-        }
-      })
-    },
-    updateForward() {
-      if (this.bEnableForward) {
-        let oParameters = {
-          AccountID: this.iEditAccountId,
-          Enable: this.bEnableForward,
-          Email: this.forwardEmail
-        }
-        ipcRenderer.send('mail-update-forward', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          oParameters: oParameters
-        })
-
-        ipcRenderer.once('mail-update-forward', (event, {bResult, oError}) => {
-          if (bResult) {
-
-          } else {
-            notification.showError(errors.getText(oError, 'Error setup forward email.'))
-          }
-        })
-      }
-    },
-    getForward() {
-      if (this.iEditAccountId !== -1) {
-        ipcRenderer.send('mail-get-forward', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iEditAccountId
-        })
-      }
-      ipcRenderer.once('mail-get-forward', (event, {bResult, oError}) => {
-        if (bResult) {
-          this.forwardEmail = bResult.Email
-          this.bEnableForward = bResult.Enable
-        }
-      })
-    },
-    updateAutoresponder() {
-      let oParameters = {
-        AccountID: this.iEditAccountId,
-        Enable: this.oAutoresponder.enableAutoresponder,
-        Subject: this.oAutoresponder.subject,
-        Message: this.oAutoresponder.message
-      }
-      ipcRenderer.send('mail-update-autoresponder', {
-        sApiHost: this.$store.getters['main/getApiHost'],
-        sAuthToken: this.$store.getters['user/getAuthToken'],
-        oParameters: oParameters
-      })
-      ipcRenderer.once('mail-update-autoresponder', (event, {bResult, oError}) => {
-        if (bResult) {
-          notification.showReport('Autoresponder has been updated successfully.')
-        } else {
-          notification.showError(errors.getText(oError, 'Error setup forward email.'))
-        }
-      })
-    },
-    getAutoresponder() {
-      if (this.iEditAccountId !== -1) {
-        ipcRenderer.send('mail-get-autoresponder', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iEditAccountId
-        })
-      }
-      ipcRenderer.once('mail-get-autoresponder', (event, {bResult, oError}) => {
-        if (bResult) {
-          this.oAutoresponder.enableAutoresponder = bResult.Enable
-          this.oAutoresponder.subject = bResult.Subject
-          this.oAutoresponder.message = bResult.Message
-        } else {
-          this.oAutoresponder.enableAutoresponder = false
-          this.oAutoresponder.subject = ''
-          this.oAutoresponder.message = ''
-        }
-      })
-    }
-  },
-
+  }
 }
 </script>
 

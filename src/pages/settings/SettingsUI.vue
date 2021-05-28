@@ -52,13 +52,16 @@ export default {
       splitterModel: 20
     }
   },
-
-/*beforeRouteUpdate (to, from, next) {
-  if (to.path !== "/settings/accounts") {
-    next()
-  } else {
-    next(false)
+  mounted() {
+    this.$router.push('/settings/common')
   }
-  }*/
+
+  /*beforeRouteUpdate (to, from, next) {
+    if (to.path !== "/settings/accounts") {
+      next()
+    } else {
+      next(false)
+    }
+    }*/
 };
 </script>

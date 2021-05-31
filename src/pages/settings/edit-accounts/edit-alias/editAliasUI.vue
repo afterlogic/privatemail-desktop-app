@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import MailAccountsSignatureTab from "../../MailAccountsSignatureTab";
+import MailAccountsSignatureTab from "../MailAccountsSignatureTab";
 import {ipcRenderer} from "electron";
 import cServer from "../../../../modules/mail/classes/cServer";
 import notification from "../../../../utils/notification";

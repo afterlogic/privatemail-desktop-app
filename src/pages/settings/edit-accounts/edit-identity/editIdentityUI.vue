@@ -1,14 +1,13 @@
 <template>
 <div>
   <q-tabs v-if="editIdentity"
-          v-model="identityTab"
           inline-label
           :no-caps=true
           align="left"
           class="flex-start"
   >
-    <q-tab name="props" label="Properties" />
-    <q-tab name="signature" label="Signature" />
+    <q-route-tab :to="'/settings/accounts/identity/' + iEditIdentityAccountId + '/' + iEditIdentityId + '/props'" label="Properties" />
+    <q-route-tab :to="'/settings/accounts/identity/' + iEditIdentityAccountId + '/' + iEditIdentityId + '/signature'" label="Signature" />
   </q-tabs>
 
   <q-separator v-if="editIdentity" />
@@ -19,98 +18,37 @@
                 transition-prev="jump-up"
                 transition-next="jump-up"
   >
-    <q-tab-panel name="props" class="bg-grey-1">
-      <q-list class="non-selectable" style="width: 450px;">
-        <q-item tag="label" :disable="bIdentityDisableDefault">
-          <q-item-section side top>
-            <q-checkbox v-model="bIdentityDefault" :disable="bIdentityDisableDefault" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Set default</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item>
-          <q-item-section>
-            <q-item-label>Your name</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense bg-color="white" class="input-size" v-model="sIdentityName" v-on:keyup.enter="saveIdentitySettings" />
-          </q-item-section>
-        </q-item>
-        <q-item>
-          <q-item-section>
-            <q-item-label>Email</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense bg-color="white" class="input-size" v-if="aIdentityEmailOptions.length === 0" v-model="sIdentityEmail" :disable="bIdentityDisableEmail" v-on:keyup.enter="saveIdentitySettings" />
-            <q-select outlined dense bg-color="white" class="input-size" v-if="aIdentityEmailOptions.length > 0" v-model="sIdentityEmail" :options="aIdentityEmailOptions" />
-          </q-item-section>
-        </q-item>
-        <q-item v-if="!bIdentityIsAccountPart">
-          <q-item-section>
-            <q-item-label>
-              <q-btn unelevated outline color="warning" label="Remove identity" @click="openRemoveIdentityDialog" />
-            </q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-      <q-separator spaced />
-      <div class="q-pa-md">
-        <q-btn unelevated color="primary" v-if="bIdentitySaving" label="Saving..." />
-        <q-btn unelevated color="primary" v-if="!bIdentitySaving" label="Save" @click="saveIdentitySettings" />
-      </div>
-    </q-tab-panel>
-
-    <q-tab-panel name="signature" class="bg-grey-1">
-      <MailAccountsSignatureTab :noSignature="bIdentityNoSignature" :signature="sIdentitySignature" :isSaving="bIdentitySaving" :saveSignature="saveIdentitySettings" />
+    <q-tab-panel name="Static" class="bg-grey-1">
+        <router-view
+          :bIdentityNoSignature="bIdentityNoSignature"
+          :sIdentitySignature="sIdentitySignature"
+          :bIdentitySaving="bIdentitySaving"
+          :saveIdentitySettings="saveIdentitySettings"
+        />
     </q-tab-panel>
   </q-tab-panels>
-  <q-dialog v-model="bRemoveIdentityDialog" persistent>
-    <q-card class="q-px-sm non-selectable">
-      <q-card-section>
-        <div class="text-h6">{{ editIdentity ? editIdentity.getFull() : '' }}</div>
-      </q-card-section>
-
-      <q-item>
-        <q-item-label>Are you sure you want to remove identity?</q-item-label>
-      </q-item>
-
-      <q-card-actions align="right">
-        <q-btn flat label="Ok" color="primary" @click="removeIdentity" v-close-popup />
-        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
 </div>
 </template>
 
 <script>
+import mailSettings from 'src/modules/mail/settings.js'
 import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
-import mailSettings from 'src/modules/mail/settings.js'
-import MailAccountsSignatureTab from '../../MailAccountsSignatureTab.vue'
 
 export default {
   name: "editIdentityUI",
-  components: {
-    MailAccountsSignatureTab,
-  },
   data () {
     return {
       mailTab: 'props',
-      identityTab: 'props',
+      identityTab: 'Static',
       aliasTab: 'props',
 
       iEditIdentityId: -1,
       iEditIdentityAccountId: -1,
       iEditAliasAccountId: -1,
       iEditAliasId: -1,
-
-      // enableAutoresponder: false,
-      // autoresponderSubject: '',
-      // autoresponderMessage: '',
-      // enableForward: '',
+      iEditAccountId: -1,
       forwardEmail: '',
 
       bDefaultAccount: false,
@@ -145,16 +83,9 @@ export default {
       bWarningAboutLogoutDialog: false,
 
       bAllowIdentities: false,
-      bIdentityIsAccountPart: false,
-      bIdentityDefault: false,
-      bIdentityDisableDefault: false,
-      sIdentityName: '',
-      sIdentityEmail: '',
       aIdentityEmailOptions: [],
-      bIdentityDisableEmail: false,
       bIdentityNoSignature: false,
       sIdentitySignature: '',
-      bIdentitySaving: false,
       bRemoveIdentityDialog: false,
       bNewIdentityDialog: false,
       sNewIdentityName: '',
@@ -193,7 +124,8 @@ export default {
         enableAutoresponder: false,
         subject: '',
         message: ''
-      }
+      },
+      bIdentitySaving: false,
     }
   },
   mounted() {
@@ -225,13 +157,16 @@ export default {
     this.iEditIdentityId = Number(this.$route.params.identityId)
     this.iEditAliasAccountId = -1
     this.iEditAliasId = -1
-    this.changeEditIdentity(Number(this.$route.params.identityId), Number(this.$route.params.accountId))
     this.initSubscriptions()
+    this.changeEditIdentity(Number(this.$route.params.identityId), Number(this.$route.params.accountId))
   },
-  beforeDestroy: function () {
+  beforeDestroy() {
     this.destroySubscriptions()
   },
   computed: {
+    accounts () {
+      return this.$store.getters['mail/getAccounts']
+    },
     editIdentity () {
       let aIdentityAccountIdentities = this.identities[Number(this.$route.params.accountId)] || []
       return _.find(aIdentityAccountIdentities, (oIdentity) => {
@@ -244,11 +179,15 @@ export default {
   },
   watch: {
     '$route.params.identityId': function () {
+      this.iIdentityId = Number(this.$route.params.identityId)
       this.iEditAccountId = -1
       this.iEditIdentityAccountId = Number(this.$route.params.accountId)
       this.iEditIdentityId = Number(this.$route.params.identityId)
       this.iEditAliasAccountId = -1
       this.iEditAliasId = -1
+      if (this.editIdentity) {
+        this.bIdentityNoSignature = !this.editIdentity.bUseSignature
+      }
       this.changeEditIdentity(Number(this.$route.params.identityId), Number(this.$route.params.accountId))
     },
     editIdentity () {
@@ -276,54 +215,13 @@ export default {
         this.sIdentitySignature = this.editIdentity.sSignature
       }
     },
+    accounts () {
+      if (!this.editAccount && this.accounts.length > 0) {
+        this.iEditAccountId = this.accounts[0].iAccountId
+      }
+    },
   },
   methods: {
-    changeEditIdentity(iIdentityId, iIdentityAccountId) {
-      this.iEditAccountId = -1
-      this.iEditIdentityAccountId = iIdentityAccountId
-      this.iEditIdentityId = iIdentityId
-      this.iEditAliasAccountId = -1
-      this.iEditAliasId = -1
-    },
-    saveIdentitySettings(bIdentityNoSignature, sIdentitySignature) {
-      if (this.editIdentity) {
-        this.bIdentitySaving = true
-        ipcRenderer.send('mail-save-identity-settings', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.editIdentity.iIdAccount,
-          iIdentityId: this.iEditIdentityId,
-          bDefault: (this.identityTab === 'props') ? this.bIdentityDefault : undefined,
-          sName: (this.identityTab === 'props') ? this.sIdentityName : undefined,
-          sEmail: (this.identityTab === 'props') ? this.sIdentityEmail : undefined,
-          bNoSignature: (this.identityTab === 'signature') ? bIdentityNoSignature : undefined,
-          sSignature: (this.identityTab === 'signature') ? sIdentitySignature : undefined,
-        })
-      }
-    },
-    openRemoveIdentityDialog() {
-      if (!this.bIdentityIsAccountPart) {
-        this.bRemoveIdentityDialog = true
-      }
-    },
-    removeIdentity() {
-      if (!this.bIdentityIsAccountPart) {
-        ipcRenderer.send('mail-remove-identity', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iEditIdentityAccountId,
-          iIdentityId: this.iEditIdentityId,
-        })
-      }
-    },
-    onRemoveIdentity(oEvent, {bResult, oError}) {
-      if (bResult) {
-        notification.showReport('Identity was successfully removed.')
-        this.$store.dispatch('mail/asyncGetIdentities')
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while removing identity.'))
-      }
-    },
     onSaveIdentitySettings(oEvent, {
       bResult,
       iAccountId,
@@ -360,14 +258,34 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
       }
     },
+    changeEditIdentity(iIdentityId, iIdentityAccountId) {
+      this.iEditAccountId = -1
+      this.iEditIdentityAccountId = iIdentityAccountId
+      this.iEditIdentityId = iIdentityId
+      this.iEditAliasAccountId = -1
+      this.iEditAliasId = -1
+    },
+    saveIdentitySettings (bIdentityNoSignature, sIdentitySignature) {
+      if (this.editIdentity) {
+        this.bIdentitySaving = true
+        ipcRenderer.send('mail-save-identity-settings', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.editIdentity.iIdAccount,
+          iIdentityId: this.iEditIdentityId,
+          bDefault: undefined,
+          sName: undefined,
+          sEmail: undefined,
+          bNoSignature: bIdentityNoSignature,
+          sSignature: sIdentitySignature,
+        })
+      }
+    },
     initSubscriptions() {
-      ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
-      ipcRenderer.on('mail-remove-identity', this.onRemoveIdentity)
-
+      ipcRenderer.on('mail-save-identity-settings-signature', this.onSaveIdentitySettings)
     },
     destroySubscriptions() {
-      ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
-      ipcRenderer.removeListener('mail-remove-identity', this.onRemoveIdentity)
+      ipcRenderer.removeListener('mail-save-identity-settings-signature', this.onSaveIdentitySettings)
     },
   }
 }

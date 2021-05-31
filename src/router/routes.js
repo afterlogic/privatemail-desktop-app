@@ -34,7 +34,14 @@ const routes = [
                   {path: 'autoresponder', component: () => import('pages/settings/edit-accounts/edit-account/Autoresponder.vue')},
                 ]
               },
-              { path: 'identity/:accountId/:identityId', component: () => import('pages/settings/edit-accounts/edit-identity/editIdentityUI.vue') },
+              {
+                path: 'identity/:accountId/:identityId',
+                component: () => import('pages/settings/edit-accounts/edit-identity/editIdentityUI.vue'),
+                children: [
+                  {path: 'props', component: () => import('pages/settings/edit-accounts/edit-identity/Properties.vue')},
+                  {path: 'signature', component: () => import('pages/settings/edit-accounts/edit-identity/Signature.vue')},
+                ]
+              },
               { path: 'alias/:accountId/:aliasId', component: () => import('pages/settings/edit-accounts/edit-alias/editAliasUI.vue') },
             ]
           },

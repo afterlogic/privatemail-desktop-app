@@ -490,8 +490,8 @@ export default {
       this.iEditIdentityId = iIdentityId
       this.iEditAliasAccountId = -1
       this.iEditAliasId = -1
-      if (this.$route.path !== `/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}`) {
-        this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}`)
+      if (this.$route.path !== `/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`) {
+        this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`)
       }
     },
     changeEditAlias(iAliasId, iAliasAccountId) {

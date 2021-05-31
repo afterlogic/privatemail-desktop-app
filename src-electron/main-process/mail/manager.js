@@ -692,9 +692,17 @@ export default {
                 sSignature,
               })
             }
-            oEvent.sender.send('mail-save-identity-settings', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, oError })
+            if (sSignature === undefined) {
+              oEvent.sender.send('mail-save-identity-settings-properties', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, oError })
+            } else {
+              oEvent.sender.send('mail-save-identity-settings-signature', { bResult, iAccountId, iIdentityId, bDefault, sName, sEmail, bNoSignature, sSignature, oError })
+            }
           } else {
-            oEvent.sender.send('mail-save-identity-settings', { bResult, oError })
+            if (sSignature === undefined) {
+              oEvent.sender.send('mail-save-identity-settings-properties', { bResult, oError })
+            } else {
+              oEvent.sender.send('mail-save-identity-settings-signature', { bResult, oError })
+            }
           }
         },
       })

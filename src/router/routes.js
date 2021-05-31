@@ -24,9 +24,18 @@ const routes = [
             path: 'accounts',
             component: () => import('pages/settings/MailAccounts.vue'),
             children: [
-              { path: 'account/:accountId', component: () => import('pages/settings/edit-accounts/editAccountsUI.vue') },
-              { path: 'identity/:accountId/:identityId', component: () => import('pages/settings/edit-accounts/editIdentityUI.vue') },
-              { path: 'alias/:accountId/:aliasId', component: () => import('pages/settings/edit-accounts/editAliasUI.vue') },
+              {
+                path: 'account/:accountId',
+                component: () => import('pages/settings/edit-accounts/edit-account/editAccountsUI.vue'),
+                children: [
+                  {path: 'props', component: () => import('pages/settings/edit-accounts/edit-account/Properties.vue')},
+                  {path: 'folders', component: () => import('pages/settings/edit-accounts/edit-account/ManageFolders.vue')},
+                  {path: 'forward', component: () => import('pages/settings/edit-accounts/edit-account/Forward.vue')},
+                  {path: 'autoresponder', component: () => import('pages/settings/edit-accounts/edit-account/Autoresponder.vue')},
+                ]
+              },
+              { path: 'identity/:accountId/:identityId', component: () => import('pages/settings/edit-accounts/edit-identity/editIdentityUI.vue') },
+              { path: 'alias/:accountId/:aliasId', component: () => import('pages/settings/edit-accounts/edit-alias/editAliasUI.vue') },
             ]
           },
           { path: 'contacts', component: () => import('pages/settings/Contacts.vue') },

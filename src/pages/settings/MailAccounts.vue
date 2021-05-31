@@ -159,61 +159,6 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <q-dialog v-model="bChangeAccountPasswordDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
-        <q-card-section>
-          <div class="text-h6">Change password</div>
-        </q-card-section>
-
-        <q-item>
-          <q-item-section>
-            <q-item-label>Current password</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense class="input-size" type="password" v-model="sChangePasswordCurrent" v-on:keyup.enter="changePassword" />
-          </q-item-section>
-        </q-item>
-        <q-item>
-          <q-item-section>
-            <q-item-label>New password</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense class="input-size" type="password" v-model="sChangePasswordNew" v-on:keyup.enter="changePassword" />
-          </q-item-section>
-        </q-item>
-        <q-item>
-          <q-item-section>
-            <q-item-label>Confirm new password</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense class="input-size" type="password" v-model="sChangePasswordConfirmNew" v-on:keyup.enter="changePassword" />
-          </q-item-section>
-        </q-item>
-        <q-card-actions align="right">
-          <q-btn flat label="Saving..." color="primary" v-if="bChangingPassword" />
-          <q-btn flat label="Save" color="primary" @click="changePassword" v-if="!bChangingPassword" />
-          <q-btn flat label="Cancel" color="grey-6" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="bWarningAboutLogoutDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
-        <q-card-section>
-          <div class="text-h6"></div>
-        </q-card-section>
-
-        <q-item>
-          <q-item-label>Your password has been changed. You will be redirected to login page.</q-item-label>
-        </q-item>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Ok" color="primary" @click="logoutAfterChangePassword" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <q-dialog v-model="bNewIdentityDialog" persistent>
       <q-card class="q-px-sm non-selectable">
         <q-card-section>
@@ -291,17 +236,10 @@
 
 <script>
 import { ipcRenderer } from 'electron'
-
 import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
-import typesUtils from 'src/utils/types.js'
-
 import cServer from 'src/modules/mail/classes/cServer.js'
-
 import mailSettings from 'src/modules/mail/settings.js'
-
-
-import mailEnums from "../../modules/mail/enums";
 
 export default {
   name: 'MailAccounts',
@@ -318,10 +256,6 @@ export default {
       iEditAliasAccountId: -1,
       iEditAliasId: -1,
 
-      // enableAutoresponder: false,
-      // autoresponderSubject: '',
-      // autoresponderMessage: '',
-      // enableForward: '',
        forwardEmail: '',
 
       bDefaultAccount: false,
@@ -353,7 +287,6 @@ export default {
       sChangePasswordNew: '',
       sChangePasswordConfirmNew: '',
       bChangingPassword: false,
-      bWarningAboutLogoutDialog: false,
 
       bAllowIdentities: false,
       bIdentityIsAccountPart: false,
@@ -387,24 +320,6 @@ export default {
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
       nTotal: 0,
-      bCreateFolder: false,
-      aFolderList: [],
-      sNewFolderName: '',
-      sParentName: 'No Parent',
-      bDisplaySpecialFoldersDialog: false,
-      oSpecialFoldersOptions: {
-        'Sent': '',
-        'Drafts': '',
-        'Trash': '',
-        'Spam': ''
-      },
-      isEditAccount: false,
-      bEnableForward: false,
-      oAutoresponder: {
-        enableAutoresponder: false,
-        subject: '',
-        message: ''
-      }
     }
   },
 
@@ -458,12 +373,6 @@ export default {
       }
       return null
     },
-    foldersTree () {
-      return this.$store.getters['mail/getCurrentFoldersTree']
-    },
-   editFoldersTree () {
-      return this.$store.getters['mail/getEditFoldersTree']
-    }
   },
 
   watch: {
@@ -471,6 +380,9 @@ export default {
       if (!this.editAccount && this.accounts.length > 0) {
         this.iEditAccountId = this.accounts[0].iAccountId
       }
+    },
+    '$route.params.accountId': function () {
+      this.iEditAccountId = Number(this.$route.params.accountId)
     },
     editIdentity () {
       if (this.editIdentity) {
@@ -542,7 +454,8 @@ export default {
   },
 
   mounted () {
-    this.$router.push(`/settings/accounts/account/${this.accounts[0].iAccountId}`)
+    this.iEditAccountId =  Number(this.$route.params.accountId)
+    this.$router.push(`/settings/accounts/account/${this.accounts[0].iAccountId}/props`)
     this.bAllowIdentities = mailSettings.bAllowIdentities
     this.bAllowAliases = mailSettings.bAllowAliases
     this.initSubscriptions()
@@ -566,7 +479,10 @@ export default {
       this.iEditIdentityId = -1
       this.iEditAliasAccountId = -1
       this.iEditAliasId = -1
-      this.$router.push(`/settings/accounts/account/${iAccountId}`)
+      if (this.$route.path !== `/settings/accounts/account/${iAccountId}`) {
+        this.$router.push(`/settings/accounts/account/${iAccountId}/props`)
+      }
+
     },
     changeEditIdentity(iIdentityId, iIdentityAccountId) {
       this.iEditAccountId = -1
@@ -574,7 +490,9 @@ export default {
       this.iEditIdentityId = iIdentityId
       this.iEditAliasAccountId = -1
       this.iEditAliasId = -1
-      this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}`)
+      if (this.$route.path !== `/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}`) {
+        this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}`)
+      }
     },
     changeEditAlias(iAliasId, iAliasAccountId) {
       this.iEditAccountId = -1
@@ -582,31 +500,11 @@ export default {
       this.iEditIdentityId = -1
       this.iEditAliasAccountId = iAliasAccountId
       this.iEditAliasId = iAliasId
-      this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}`)
-    },
-    onSaveAccountSettings(oEvent, {bResult, iAccountId, bUseThreading, bSaveRepliesToCurrFolder, oError}) {
-      this.bAccountSaving = false
-      if (bResult) {
-        notification.showReport('Settings have been updated successfully.')
-        this.$store.commit('mail/setAccountSettings', {iAccountId, bUseThreading, bSaveRepliesToCurrFolder})
-        this.$store.dispatch('mail/asyncRefresh', false)
-        if (iAccountId === this.iEditAccountId) {
-          this.bUseThreading = bUseThreading
-          this.bSaveRepliesToCurrFolder = bSaveRepliesToCurrFolder
-        }
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
+      if (this.$route.path !== `/settings/accounts/alias/${iAliasAccountId}/${iAliasId}`) {
+        this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}`)
       }
     },
 
-    onRemoveAccount(oEvent, {bResult, iAccountId, oError}) {
-      if (bResult) {
-        notification.showReport('Account was successfully removed.')
-        this.$store.commit('mail/removeAccount', {iAccountId})
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while removing account.'))
-      }
-    },
     openAddNewAccountDialog() {
       if (this.allowAddNewAccount) {
         this.bAddingNewAccount = false
@@ -628,38 +526,6 @@ export default {
         }
         this.bAddNewAccountDialog = true
       }
-    },
-    openChangePassword() {
-      this.bChangeAccountPasswordDialog = true
-      this.sChangePasswordCurrent = ''
-      this.sChangePasswordNew = ''
-      this.sChangePasswordConfirmNew = ''
-    },
-    changePassword() {
-      if (this.sChangePasswordNew !== this.sChangePasswordConfirmNew) {
-        notification.showError('Passwords do not match')
-      } else {
-        this.bChangingPassword = true
-        ipcRenderer.send('mail-change-password', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.iEditAccountId,
-          sCurrentPassword: this.sChangePasswordCurrent,
-          sNewPassword: this.sChangePasswordNew,
-        })
-      }
-    },
-    onChangePassword(oEvent, {bResult, oError}) {
-      this.bChangingPassword = false
-      if (bResult) {
-        notification.showReport('Password was successfully changed.')
-        this.bWarningAboutLogoutDialog = true
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while changing password.'))
-      }
-    },
-    logoutAfterChangePassword() {
-      this.$router.push({path: '/login'})
     },
     addNewAccount() {
       if (this.bSecondStepOfAddAccount) {
@@ -828,30 +694,16 @@ export default {
 
 
     initSubscriptions() {
-      //ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
-      ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.on('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.on('mail-add-new-account-full', this.onAddNewAccount)
-     // ipcRenderer.on('mail-save-identity-settings', this.onSaveIdentitySettings)
       ipcRenderer.on('mail-add-new-identity', this.onAddNewIdentity)
-      //ipcRenderer.on('mail-remove-identity', this.onRemoveIdentity)
-      //ipcRenderer.on('mail-save-alias-settings', this.onSaveAliasSettings)
       ipcRenderer.on('mail-add-new-alias', this.onAddNewAlias)
-      //ipcRenderer.on('mail-remove-alias', this.onRemoveAlias)
-      ipcRenderer.on('mail-change-password', this.onChangePassword)
     },
     destroySubscriptions() {
-      //ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
-      ipcRenderer.removeListener('mail-remove-account', this.onRemoveAccount)
       ipcRenderer.removeListener('mail-add-new-account', this.onAddNewAccount)
       ipcRenderer.removeListener('mail-add-new-account-full', this.onAddNewAccount)
-     // ipcRenderer.removeListener('mail-save-identity-settings', this.onSaveIdentitySettings)
       ipcRenderer.removeListener('mail-add-new-identity', this.onAddNewIdentity)
-      //ipcRenderer.removeListener('mail-remove-identity', this.onRemoveIdentity)
-      //ipcRenderer.removeListener('mail-save-alias-settings', this.onSaveAliasSettings)
       ipcRenderer.removeListener('mail-add-new-alias', this.onAddNewAlias)
-      //ipcRenderer.removeListener('mail-remove-alias', this.onRemoveAlias)
-      ipcRenderer.removeListener('mail-change-password', this.onChangePassword)
     },
   }
 }

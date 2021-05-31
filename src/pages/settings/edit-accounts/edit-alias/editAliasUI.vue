@@ -68,12 +68,11 @@
 </template>
 
 <script>
-import MailAccountsSignatureTab from "../MailAccountsSignatureTab";
+import MailAccountsSignatureTab from "../../MailAccountsSignatureTab";
 import {ipcRenderer} from "electron";
-import mailSettings from "../../../modules/mail/settings";
-import cServer from "../../../modules/mail/classes/cServer";
-import notification from "../../../utils/notification";
-import errors from "../../../utils/errors";
+import cServer from "../../../../modules/mail/classes/cServer";
+import notification from "../../../../utils/notification";
+import errors from "../../../../utils/errors";
 
 export default {
   name: "editAliasUI",
@@ -91,10 +90,6 @@ export default {
       iEditAliasAccountId: -1,
       iEditAliasId: -1,
 
-      // enableAutoresponder: false,
-      // autoresponderSubject: '',
-      // autoresponderMessage: '',
-      // enableForward: '',
       forwardEmail: '',
 
       bDefaultAccount: false,

@@ -35,13 +35,13 @@
   </q-item>
   <q-separator inset />
   <template v-if="folder.SubFolders">
-    <ManageFolders
+    <EditFolders
       v-for="subfolder in folder.SubFolders" :key="subfolder.Hash" :folder="subfolder"
       :level="folder.Namespaced ? level : level + 1"
       :currentFolderFullName="currentFolderFullName"
       :isEditAccount="isEditAccount"
       :iAccountId="iAccountId">
-    </ManageFolders>
+    </EditFolders>
   </template>
   <q-dialog v-model="bConfirm" persistent>
     <q-card>
@@ -59,17 +59,19 @@
 </template>
 
 <script>
-import ManageFolders  from './ManageFolders'
+import EditFolders  from './EditFolders'
 import {ipcRenderer} from "electron";
-import notification from "../../utils/notification";
-import errors from "../../utils/errors";
+import notification from "../../../../utils/notification";
+import errors from "../../../../utils/errors";
 export default {
-  name: "ManageFolders",
+  name: "EditFolders",
   components: {
-    ManageFolders
+    EditFolders
   },
   props: {
-    folder: Object,
+    folder: {
+      type: Object
+    },
     currentFolderFullName: String,
     level: {
       type: Number,

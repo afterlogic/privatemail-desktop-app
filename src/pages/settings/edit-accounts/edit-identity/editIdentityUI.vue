@@ -86,10 +86,10 @@
 
 <script>
 import {ipcRenderer} from "electron";
-import notification from "../../../utils/notification";
-import errors from "../../../utils/errors";
+import notification from "../../../../utils/notification";
+import errors from "../../../../utils/errors";
 import mailSettings from 'src/modules/mail/settings.js'
-import MailAccountsSignatureTab from '../MailAccountsSignatureTab.vue'
+import MailAccountsSignatureTab from '../../MailAccountsSignatureTab.vue'
 
 export default {
   name: "editIdentityUI",

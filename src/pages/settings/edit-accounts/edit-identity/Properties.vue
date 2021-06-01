@@ -146,6 +146,10 @@ export default {
         this.sIdentitySignature = this.editIdentity.sSignature
       }
     },
+    '$route.params.identityId': function () {
+      this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
+      this.iEditIdentityId = Number(this.$route.params.identityId)
+    },
   },
   beforeDestroy() {
     this.destroySubscriptions()

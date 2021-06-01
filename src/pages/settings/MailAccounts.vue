@@ -246,22 +246,12 @@ export default {
 
   data () {
     return {
-      mailTab: 'props',
-      identityTab: 'props',
-      aliasTab: 'props',
-
       iEditAccountId: -1,
       iEditIdentityId: -1,
       iEditIdentityAccountId: -1,
       iEditAliasAccountId: -1,
       iEditAliasId: -1,
 
-       forwardEmail: '',
-
-      bDefaultAccount: false,
-      bUseThreading: false,
-      bSaveRepliesToCurrFolder: false,
-      bAccountSaving: false,
       bAddNewAccountDialog: false,
       sNewAccountName: '',
       sNewAccountEmail: '',
@@ -292,14 +282,7 @@ export default {
       bIdentityIsAccountPart: false,
       bIdentityDefault: false,
       bIdentityDisableDefault: false,
-      sIdentityName: '',
-      sIdentityEmail: '',
-      aIdentityEmailOptions: [],
-      bIdentityDisableEmail: false,
-      bIdentityNoSignature: false,
-      sIdentitySignature: '',
-      bIdentitySaving: false,
-      bRemoveIdentityDialog: false,
+
       bNewIdentityDialog: false,
       sNewIdentityName: '',
       sNewIdentityEmail: '',
@@ -309,17 +292,12 @@ export default {
       bNewIdentityAdding: '',
 
       bAllowAliases: false,
-      sAliasName: '',
-      bAliasNoSignature: false,
-      sAliasSignature: '',
-      bAliasSaving: false,
-      bRemoveAliasDialog: false,
+
       bNewAliasDialog: false,
       sNewAliasName: '',
       sNewAliasDomain: '',
       aNewAliasDomainOptions: [],
       bNewAliasAdding: false,
-      nTotal: 0,
     }
   },
 
@@ -355,24 +333,6 @@ export default {
     identities () {
       return this.$store.getters['mail/getIdentities']
     },
-    editIdentity () {
-      let aIdentityAccountIdentities = this.identities[this.iEditIdentityAccountId] || []
-      return _.find(aIdentityAccountIdentities, (oIdentity) => {
-        return oIdentity.iEntityId === this.iEditIdentityId
-      })
-    },
-    editAlias () {
-      let aAliasAccount = _.find(this.accounts, (oAccount) => {
-        return oAccount.iAccountId === this.iEditAliasAccountId
-      })
-
-      if (_.isArray(aAliasAccount && aAliasAccount.aAliases)) {
-        return _.find(aAliasAccount.aAliases, (oAlias) => {
-          return oAlias.iEntityId === this.iEditAliasId
-        })
-      }
-      return null
-    },
   },
 
   watch: {
@@ -381,34 +341,7 @@ export default {
         this.iEditAccountId = this.accounts[0].iAccountId
       }
     },
-    '$route.params.accountId': function () {
-      this.iEditAccountId = Number(this.$route.params.accountId)
-    },
-    editIdentity () {
-      if (this.editIdentity) {
-        this.bIdentityIsAccountPart = this.iEditIdentityId === 0
-        this.bIdentityDefault = this.editIdentity.bDefault
-        this.bIdentityDisableDefault = this.editIdentity.bDefault
-        this.sIdentityName = this.editIdentity.sFriendlyName
-        this.sIdentityEmail = this.editIdentity.sEmail
-        let oIdentityAccount = _.find(this.accounts, (oAccount) => {
-          return oAccount.iAccountId === this.editIdentity.iIdAccount
-        })
-        if (!this.bIdentityIsAccountPart && oIdentityAccount && _.isArray(oIdentityAccount.aAliases)) {
-          this.aIdentityEmailOptions = _.map(oIdentityAccount.aAliases, (oAlias) => {
-            return oAlias.sEmail
-          })
-        } else {
-          this.aIdentityEmailOptions = []
-        }
-        if (this.aIdentityEmailOptions.length > 0) {
-          this.aIdentityEmailOptions.unshift(oIdentityAccount.sEmail)
-        }
-        this.bIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
-        this.bIdentityNoSignature = !this.editIdentity.bUseSignature
-        this.sIdentitySignature = this.editIdentity.sSignature
-      }
-    },
+
     bNewAccountImapSsl () {
       if (this.bNewAccountImapSsl && this.iNewAccountImapPort === 143) {
         this.iNewAccountImapPort = 993
@@ -444,21 +377,15 @@ export default {
         this.bNewAccountSmtpAuth = true
       }
     },
-    editAlias () {
-      if (this.editAlias) {
-        this.sAliasName = this.editAlias.sFriendlyName
-        this.bAliasNoSignature = !this.editAlias.bUseSignature
-        this.sAliasSignature = this.editAlias.sSignature
-      }
-    },
   },
 
   mounted () {
-    this.iEditAccountId =  Number(this.$route.params.accountId)
-    this.$router.push(`/settings/accounts/account/${this.accounts[0].iAccountId}/props`)
-    this.bAllowIdentities = mailSettings.bAllowIdentities
-    this.bAllowAliases = mailSettings.bAllowAliases
-    this.initSubscriptions()
+    if (this.accounts.length) {
+      this.iEditAccountId =  Number(this.$route.params.accountId)
+      this.bAllowIdentities = mailSettings.bAllowIdentities
+      this.bAllowAliases = mailSettings.bAllowAliases
+      this.initSubscriptions()
+    }
   },
 
   beforeDestroy: function () {
@@ -467,41 +394,41 @@ export default {
 
   methods: {
     changeEditAccount(iAccountId) {
-      if (iAccountId !== this.$store.getters['mail/getCurrentAccountId']) {
-        this.isEditAccount = true
-        let parameters = {bEditAccount: true, iEditAccountId: iAccountId}
-        this.$store.dispatch('mail/asyncGetFolderList', parameters)
-      } else {
-        this.isEditAccount = false
-      }
-      this.iEditAccountId = iAccountId
-      this.iEditIdentityAccountId = -1
-      this.iEditIdentityId = -1
-      this.iEditAliasAccountId = -1
-      this.iEditAliasId = -1
-      if (this.$route.path !== `/settings/accounts/account/${iAccountId}`) {
+      if (this.$route.path !== `/settings/accounts/account/${iAccountId}/props`) {
+        if (iAccountId !== this.$store.getters['mail/getCurrentAccountId']) {
+          this.isEditAccount = true
+          let parameters = {bEditAccount: true, iEditAccountId: iAccountId}
+          this.$store.dispatch('mail/asyncGetFolderList', parameters)
+        } else {
+          this.isEditAccount = false
+        }
+        this.iEditAccountId = iAccountId
+        this.iEditIdentityAccountId = -1
+        this.iEditIdentityId = -1
+        this.iEditAliasAccountId = -1
+        this.iEditAliasId = -1
         this.$router.push(`/settings/accounts/account/${iAccountId}/props`)
       }
 
     },
     changeEditIdentity(iIdentityId, iIdentityAccountId) {
-      this.iEditAccountId = -1
-      this.iEditIdentityAccountId = iIdentityAccountId
-      this.iEditIdentityId = iIdentityId
-      this.iEditAliasAccountId = -1
-      this.iEditAliasId = -1
       if (this.$route.path !== `/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`) {
+        this.iEditAccountId = -1
+        this.iEditIdentityAccountId = iIdentityAccountId
+        this.iEditIdentityId = iIdentityId
+        this.iEditAliasAccountId = -1
+        this.iEditAliasId = -1
         this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`)
       }
     },
     changeEditAlias(iAliasId, iAliasAccountId) {
-      this.iEditAccountId = -1
-      this.iEditIdentityAccountId = -1
-      this.iEditIdentityId = -1
-      this.iEditAliasAccountId = iAliasAccountId
-      this.iEditAliasId = iAliasId
-      if (this.$route.path !== `/settings/accounts/alias/${iAliasAccountId}/${iAliasId}`) {
-        this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}`)
+      if (this.$route.path !== `/settings/accounts/alias/${iAliasAccountId}/${iAliasId}/props`) {
+        this.iEditAccountId =  -1
+        this.iEditIdentityAccountId = -1
+        this.iEditIdentityId = -1
+        this.iEditAliasAccountId = iAliasAccountId
+        this.iEditAliasId = iAliasId
+        this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}/props`)
       }
     },
 
@@ -641,20 +568,6 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while adding identity.'))
       }
     },
-    saveAliasSettings(bAliasNoSignature, sAliasSignature) {
-      if (this.editAlias) {
-        this.bAliasSaving = true
-        ipcRenderer.send('mail-save-alias-settings', {
-          sApiHost: this.$store.getters['main/getApiHost'],
-          sAuthToken: this.$store.getters['user/getAuthToken'],
-          iAccountId: this.editAlias.iIdAccount,
-          iAliasId: this.iEditAliasId,
-          sName: (this.aliasTab === 'props') ? this.sAliasName : undefined,
-          bNoSignature: (this.aliasTab === 'signature') ? bAliasNoSignature : undefined,
-          sSignature: (this.aliasTab === 'signature') ? sAliasSignature : undefined,
-        })
-      }
-    },
     openAddNewAliasDialog(iAccountId) {
       let oAccount = _.find(this.accounts, (oTmpAccount) => {
         return oTmpAccount.iAccountId === iAccountId
@@ -688,10 +601,6 @@ export default {
         notification.showError(errors.getText(oError, 'Error occurred while adding alias.'))
       }
     },
-    openRemoveAliasDialog() {
-      this.bRemoveAliasDialog = true
-    },
-
 
     initSubscriptions() {
       ipcRenderer.on('mail-add-new-account', this.onAddNewAccount)
@@ -708,10 +617,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.folders-line {
-  padding: 0 0 5px 15px;
-  font-size: 9pt;
-}
-</style>

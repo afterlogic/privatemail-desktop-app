@@ -12,7 +12,7 @@
           >
             <q-route-tab to="/settings/common" tag="q-tab" icon="settings" label="Common" style="justify-content: start;"/>
             <q-route-tab to="/settings/mail" icon="mail" label="Mail" style="justify-content: start;" />
-            <q-route-tab to="/settings/accounts" icon="mail" label="Mail accounts" style="justify-content: start;" />
+            <q-route-tab :to="accounts.length ? '/settings/accounts/account/' + accounts[0].iAccountId + '/props' : ''" icon="mail" label="Mail accounts" style="justify-content: start;" />
             <q-route-tab to="/settings/contacts" icon="contacts" label="Contacts" style="justify-content: start;" />
             <!-- <q-tab name="calendar" icon="calendar" label="Calendar" style="justify-content: start;" />
             <q-tab name="files" icon="folder" label="Files" style="justify-content: start;" />
@@ -48,14 +48,14 @@ export default {
   data () {
     return {
       tab: 'static',
-      mailTab: 'props',
       splitterModel: 20
     }
   },
-  mounted() {
-    this.$router.push('/settings/common')
+  computed: {
+    accounts () {
+      return this.$store.getters['mail/getAccounts']
+    },
   }
-
   /*beforeRouteUpdate (to, from, next) {
     if (to.path !== "/settings/accounts") {
       next()

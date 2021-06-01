@@ -569,9 +569,17 @@ export default {
         oParameters,
         fCallback: (bResult, oError) => {
           if (bResult) {
-            oEvent.sender.send('mail-save-alias-settings', { bResult, iAccountId, iAliasId, sName, bNoSignature, sSignature, oError })
+            if (sSignature === undefined) {
+              oEvent.sender.send('mail-save-alias-settings-properties', { bResult, iAccountId, iAliasId, sName, bNoSignature, sSignature, oError })
+            } else {
+              oEvent.sender.send('mail-save-alias-settings-signature', { bResult, iAccountId, iAliasId, sName, bNoSignature, sSignature, oError })
+            }
           } else {
-            oEvent.sender.send('mail-save-alias-settings', { bResult, oError })
+            if (sSignature === undefined) {
+              oEvent.sender.send('mail-save-alias-settings-properties', { bResult, oError })
+            } else {
+              oEvent.sender.send('mail-save-alias-settings-signature', { bResult, oError })
+            }
           }
         },
       })

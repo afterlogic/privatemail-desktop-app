@@ -42,7 +42,13 @@ const routes = [
                   {path: 'signature', component: () => import('pages/settings/edit-accounts/edit-identity/Signature.vue')},
                 ]
               },
-              { path: 'alias/:accountId/:aliasId', component: () => import('pages/settings/edit-accounts/edit-alias/editAliasUI.vue') },
+              { path: 'alias/:accountId/:aliasId',
+                component: () => import('pages/settings/edit-accounts/edit-alias/editAliasUI.vue'),
+                children: [
+                  {path: 'props', component: () => import('pages/settings/edit-accounts/edit-alias/Properties.vue')},
+                  {path: 'signature', component: () => import('pages/settings/edit-accounts/edit-alias/Signature.vue')},
+                ]
+              },
             ]
           },
           { path: 'contacts', component: () => import('pages/settings/Contacts.vue') },

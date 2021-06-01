@@ -1,5 +1,8 @@
 <template>
   <div>
+    <div class="progress-bar-prompt q-px-lg">
+      <router-link :to="'/settings/accounts/account/' + currentAccountId + '/folders'" class="text-primary">Manage folders</router-link>
+    </div>
     <div class="progress-bar q-px-lg">
       <div class="progress-bar-container">
         <div class="progress-bar-line bg-primary" :style="{width: `${mailboxBusy}%`}"></div>
@@ -50,7 +53,9 @@ export default {
       }
       return 0
     },
-
+    currentAccountId() {
+      return this.$store.getters['mail/getCurrentAccountId']
+    },
     busyMemory() {
       let accountQuota = this.$store.getters['mail/getAccountQuota']
       if (accountQuota.length) {

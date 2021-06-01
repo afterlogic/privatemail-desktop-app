@@ -46,41 +46,7 @@ export default {
 
       iEditIdentityId: -1,
       iEditIdentityAccountId: -1,
-      iEditAliasAccountId: -1,
-      iEditAliasId: -1,
       iEditAccountId: -1,
-      forwardEmail: '',
-
-      bDefaultAccount: false,
-      bUseThreading: false,
-      bSaveRepliesToCurrFolder: false,
-      bAccountSaving: false,
-      bAddNewAccountDialog: false,
-      sNewAccountName: '',
-      sNewAccountEmail: '',
-      sNewAccountPassword: '',
-      bAddingNewAccount: false,
-      bSecondStepOfAddAccount: false,
-      sNewAccountLogin: '',
-      oNewAccountServer: {
-        label: 'Configure manually',
-        value: null,
-      },
-      sNewAccountImapServer: '',
-      sNewAccountImapPort: 143,
-      bNewAccountImapSsl: false,
-      sNewAccountSmtpServer: '',
-      iNewAccountSmtpPort: 25,
-      bNewAccountSmtpSsl: false,
-      bNewAccountSmtpAuth: true,
-
-      bAllowChangePasswordOnMailServer: false,
-      bChangeAccountPasswordDialog: false,
-      sChangePasswordCurrent: '',
-      sChangePasswordNew: '',
-      sChangePasswordConfirmNew: '',
-      bChangingPassword: false,
-      bWarningAboutLogoutDialog: false,
 
       bAllowIdentities: false,
       aIdentityEmailOptions: [],
@@ -94,37 +60,6 @@ export default {
       iNewIdentityAccountId: -1,
       bNewIdentityDisableEmail: false,
       bNewIdentityAdding: '',
-
-      bAllowAliases: false,
-      sAliasName: '',
-      bAliasNoSignature: false,
-      sAliasSignature: '',
-      bAliasSaving: false,
-      bRemoveAliasDialog: false,
-      bNewAliasDialog: false,
-      sNewAliasName: '',
-      sNewAliasDomain: '',
-      aNewAliasDomainOptions: [],
-      bNewAliasAdding: false,
-      nTotal: 0,
-      bCreateFolder: false,
-      aFolderList: [],
-      sNewFolderName: '',
-      sParentName: 'No Parent',
-      bDisplaySpecialFoldersDialog: false,
-      oSpecialFoldersOptions: {
-        'Sent': '',
-        'Drafts': '',
-        'Trash': '',
-        'Spam': ''
-      },
-      isEditAccount: false,
-      bEnableForward: false,
-      oAutoresponder: {
-        enableAutoresponder: false,
-        subject: '',
-        message: ''
-      },
       bIdentitySaving: false,
     }
   },
@@ -221,6 +156,7 @@ export default {
       }
     },
   },
+
   methods: {
     onSaveIdentitySettings(oEvent, {
       bResult,

@@ -31,7 +31,7 @@
         <!-- <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" /> -->
         <q-space />
-        <q-route-tab to="/settings" label="Settings" />
+        <q-route-tab to="/settings/common" label="Settings" />
         <q-route-tab to="/login" label="Log out" />
       </q-tabs>
     </q-header>

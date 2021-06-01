@@ -10,7 +10,10 @@
         @click="selectFolder(folder.FullName)"
     >
       <q-item-section avatar>
-        <q-icon v-if="folder.IconName" :name="folder.IconName" />
+        <q-icon v-if="folder.IconName && !isSpamFolder" :name="folder.IconName"/>
+        <q-icon v-else-if="isSpamFolder">
+          <img src="~assets/icons/spam-filled.svg" alt=""/>
+        </q-icon>
         <q-icon v-else name="panorama_fish_eye" size="9px" style="margin: auto"/>
       </q-item-section>
 
@@ -49,6 +52,9 @@
 </template>
 
 <style lang="scss" scoped>
+.icon {
+  color: white;
+}
 </style>
 
 <script>
@@ -85,6 +91,9 @@ export default {
     },
     showStarred () {
       return this.folder.Type === mailEnums.FolderType.Inbox
+    },
+    isSpamFolder() {
+      return this.folder.Type === mailEnums.FolderType.Spam;
     },
     isStarredFilter () {
       return this.$store.getters['mail/getCurrentFilter'] === 'flagged'

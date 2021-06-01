@@ -51,7 +51,9 @@
     </span>
 
     <span v-if="!isSpamFolder && !isScheduledFolder && !isNotesFolder">
-      <q-btn flat color="primary" icon="error_outline" :disable="checkedCount === 0" @click="moveMessagesToSpam" />
+      <q-btn flat color="primary" :disable="checkedCount === 0" @click="moveMessagesToSpam">
+          <img src="~assets/icons/spam-outlined-bold.svg" alt="">
+      </q-btn>
       <q-tooltip>Spam</q-tooltip>
     </span>
 

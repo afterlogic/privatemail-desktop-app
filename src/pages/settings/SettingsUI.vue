@@ -18,7 +18,7 @@
             <q-tab name="files" icon="folder" label="Files" style="justify-content: start;" />
             <q-tab name="mobile-sync" icon="sync" label="Mobile Sync" style="justify-content: start;" /> -->
             <q-route-tab to="/settings/open-pgp"  icon="vpn_key" label="Open PGP" style="justify-content: start;" name="open-pgp"/>
-            <q-route-tab to="/settings/about" label="About" style="justify-content: start;" name="about"/>
+            <q-route-tab to="/settings/about" icon="error" label="About" style="justify-content: start;" name="about"/>
           </q-tabs>
         </template>
 

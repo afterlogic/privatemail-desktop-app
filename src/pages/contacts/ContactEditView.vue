@@ -463,7 +463,7 @@ export default {
       }
     },
     'oContact.PublicPgpKey': function () {
-      this.oKeysInfo()
+      this.getKeysInfo()
     },
     'aPrimaryMailOptions': function () {
       this.oPrimaryEmail = this.aPrimaryMailOptions[0]
@@ -521,8 +521,8 @@ export default {
   },
 
   methods: {
-    async oKeysInfo() {
-      await OpenPgp.oKeysInfo(this.oContact.PublicPgpKey).then((res) => {
+    async getKeysInfo() {
+      await OpenPgp.getKeysInfo(this.oContact.PublicPgpKey).then((res) => {
         if (res.length) {
           this.publicPgpKeyUser = res[0]
           this.publicPgpKeyUser.sAddInfo = this.publicPgpKeyUser.sType === 'public' ? '(' + this.publicPgpKeyUser.iBitSize + '-bit, public)' : '(' + this.publicPgpKeyUser.iBitSize + '-bit, private)'

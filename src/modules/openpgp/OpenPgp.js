@@ -703,7 +703,7 @@ COpenPgp.prototype.encryptDataWithPassphrase = async function (mData, sUserEmail
   }
 }
 
-COpenPgp.prototype.oKeysInfo = async function (pgpKeys) {
+COpenPgp.prototype.getKeysInfo = async function (pgpKeys) {
   let oKeysInfo = await openpgp.key.readArmored(pgpKeys)
   let aKeysInfo = []
   if (oKeysInfo.keys.length) {

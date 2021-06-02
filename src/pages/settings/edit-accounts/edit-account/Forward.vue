@@ -3,7 +3,7 @@
     <div class="q-pa-md">
       <q-item>
         <q-item-section side top>
-          <q-checkbox v-model="bEnableForward" label="Enable forward"/>
+          <q-checkbox  v-model="bEnableForward" label="Enable forward"/>
         </q-item-section>
       </q-item>
       <q-item class="items-center">

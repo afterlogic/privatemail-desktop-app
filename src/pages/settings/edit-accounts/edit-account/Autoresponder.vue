@@ -1,15 +1,17 @@
 <template>
   <div>
     <div class="q-pa-md">
-      <q-item tag="label">
-        <q-item-section side top>
-          <q-checkbox v-model="oAutoresponder.enableAutoresponder"/>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Enable autoresponder</q-item-label>
-        </q-item-section>
-      </q-item>
-      <div class="row" style="margin-left: 18px">
+      <div class="q-pa-md">
+        <q-item tag="label">
+          <q-item-section side top>
+            <q-checkbox v-model="oAutoresponder.enableAutoresponder"/>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Enable autoresponder</q-item-label>
+          </q-item-section>
+        </q-item>
+      </div>
+      <div class="row q-pa-md" style="margin-left: 18px">
         <div class="col-2">
           <span class="q-ml-sm">Subject</span>
         </div>
@@ -22,7 +24,7 @@
         </div>
       </div>
 
-      <div class="row" style="margin-left: 18px">
+      <div class="row q-pa-md" style="margin-left: 18px">
         <div class="col-2">
           <span class="q-ml-sm">Message</span>
         </div>
@@ -39,13 +41,12 @@
       </div>
     </div>
     <q-separator spaced/>
-    <q-card-actions align="right">
-      <q-btn v-if="!bAutoresponderSaving" style="margin-right: 10px; width: 80px" color="primary" label="Save"
+    <div class="q-pa-md" align="right">
+      <q-btn class="q-mr-md" unelevated v-if="!bAutoresponderSaving" color="primary" label="Save"
              @click="updateAutoresponder"/>
-      <q-btn v-else style="margin-right: 10px; width: 80px" color="primary" label="Saving..."/>
-    </q-card-actions>
+      <q-btn unelevated v-else  color="primary" label="Saving..."/>
+    </div>
     <UnsavedChangesDialog ref="unsavedChangesDialog" />
-<!--    </q-tab-panel>-->
   </div>
 </template>
 

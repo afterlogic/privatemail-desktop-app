@@ -1,6 +1,6 @@
 <template>
 <div>
-  <q-item  clickable v-ripple style="height: 50px" :style="{ paddingLeft: 16 + level * 20 + 'px' }">
+  <q-item  clickable style="height: 50px" :style="{ paddingLeft: 16 + level * 20 + 'px' }">
     <q-item-section avatar>
       <q-icon v-if="folder.IconName" :name="folder.IconName" style="margin: auto"/>
       <q-icon v-else :name="'panorama_fish_eye'" size="8px" style="margin: auto"/>

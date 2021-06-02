@@ -3,10 +3,10 @@
   <q-list class="non-selectable" style="width: 450px;">
     <q-item>
       <q-item-section>
-        <q-item-label>Your name</q-item-label>
+        <span style="width: 100px">Your name</span>
       </q-item-section>
       <q-item-section side>
-        <q-input outlined dense bg-color="white" class="input-size" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
+        <q-input style="width: 350px; margin-left: 100px" outlined dense bg-color="white" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
       </q-item-section>
     </q-item>
     <q-item>

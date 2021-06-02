@@ -125,7 +125,7 @@ export default {
           sFolderFullName: this.currentNote.Folder,
           sText: this.sText,
           sSubject: sSubject,
-          isSaveNote: this.isSaveNote
+          callback: this.isSaveNote
         })
       } else {
         this.$store.dispatch('mail/saveNote', {
@@ -133,7 +133,7 @@ export default {
           sFolderFullName: this.currentNote.Folder,
           sText: this.sText,
           sSubject: sSubject,
-          isSaveNote: this.isSaveNote
+          callback: this.isSaveNote
         })
       }
     },

@@ -559,7 +559,7 @@ export function logout ({ commit }) {
   commit('resetCurrentFolderList')
 }
 
-export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sFolderFullName, sText, sSubject, isSaveNote }) {
+export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sFolderFullName, sText, sSubject, callback }) {
   let iAccountId = getters.getCurrentAccountId
   ipcRenderer.send('mail-save-note', {
     sApiHost: store.getters['main/getApiHost'],
@@ -574,7 +574,7 @@ export function  saveNote({ state, commit, dispatch, getters }, { messageUid, sF
   ipcRenderer.once('mail-save-note', (event, { bResult }) => {
     if (bResult) {
       store.dispatch('mail/asyncRefresh', true)
-      isSaveNote(bResult)
+      callback(bResult)
     }
   })
 

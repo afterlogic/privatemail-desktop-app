@@ -1,7 +1,7 @@
 <template>
   <div>
     <q-list class="folder-list">
-      <FolderListItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :currentFolderFullName="currentFolderFullName"></FolderListItem>
+      <FolderListItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :foldersTreeLength="foldersTree.length" :currentFolderFullName="currentFolderFullName"></FolderListItem>
     </q-list>
   </div>
 </template>

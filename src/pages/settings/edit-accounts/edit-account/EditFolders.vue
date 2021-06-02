@@ -6,10 +6,10 @@
       <q-icon v-else :name="'panorama_fish_eye'" size="8px" style="margin: auto"/>
     </q-item-section>
     <q-item-section>
-      <q-item-label v-if="!bEditFolderName && folder.DisplayName && folder.Type !== 11 && folder.Type !== 12">
+      <q-item-label v-if="!bEditFolderName && folder.DisplayName && !isScheduled && !isNotes">
         {{folder.Name}} {{folder.DisplayName ? `used as ${folder.DisplayName}`: ''}}
       </q-item-label>
-      <q-item-label v-else-if="!bEditFolderName && (folder.Type === 11 || folder.Type === 12)" style="color: #98387b" @click="editFolderName">
+      <q-item-label v-else-if="!bEditFolderName && (isScheduled || isNotes)" style="color: #98387b" @click="editFolderName">
         {{folder.Name}} {{folder.DisplayName ? `used as ${folder.DisplayName}`: ''}}
       </q-item-label>
       <q-item-label side v-else-if="!bEditFolderName" @click="editFolderName" style="color: #98387b">
@@ -21,12 +21,12 @@
       <q-toolbar style="margin-left: auto; width: auto;">
         <span>{{ folder.Count }}</span>
         <q-btn
-          :disable="folder.Type !== 10 && folder.Type !== 12 && folder.Type !== 11"
+          :disable="!isCommon && !isNotes && !isScheduled"
           flat no-wrap color="primary" :icon="bHideFolder? 'visibility' : 'visibility_off'"
           @click="subscribeFolder">
           <q-tooltip content-class="text-caption">{{ bHideFolder? 'Hide folder' : 'Show folder' }}</q-tooltip>
         </q-btn>
-        <q-btn :disable="folder.SubFolders.length > 0 || folder.Type !== 10" flat no-wrap color="primary"
+        <q-btn :disable="folder.SubFolders.length > 0 || !isCommon" flat no-wrap color="primary"
                icon="delete_outline" @click="triggerDialogue">
           <q-tooltip content-class="text-caption">Delete folder</q-tooltip>
         </q-btn>
@@ -63,6 +63,7 @@ import EditFolders  from './EditFolders'
 import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
+import mailEnums from 'src/modules/mail/enums.js'
 export default {
   name: "EditFolders",
   components: {
@@ -96,6 +97,17 @@ export default {
   },
   mounted() {
     this.bHideFolder = this.folder.IsSubscribed
+  },
+  computed: {
+    isScheduled() {
+      return this.folder.Type === mailEnums.FolderType.Scheduled
+    },
+    isCommon() {
+      return this.folder.Type === mailEnums.FolderType.Common
+    },
+    isNotes() {
+      return this.folder.Type === mailEnums.FolderType.Notes
+    }
   },
   methods: {
     subscribeFolder() {

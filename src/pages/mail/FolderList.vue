@@ -1,5 +1,5 @@
 <template>
-  <div class="test">
+  <div>
     <q-list class="folder-list">
       <FolderListItem v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :currentFolderFullName="currentFolderFullName"></FolderListItem>
     </q-list>

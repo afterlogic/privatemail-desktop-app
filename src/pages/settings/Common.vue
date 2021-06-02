@@ -89,6 +89,7 @@
         <q-btn unelevated v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
         <q-btn unelevated v-if="bSaving" color="primary" label="Saving..." align="right" />
     </div>
+    <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
 
 </template>
@@ -107,10 +108,13 @@ import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
 import coreSettings from 'src/modules/core/settings.js'
+import UnsavedChangesDialog from "../UnsavedChangesDialog";
 
 export default {
   name: 'CommonSettings',
-
+  components: {
+    UnsavedChangesDialog
+  },
   data () {
     return {
       themeValue: '',
@@ -203,8 +207,27 @@ export default {
       this.bMinimizeToTray = bMinimizeToTray
     },
   },
-
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+      return this.oAutoRefreshIntervalMinutes !== (_.find(this.aAutoRefreshIntervalMinutesList, function (oAutoRefreshIntervalMinutes) {
+        return coreSettings.iAutoRefreshIntervalMinutes === oAutoRefreshIntervalMinutes.value
+      }) || null) || this.iTimeFormat !== coreSettings.iTimeFormat || this.themeValue !== this.$store.state.main.theme ||
+      this.bAllowDesktopNotifications !== coreSettings.bAllowDesktopNotifications || this.bMinimizeToTray !== this.$store.state.main.minimizeToTray
+    },
     save () {
       this.$store.commit('main/setTheme', this.themeValue)
       this.$store.commit('main/setMinimizeToTray', this.bMinimizeToTray)

@@ -218,7 +218,7 @@
             </q-item>
           </q-list>
         </q-card-section>
-        
+
         <q-card-section v-if="!keysChecked">
           <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 100%; height: 300px;" />
         </q-card-section>
@@ -282,6 +282,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
 </template>
 
@@ -304,11 +305,13 @@ import typesUtils from 'src/utils/types.js'
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 import openpgpSettings from 'src/modules/openpgp/settings.js'
 import cOpenPgpKey from 'src/modules/openpgp/classes/cOpenPgpKey.js'
+import UnsavedChangesDialog from "../UnsavedChangesDialog";
 
 export default {
   name: 'OpenPgpSettings',
 
   components: {
+    UnsavedChangesDialog
   },
 
   data () {
@@ -430,7 +433,25 @@ export default {
     ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
   },
 
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+
   methods: {
+    hasChanges () {
+      return this.bRememberPassphrase !== openpgpSettings.bRememberPassphrase
+    },
     save () {
       ipcRenderer.send('openpgp-save-settings', {
         sApiHost: this.$store.getters['main/getApiHost'],

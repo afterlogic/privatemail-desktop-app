@@ -44,6 +44,7 @@
              @click="updateAutoresponder"/>
       <q-btn v-else style="margin-right: 10px; width: 80px" color="primary" label="Saving..."/>
     </q-card-actions>
+    <UnsavedChangesDialog ref="unsavedChangesDialog" />
 <!--    </q-tab-panel>-->
   </div>
 </template>
@@ -52,15 +53,22 @@
 import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
+import UnsavedChangesDialog from "../../../UnsavedChangesDialog";
 
 export default {
   name: "Autoresponder",
+  components: {
+    UnsavedChangesDialog
+  },
   data() {
     return {
       oAutoresponder: {
         enableAutoresponder: false,
         subject: '',
-        message: ''
+        message: '',
+        enableAutoresponderFromServer: false,
+        subjectFromServer: '',
+        messageFromServer: ''
       },
       bAutoresponderSaving: false,
     }
@@ -74,7 +82,26 @@ export default {
       this.getAutoresponder()
     }
   },
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+      return this.enableAutoresponderFromServer !== this.oAutoresponder.enableAutoresponder ||
+      this.subjectFromServer !== this.oAutoresponder.subject ||
+      this.messageFromServer !== this.oAutoresponder.message
+    },
     updateAutoresponder() {
       this.bAutoresponderSaving = true
       let oParameters = {
@@ -91,6 +118,9 @@ export default {
       ipcRenderer.once('mail-update-autoresponder', (event, {bResult, oError}) => {
         this.bAutoresponderSaving = false
         if (bResult) {
+          this.enableAutoresponderFromServer = this.oAutoresponder.enableAutoresponder
+          this.subjectFromServer = this.oAutoresponder.subject
+          this.messageFromServer = this.oAutoresponder.message
           notification.showReport('Autoresponder has been updated successfully.')
         } else {
           notification.showError(errors.getText(oError, 'Error setup forward email.'))
@@ -110,6 +140,9 @@ export default {
           this.oAutoresponder.enableAutoresponder = bResult.Enable
           this.oAutoresponder.subject = bResult.Subject
           this.oAutoresponder.message = bResult.Message
+          this.enableAutoresponderFromServer = bResult.Enable
+          this.subjectFromServer = bResult.Subject
+          this.messageFromServer = bResult.Message
         } else {
           this.oAutoresponder.enableAutoresponder = false
           this.oAutoresponder.subject = ''

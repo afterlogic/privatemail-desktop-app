@@ -25,6 +25,7 @@
       <q-btn unelevated v-if="!bSaving" color="primary" label="Save" align="right" @click="save" />
       <q-btn unelevated v-if="bSaving" color="primary" label="Saving..." align="right" />
     </div>
+    <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
 
 </template>
@@ -37,10 +38,13 @@ import notification from 'src/utils/notification.js'
 import webApi from 'src/utils/webApi.js'
 
 import contactsSettings from 'src/modules/contacts/settings.js'
+import UnsavedChangesDialog from "../UnsavedChangesDialog";
 
 export default {
   name: 'ContactsSettings',
-
+  components: {
+    UnsavedChangesDialog
+  },
   data () {
     return {
       iContactsPerPage: 20,
@@ -53,8 +57,24 @@ export default {
   mounted () {
     this.iContactsPerPage = contactsSettings.iContactsPerPage
   },
-
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+      return this.iContactsPerPage !== contactsSettings.iContactsPerPage
+    },
     save () {
       this.bSaving = true
       webApi.sendRequest({

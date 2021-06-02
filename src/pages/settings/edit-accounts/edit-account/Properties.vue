@@ -110,6 +110,7 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <UnsavedChangesDialog ref="unsavedChangesDialog" />
 </div>
 </template>
 
@@ -118,9 +119,13 @@ import {ipcRenderer} from "electron";
 import mailSettings from "../../../../modules/mail/settings";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
+import UnsavedChangesDialog from "../../../UnsavedChangesDialog";
 
 export default {
   name: "Properties",
+  components: {
+    UnsavedChangesDialog
+  },
   props: {
     accounts: {
       type: Array
@@ -170,7 +175,24 @@ export default {
       }
     },
   },
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+      return this.editAccount.bUseThreading !== this.bUseThreading || this.editAccount.bSaveRepliesToCurrFolder !== this.bSaveRepliesToCurrFolder
+    },
     saveAccountSettings () {
       this.bAccountSaving = true
       ipcRenderer.send('mail-save-account-settings', {

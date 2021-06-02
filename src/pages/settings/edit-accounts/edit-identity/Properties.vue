@@ -55,6 +55,7 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <UnsavedChangesDialog ref="unsavedChangesDialog" />
 </div>
 </template>
 
@@ -63,9 +64,13 @@ import {ipcRenderer} from "electron";
 import mailSettings from "../../../../modules/mail/settings";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
+import UnsavedChangesDialog from "../../../UnsavedChangesDialog";
 
 export default {
   name: "Properties",
+  components: {
+    UnsavedChangesDialog
+  },
   data() {
     return {
       bIdentityDisableDefault: false,
@@ -154,7 +159,26 @@ export default {
   beforeDestroy() {
     this.destroySubscriptions()
   },
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+      return   this.bIdentityDefault !== this.editIdentity.bDefault ||
+      this.sIdentityName !== this.editIdentity.sFriendlyName ||
+      this.sIdentityEmail !== this.editIdentity.sEmail
+    },
     saveIdentitySettings() {
       if (this.editIdentity) {
         this.bIdentitySaving = true

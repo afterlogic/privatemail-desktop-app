@@ -22,6 +22,7 @@
              @click="updateForward"/>
       <q-btn v-else style="margin-left: 20px; width: 80px" color="primary" label="Saving..."/>
     </q-card-actions>
+    <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
 </template>
 
@@ -29,9 +30,13 @@
 import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
+import UnsavedChangesDialog from "../../../UnsavedChangesDialog";
 
 export default {
   name: "Forward",
+  components: {
+    UnsavedChangesDialog
+  },
   props: {
     accounts: {
       type: Array
@@ -40,9 +45,11 @@ export default {
   data() {
     return {
       bEnableForward: false,
+      bEnableForwardFromServer: false,
       forwardEmail: '',
+      forwardEmailFromServer: '',
       bForwardSaving: false,
-      iEditAccountId: -1
+      iEditAccountId: -1,
     }
   },
   mounted() {
@@ -60,7 +67,25 @@ export default {
       this.iEditAccountId = Number(this.$route.params.accountId)
     },
   },
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+        return this.bEnableForwardFromServer !== this.bEnableForward ||
+          (this.forwardEmailFromServer !== this.forwardEmail && this.forwardEmailFromServer !== '')
+    },
     updateForward() {
         this.bForwardSaving = true
         let oParameters = {
@@ -77,6 +102,8 @@ export default {
         ipcRenderer.once('mail-update-forward', (event, {bResult, oError}) => {
           this.bForwardSaving = false
           if (bResult) {
+            this.forwardEmailFromServer = this.forwardEmail
+            this.bEnableForwardFromServer = this.bEnableForward
             notification.showReport('Forward has been updated successfully.')
           } else {
             notification.showError(errors.getText(oError, 'Error setup forward email.'))
@@ -94,7 +121,9 @@ export default {
       ipcRenderer.once('mail-get-forward', (event, {bResult, oError}) => {
         if (bResult) {
           this.forwardEmail = bResult.Email
+          this.forwardEmailFromServer = bResult.Email
           this.bEnableForward = bResult.Enable
+          this.bEnableForwardFromServer = bResult.Enable
         }
       })
     },

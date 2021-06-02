@@ -341,7 +341,22 @@ export default {
         this.iEditAccountId = this.accounts[0].iAccountId
       }
     },
-
+    $route(to, from) {
+      this.iEditAccountId = -1
+      this.iEditIdentityAccountId = -1
+      this.iEditIdentityId = -1
+      this.iEditAliasAccountId = -1
+      this.iEditAliasId = -1
+      if (this.$route.params.aliasId === undefined && this.$route.params.identityId === undefined) {
+        this.iEditAccountId = Number(this.$route.params.accountId)
+      } else if (this.$route.params.identityId !== undefined) {
+        this.iEditIdentityAccountId = Number(this.$route.params.accountId)
+        this.iEditIdentityId = Number(this.$route.params.identityId)
+      } else if (this.$route.params.aliasId !== undefined) {
+        this.iEditAliasAccountId = Number(this.$route.params.accountId)
+        this.iEditAliasId = Number(this.$route.params.aliasId)
+      }
+    },
     bNewAccountImapSsl () {
       if (this.bNewAccountImapSsl && this.iNewAccountImapPort === 143) {
         this.iNewAccountImapPort = 993
@@ -402,32 +417,17 @@ export default {
         } else {
           this.isEditAccount = false
         }
-        this.iEditAccountId = iAccountId
-        this.iEditIdentityAccountId = -1
-        this.iEditIdentityId = -1
-        this.iEditAliasAccountId = -1
-        this.iEditAliasId = -1
         this.$router.push(`/settings/accounts/account/${iAccountId}/props`)
       }
 
     },
     changeEditIdentity(iIdentityId, iIdentityAccountId) {
       if (this.$route.path !== `/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`) {
-        this.iEditAccountId = -1
-        this.iEditIdentityAccountId = iIdentityAccountId
-        this.iEditIdentityId = iIdentityId
-        this.iEditAliasAccountId = -1
-        this.iEditAliasId = -1
         this.$router.push(`/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`)
       }
     },
     changeEditAlias(iAliasId, iAliasAccountId) {
       if (this.$route.path !== `/settings/accounts/alias/${iAliasAccountId}/${iAliasId}/props`) {
-        this.iEditAccountId =  -1
-        this.iEditIdentityAccountId = -1
-        this.iEditIdentityId = -1
-        this.iEditAliasAccountId = iAliasAccountId
-        this.iEditAliasId = iAliasId
         this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}/props`)
       }
     },

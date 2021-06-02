@@ -50,7 +50,7 @@
                   <q-item>
                     <q-input outlined dense type="text" class="full-width" v-model="sExternalImageUrl" />
                   </q-item>
-          
+
                 <q-card-actions align="right">
                   <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
                   <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
@@ -187,6 +187,10 @@ export default {
   },
 
   methods: {
+    hasChanges () {
+      return  this.bNoSignature !== this.noSignature ||
+      this.sSignature !== this.signature
+    },
     saveSettings () {
       this.saveSignature(this.bNoSignature, this.sSignature)
     },

@@ -38,6 +38,7 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <UnsavedChangesDialog ref="unsavedChangesDialog" />
 </div>
 </template>
 
@@ -45,9 +46,13 @@
 import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
+import UnsavedChangesDialog from "../../../UnsavedChangesDialog";
 
 export default {
   name: "Properties",
+  components: {
+    UnsavedChangesDialog
+  },
   data() {
     return {
       sAliasName: '',
@@ -95,7 +100,24 @@ export default {
   beforeDestroy: function () {
     this.destroySubscriptions()
   },
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
   methods: {
+    hasChanges () {
+      return  this.sAliasName !== this.editAlias.sFriendlyName
+    },
     saveAliasSettings() {
       if (this.editAlias) {
         this.bAliasSaving = true

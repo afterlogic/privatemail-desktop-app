@@ -56,12 +56,5 @@ export default {
       return this.$store.getters['mail/getAccounts']
     },
   }
-  /*beforeRouteUpdate (to, from, next) {
-    if (to.path !== "/settings/accounts") {
-      next()
-    } else {
-      next(false)
-    }
-    }*/
 };
 </script>

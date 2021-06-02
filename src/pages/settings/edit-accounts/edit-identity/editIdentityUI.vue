@@ -40,9 +40,7 @@ export default {
   name: "editIdentityUI",
   data () {
     return {
-      mailTab: 'props',
       identityTab: 'Static',
-      aliasTab: 'props',
 
       iEditIdentityId: -1,
       iEditIdentityAccountId: -1,

@@ -52,7 +52,6 @@
 
 <script>
 import dateUtils from "../../utils/date";
-import Menu from "electron"
 
 export default {
   name: "MessageHTML",

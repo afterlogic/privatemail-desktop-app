@@ -413,6 +413,7 @@ export default {
         if (iAccountId !== this.$store.getters['mail/getCurrentAccountId']) {
           this.isEditAccount = true
           let parameters = {bEditAccount: true, iEditAccountId: iAccountId}
+          this.$store.commit('mail/setEditFolderList', {Tree: []})
           this.$store.dispatch('mail/asyncGetFolderList', parameters)
         } else {
           this.isEditAccount = false

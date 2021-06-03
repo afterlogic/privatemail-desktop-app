@@ -5,8 +5,8 @@
         <EditFolders v-for="folder in foldersTree" :key="folder.Hash" :folder="folder" :isEditAccount="isEditAccount"
                        :iAccountId="iEditAccountId"></EditFolders>
       </div>
-      <div v-else>
-        <EditFolders v-for="folder in editFoldersTree" :key="folder.Hash" :folder="folder"
+      <div v-else-if="editFoldersTree.length">
+        <EditFolders  v-for="folder in editFoldersTree" :key="folder.Hash" :folder="folder"
                        :isEditAccount="isEditAccount" :iAccountId="iEditAccountId"></EditFolders>
       </div>
       <q-item clickable v-ripple style="height: 50px">

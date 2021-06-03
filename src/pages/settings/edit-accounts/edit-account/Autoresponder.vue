@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="q-pa-md">
+    <div>
       <div class="q-pa-md">
         <q-item tag="label">
           <q-item-section side top>

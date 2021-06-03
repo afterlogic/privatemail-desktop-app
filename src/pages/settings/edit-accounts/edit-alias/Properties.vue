@@ -18,7 +18,7 @@
     </q-item>
   </q-list>
   <q-separator spaced />
-  <div class="q-pa-md">
+  <div class="q-pa-md" >
     <q-btn unelevated color="primary" v-if="bAliasSaving" label="Saving..." />
     <q-btn unelevated color="primary" v-if="!bAliasSaving" label="Save" @click="saveAliasSettings" />
   </div>
@@ -67,9 +67,11 @@ export default {
     }
   },
   mounted() {
-    this.sAliasName = this.editAlias.sFriendlyName
-    this.iEditAliasId = Number(this.$route.params.aliasId)
-    this.initSubscriptions()
+    if (this.editAlias) {
+      this.sAliasName = this.editAlias.sFriendlyName
+      this.iEditAliasId = Number(this.$route.params.aliasId)
+      this.initSubscriptions()
+    }
   },
   watch: {
     '$route.params.aliasId': function () {
@@ -116,7 +118,7 @@ export default {
   },
   methods: {
     hasChanges () {
-      return  this.sAliasName !== this.editAlias.sFriendlyName
+      return  this.editAlias ? this.sAliasName !== this.editAlias.sFriendlyName : false
     },
     saveAliasSettings() {
       if (this.editAlias) {

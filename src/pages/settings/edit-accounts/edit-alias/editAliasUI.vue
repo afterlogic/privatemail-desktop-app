@@ -62,7 +62,6 @@ export default {
     }
     this.iEditAliasAccountId = Number(this.$route.params.accountId)
     this.iEditAliasId = Number(this.$route.params.aliasId)
-    this.initSubscriptions()
   },
   computed: {
     accounts () {
@@ -102,9 +101,6 @@ export default {
       }
     },
   },
-  beforeDestroy: function () {
-    this.destroySubscriptions()
-  },
   methods: {
     changeEditAlias(iAliasId, iAliasAccountId) {
       this.iEditAliasAccountId = iAliasAccountId
@@ -123,35 +119,6 @@ export default {
           sSignature: sAliasSignature,
         })
       }
-    },
-    onSaveAliasSettings (oEvent, { bResult, iAccountId, iAliasId, sName, sEmail, bNoSignature, sSignature, oError }) {
-      this.bAliasSaving = false
-      if (bResult) {
-        notification.showReport('Settings have been updated successfully.')
-        if (iAliasId === 0) {
-          this.$store.commit('mail/setAccountSettings', { iAccountId, sName, bNoSignature, sSignature })
-        }
-        this.$store.dispatch('mail/asyncGetAliases')
-        if (iAliasId === this.iEditAliasId) {
-          if (typeof sName === 'string') {
-            this.sAliasName = sName
-          }
-          if (typeof bNoSignature === 'boolean') {
-            this.bAliasNoSignature = bNoSignature
-          }
-          if (typeof sSignature === 'string') {
-            this.sAliasSignature = sSignature
-          }
-        }
-      } else {
-        notification.showError(errors.getText(oError, 'Error occurred while saving settings.'))
-      }
-    },
-    initSubscriptions() {
-      ipcRenderer.on('mail-save-alias-settings-signature', this.onSaveAliasSettings )
-    },
-    destroySubscriptions() {
-      ipcRenderer.removeListener('mail-save-alias-settings-signature', this.onSaveAliasSettings )
     },
   }
 }

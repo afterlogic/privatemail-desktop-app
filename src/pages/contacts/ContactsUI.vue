@@ -45,18 +45,18 @@
             </template>
             <template v-slot:after>
               <div class="full-height bg-white text-grey-8 panel-rounded">
-                <div class="pannel-hint non-selectable" v-if="!(showContact || showGroup || stateForCreatingContact || stateForCreatingGroup)">
+                <div class="pannel-hint non-selectable" v-if="!(showContact || showGroup || stateForCreatingContact || stateForCreatingGroup) &&!importMode">
                   No contact selected.
                 </div>
 
                 <template v-if="showContact && !stateForCreatingContact && !stateForCreatingGroup">
                   <contactView v-if="!editMode && !importMode"/>
-                  <contactEditView v-if="editMode" :contact="currentContact" />
+                  <contactEditView v-if="editMode && !importMode" :contact="currentContact" />
                 </template>
 
                 <ContactImport v-if="!editMode && importMode"></ContactImport>
 
-                <contactEditView v-if="stateForCreatingContact && !stateForCreatingGroup" />
+                <contactEditView v-if="stateForCreatingContact && !stateForCreatingGroup &&!importMode" />
                 <!-- <contact-create-view v-if="stateForCreatingContact && !stateForCreatingGroup" /> -->
 
                 <template v-if="showGroup && !showContact && !stateForCreatingContact && !stateForCreatingGroup">
@@ -186,6 +186,9 @@ export default {
       this.searchInputText = this.searchText
     },
     currentContact () {
+      if (this.stateForCreatingContact && !this.stateForCreatingGroup &&!this.importMode) {
+        this.$store.commit('contacts/changeStateForCreatingContact', false)
+      }
       this.scrollToSelectedContact(false)
     },
   },

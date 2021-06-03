@@ -192,9 +192,6 @@ export default {
 
   computed: {
     editorToolbar () {
-      if (this.bDisableEditor) {
-        return []
-      }
       let aLastSection = this.bAllowInsertImage ? ['link', 'image', 'removeFormat'] : ['link', 'removeFormat']
       return [
         ['undo', 'redo'],

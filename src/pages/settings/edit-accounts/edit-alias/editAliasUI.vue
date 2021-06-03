@@ -1,6 +1,6 @@
 <template>
 <div>
-  <q-tabs v-if="editAlias"
+  <q-tabs
           inline-label
           :no-caps=true
           align="left"
@@ -10,9 +10,9 @@
     <q-route-tab :to="'/settings/accounts/alias/' + iEditAliasAccountId + '/' + iEditAliasId + '/signature'" label="Signature" />
   </q-tabs>
 
-  <q-separator v-if="editAlias" />
+  <q-separator />
 
-  <q-tab-panels v-if="editAlias"
+  <q-tab-panels
                 v-model="aliasTab"
                 animated
                 transition-prev="jump-up"
@@ -54,6 +54,7 @@ export default {
     }
   },
   mounted() {
+    this.changeEditAlias(this.$route.params.aliasId, this.$route.params.accountId)
     if (this.editAlias) {
       this.sAliasName = this.editAlias.sFriendlyName
       this.bAliasNoSignature = !this.editAlias.bUseSignature
@@ -106,8 +107,6 @@ export default {
   },
   methods: {
     changeEditAlias(iAliasId, iAliasAccountId) {
-      this.iEditIdentityAccountId = -1
-      this.iEditIdentityId = -1
       this.iEditAliasAccountId = iAliasAccountId
       this.iEditAliasId = iAliasId
     },
@@ -157,7 +156,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-
-</style>

@@ -6,9 +6,9 @@ import mailSettings from 'src/modules/mail/settings.js'
 
 function cAccount (oData) {
 // ** AccountID: 2696
-// AllowAutoresponder: false
-// AllowFilters: false
-// AllowForward: false
+// ** AllowAutoresponder: false
+// ** AllowFilters: false
+// ** AllowForward: false
 // CanBeUsedToAuthorize: true
 // ** Email: "nadine@afterlogic.com"
 // ** EntityId: 2696
@@ -51,7 +51,9 @@ function cAccount (oData) {
 // ** UseSignature: false
 // ** UseThreading: true
 // UseToAuthorize: true
-
+  this.bAllowAutoresponder = false
+  this.bAllowFilters = false
+  this.bAllowForward = false
   this.iAccountId = 0
   this.sEmail = ''
   this.iEntityId = 0
@@ -79,6 +81,9 @@ function cAccount (oData) {
 
 cAccount.prototype.parse = function (oData) {
   this.iAccountId = typesUtils.pInt(oData.AccountID)
+  this.bAllowAutoresponder = typesUtils.pBool(oData.AllowAutoresponder)
+  this.bAllowFilters = typesUtils.pBool(oData.AllowFilters)
+  this.bAllowForward = typesUtils.pBool(oData.AllowForward)
   this.sEmail = typesUtils.pString(oData.Email)
   this.iEntityId = typesUtils.pInt(oData.EntityId)
   this.oExtend = typesUtils.pObject(oData.Extend, this.oExtend)

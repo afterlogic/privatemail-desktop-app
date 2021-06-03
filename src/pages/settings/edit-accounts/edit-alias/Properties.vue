@@ -3,10 +3,10 @@
   <q-list class="non-selectable" style="width: 450px;">
     <q-item>
       <q-item-section>
-        <span style="width: 100px">Your name</span>
+        <span>Your name</span>
       </q-item-section>
       <q-item-section side>
-        <q-input style="width: 350px; margin-left: 100px" outlined dense bg-color="white" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
+        <q-input  outlined dense bg-color="white" class="input-size" v-model="sAliasName" v-on:keyup.enter="saveAliasSettings" />
       </q-item-section>
     </q-item>
     <q-item>
@@ -58,6 +58,7 @@ export default {
       sAliasName: '',
       bAliasSaving: false,
       bRemoveAliasDialog: false,
+      iEditAliasId: -1
     }
   },
   props: {
@@ -66,9 +67,8 @@ export default {
     }
   },
   mounted() {
-    if (this.editAlias) {
-      this.sAliasName = this.editAlias.sFriendlyName
-    }
+    this.sAliasName = this.editAlias.sFriendlyName
+    this.iEditAliasId = Number(this.$route.params.aliasId)
     this.initSubscriptions()
   },
   watch: {
@@ -188,5 +188,7 @@ export default {
 </script>
 
 <style scoped>
-
+.input-size {
+  width: 300px;
+}
 </style>

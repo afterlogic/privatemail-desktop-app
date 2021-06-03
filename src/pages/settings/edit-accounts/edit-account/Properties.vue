@@ -116,7 +116,6 @@
 
 <script>
 import {ipcRenderer} from "electron";
-import mailSettings from "../../../../modules/mail/settings";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
 import UnsavedChangesDialog from "../../../UnsavedChangesDialog";

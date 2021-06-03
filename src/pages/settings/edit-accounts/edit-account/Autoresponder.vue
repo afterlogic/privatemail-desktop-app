@@ -39,12 +39,12 @@
           />
         </div>
       </div>
-    </div>
-    <q-separator spaced/>
-    <div class="q-pa-md" align="right">
-      <q-btn class="q-mr-md" unelevated v-if="!bAutoresponderSaving" color="primary" label="Save"
-             @click="updateAutoresponder"/>
-      <q-btn unelevated v-else  color="primary" label="Saving..."/>
+      <q-separator spaced/>
+      <div class="q-pa-md" align="right">
+        <q-btn class="q-ml-md" unelevated v-if="!bAutoresponderSaving" color="primary" label="Save"
+               @click="updateAutoresponder"/>
+        <q-btn class="q-ml-md" unelevated v-else  color="primary" label="Saving..."/>
+      </div>
     </div>
     <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
@@ -61,6 +61,11 @@ export default {
   components: {
     UnsavedChangesDialog
   },
+  props: {
+    autoresponder: {
+      type: Object
+    }
+  },
   data() {
     return {
       oAutoresponder: {
@@ -75,13 +80,8 @@ export default {
     }
   },
   mounted() {
+    this.fillAutoresponderData()
     this.iEditAccountId = Number(this.$route.params.accountId)
-    this.getAutoresponder()
-  },
-  watch: {
-    iEditAccountId () {
-      this.getAutoresponder()
-    }
   },
   beforeRouteUpdate(to, from, next) {
     if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
@@ -98,10 +98,18 @@ export default {
     }
   },
   methods: {
+    fillAutoresponderData() {
+      this.oAutoresponder.enableAutoresponder = this.autoresponder.enableAutoresponder
+      this.oAutoresponder.subject = this.autoresponder.subject
+      this.oAutoresponder.message = this.autoresponder.message
+      this.oAutoresponder.enableAutoresponderFromServer = this.autoresponder.enableAutoresponderFromServer
+      this.oAutoresponder.subjectFromServer = this.autoresponder.subjectFromServer
+      this.oAutoresponder.messageFromServer = this.autoresponder.messageFromServer
+    },
     hasChanges () {
-      return this.enableAutoresponderFromServer !== this.oAutoresponder.enableAutoresponder ||
-      this.subjectFromServer !== this.oAutoresponder.subject ||
-      this.messageFromServer !== this.oAutoresponder.message
+      return this.oAutoresponder.enableAutoresponderFromServer !== this.oAutoresponder.enableAutoresponder ||
+      this.oAutoresponder.subjectFromServer !== this.oAutoresponder.subject ||
+      this.oAutoresponder.messageFromServer !== this.oAutoresponder.message
     },
     updateAutoresponder() {
       this.bAutoresponderSaving = true
@@ -119,9 +127,9 @@ export default {
       ipcRenderer.once('mail-update-autoresponder', (event, {bResult, oError}) => {
         this.bAutoresponderSaving = false
         if (bResult) {
-          this.enableAutoresponderFromServer = this.oAutoresponder.enableAutoresponder
-          this.subjectFromServer = this.oAutoresponder.subject
-          this.messageFromServer = this.oAutoresponder.message
+          this.oAutoresponder.enableAutoresponderFromServer = this.oAutoresponder.enableAutoresponder
+          this.oAutoresponder.subjectFromServer = this.oAutoresponder.subject
+          this.oAutoresponder.messageFromServer = this.oAutoresponder.message
           notification.showReport('Autoresponder has been updated successfully.')
         } else {
           notification.showError(errors.getText(oError, 'Error setup forward email.'))
@@ -141,9 +149,9 @@ export default {
           this.oAutoresponder.enableAutoresponder = bResult.Enable
           this.oAutoresponder.subject = bResult.Subject
           this.oAutoresponder.message = bResult.Message
-          this.enableAutoresponderFromServer = bResult.Enable
-          this.subjectFromServer = bResult.Subject
-          this.messageFromServer = bResult.Message
+          this.oAutoresponder.enableAutoresponderFromServer = bResult.Enable
+          this.oAutoresponder.subjectFromServer = bResult.Subject
+          this.oAutoresponder.messageFromServer = bResult.Message
         } else {
           this.oAutoresponder.enableAutoresponder = false
           this.oAutoresponder.subject = ''

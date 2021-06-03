@@ -99,7 +99,6 @@ export default {
   },
   mounted() {
     this.initSubscriptions()
-    if (this.editIdentity) {
       this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
       this.iEditIdentityId = Number(this.$route.params.identityId)
       this.bIdentityIsAccountPart = this.iEditIdentityId === 0
@@ -123,7 +122,6 @@ export default {
       this.bIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
       this.bIdentityNoSignature = !this.editIdentity.bUseSignature
       this.sIdentitySignature = this.editIdentity.sSignature
-    }
   },
   watch: {
     editIdentity () {
@@ -268,5 +266,7 @@ export default {
 </script>
 
 <style scoped>
-
+.input-size {
+  width: 300px;
+}
 </style>

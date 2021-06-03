@@ -1,27 +1,27 @@
 <template>
   <div>
-    <div class="q-pa-md">
+    <q-list class="non-selectable" style="width: 450px;">
       <q-item>
         <q-item-section side top>
           <q-checkbox  v-model="bEnableForward" label="Enable forward"/>
         </q-item-section>
       </q-item>
-      <q-item class="items-center">
-        <q-item-section side top>
-          <span class="q-ml-sm">Email</span>
-        </q-item-section>
-        <q-item-section side top>
-          <q-input :disable="!bEnableForward" v-model="forwardEmail" outlined bg-color="white" :dense=true
-                   style="width: 350px; margin-left: 100px"/>
-        </q-item-section>
-      </q-item>
-    </div>
+      <q-item class="q-ml-xs">
+          <q-item-section>
+            <q-item-label>Email</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-input outlined dense bg-color="white" class="input-size" :disable="!bEnableForward" v-model="forwardEmail"/>
+          </q-item-section>
+        </q-item>
+
+    </q-list>
     <q-separator spaced/>
-    <q-card-actions align="right">
-      <q-btn v-if="!bForwardSaving" style="margin-left: 20px; width: 80px" color="primary" label="Save"
+    <div class="q-pa-md">
+      <q-btn unelevated v-if="!bForwardSaving" class="q-mr-md" color="primary" label="Save"
              @click="updateForward"/>
-      <q-btn v-else style="margin-left: 20px; width: 80px" color="primary" label="Saving..."/>
-    </q-card-actions>
+      <q-btn unelevated v-else class="q-mr-md" color="primary" label="Saving..."/>
+    </div>
     <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
 </template>
@@ -40,7 +40,10 @@ export default {
   props: {
     accounts: {
       type: Array
-    }
+    },
+    accountForward: {
+      type: Object
+    },
   },
   data() {
     return {
@@ -54,6 +57,10 @@ export default {
   },
   mounted() {
     this.iEditAccountId = Number(this.$route.params.accountId)
+    this.bEnableForward = this.accountForward.bEnableForward
+      this.bEnableForwardFromServer = this.accountForward.bEnableForwardFromServer
+      this.forwardEmail = this.accountForward.forwardEmail
+      this.forwardEmailFromServer = this.accountForward.forwardEmail
     this.getForward()
   },
   computed: {
@@ -64,6 +71,10 @@ export default {
       this.getForward()
     },
     '$route.params.accountId': function () {
+      this.bEnableForward = this.accountForward.bEnableForward
+      this.bEnableForwardFromServer = this.accountForward.bEnableForwardFromServer
+      this.forwardEmail = this.accountForward.forwardEmail
+      this.forwardEmailFromServer = this.accountForward.forwardEmailFromServer
       this.iEditAccountId = Number(this.$route.params.accountId)
     },
   },
@@ -132,5 +143,7 @@ export default {
 </script>
 
 <style scoped>
-
+.input-size {
+  width: 300px;
+}
 </style>

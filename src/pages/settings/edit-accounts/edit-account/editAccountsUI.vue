@@ -6,10 +6,10 @@
           align="left"
           class="flex-start"
   >
-    <q-route-tab :to="'/settings/accounts/account/' + iEditAccountId + '/props'" name="props" label="Properties" />
-    <q-route-tab :to="'/settings/accounts/account/' + iEditAccountId + '/folders'" name="folders" label="Manage Folders" />
-    <q-route-tab v-if="!isEditAccount" :to="'/settings/accounts/account/' + iEditAccountId + '/forward'" name="forward" label="Forward"/>
-    <q-route-tab v-if="!isEditAccount" :to="'/settings/accounts/account/' + iEditAccountId + '/autoresponder'" name="autoresponder" label="Autoresponder"/>
+    <q-route-tab :to="'/settings/accounts/account/' + iEditAccountId + '/props'" label="Properties" />
+    <q-route-tab :to="'/settings/accounts/account/' + iEditAccountId + '/folders'" label="Manage Folders" />
+    <q-route-tab v-if="editAccount.bAllowForward" :to="'/settings/accounts/account/' + iEditAccountId + '/forward'" label="Forward"/>
+    <q-route-tab v-if="editAccount.bAllowAutoresponder" :to="'/settings/accounts/account/' + iEditAccountId + '/autoresponder'" label="Autoresponder"/>
   </q-tabs>
 
   <q-separator v-if="editAccount" />
@@ -24,7 +24,9 @@
       <router-view
         :accounts="accounts"
         :isEditAccount="isEditAccount"
-      ></router-view>
+        :accountForward="accountForward"
+        :autoresponder="oAutoresponder"
+      />
     </q-tab-panel>
   </q-tab-panels>
 
@@ -34,6 +36,7 @@
 <script>
 import mailSettings from "../../../../modules/mail/settings";
 import cServer from "../../../../modules/mail/classes/cServer";
+import {ipcRenderer} from "electron";
 
 export default {
   name: "editAccountsUI",
@@ -48,6 +51,20 @@ export default {
 
       nTotal: 0,
       isEditAccount: false,
+      accountForward: {
+        forwardEmail: '',
+        forwardEmailFromServer: '',
+        bEnableForward: false,
+        bEnableForwardFromServer: false,
+      },
+      oAutoresponder: {
+        enableAutoresponder: false,
+        subject: '',
+        message: '',
+        enableAutoresponderFromServer: false,
+        subjectFromServer: '',
+        messageFromServer: ''
+      },
     }
   },
 
@@ -106,9 +123,11 @@ export default {
         this.iEditAccountId = this.accounts[0].iAccountId
       }
     },
-    '$route.params.accountId': function () {
+   $route () {
       this.iEditAccountId = Number(this.$route.params.accountId)
       if (this.accounts.length > 0) {
+        this.getForward()
+        this.getAutoresponder()
         this.changeEditAccount(Number(this.$route.params.accountId))
       }
       this.bAllowIdentities = mailSettings.bAllowIdentities
@@ -138,8 +157,53 @@ export default {
     }
     this.bAllowIdentities = mailSettings.bAllowIdentities
     this.bAllowAliases = mailSettings.bAllowAliases
+    this.getForward()
+    this.getAutoresponder()
   },
   methods: {
+    getForward() {
+      if (this.iEditAccountId !== -1) {
+        ipcRenderer.send('mail-get-forward', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditAccountId
+        })
+      }
+      ipcRenderer.once('mail-get-forward', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.accountForward.forwardEmail = bResult.Email
+          this.accountForward.forwardEmailFromServer = bResult.Email
+          this.accountForward.bEnableForward = bResult.Enable
+          this.accountForward.bEnableForwardFromServer = bResult.Enable
+        }
+      })
+    },
+    getAutoresponder() {
+      if (this.iEditAccountId !== -1) {
+        ipcRenderer.send('mail-get-autoresponder', {
+          sApiHost: this.$store.getters['main/getApiHost'],
+          sAuthToken: this.$store.getters['user/getAuthToken'],
+          iAccountId: this.iEditAccountId
+        })
+      }
+      ipcRenderer.once('mail-get-autoresponder', (event, {bResult, oError}) => {
+        if (bResult) {
+          this.oAutoresponder.enableAutoresponder = bResult.Enable
+          this.oAutoresponder.subject = bResult.Subject
+          this.oAutoresponder.message = bResult.Message
+          this.oAutoresponder.enableAutoresponderFromServer = bResult.Enable
+          this.oAutoresponder.subjectFromServer = bResult.Subject
+          this.oAutoresponder.messageFromServer = bResult.Message
+        } else {
+          this.oAutoresponder.enableAutoresponder = false
+          this.oAutoresponder.subject = ''
+          this.oAutoresponder.message = ''
+          this.oAutoresponder.enableAutoresponderFromServer = false
+          this.oAutoresponder.subjectFromServer = ''
+          this.oAutoresponder.messageFromServer = ''
+        }
+      })
+    },
     changeEditAccount (iAccountId) {
       if (iAccountId !== this.$store.getters['mail/getCurrentAccountId']) {
         this.isEditAccount = true

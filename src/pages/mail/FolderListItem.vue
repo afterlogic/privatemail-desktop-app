@@ -12,7 +12,7 @@
       <q-item-section avatar>
         <q-icon v-if="folder.IconName && !isSpamFolder" :name="folder.IconName"/>
         <q-icon v-else-if="isSpamFolder">
-          <img src="~assets/icons/spam-filled.svg" alt=""/>
+          <SpamFiledIcon></SpamFiledIcon>
         </q-icon>
         <q-icon v-else name="panorama_fish_eye" size="9px" style="margin: auto"/>
       </q-item-section>
@@ -66,20 +66,21 @@
 </template>
 
 <style lang="scss" scoped>
-.icon {
-  color: white;
+svg .icon {
+  fill: var(--q-color-t-text);
 }
 </style>
 
 <script>
 import mailEnums from 'src/modules/mail/enums.js'
-
+import SpamFiledIcon from 'src/assets/icons/SpamFilledIcon'
 import FolderListItem from './FolderListItem.vue'
 
 export default {
   name: 'FolderListItem',
   components: {
     FolderListItem,
+    SpamFiledIcon
   },
   props: {
     folder: Object,

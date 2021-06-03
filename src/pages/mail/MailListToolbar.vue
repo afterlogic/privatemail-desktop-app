@@ -52,11 +52,10 @@
 
     <span v-if="!isSpamFolder && !isScheduledFolder && !isNotesFolder">
       <q-btn flat color="primary" :disable="checkedCount === 0" @click="moveMessagesToSpam">
-          <img src="~assets/icons/spam-outlined-bold.svg" alt="">
+         <SpamOutlineBold style="fill: var(--q-color-primary) !important;"></SpamOutlineBold>
       </q-btn>
       <q-tooltip>Spam</q-tooltip>
     </span>
-
     <q-space/>
 
     <span>
@@ -90,11 +89,10 @@
   </div>
 </template>
 
-<style>
-</style>
+
 
 <script>
-import { colors } from 'quasar'
+import SpamOutlineBold from 'src/assets/icons/SpamOutlineBold'
 
 import mailEnums from 'src/modules/mail/enums.js'
 
@@ -107,6 +105,7 @@ export default {
 
   components: {
     MoveToFolderItem,
+    SpamOutlineBold
   },
 
   props: {

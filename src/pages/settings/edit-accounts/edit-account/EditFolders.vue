@@ -2,7 +2,10 @@
 <div>
   <q-item  clickable style="height: 50px" :style="{ paddingLeft: 16 + level * 20 + 'px' }">
     <q-item-section avatar>
-      <q-icon v-if="folder.IconName" :name="folder.IconName" style="margin: auto"/>
+      <q-icon v-if="folder.IconName && !isSpam" :name="folder.IconName" style="margin: auto"/>
+      <q-icon v-else-if="isSpam" style="margin: auto">
+        <SpamFiledIcon></SpamFiledIcon>
+      </q-icon>
       <q-icon v-else :name="'panorama_fish_eye'" size="8px" style="margin: auto"/>
     </q-item-section>
     <q-item-section>
@@ -64,10 +67,12 @@ import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
 import mailEnums from 'src/modules/mail/enums.js'
+import SpamFiledIcon from 'src/assets/icons/SpamFilledIcon'
 export default {
   name: "EditFolders",
   components: {
-    EditFolders
+    EditFolders,
+    SpamFiledIcon
   },
   props: {
     folder: {
@@ -101,6 +106,9 @@ export default {
   computed: {
     isScheduled() {
       return this.folder.Type === mailEnums.FolderType.Scheduled
+    },
+    isSpam() {
+      return this.folder.Type === mailEnums.FolderType.Spam
     },
     isCommon() {
       return this.folder.Type === mailEnums.FolderType.Common

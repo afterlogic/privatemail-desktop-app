@@ -336,12 +336,7 @@ export default {
   },
 
   watch: {
-    accounts () {
-      if (!this.editAccount && this.accounts.length > 0) {
-        this.iEditAccountId = this.accounts[0].iAccountId
-      }
-    },
-    $route(to, from) {
+    $route() {
       this.iEditAccountId = -1
       this.iEditIdentityAccountId = -1
       this.iEditIdentityId = -1

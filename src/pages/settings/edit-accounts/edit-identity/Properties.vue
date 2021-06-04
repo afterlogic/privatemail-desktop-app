@@ -98,33 +98,39 @@ export default {
     },
   },
   mounted() {
+    this.iEditIdentityAccountId = Number(this.$route.params.accountId)
+    this.iEditIdentityId = Number(this.$route.params.identityId)
+    this.fillIdentityProperties()
     this.initSubscriptions()
-      this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
-      this.iEditIdentityId = Number(this.$route.params.identityId)
-      this.bIdentityIsAccountPart = this.iEditIdentityId === 0
-      this.bIdentityDefault = this.editIdentity.bDefault
-      this.bIdentityDisableDefault = this.editIdentity.bDefault
-      this.sIdentityName = this.editIdentity.sFriendlyName
-      this.sIdentityEmail = this.editIdentity.sEmail
-      let oIdentityAccount = _.find(this.accounts, (oAccount) => {
-        return oAccount.iAccountId === this.editIdentity.iIdAccount
-      })
-      if (!this.bIdentityIsAccountPart && oIdentityAccount && _.isArray(oIdentityAccount.aAliases)) {
-        this.aIdentityEmailOptions = _.map(oIdentityAccount.aAliases, (oAlias) => {
-          return oAlias.sEmail
-        })
-      } else {
-        this.aIdentityEmailOptions = []
-      }
-      if (this.aIdentityEmailOptions.length > 0) {
-        this.aIdentityEmailOptions.unshift(oIdentityAccount.sEmail)
-      }
-      this.bIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
-      this.bIdentityNoSignature = !this.editIdentity.bUseSignature
-      this.sIdentitySignature = this.editIdentity.sSignature
   },
   watch: {
     editIdentity () {
+    },
+    '$route.params.identityId': function () {
+      this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
+      this.iEditIdentityId = Number(this.$route.params.identityId)
+      this.fillIdentityProperties()
+    },
+  },
+  beforeDestroy() {
+    this.destroySubscriptions()
+  },
+  beforeRouteUpdate(to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
+      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
+    } else {
+      next()
+    }
+  },
+  methods: {
+    fillIdentityProperties() {
       if (this.editIdentity) {
         this.bIdentityIsAccountPart = this.iEditIdentityId === 0
         this.bIdentityDefault = this.editIdentity.bDefault
@@ -149,29 +155,6 @@ export default {
         this.sIdentitySignature = this.editIdentity.sSignature
       }
     },
-    '$route.params.identityId': function () {
-      this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
-      this.iEditIdentityId = Number(this.$route.params.identityId)
-    },
-  },
-  beforeDestroy() {
-    this.destroySubscriptions()
-  },
-  beforeRouteUpdate(to, from, next) {
-    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
-      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
-    } else {
-      next()
-    }
-  },
-  beforeRouteLeave (to, from, next) {
-    if (this.hasChanges() && _.isFunction(this?.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialog)) {
-      this.$refs.unsavedChangesDialog.openConfirmDiscardChangesDialog(next)
-    } else {
-      next()
-    }
-  },
-  methods: {
     hasChanges () {
       return   this.bIdentityDefault !== this.editIdentity.bDefault ||
       this.sIdentityName !== this.editIdentity.sFriendlyName ||

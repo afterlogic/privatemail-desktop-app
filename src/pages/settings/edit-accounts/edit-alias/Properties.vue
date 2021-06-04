@@ -80,11 +80,6 @@ export default {
         this.sAliasName = this.editAlias.sFriendlyName
       }
     },
-    editAlias () {
-      if (this.editAlias) {
-        this.sAliasName = this.editAlias.sFriendlyName
-      }
-    },
   },
   computed: {
     editAlias () {

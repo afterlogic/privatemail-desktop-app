@@ -15,6 +15,7 @@
         </q-item-section>
         <q-item-section class="q-ml-xs" top>
           <q-input
+            style="width: 100%"
             :disable="!oAutoresponder.enableAutoresponder"
             v-model="oAutoresponder.subject" outlined
             :dense=true bg-color="white"
@@ -26,7 +27,7 @@
           <span class="q-mr-xl">Message</span>
         </div>
 
-      <q-editor v-model="oAutoresponder.message" ref="editor" height="200px" class="full-height q-mt-md q-mb-md"
+      <q-editor v-model="oAutoresponder.message" ref="editor" style="width: 100%" class="full-height q-mt-md q-mb-md"
                 bg-color="white"
                 :toolbar="editorToolbar"
                 :disable="!oAutoresponder.enableAutoresponder"

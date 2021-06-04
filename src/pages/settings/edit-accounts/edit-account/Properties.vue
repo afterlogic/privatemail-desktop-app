@@ -190,7 +190,10 @@ export default {
   },
   methods: {
     hasChanges () {
-      return this.editAccount.bUseThreading !== this.bUseThreading || this.editAccount.bSaveRepliesToCurrFolder !== this.bSaveRepliesToCurrFolder
+      if (this.editAccount) {
+        return this.editAccount.bUseThreading !== this.bUseThreading || this.editAccount.bSaveRepliesToCurrFolder !== this.bSaveRepliesToCurrFolder
+      }
+      return false
     },
     saveAccountSettings () {
       this.bAccountSaving = true
@@ -222,13 +225,26 @@ export default {
         })
       }
     },
+    onRemoveAccount (oEvent, { bResult, iAccountId, oError }) {
+      if (bResult) {
+        notification.showReport('Account was successfully removed.')
+        this.$store.commit('mail/removeAccount', { iAccountId })
+        if (this.accounts.length) {
+          this.$router.push(`/settings/accounts/account/${this.accounts[0].iAccountId}/props`)
+        }
+      } else {
+        notification.showError(errors.getText(oError, 'Error occurred while removing account.'))
+      }
+    },
     initSubscriptions() {
       ipcRenderer.on('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.on('mail-change-password', this.onChangePassword)
+      ipcRenderer.on('mail-remove-account', this.onRemoveAccount)
     },
     destroySubscriptions() {
       ipcRenderer.removeListener('mail-save-account-settings', this.onSaveAccountSettings)
       ipcRenderer.removeListener('mail-change-password', this.onChangePassword)
+      ipcRenderer.removeListener('mail-remove-account', this.onRemoveAccount)
     },
     onSaveAccountSettings (oEvent, { bResult, iAccountId, bUseThreading, bSaveRepliesToCurrFolder, oError }) {
       this.bAccountSaving = false

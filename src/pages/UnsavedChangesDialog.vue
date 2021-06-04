@@ -1,13 +1,13 @@
 <template>
   <q-dialog v-model="confirm" persistent>
-    <q-card>
+    <q-card style="width: 300px">
       <q-card-section>
         <span>Discard unsaved changes?</span>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary" @click="discard"
+        <q-btn flat :ripple="false" color="primary" @click="discard"
                label="Ok" />
-        <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
                label="Cancel" />
       </q-card-actions>
     </q-card>

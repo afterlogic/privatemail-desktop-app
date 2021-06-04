@@ -84,11 +84,7 @@ export default {
       this.bIdentityDisableEmail = mailSettings.bOnlyUserEmailsInIdentities || this.bIdentityIsAccountPart
       this.bIdentityNoSignature = !this.editIdentity.bUseSignature
       this.sIdentitySignature = this.editIdentity.sSignature
-      this.iEditAccountId = -1
-      this.iEditIdentityAccountId = Number(this.$route.params.accountId)
       this.iEditIdentityId = Number(this.$route.params.identityId)
-      this.iEditAliasAccountId = -1
-      this.iEditAliasId = -1
       this.initSubscriptions()
       this.changeEditIdentity(Number(this.$route.params.identityId), Number(this.$route.params.accountId))
     }
@@ -113,11 +109,6 @@ export default {
   watch: {
     '$route.params.identityId': function () {
       this.iIdentityId = Number(this.$route.params.identityId)
-      this.iEditAccountId = -1
-      this.iEditIdentityAccountId = Number(this.$route.params.accountId)
-      this.iEditIdentityId = Number(this.$route.params.identityId)
-      this.iEditAliasAccountId = -1
-      this.iEditAliasId = -1
       if (this.editIdentity) {
         this.bIdentityNoSignature = !this.editIdentity.bUseSignature
       }

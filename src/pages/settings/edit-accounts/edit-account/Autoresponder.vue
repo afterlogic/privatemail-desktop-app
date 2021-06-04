@@ -40,7 +40,7 @@
         </div>
       </div>
       <q-separator spaced/>
-      <div class="q-pa-md" align="right">
+      <div class="q-pa-md">
         <q-btn class="q-ml-md" unelevated v-if="!bAutoresponderSaving" color="primary" label="Save"
                @click="updateAutoresponder"/>
         <q-btn class="q-ml-md" unelevated v-else  color="primary" label="Saving..."/>

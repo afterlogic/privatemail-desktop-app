@@ -1,8 +1,7 @@
 <template>
   <div>
-    <div>
-      <div class="q-pa-md">
-        <q-item tag="label">
+    <q-list style="width: 700px">
+        <q-item class="q-ml-sm" tag="label">
           <q-item-section side top>
             <q-checkbox v-model="oAutoresponder.enableAutoresponder"/>
           </q-item-section>
@@ -10,41 +9,82 @@
             <q-item-label>Enable autoresponder</q-item-label>
           </q-item-section>
         </q-item>
-      </div>
-      <div class="row q-pa-md" style="margin-left: 18px">
-        <div class="col-2">
-          <span class="q-ml-sm">Subject</span>
-        </div>
-        <div class="col">
+      <q-item tag="label" class="q-ml-md">
+        <q-item-section class="q-mr-xl" style="text-align: center" side top>
+          <span class="q-mt-sm q-mr-xs">Subject</span>
+        </q-item-section>
+        <q-item-section class="q-ml-xs" top>
           <q-input
             :disable="!oAutoresponder.enableAutoresponder"
             v-model="oAutoresponder.subject" outlined
-            :dense=true bg-color="white" style="width: 100%;"
+            :dense=true bg-color="white"
           />
+        </q-item-section>
+      </q-item>
+      <div class="q-ml-md q-mb-md q-mr-md" style="display: flex">
+        <div class="q-ma-md">
+          <span class="q-mr-xl">Message</span>
         </div>
-      </div>
 
-      <div class="row q-pa-md" style="margin-left: 18px">
-        <div class="col-2">
-          <span class="q-ml-sm">Message</span>
-        </div>
-        <div class="col">
-          <q-editor
-            bg-color="white"
-            :disable="!oAutoresponder.enableAutoresponder"
-            v-model="oAutoresponder.message"
-            :definitions="{
-                  bold: {label: 'Bold', icon: null, tip: 'My bold tooltip'}
-                }"
-          />
-        </div>
+      <q-editor v-model="oAutoresponder.message" ref="editor" height="200px" class="full-height q-mt-md q-mb-md"
+                bg-color="white"
+                :toolbar="editorToolbar"
+                :disable="!oAutoresponder.enableAutoresponder"
+                :fonts="{
+            arial: 'Arial',
+            arial_black: 'Arial Black',
+            courier_new: 'Courier New',
+            tahoma: 'Tahoma',
+            times_new_roman: 'Times New Roman',
+            verdana: 'Verdana'
+          }"
+      >
+        <template v-slot:image>
+          <q-btn-dropdown
+            flat
+            dense
+            size="sm"
+            class="arrowless"
+            icon="image"
+            ref="insertImageDropdown"
+            @hide="oImageToInsert=null"
+          >
+            <template v-slot:label>
+              <q-tooltip>Insert Image</q-tooltip>
+            </template>
+
+            <q-card class="">
+              <q-item-label header>Please select an image file to upload</q-item-label>
+              <q-item>
+                <q-file outline class="full-width" color="primary" label="Choose File"
+                        v-model="oImageToInsert"
+                        :multiple="false"
+                        :accept="sAcceptedImageTypes"
+                />
+              </q-item>
+
+              <q-item-label header>or enter an URL:</q-item-label>
+              <q-item>
+                <q-input outlined dense type="text" class="full-width" v-model="sExternalImageUrl" />
+              </q-item>
+
+              <q-card-actions align="right">
+                <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
+                <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
+              </q-card-actions>
+            </q-card>
+            <div>
+            </div>
+          </q-btn-dropdown>
+        </template>
+      </q-editor>
       </div>
-      <q-separator spaced/>
-      <div class="q-pa-md">
-        <q-btn class="q-ml-md" unelevated v-if="!bAutoresponderSaving" color="primary" label="Save"
-               @click="updateAutoresponder"/>
-        <q-btn class="q-ml-md" unelevated v-else  color="primary" label="Saving..."/>
-      </div>
+    </q-list>
+    <q-separator spaced/>
+    <div class="q-pa-md">
+      <q-btn class="q-ml-md" unelevated v-if="!bAutoresponderSaving" color="primary" label="Save"
+             @click="updateAutoresponder"/>
+      <q-btn class="q-ml-md" unelevated v-else  color="primary" label="Saving..."/>
     </div>
     <UnsavedChangesDialog ref="unsavedChangesDialog" />
   </div>
@@ -55,6 +95,7 @@ import {ipcRenderer} from "electron";
 import notification from "../../../../utils/notification";
 import errors from "../../../../utils/errors";
 import UnsavedChangesDialog from "../../../UnsavedChangesDialog";
+import mailSettings from "../../../../modules/mail/settings";
 
 export default {
   name: "Autoresponder",
@@ -77,7 +118,63 @@ export default {
         messageFromServer: ''
       },
       bAutoresponderSaving: false,
+      oImageToInsert: null,
+      sAcceptedImageTypes: 'image/*',
+      sExternalImageUrl: '',
+
     }
+  },
+  computed: {
+    editorToolbar () {
+      let aLastSection = this.bAllowInsertImage ? ['link', 'image', 'removeFormat'] : ['link', 'removeFormat']
+      return [
+        ['undo', 'redo'],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{
+          list: 'no-icons',
+          options: [
+            'default_font',
+            'arial',
+            'arial_black',
+            'courier_new',
+            'tahoma',
+            'times_new_roman',
+            'verdana'
+          ],
+        }, {
+          list: 'no-icons',
+          options: [
+            'size-2',
+            'size-3',
+            'size-5',
+            'size-7'
+          ],
+        },
+          'colors'],
+        ['unordered', 'ordered'],
+        aLastSection
+      ]
+    },
+  },
+  watch: {
+    oImageToInsert () {
+      let oFile = this.oImageToInsert
+      if (this.bAllowInsertImage && oFile && 0 === oFile.type.indexOf('image/')) {
+        if (mailSettings.iImageUploadSizeLimit > 0 && oFile.size > mailSettings.iImageUploadSizeLimit) {
+          notification.showError('The file cannot be uploaded as it\'s too big.')
+        } else {
+          let oReader = new window.FileReader()
+          let sId = oFile.name + '_' + Math.random().toString()
+          document.execCommand('insertHTML', true, '<img id="' + sId + '" />')
+
+          oReader.onload = (oEvent) => {
+            this.sSignature = this.sSignature.replace('id="' + sId + '"', 'src="' + oEvent.target.result + '"')
+          }
+
+          oReader.readAsDataURL(oFile)
+        }
+      }
+    },
   },
   mounted() {
     this.fillAutoresponderData()
@@ -98,6 +195,13 @@ export default {
     }
   },
   methods: {
+    insertImageByUrl () {
+      this.$refs.editor.focus()
+      document.execCommand('insertHTML', true, '<img src="' + this.sExternalImageUrl + '" />')
+    },
+    cancelInsertImage () {
+      this.$refs.insertImageDropdown.hide()
+    },
     fillAutoresponderData() {
       this.oAutoresponder.enableAutoresponder = this.autoresponder.enableAutoresponder
       this.oAutoresponder.subject = this.autoresponder.subject

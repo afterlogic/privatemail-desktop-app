@@ -106,7 +106,7 @@ export default {
   watch: {
     editIdentity () {
     },
-    '$route.params.identityId': function () {
+    $route() {
       this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
       this.iEditIdentityId = Number(this.$route.params.identityId)
       this.fillIdentityProperties()

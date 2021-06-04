@@ -74,7 +74,7 @@ export default {
     }
   },
   watch: {
-    '$route.params.aliasId': function () {
+    $route () {
       if (this.editAlias) {
         this.iEditAliasId = Number(this.$route.params.aliasId)
         this.sAliasName = this.editAlias.sFriendlyName

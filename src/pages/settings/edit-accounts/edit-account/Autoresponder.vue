@@ -26,59 +26,14 @@
         <div class="q-ma-md">
           <span class="q-mr-xl">Message</span>
         </div>
-
-      <q-editor v-model="oAutoresponder.message" ref="editor" style="width: 100%" class="full-height q-mt-md q-mb-md"
-                bg-color="white"
-                :toolbar="editorToolbar"
-                :disable="!oAutoresponder.enableAutoresponder"
-                :fonts="{
-            arial: 'Arial',
-            arial_black: 'Arial Black',
-            courier_new: 'Courier New',
-            tahoma: 'Tahoma',
-            times_new_roman: 'Times New Roman',
-            verdana: 'Verdana'
-          }"
-      >
-        <template v-slot:image>
-          <q-btn-dropdown
-            flat
-            dense
-            size="sm"
-            class="arrowless"
-            icon="image"
-            ref="insertImageDropdown"
-            @hide="oImageToInsert=null"
-          >
-            <template v-slot:label>
-              <q-tooltip>Insert Image</q-tooltip>
-            </template>
-
-            <q-card class="">
-              <q-item-label header>Please select an image file to upload</q-item-label>
-              <q-item>
-                <q-file outline class="full-width" color="primary" label="Choose File"
-                        v-model="oImageToInsert"
-                        :multiple="false"
-                        :accept="sAcceptedImageTypes"
-                />
-              </q-item>
-
-              <q-item-label header>or enter an URL:</q-item-label>
-              <q-item>
-                <q-input outlined dense type="text" class="full-width" v-model="sExternalImageUrl" />
-              </q-item>
-
-              <q-card-actions align="right">
-                <q-btn flat color="primary" label="Insert" @click="insertImageByUrl" />
-                <q-btn flat color="grey-6" label="Cancel" @click="cancelInsertImage" />
-              </q-card-actions>
-            </q-card>
-            <div>
-            </div>
-          </q-btn-dropdown>
-        </template>
-      </q-editor>
+        <q-input
+          class=" q-mt-md q-mb-md"
+          style="width: 100%"
+          :input-style="{'height': '200px', resize: 'none'}"
+          v-model="oAutoresponder.message"
+          outlined
+          type="textarea"
+        />
       </div>
     </q-list>
     <q-separator spaced/>

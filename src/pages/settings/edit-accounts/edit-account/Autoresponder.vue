@@ -28,6 +28,7 @@
         </div>
         <q-input
           class=" q-mt-md q-mb-md"
+          :disable="!oAutoresponder.enableAutoresponder"
           style="width: 100%"
           :input-style="{'height': '200px', resize: 'none'}"
           v-model="oAutoresponder.message"
@@ -192,7 +193,7 @@ export default {
           this.oAutoresponder.messageFromServer = this.oAutoresponder.message
           notification.showReport('Autoresponder has been updated successfully.')
         } else {
-          notification.showError(errors.getText(oError, 'Error setup forward email.'))
+          notification.showError(errors.getText(oError, 'Saving settings has failed.'))
         }
       })
     },

@@ -40,7 +40,7 @@
     <q-btn unelevated color="primary" v-if="!bIdentitySaving" label="Save" @click="saveIdentitySettings" />
   </div>
   <q-dialog v-model="bRemoveIdentityDialog" persistent>
-    <q-card class="q-px-sm non-selectable">
+    <q-card class="q-px-sm non-selectable q-dialog-size">
       <q-card-section>
         <div class="text-h6">{{ editIdentity ? editIdentity.getFull() : '' }}</div>
       </q-card-section>

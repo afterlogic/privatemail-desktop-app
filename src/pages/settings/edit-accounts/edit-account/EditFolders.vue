@@ -47,7 +47,7 @@
     </EditFolders>
   </template>
   <q-dialog v-model="bConfirm" persistent>
-    <q-card>
+    <q-card class="q-dialog-size">
       <q-card-section class="row items-center">
         <span class="q-ml-sm">Are you sure you want to delete folder?</span>
       </q-card-section>

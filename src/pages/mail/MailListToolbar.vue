@@ -64,7 +64,7 @@
     </span>
 
     <q-dialog v-model="confirmDeletePermanently" persistent>
-      <q-card>
+      <q-card class="q-dialog-size">
         <q-card-section class="row items-center">
           <span class="q-ml-sm">Delete selected message(s) permanently?</span>
         </q-card-section>
@@ -76,7 +76,7 @@
     </q-dialog>
 
     <q-dialog v-model="confirmDeleteAllPermanently" persistent>
-      <q-card>
+      <q-card class="q-dialog-size">
         <q-card-section class="row items-center">
           <span class="q-ml-sm">All messages in this folder will be permanently deleted.</span>
         </q-card-section>

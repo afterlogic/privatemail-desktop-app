@@ -42,7 +42,7 @@
   </div>
 
   <q-dialog v-model="bRemoveAccountDialog" persistent>
-    <q-card class="q-px-sm non-selectable">
+    <q-card class="q-px-sm non-selectable q-dialog-size">
       <q-card-section>
         <div class="text-h6">{{ editAccount ? editAccount.sEmail : '' }}</div>
       </q-card-section>
@@ -59,7 +59,7 @@
   </q-dialog>
 
   <q-dialog v-model="bChangeAccountPasswordDialog" persistent>
-    <q-card class="q-px-sm non-selectable">
+    <q-card class="q-px-sm non-selectable q-dialog-size">
       <q-card-section>
         <div class="text-h6">Change password</div>
       </q-card-section>
@@ -96,7 +96,7 @@
     </q-card>
   </q-dialog>
   <q-dialog v-model="bWarningAboutLogoutDialog" persistent>
-    <q-card class="q-px-sm non-selectable">
+    <q-card class="q-px-sm non-selectable q-dialog-size">
       <q-card-section>
         <div class="text-h6"></div>
       </q-card-section>

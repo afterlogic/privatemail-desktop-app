@@ -1,7 +1,7 @@
 <template>
   <div>
   <q-dialog v-model="scheduleSendingDialog" persistent>
-    <q-card class="q-px-sm" style="min-width: 350px;">
+    <q-card class="q-px-sm q-dialog-size">
       <q-card-section class="non-selectable">
         <div class="text-h6">Schedule sending</div>
       </q-card-section>

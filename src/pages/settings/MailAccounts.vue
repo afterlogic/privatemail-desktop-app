@@ -64,7 +64,7 @@
     <router-view></router-view>
 
     <q-dialog v-model="bAddNewAccountDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable q-dialog-size">
         <q-card-section>
           <div class="text-h6">Add New Account</div>
         </q-card-section>
@@ -160,7 +160,7 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="bNewIdentityDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable q-dialog-size">
         <q-card-section>
           <div class="text-h6">Create Identity</div>
         </q-card-section>
@@ -192,7 +192,7 @@
 
 
     <q-dialog v-model="bNewAliasDialog" persistent>
-      <q-card class="q-px-sm non-selectable" style="width: 700px;">
+      <q-card class="q-px-sm non-selectable q-dialog-size" style="width: 700px;">
         <q-card-section>
           <div class="text-h6">Create Alias</div>
         </q-card-section>

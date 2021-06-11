@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="enterOpenPgpKeyPassword" persistent>
-    <q-card>
+    <q-card class="q-dialog-size">
       <q-card-section>
         <div class="text-h6">Enter password</div>
       </q-card-section>

@@ -31,7 +31,7 @@
       </div>
 
       <q-dialog v-model="bCreateFolder" persistent>
-        <q-card class="q-px-sm non-selectable">
+        <q-card class="q-px-sm non-selectable q-dialog-size">
           <q-card-section>
             <div class="text-h6"> New Folder</div>
           </q-card-section>
@@ -74,7 +74,7 @@
         </q-card>
       </q-dialog>
       <q-dialog v-model="bDisplaySpecialFoldersDialog" persistent>
-        <q-card class="q-px-sm non-selectable">
+        <q-card class="q-px-sm non-selectable q-dialog-size">
           <q-card-section>
             <div class="text-h6">Setup special folders</div>
           </q-card-section>

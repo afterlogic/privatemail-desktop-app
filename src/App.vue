@@ -100,6 +100,11 @@ export default {
 </script>
 
 <style lang="scss">
+
+.q-dialog-size {
+  min-width: 300px;
+}
+
 .theme-text {
   color: var(--q-color-t-text);
 }

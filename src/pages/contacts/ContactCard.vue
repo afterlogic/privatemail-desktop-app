@@ -78,7 +78,7 @@
     </q-popup-proxy>
 
     <q-dialog v-model="bNewContactDialog" persistent>
-      <q-card class="non-selectable">
+      <q-card class="non-selectable q-dialog-size">
         <q-card-section>
           <div class="text-h6">New Contact</div>
         </q-card-section>

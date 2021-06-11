@@ -37,7 +37,7 @@
     </div>
 
     <q-dialog v-model="deleteConfirm" persistent>
-      <q-card>
+      <q-card class="q-dialog-size">
         <q-card-section class="row items-center">
           <span class="q-ml-sm">Delete the group permanently?</span>
         </q-card-section>

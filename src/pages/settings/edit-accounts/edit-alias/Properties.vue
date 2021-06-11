@@ -23,7 +23,7 @@
     <q-btn unelevated color="primary" v-if="!bAliasSaving" label="Save" @click="saveAliasSettings" />
   </div>
   <q-dialog v-model="bRemoveAliasDialog" persistent>
-    <q-card class="q-px-sm non-selectable">
+    <q-card class="q-px-sm non-selectable q-dialog-size">
       <q-card-section>
         <div class="text-h6">{{ editAlias ? editAlias.getFull() : '' }}</div>
       </q-card-section>

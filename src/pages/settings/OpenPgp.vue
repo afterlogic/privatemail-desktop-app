@@ -95,7 +95,7 @@
     </div>
 
     <q-dialog v-model="deleteConfirmDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable q-dialog-size">
         <q-card-section v-if="deleteKeyExternal">
           Are you sure you want to delete external public OpenPGP key for <b>{{ deleteKeyEmail }}</b>?
         </q-card-section>
@@ -113,7 +113,7 @@
     </q-dialog>
 
     <q-dialog v-model="enterPasswordDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable q-dialog-size">
         <q-card-section>
           <div class="text-h6">Enter password</div>
         </q-card-section>
@@ -138,7 +138,7 @@
     </q-dialog>
 
     <q-dialog v-model="viewKeysDialog" persistent>
-      <q-card class="q-px-sm non-selectable">
+      <q-card class="q-px-sm non-selectable q-dialog-size">
         <q-card-section>
           <div class="text-h6">{{ viewKeysHeader }}</div>
         </q-card-section>
@@ -155,7 +155,7 @@
     </q-dialog>
 
     <q-dialog v-model="importKeyDialog" persistent>
-      <q-card class="q-px-sm non-selectable" style="width: 700px; max-width: 80vw;">
+      <q-card class="q-px-sm non-selectable q-dialog-size" style="width: 700px; max-width: 80vw;">
         <q-card-section>
           <div class="text-h6">Import key</div>
         </q-card-section>
@@ -231,7 +231,7 @@
     </q-dialog>
 
     <q-dialog v-model="generateNewKeyDialog" persistent>
-      <q-card class="q-px-sm non-selectable generate-new-key-dialog">
+      <q-card class="q-px-sm non-selectable generate-new-key-dialog q-dialog-size">
         <q-card-section>
           <div class="text-h6">Generate new key</div>
         </q-card-section>

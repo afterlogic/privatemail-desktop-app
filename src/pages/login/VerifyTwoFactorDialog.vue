@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="showVerifyDialog" persistent>
-    <q-card class="non-selectable">
+    <q-card class="non-selectable q-dialog-size">
       <q-card-section>
         <span class="text-h6">Two Factor Verification</span>
         <q-item>

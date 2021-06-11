@@ -233,7 +233,7 @@
     </div>
 
     <q-dialog  v-model="viewDialogHeaders">
-      <q-card class="q-px-sm non-selectable" style="min-width: 650px">
+      <q-card class="q-px-sm non-selectable q-dialog-size" style="min-width: 650px">
         <q-card-section>
           <div class="text-h6">Message headers</div>
         </q-card-section>

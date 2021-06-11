@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="confirm" persistent>
-    <q-card style="width: 300px">
+    <q-card class="q-dialog-size">
       <q-card-section>
         <span>Discard unsaved changes?</span>
       </q-card-section>

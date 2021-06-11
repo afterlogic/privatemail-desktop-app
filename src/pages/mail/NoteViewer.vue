@@ -23,7 +23,7 @@
       </q-toolbar>
     </div>
     <q-dialog v-model="bConfirm" persistent>
-      <q-card>
+      <q-card style="width: 300px">
         <q-card-section class="row items-center">
           <span class="q-ml-sm">Discard unsaved changes?</span>
         </q-card-section>

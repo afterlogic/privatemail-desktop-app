@@ -37,11 +37,15 @@ function _removeStartedGroupOperation (sOperationName, oParameters, bResult) {
   if (_.isEmpty(oAllStartedOperations[sOperationName])) {
     delete oAllStartedOperations[sOperationName]
   }
-  if (_.isEmpty(oAllStartedOperations)) {
-    if (bResult) {
-      store.dispatch('mail/asyncGetMessages', {})
+  const isUnseenFilter = store.getters['mail/getCurrentFilter'] === 'unseen'
+
+  if (!isUnseenFilter) {
+    if (_.isEmpty(oAllStartedOperations)) {
+      if (bResult) {
+        store.dispatch('mail/asyncGetMessages', {})
+      }
+      store.dispatch('mail/asyncRefresh')
     }
-    store.dispatch('mail/asyncRefresh')
   }
 }
 

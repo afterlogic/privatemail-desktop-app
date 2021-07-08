@@ -2,7 +2,7 @@
   <div>
     <div class="text-h4 q-mb-md non-selectable">Email accounts settings</div>
     <div class="buttons q-mb-md" v-if="allowAddNewAccount">
-      <q-btn unelevated color="primary" label="Add New Account" @click="openAddNewAccountDialog" />
+      <q-btn unelevated color="primary" label="Add New Account" @click="checkChanges" />
     </div>
     <q-list class="non-selectable bg-grey-1 rounded-borders q-mb-md" bordered separator>
       <span v-for="oAccount in accounts" :key="oAccount.iAccountId">
@@ -61,7 +61,7 @@
       </span>
     </q-list>
 
-    <router-view></router-view>
+    <router-view ref="routerView"></router-view>
 
     <q-dialog v-model="bAddNewAccountDialog" persistent>
       <q-card class="q-px-sm non-selectable q-dialog-size">
@@ -218,7 +218,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
+    <UnsavedChangesDialog ref="unsavedChangesDialog" @confirmDiscardChanges="confirmDiscardChanges" />
   </div>
 </template>
 
@@ -240,10 +240,13 @@ import errors from 'src/utils/errors.js'
 import notification from 'src/utils/notification.js'
 import cServer from 'src/modules/mail/classes/cServer.js'
 import mailSettings from 'src/modules/mail/settings.js'
+import UnsavedChangesDialog from "../UnsavedChangesDialog";
 
 export default {
   name: 'MailAccounts',
-
+  components: {
+    UnsavedChangesDialog
+  },
   data () {
     return {
       iEditAccountId: -1,
@@ -403,6 +406,18 @@ export default {
   },
 
   methods: {
+    confirmDiscardChanges (discard) {
+      if (discard) {
+        this.openAddNewAccountDialog()
+        this.populate()
+      }
+    },
+    hasChanges () {
+      return this.$refs.routerView.hasChanges()
+    },
+    populate () {
+      return this.$refs.routerView.populate()
+    },
     changeEditAccount(iAccountId) {
       if (this.$route.path !== `/settings/accounts/account/${iAccountId}/props`) {
         let parameters = {bEditAccount: true, iEditAccountId: iAccountId}
@@ -410,7 +425,6 @@ export default {
         this.$store.dispatch('mail/asyncGetFolderList', parameters)
         this.$router.push(`/settings/accounts/account/${iAccountId}/props`)
       }
-
     },
     changeEditIdentity(iIdentityId, iIdentityAccountId) {
       if (this.$route.path !== `/settings/accounts/identity/${iIdentityAccountId}/${iIdentityId}/props`) {
@@ -422,28 +436,32 @@ export default {
         this.$router.push(`/settings/accounts/alias/${iAliasAccountId}/${iAliasId}/props`)
       }
     },
-
-    openAddNewAccountDialog() {
-      if (this.allowAddNewAccount) {
-        this.bAddingNewAccount = false
-        this.sNewAccountName = ''
-        this.sNewAccountEmail = ''
-        this.sNewAccountPassword = ''
-        this.bSecondStepOfAddAccount = false
-        this.sNewAccountLogin = ''
-        this.sNewAccountImapServer = ''
-        this.iNewAccountImapPort = 143
-        this.bNewAccountImapSsl = false
-        this.sNewAccountSmtpServer = ''
-        this.iNewAccountSmtpPort = 25
-        this.bNewAccountSmtpSsl = false
-        this.bNewAccountSmtpAuth = true
-        this.oNewAccountServer = {
-          label: 'Configure manually',
-          value: null,
-        }
-        this.bAddNewAccountDialog = true
+    checkChanges () {
+      if (this.allowAddNewAccount && !this.hasChanges()) {
+        this.openAddNewAccountDialog()
+      } else {
+        this.$refs?.unsavedChangesDialog?.openConfirmDiscardChangesDialogT(true)
       }
+    },
+    openAddNewAccountDialog () {
+      this.bAddingNewAccount = false
+      this.sNewAccountName = ''
+      this.sNewAccountEmail = ''
+      this.sNewAccountPassword = ''
+      this.bSecondStepOfAddAccount = false
+      this.sNewAccountLogin = ''
+      this.sNewAccountImapServer = ''
+      this.iNewAccountImapPort = 143
+      this.bNewAccountImapSsl = false
+      this.sNewAccountSmtpServer = ''
+      this.iNewAccountSmtpPort = 25
+      this.bNewAccountSmtpSsl = false
+      this.bNewAccountSmtpAuth = true
+      this.oNewAccountServer = {
+        label: 'Configure manually',
+        value: null,
+      }
+      this.bAddNewAccountDialog = true
     },
     addNewAccount() {
       if (this.bSecondStepOfAddAccount) {

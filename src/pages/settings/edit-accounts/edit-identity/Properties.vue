@@ -100,7 +100,7 @@ export default {
   mounted() {
     this.iEditIdentityAccountId = Number(this.$route.params.accountId)
     this.iEditIdentityId = Number(this.$route.params.identityId)
-    this.fillIdentityProperties()
+    this.populate()
     this.initSubscriptions()
   },
   watch: {
@@ -109,7 +109,7 @@ export default {
     $route() {
       this.iEditIdentityAccountId =  Number(this.$route.params.accountId)
       this.iEditIdentityId = Number(this.$route.params.identityId)
-      this.fillIdentityProperties()
+      this.populate()
     },
   },
   beforeDestroy() {
@@ -130,7 +130,7 @@ export default {
     }
   },
   methods: {
-    fillIdentityProperties() {
+    populate() {
       if (this.editIdentity) {
         this.bIdentityIsAccountPart = this.iEditIdentityId === 0
         this.bIdentityDefault = this.editIdentity.bDefault

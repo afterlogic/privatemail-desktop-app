@@ -43,6 +43,14 @@ export default {
       next()
     }
   },
+  methods: {
+    hasChanges () {
+      return this.$refs.signature.hasChanges()
+    },
+    populate () {
+      return this.$refs.signature.populate()
+    }
+  }
 }
 </script>
 

@@ -134,7 +134,7 @@ export default {
     },
   },
   mounted() {
-    this.fillAutoresponderData()
+    this.populate()
     this.iEditAccountId = Number(this.$route.params.accountId)
   },
   beforeRouteUpdate(to, from, next) {
@@ -159,7 +159,7 @@ export default {
     cancelInsertImage () {
       this.$refs.insertImageDropdown.hide()
     },
-    fillAutoresponderData() {
+    populate() {
       this.oAutoresponder.enableAutoresponder = this.autoresponder.enableAutoresponder
       this.oAutoresponder.subject = this.autoresponder.subject
       this.oAutoresponder.message = this.autoresponder.message

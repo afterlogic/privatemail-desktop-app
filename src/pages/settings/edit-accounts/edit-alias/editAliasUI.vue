@@ -20,6 +20,7 @@
   >
     <q-tab-panel name="Static" class="bg-grey-1">
      <router-view
+       ref="routerView"
        :accounts="accounts"
        :bAliasNoSignature="bAliasNoSignature"
        :sAliasSignature="sAliasSignature"
@@ -102,6 +103,12 @@ export default {
     },
   },
   methods: {
+    populate () {
+      return this.$refs.routerView.populate()
+    },
+    hasChanges () {
+      return this.$refs.routerView.hasChanges()
+    },
     changeEditAlias(iAliasId, iAliasAccountId) {
       this.iEditAliasAccountId = iAliasAccountId
       this.iEditAliasId = iAliasId

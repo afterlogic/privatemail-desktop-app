@@ -68,16 +68,14 @@ export default {
   },
   mounted() {
     if (this.editAlias) {
-      this.sAliasName = this.editAlias.sFriendlyName
-      this.iEditAliasId = Number(this.$route.params.aliasId)
+      this.populate()
       this.initSubscriptions()
     }
   },
   watch: {
     $route () {
       if (this.editAlias) {
-        this.iEditAliasId = Number(this.$route.params.aliasId)
-        this.sAliasName = this.editAlias.sFriendlyName
+        this.populate()
       }
     },
   },
@@ -112,6 +110,10 @@ export default {
     }
   },
   methods: {
+    populate () {
+      this.iEditAliasId = Number(this.$route.params.aliasId)
+      this.sAliasName = this.editAlias.sFriendlyName
+    },
     hasChanges () {
       return  this.editAlias ? this.sAliasName !== this.editAlias.sFriendlyName : false
     },

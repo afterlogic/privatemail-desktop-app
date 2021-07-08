@@ -56,12 +56,7 @@ export default {
     }
   },
   mounted() {
-    this.iEditAccountId = Number(this.$route.params.accountId)
-    this.bEnableForward = this.accountForward.bEnableForward
-      this.bEnableForwardFromServer = this.accountForward.bEnableForwardFromServer
-      this.forwardEmail = this.accountForward.forwardEmail
-      this.forwardEmailFromServer = this.accountForward.forwardEmail
-    this.getForward()
+   this.populate()
   },
   computed: {
 
@@ -93,6 +88,14 @@ export default {
     }
   },
   methods: {
+    populate () {
+      this.iEditAccountId = Number(this.$route.params.accountId)
+      this.bEnableForward = this.accountForward.bEnableForward
+      this.bEnableForwardFromServer = this.accountForward.bEnableForwardFromServer
+      this.forwardEmail = this.accountForward.forwardEmail
+      this.forwardEmailFromServer = this.accountForward.forwardEmail
+      this.getForward()
+    },
     hasChanges () {
         return this.bEnableForwardFromServer !== this.bEnableForward ||
           (this.forwardEmailFromServer !== this.forwardEmail && this.forwardEmailFromServer !== '')

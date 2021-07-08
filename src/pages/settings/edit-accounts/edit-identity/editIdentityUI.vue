@@ -20,6 +20,7 @@
   >
     <q-tab-panel name="Static" class="bg-grey-1">
         <router-view
+          ref="routerView"
           :bIdentityNoSignature="bIdentityNoSignature"
           :sIdentitySignature="sIdentitySignature"
           :bIdentitySaving="bIdentitySaving"
@@ -147,6 +148,12 @@ export default {
   },
 
   methods: {
+    hasChanges () {
+      return this.$refs.routerView.hasChanges()
+    },
+    populate () {
+      return this.$refs.routerView.populate()
+    },
     onSaveIdentitySettings(oEvent, {
       bResult,
       iAccountId,

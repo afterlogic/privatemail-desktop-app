@@ -22,6 +22,7 @@
   >
     <q-tab-panel name="Static" class="bg-grey-1">
       <router-view
+        ref="routerView"
         :accounts="accounts"
         :isEditAccount="isEditAccount"
         :accountForward="accountForward"
@@ -161,6 +162,12 @@ export default {
     this.getAutoresponder()
   },
   methods: {
+    hasChanges () {
+      return this.$refs.routerView.hasChanges()
+    },
+    populate () {
+      return this.$refs.routerView.populate()
+    },
     getForward() {
       if (this.iEditAccountId !== -1) {
         ipcRenderer.send('mail-get-forward', {

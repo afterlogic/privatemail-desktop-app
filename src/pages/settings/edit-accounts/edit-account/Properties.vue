@@ -167,10 +167,7 @@ export default {
     },
     editAccount () {
       if (this.editAccount) {
-        this.bDefaultAccount = this.editAccount.bDefault
-        this.bUseThreading = this.editAccount.bUseThreading
-        this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
-        this.bAllowChangePasswordOnMailServer = !!this.editAccount.oExtend.AllowChangePasswordOnMailServer
+        this.populate()
       }
     },
   },
@@ -189,6 +186,12 @@ export default {
     }
   },
   methods: {
+    populate () {
+      this.bDefaultAccount = this.editAccount.bDefault
+      this.bUseThreading = this.editAccount.bUseThreading
+      this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
+      this.bAllowChangePasswordOnMailServer = !!this.editAccount.oExtend.AllowChangePasswordOnMailServer
+    },
     hasChanges () {
       if (this.editAccount) {
         return this.editAccount.bUseThreading !== this.bUseThreading || this.editAccount.bSaveRepliesToCurrFolder !== this.bSaveRepliesToCurrFolder

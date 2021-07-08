@@ -184,14 +184,15 @@ export default {
       }
     },
   },
-
   mounted () {
-    this.bAllowInsertImage = mailSettings.bAllowInsertImage
-    this.bNoSignature = this.noSignature
-    this.sSignature = this.signature
+    this.populate()
   },
-
   methods: {
+    populate () {
+      this.bAllowInsertImage = mailSettings.bAllowInsertImage
+      this.bNoSignature = this.noSignature
+      this.sSignature = this.signature
+    },
     hasChanges () {
       return  this.bNoSignature !== this.noSignature ||
       this.sSignature !== this.signature

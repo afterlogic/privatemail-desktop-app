@@ -22,6 +22,7 @@ export default {
     return {
       confirm: false,
       next: null,
+      currentComponent: false
     }
   },
   methods: {
@@ -29,12 +30,21 @@ export default {
       this.next = next
       this.confirm = true
     },
+    openConfirmDiscardChangesDialogT: async function () {
+      this.currentComponent = true
+      this.confirm = true
+    },
     discard () {
       // proceed with new screen, current changes will be lost
-      if (_.isFunction(this.next)) {
-        this.next()
+      if (!this.currentComponent) {
+        if (_.isFunction(this.next)) {
+          this.next()
+        }
+        this.confirm = false
+      } else {
+        this.confirm = false
+        this.$emit('confirmDiscardChanges',  true)
       }
-      this.confirm = false
     },
     cancel () {
       // stay put, changes need to be cared of

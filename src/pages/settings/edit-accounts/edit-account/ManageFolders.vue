@@ -189,10 +189,6 @@ export default {
   },
   mounted () {
     this.iEditAccountId = Number(this.$route.params.accountId)
-    this.initSubscriptions()
-  },
-  beforeDestroy() {
-    this.destroySubscriptions()
   },
   computed: {
     editAccount () {
@@ -216,19 +212,16 @@ export default {
     },
     editAccount () {
       if (this.editAccount) {
-        this.bDefaultAccount = this.editAccount.bDefault
-        this.bUseThreading = this.editAccount.bUseThreading
-        this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
-        this.bAllowChangePasswordOnMailServer = !!this.editAccount.oExtend.AllowChangePasswordOnMailServer
+        this.populate()
       }
     },
   },
   methods: {
-    initSubscriptions() {
-
-    },
-    destroySubscriptions() {
-
+    populate () {
+      this.bDefaultAccount = this.editAccount.bDefault
+      this.bUseThreading = this.editAccount.bUseThreading
+      this.bSaveRepliesToCurrFolder = this.editAccount.bSaveRepliesToCurrFolder
+      this.bAllowChangePasswordOnMailServer = !!this.editAccount.oExtend.AllowChangePasswordOnMailServer
     },
     totalScore() {
       function removeFolderTree(currentTree) {

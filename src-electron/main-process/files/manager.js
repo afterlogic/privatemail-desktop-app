@@ -1,8 +1,7 @@
 import { ipcMain } from 'electron'
-import _ from 'lodash'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
-import store from "../../../src/store";
+
 
 export default {
   initSubscriptions: function () {

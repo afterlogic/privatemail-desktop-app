@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import typesUtils from '../../utils/types.js'
 
-import CContact from 'src/modules/contacts/classes/CContact.js'
+import CContact from 'src/modules/contacts/classes/CContact'
 
 export function getStorageList(state) {
   return state.storages && _.isFunction(state.storages.getList) ? state.storages.getList() : []

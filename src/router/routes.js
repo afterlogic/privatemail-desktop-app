@@ -69,6 +69,16 @@ const routes = [
           }
         ]
       },
+      {
+        path: 'files',
+        component: () => import('pages/files/FilesUI'),
+        children: [
+          {
+            path: ':storageName',
+            component: () => import('pages/files/Files')
+          }
+        ]
+      },
       // {path: 'files', component: () => import('pages/files/FilesUI.vue') },
       // {path: 'calendar', component: () => import('pages/calendar/CalendarUI.vue') },
       {

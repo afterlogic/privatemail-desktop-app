@@ -18,6 +18,7 @@ import messagesDbManager from './mail/messages-db-manager.js'
 import openpgpManager from './openpgp/manager.js'
 
 import contactsManager from './contacts/manager.js'
+import filesManager from './files/manager.js'
 import contactsDbManager from './contacts/db-manager.js'
 
 const gotTheLock = app.requestSingleInstanceLock()
@@ -341,6 +342,7 @@ if (!gotTheLock) {
 
   mainManager.initSubscriptions()
   mailManager.initSubscriptions()
+  filesManager.initSubscriptions()
   openpgpManager.initSubscriptions()
   contactsManager.initSubscriptions()
 }

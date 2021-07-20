@@ -93,22 +93,22 @@
 }
 
 .frame-top {
-  height: 5px; 
+  height: 5px;
   border: 1px solid #ccc;
   border-bottom: 0;
-  border-radius: 5px 5px 0px 0px; 
+  border-radius: 5px 5px 0px 0px;
 }
 
 .frame-without-top {
   border: 1px solid #ccc;
   border-top: 0;
-  border-radius: 0px 0px 5px 5px; 
-  min-height: 200px; 
+  border-radius: 0px 0px 5px 5px;
+  min-height: 200px;
   padding: 1px 0px 0px
 }
 
 .input-size {
-  flex-grow: 2; 
+  flex-grow: 2;
   max-width: 65%;
 }
 
@@ -187,7 +187,8 @@ export default {
   },
 
   beforeDestroy: function () {
-    this.closeCreatingGroup()
+    //this.closeCreatingGroup()
+    this.$store.commit('contacts/changeStateForCreatingGroup', false)
     this.destroySubscriptions()
   },
 
@@ -219,6 +220,7 @@ export default {
     },
     closeCreatingGroup() {
       this.$store.commit('contacts/changeStateForCreatingGroup', false)
+      this.$router.go(-1)
     },
     changeSmallEditView() {
       this.bIsOrganization = !this.bIsOrganization

@@ -255,7 +255,7 @@
         <div class="buttons q-pa-md">
           <q-btn unelevated color="primary" label="Saving..." v-if="bSaving" />
           <q-btn unelevated color="primary" label="Save" v-if="!bSaving" @click="onSave"/>
-          <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="closeEditContact"/>
+          <q-btn unelevated color="grey-6" label="Cancel" class="btn-cancel" @click="changeRoute"/>
         </div>
       </div>
     </div>
@@ -394,7 +394,6 @@ export default {
   },
   data() {
     return {
-      editMode: false,
       oContact: null,
       bSmallEditView: true,
       oPrimaryEmail: contactsEnums.PrimaryEmail.Personal,
@@ -411,27 +410,7 @@ export default {
   },
 
   mounted () {
-    this.editMode = !!(this.contact && this.contact instanceof CContact)
-
-    let oContact = this.$store.getters['contacts/getNewContactToEdit']
-    if (oContact) {
-      this.bSmallEditView = false
-      this.$store.commit('contacts/setNewContactToEdit', null)
-    } else {
-      oContact = (this.contact && this.contact instanceof CContact) ? _.cloneDeep(this.contact) : new CContact({})
-    }
-    this.oContact = oContact
-
-    this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})
-    this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
-    this.oPrimaryAddress = _.find(this.aPrimaryAddressOptions, {'value': oContact.PrimaryAddress})
-
-    let iBirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : 2000
-    let iBirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : 1
-    let iBirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : 1
-    this.sBirthDate = moment(iBirthMonth + '-' + iBirthDay + '-' + iBirthYear, 'M-D-YYYY').format('YYYY/MM/DD')
-    this.sBirthDatePrev = this.sBirthDate
-
+    this.populate()
     this.setFilteredGroups()
     this.initSubscriptions()
   },
@@ -442,6 +421,9 @@ export default {
   },
 
   watch: {
+    'editMode': function () {
+      this.populate()
+    },
     'oPrimaryEmail': function (v) {
       if (v) {
         this.oContact.PrimaryEmail = v.value
@@ -471,6 +453,10 @@ export default {
   },
 
   computed: {
+    editMode () {
+      const editMode = this.$store.getters['contacts/isCurrentContactEditMode']
+      return !!(this.contact && this.contact instanceof CContact && editMode)
+    },
     'aPrimaryMailOptions': function () {
       let aOptions = []
       if (this.oContact !== null) {
@@ -521,6 +507,26 @@ export default {
   },
 
   methods: {
+    populate () {
+      let oContact = this.$store.getters['contacts/getNewContactToEdit']
+      if (oContact) {
+        this.bSmallEditView = false
+        this.$store.commit('contacts/setNewContactToEdit', null)
+      } else {
+        oContact = (this.contact && this.contact instanceof CContact && this.editMode) ? _.cloneDeep(this.contact) : new CContact({})
+      }
+      this.oContact = oContact
+
+      this.oPrimaryEmail = _.find(this.aPrimaryMailOptions, {'value': oContact.PrimaryEmail})
+      this.oPrimaryPhone = _.find(this.aPrimaryPhoneOptions, {'value': oContact.PrimaryPhone})
+      this.oPrimaryAddress = _.find(this.aPrimaryAddressOptions, {'value': oContact.PrimaryAddress})
+
+      let iBirthYear = this.oContact.BirthYear ? this.oContact.BirthYear : 2000
+      let iBirthMonth = this.oContact.BirthMonth ? this.oContact.BirthMonth : 1
+      let iBirthDay = this.oContact.BirthDay ? this.oContact.BirthDay : 1
+      this.sBirthDate = moment(iBirthMonth + '-' + iBirthDay + '-' + iBirthYear, 'M-D-YYYY').format('YYYY/MM/DD')
+      this.sBirthDatePrev = this.sBirthDate
+    },
     async getKeysInfo() {
       await OpenPgp.getKeysInfo(this.oContact.PublicPgpKey).then((res) => {
         if (res.length) {
@@ -544,7 +550,7 @@ export default {
 
       if (bEqual) {
         notification.showReport('The contact has not been changed.')
-        this.closeEditContact()
+        this.changeRoute()
       } else {
         let oContactToSave = _.cloneDeep(this.oContact)
         oContactToSave.setViewEmail()
@@ -578,12 +584,16 @@ export default {
         this.$store.commit('contacts/changeStateForCreatingContact', false)
       }
     },
+    changeRoute () {
+      this.closeEditContact()
+      this.$router.go(-1)
+    },
     onSaveContact (oEvent, { oContactWithUpdatedETag, bNewContact, oError }) {
       this.bSaving = false
       if (oContactWithUpdatedETag) {
         notification.showReport(bNewContact ? 'Contact was successfully added.' : 'Contact was successfully updated.')
         this.$store.commit('contacts/setHasChanges', true)
-        this.closeEditContact()
+        this.changeRoute()
       } else {
         notification.showError(errors.getText(oError, 'Error updating contact.'))
       }

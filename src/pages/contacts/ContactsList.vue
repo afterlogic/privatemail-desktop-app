@@ -10,7 +10,7 @@
     </template>
     <q-list>
       <div v-for="contact in contacts" :key="contact.UUID" class="non-selectable">
-        <q-item v-if="!contact.Deleted" clickable v-ripple class="contact-list-item q-py-md" @click="function (oMouseEvent) { setCurrentContactByUUID(contact.UUID, oMouseEvent) }" 
+        <q-item v-if="!contact.Deleted" clickable v-ripple class="contact-list-item q-py-md" @click="function (oMouseEvent) { setCurrentContactByUUID(contact.UUID, oMouseEvent) }"
             :class="{checked: isChecked(contact.UUID), selected: contact.UUID === currentContactUuid}">
           <q-item-section side>
             <q-checkbox v-model="aCheckedList" :val="contact.UUID" />
@@ -59,7 +59,6 @@
 </style>
 
 <script>
-import typesUtils from 'src/utils/types.js'
 
 export default {
   name: 'ContactsList',
@@ -76,6 +75,26 @@ export default {
   },
 
   watch: {
+    editMode(val) {
+      if (val) {
+        this.$router.push(`edit`)
+      }
+    },
+    'currentGroup.editable': function (val) {
+      if (val) {
+        this.$router.push(`group-edit`)
+      }
+    },
+    stateForCreatingGroup (val) {
+      if (val) {
+        this.$router.push(`/contacts/group/'${this.currentGroupUUID}'/group-create`)
+      }
+    },
+    importMode(val) {
+      if (val) {
+        this.$router.push(`/contacts/group/'${this.currentGroupUUID}'/import`)
+      }
+    },
     'currentStorage': function() {
       this.startAsyncGetContacts(true)
       this.aCheckedList = []
@@ -120,6 +139,18 @@ export default {
   },
 
   computed: {
+    importMode () {
+      return this.$store.getters['contacts/getImportState']
+    },
+    stateForCreatingGroup () {
+      return this.$store.getters['contacts/getStateForCreatingGroup']
+    },
+    currentGroup () {
+      return this.$store.getters['contacts/getCurrentGroup']
+    },
+    editMode () {
+      return this.$store.getters['contacts/isCurrentContactEditMode']
+    },
     currentContactUuid () {
       return this.$store.getters['contacts/getCurrentContactUUID']
     },
@@ -195,6 +226,9 @@ export default {
             this.$store.dispatch('contacts/setCurrentContactByUUID', sUUID)
           }
           this.sLastCheckedUuid = sUUID
+        }
+        if (this.$route.path !== `/${sUUID}/view`) {
+          this.$router.push(`/${sUUID}/view`)
         }
       } else {
         this.$store.dispatch('contacts/setCurrentContactByUUID', sUUID)

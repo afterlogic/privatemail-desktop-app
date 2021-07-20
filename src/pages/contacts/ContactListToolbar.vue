@@ -129,9 +129,10 @@ export default {
     return {
       deleteConfirm: false,
       iRefreshTimer: 0,
+      creatingGroup: false,
+      currentContact: null
     }
   },
-
   computed: {
     stateForCreatingGroup: function() {
       return this.$store.getters['contacts/getStateForCreatingGroup']
@@ -173,7 +174,6 @@ export default {
       return contactsSettings.aImportExportFormats
     }
   },
-
   mounted: function () {
     this.initSubscriptions()
     this.sync()
@@ -278,14 +278,20 @@ export default {
       }
     },
     createGroup () {
-      let sCurrentContactUuid = this.$store.getters['contacts/getCurrentContactUUID']
-      if (typesUtils.isNonEmptyString(sCurrentContactUuid)) {
+      if (!this.stateForCreatingGroup) {
+        let sCurrentContactUuid = this.$store.getters['contacts/getCurrentContactUUID']
         let aCheckedContacts = _.clone(this.$store.getters['contacts/getCheckedContacts'])
-        aCheckedContacts.push(sCurrentContactUuid)
-        this.$store.commit('contacts/setCheckedContacts', aCheckedContacts)
-        this.$store.dispatch('contacts/setCurrentContactByUUID', null)
+        if (this.currentContactUuid !== sCurrentContactUuid) {
+          this.currentContactUuid = sCurrentContactUuid
+          if (typesUtils.isNonEmptyString(sCurrentContactUuid)) {
+            if (!aCheckedContacts.find( elem => elem === sCurrentContactUuid )) {
+              aCheckedContacts.push(sCurrentContactUuid)
+            }
+            this.$store.commit('contacts/setCheckedContacts', aCheckedContacts)
+          }
+        }
+        this.$store.commit('contacts/changeStateForCreatingGroup', true)
       }
-      this.$store.commit('contacts/changeStateForCreatingGroup', true)
     },
     askDeleteContacts () {
       if (this.checkedContactsCount > 0) {
@@ -367,8 +373,8 @@ export default {
       webApi.downloadExportFile(oParameters, fileName)
     }
   },
-
   beforeDestroy () {
+    this.$store.commit('contacts/setCheckedContacts', [])
     this.destroySubscriptions()
   },
 

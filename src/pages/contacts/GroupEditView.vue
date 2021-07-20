@@ -90,7 +90,7 @@
 }
 
 .frame-top {
-  height: 5px; 
+  height: 5px;
   border: 1px solid #ccc;
   border-bottom: 0;
   border-radius: 5px 5px 0px 0px;
@@ -105,7 +105,7 @@
 }
 
 .input-size {
-  flex-grow: 2; 
+  flex-grow: 2;
   max-width: 65%;
 }
 
@@ -177,7 +177,7 @@ export default {
   },
 
   beforeDestroy: function () {
-    this.closeEditGroup()
+    this.$store.dispatch('contacts/closeEditGroup')
     this.destroySubscriptions()
   },
 
@@ -208,6 +208,7 @@ export default {
     },
     closeEditGroup() {
       this.$store.dispatch('contacts/closeEditGroup')
+      this.$router.go(-1)
     },
     changeSmallEditView() {
       this.bIsOrganization = !this.bIsOrganization

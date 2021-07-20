@@ -11,7 +11,64 @@ const routes = [
       {path: '', component: () => import('pages/LoadingUI.vue') },
       {path: 'login', component: () => import('pages/login/LoginUI.vue') },
       {path: 'mail', component: () => import('pages/mail/MailUI.vue') },
-      {path: 'contacts', component: () => import('pages/contacts/ContactsUI.vue') },
+      {
+        path: 'contacts',
+        component: () => import('pages/contacts/ContactsUI.vue'),
+        children: [
+          {
+            path: 'group/:name',
+            component: () => import('pages/contacts/ContactsView'),
+            children: [
+              {
+                path: '/:uuid/view',
+                component: () => import('pages/contacts/ContactView'),
+              },
+              {
+                path: '/:uuid/edit',
+                component: () => import('pages/contacts/ContactEditView')
+              },
+              {
+                path: '/:uuid/group-view',
+                component: () => import('pages/contacts/GroupView')
+              },
+              {
+                path: 'group-edit',
+                component: () => import('pages/contacts/GroupEditView')
+              },
+              {
+                path: 'group-create',
+                component: () => import('pages/contacts/GroupCreateView')
+              },
+              {
+                path: 'import',
+                component: () => import('pages/contacts/ContactImport')
+              },
+              {
+                path: 'no-contact',
+                component: () => import('pages/contacts/ContactEmpty')
+              },
+              {
+                path: 'group-view',
+                component: () => import('pages/contacts/GroupView')
+              },
+              {
+                path: 'create',
+                component: () => import('pages/contacts/ContactEditView')
+              }
+            ]
+          },
+          {
+            path: 'groups',
+            component: () => import('pages/contacts/ContactsView'),
+            children: [
+              {
+                path: 'no-contact',
+                component: () => import('pages/contacts/ContactEmpty')
+              },
+            ]
+          }
+        ]
+      },
       // {path: 'files', component: () => import('pages/files/FilesUI.vue') },
       // {path: 'calendar', component: () => import('pages/calendar/CalendarUI.vue') },
       {

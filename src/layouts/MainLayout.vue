@@ -27,7 +27,7 @@
             </q-item>
           </q-list>
         </q-btn-dropdown> -->
-        <q-route-tab to="/contacts" label="Contacts" />
+        <q-route-tab to="/contacts/groups/no-contact" label="Contacts" />
         <!-- <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" /> -->
         <q-space />

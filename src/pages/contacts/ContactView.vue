@@ -185,13 +185,7 @@
 </style>
 
 <script>
-import { ipcRenderer } from 'electron'
 import moment from 'moment'
-
-import notification from 'src/utils/notification.js'
-import typesUtils from 'src/utils/types'
-
-import CContact from 'src/modules/contacts/classes/CContact.js'
 
 export default {
   name: 'ContactFields',
@@ -232,6 +226,7 @@ export default {
   methods: {
     openEditContact() {
       this.$store.dispatch('contacts/openEditContact')
+      // this.$router.push(`contacts/group/${this.contact.Storage}/${this.contact.UUID}/edit`)
     },
     setCurrentGroup (sGroupName) {
       let oGroup = _.find(this.groupList, { 'Name': sGroupName } )
@@ -240,7 +235,7 @@ export default {
     },
     setFilteredGroups() {
       let groupList =[]
-      this.contact.GroupUUIDs.forEach(element => {
+      this.contact?.GroupUUIDs.forEach(element => {
         let group = _.find(this.groupList, { 'UUID': element } )
         if (group) {
           groupList.push(group.Name)

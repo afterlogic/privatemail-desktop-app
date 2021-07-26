@@ -28,7 +28,7 @@
           </q-list>
         </q-btn-dropdown> -->
         <q-route-tab to="/contacts/groups/no-contact" label="Contacts" />
-        <q-route-tab to="/files" label="Files" />
+        <q-route-tab :to="'/files/' + currentStorage.Type" label="Files" />
         <!-- <q-route-tab to="/files" label="Files" />
         <q-route-tab to="/calendar" label="Calendar" /> -->
         <q-space />
@@ -72,6 +72,9 @@ export default {
         return oAccount.iAccountId !== iCurrAccountId
       })
     },
+    currentStorage () {
+      return this.$store.getters['files/getCurrentStorage']
+    }
   },
 
   methods: {
@@ -79,6 +82,7 @@ export default {
       this.$store.dispatch('login')
     },
     changeAccount (oAccount) {
+      console.log('changeAccount')
       this.$store.commit('mail/setCurrentAccount', oAccount)
       this.$store.dispatch('mail/asyncGetQuota')
       this.$store.commit('mail/resetCurrentFolderList')

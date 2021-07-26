@@ -326,7 +326,6 @@ if (!gotTheLock) {
       }
     })
   })
-
   ipcMain.on('core-send-web-api-request', (oEvent, { iRequestId, sApiHost, sAuthToken, sModule, sMethod, oParameters }) => {
     webApi.sendRequest({
       sApiHost,

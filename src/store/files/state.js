@@ -1,4 +1,11 @@
 export default {
   storageList: [],
-  currentFileStorage: {}
+  filesTree: {},
+  currentFileStorage: {},
+  currentFiles: [],
+  uploadingFiles: false,
+  currentFile: null,
+  currentPaths: [],
+  currentPath: '',
+  checkedItems: []
 }

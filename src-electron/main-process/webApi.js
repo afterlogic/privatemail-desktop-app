@@ -7,11 +7,15 @@ import { machineIdSync } from 'node-machine-id'
 import typesUtils from '../../src/utils/types.js'
 
 const sMachineId = machineIdSync(true)
-
+let oRequest = null
 let aRequestsNumbers = []
 
 export default {
   sendRequest: function ({sApiHost, sAuthToken, sModule, sMethod, oParameters, fCallback}) {
+/*    if (oRequest !== null) {
+      oRequest.abort()
+      oRequest = null
+    }*/
     let protocol = http
     let iPort = 80
     if (_.trim(sApiHost).indexOf('https://') === 0) {
@@ -55,7 +59,7 @@ export default {
 
     try {
       let aData = []
-      let oRequest = protocol.request(oOptions, (oResponse) => {
+      oRequest = protocol.request(oOptions, (oResponse) => {
         oResponse.setEncoding('utf8')
 
         oResponse.on('data', (sData) => {

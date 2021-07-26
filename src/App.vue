@@ -73,6 +73,7 @@ export default {
       this.setThemeColors(v)
     },
     'currentAccountId': function (iAccountId, iPrevAccountId) {
+      this.$store.dispatch('files/asyncGetStorages')
       this.$store.dispatch('mail/asyncGetFolderList')
     },
     dataToSave: function () {

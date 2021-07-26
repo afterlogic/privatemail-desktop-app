@@ -2,11 +2,10 @@ import { ipcMain } from 'electron'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
 
-
 export default {
   initSubscriptions: function () {
     ipcMain.on('files-get-storages', (oEvent, {sApiHost, sAuthToken}) => {
-      webApi.sendRequest({
+    webApi.sendRequest({
         sApiHost,
         sAuthToken,
         sModule: 'Files',
@@ -21,26 +20,45 @@ export default {
         },
       })
     })
-    ipcMain.on('files-get-files', (oEvent, {sApiHost, sAuthToken, type, path, pattern, pathRequired}) => {
-      const parameters = {
+    ipcMain.on('files-create-folder', (oEvent, {sApiHost, sAuthToken, type, path, folderName}) => {
+      const oParameters = {
         Type: type,
         Path: path,
-        Pattern: pattern,
-        PathRequired: pathRequired
+        FolderName: folderName,
       }
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
         sModule: 'Files',
-        sMethod: 'GetFiles',
-        oParameters: parameters,
-        fCallback: (files, error) => {
-          console.log(files, 'files')
-         /* if (typesUtils.isNonEmptyArray(storageList)) {
-            oEvent.sender.send('files-get-storages', { storageList })
+        sMethod: 'CreateFolder',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-create-folder', { result })
           } else {
-            oEvent.sender.send('files-get-storages', { error })
-          }*/
+            oEvent.sender.send('files-create-folder', { error })
+          }
+        },
+      })
+    })
+    ipcMain.on('files-remove-items', (oEvent, {sApiHost, sAuthToken, type, path, items}) => {
+      const oParameters = {
+        Type: type,
+        Path: path,
+        Items: items,
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Files',
+        sMethod: 'Delete',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-remove-items', { result })
+          } else {
+            oEvent.sender.send('files-remove-items', { error })
+          }
         },
       })
     })

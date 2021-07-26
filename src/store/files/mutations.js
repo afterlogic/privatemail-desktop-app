@@ -6,3 +6,35 @@ export function setStorageList (state, storageList) {
 export function setCurrentStorage (state, currentStorage) {
   state.currentFileStorage = typesUtils.pObject(currentStorage)
 }
+export function setFilesList (state, { files, storage }) {
+  state.filesTree[storage] = files
+}
+export function setCurrentFiles (state, { files }) {
+  state.currentFiles = files
+}
+export function setLoadingStatus (state, { status }) {
+  state.uploadingFiles = status
+}
+export function setCurrentFile (state, { currentFile }) {
+  state.currentFile = currentFile
+}
+export function changeCurrentPath (state, { path, index, lastStorage }) {
+  if (!lastStorage) {
+    if (index === -1) {
+      state.currentPaths.push(path)
+    } else {
+      state.currentPaths.splice(index + 1)
+    }
+  } else {
+    state.currentPaths = [path]
+  }
+}
+export function setCurrentPaths (state, { path }) {
+  state.currentPaths = path
+}
+export function setCurrentPath (state, { path }) {
+  state.currentPath = path
+}
+export function setCheckedItems (state, { checkedItems }) {
+  state.checkedItems = checkedItems
+}

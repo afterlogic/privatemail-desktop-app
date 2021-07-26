@@ -1,23 +1,45 @@
 <template>
-  <div class="col">
-    <q-scroll-area class="full-height">
-      <div class="row q-pa-sm">
-        <q-card class="q-ma-md" v-for="n in 20" :key="n">
-          <q-card-section>
-            <div class="text-subtitle2">by John Doe</div>
-          </q-card-section>
+  <div class="col panel-rounded">
+      <q-scroll-area class="full-height">
+        <div style="text-align: center" class="q-mt-xl" v-if="isUploadingFiles">
+          Loading...
+        </div>
+        <div style="text-align: center" class="q-mt-xl" v-if="!isUploadingFiles && !filesList.length">
+          You can drag-n-drop files from other folders or from your desktop, or click New Folder to create a folder
+        </div>
+        <div class="row q-pa-sm" v-if="!isUploadingFiles">
+          <q-card
+            class="q-ma-md"
+            :class="{ 'bg-yellow-1': isChecked(file) }"
+            v-for="file in filesList" :key="file.Id" style="width: 136px" align="center"
+          >
+            <div class="file-focus" v-if="!file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
+              <q-separator/>
+              <q-card-section >
+                {{ file.Name }}
+              </q-card-section>
+              <q-card-actions align="center">
+                <q-btn flat>download</q-btn>
+              </q-card-actions>
+            </div>
+            <div class="file-focus" v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }" @dblclick="openFolder(file)">
+              <q-card-section >
+                <div class="text-subtitle2">folder</div>
+              </q-card-section>
 
-          <q-separator/>
-          <q-card-section>
-            Image.jpg
-          </q-card-section>
-        </q-card>
-      </div>
-    </q-scroll-area>
+              <q-separator/>
+              <q-card-section >
+                {{ file.Name }}
+              </q-card-section>
+            </div>
+          </q-card>
+        </div>
+      </q-scroll-area>
   </div>
 </template>
 
 <script>
+
 export default {
   name: 'Files',
   props: {
@@ -26,17 +48,69 @@ export default {
       Default: {}
     }
   },
-  mounted() {
-    this.populate()
+  data() {
+    return {
+      currentFile: null,
+      checkedList: []
+    }
+  },
+  computed: {
+    filesList () {
+      return this.$store.getters['files/getCurrentFiles']
+    },
+    isUploadingFiles () {
+      return this.$store.getters['files/getLoadingStatus']
+    }
+  },
+  watch: {
+    $route () {
+      this.currentFile = null
+    }
   },
   methods: {
-    populate () {
-      this.$store.dispatch('files/getFiles')
-    }
+    selectedFile (file, oMouseEvent) {
+      let selectedFile = {
+        Path: file.Path,
+        Name: file.Name,
+        IsFolder: file.IsFolder
+      }
+      if (oMouseEvent) {
+        if (oMouseEvent.ctrlKey) {
+          this.checkedList = _.union(this.checkedList, [selectedFile])
+        } else if (oMouseEvent.shiftKey) {
+          let files = _.map(this.filesList, function (file) {
+            return {
+              Path: file.Path,
+              Name: file.Name,
+              IsFolder: file.IsFolder
+            }
+          })
+        } else {
+          this.checkedList = [file]
+          this.currentFile = file
+          this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
+        }
+      }
+      this.$store.dispatch('files/changeCheckedItems', { checkedItems:  this.checkedList })
+    },
+    openFolder(file) {
+      this.$emit('openFolder', true)
+      const path = {
+        path: file.FullPath,
+        name: file.Name
+      }
+      this.$store.dispatch('files/changeCurrentPaths', { path })
+      this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: file.FullPath, isFolder: true })
+    },
+    isChecked(file) {
+      return this.checkedList.find(checkedFile => checkedFile.Name === file.Name)
+    },
   }
 }
 </script>
 
 <style scoped>
-
+.file-focus:hover {
+  cursor: pointer;
+}
 </style>

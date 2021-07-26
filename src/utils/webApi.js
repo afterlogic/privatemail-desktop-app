@@ -87,7 +87,6 @@ export default {
     oCallbacks[iRequestId] = fCallback
     ipcRenderer.send('core-send-web-api-request', { iRequestId, sApiHost, sAuthToken, sModule, sMethod, oParameters })
   },
-
   viewByUrlInNewWindow: function (sViewUrl, sFileName) {
     let url = store.getters['main/getApiHost'] + '/' + sViewUrl
 

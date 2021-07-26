@@ -77,7 +77,6 @@ export default {
   //       }
   //     })
   // },
-
   sendRequest: function ({ sApiHost, sModule, sMethod, oParameters, fCallback }) {
     if (!typesUtils.isNonEmptyString(sApiHost)) {
       sApiHost = store.getters['main/getApiHost']

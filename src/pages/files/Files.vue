@@ -19,7 +19,8 @@
                 {{ file.Name }}
               </q-card-section>
               <q-card-actions align="center">
-                <q-btn flat>download</q-btn>
+                <q-btn v-if="hasViewAction" flat @click="viewFile(file)">view</q-btn>
+                <q-btn v-if="hasDownloadAction" flat @click="downloadFile(file)">download</q-btn>
               </q-card-actions>
             </div>
             <div class="file-focus" v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }" @dblclick="openFolder(file)">
@@ -39,6 +40,7 @@
 </template>
 
 <script>
+import webApi from 'src/utils/webApi'
 
 export default {
   name: 'Files',
@@ -51,7 +53,7 @@ export default {
   data() {
     return {
       currentFile: null,
-      checkedList: []
+      checkedList: [],
     }
   },
   computed: {
@@ -68,6 +70,19 @@ export default {
     }
   },
   methods: {
+    downloadFile (file = null) {
+      let url = ''
+      if (file) {
+        url = file.Actions.download.url
+      } else {
+        url = this.currentFile.Actions.download.url
+      }
+      webApi.downloadByUrl(url)
+    },
+    viewFile (file) {
+      const url = file.Actions.view.url
+      webApi.viewByUrlInNewWindow(url, file.Name)
+    },
     selectedFile (file, oMouseEvent) {
       let selectedFile = {
         Path: file.Path,
@@ -92,6 +107,18 @@ export default {
         }
       }
       this.$store.dispatch('files/changeCheckedItems', { checkedItems:  this.checkedList })
+    },
+    hasDownloadAction () {
+      if (this.currentFile) {
+        return this.currentFile?.Actions?.download
+      }
+      return false
+    },
+    hasViewAction () {
+      if (this.currentFile) {
+        return this.currentFile?.Actions?.view
+      }
+      return false
     },
     openFolder(file) {
       this.$emit('openFolder', true)

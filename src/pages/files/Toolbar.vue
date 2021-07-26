@@ -1,20 +1,22 @@
 <template>
   <div>
-    <q-toolbar>
+    <div class="row q-pa-sm items-center">
       <q-btn :disable="!currentStorage" flat color="primary" icon="create_new_folder" @click="showCreateNewFolderDialog" />
       <!--<q-btn flat color="primary" label="Shortcut" @click=""/>-->
-      <q-btn :disable="!currentFile" flat color="primary" label="Download" @click="downloadFile" />
+      <q-btn :disable="!currentFile || isFolder" flat color="primary" label="Download" @click="downloadFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="alternate_email" @click="sendFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="edit" @click="editFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="createSecureLink" />
-      <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined" :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog" />
+      <span>
+         <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined" :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog" />
+      </span>
       <q-btn :disable="!currentFile" flat color="primary" label="cut" @click="cutFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile" />
       <q-btn :disable="!currentFile" flat color="primary" label="past" @click="pastFile" />
       <q-space/>
       <q-btn flat color="primary" icon="sync" @click="syncFiles" />
       <!-- <q-btn flat color="primary" label="Flat" /> -->
-    </q-toolbar>
+    </div>
     <q-dialog v-model="createFolderDialog" persistent>
       <q-card class="q-dialog-size" style="min-width: 300px">
         <q-item class="q-mt-md">
@@ -57,6 +59,11 @@ export default {
     checkedItems () {
       return this.$store.getters['files/getCheckedItems']
     },
+    isFolder () {
+      const file = this.$store.getters['files/getCurrentFile']
+      console.log(file, 'filefilefile')
+      return file?.IsFolder
+    },
     currentFile () {
       return this.$store.getters['files/getCurrentFile']
     },
@@ -84,7 +91,7 @@ export default {
       this.createFolderDialog = true
     },
     downloadFile () {
-      console.log('Comming soon')
+      this.$emit('downloadFile')
     },
     sendFile () {
       console.log('Comming soon')
@@ -97,7 +104,6 @@ export default {
     },
     openRemoveItemsDialog () {
       this.$refs.deleteItemDialog.openDialog()
-      console.log('Comming soon')
     },
     removeFiles () {
       this.$store.dispatch('files/removeFiles', {

@@ -33,7 +33,7 @@ export default {
       if (this.items.length > 1) {
         return 'Delete selected items permanently?'
       }
-      if (this.currentFile.IsFolder) {
+      if (this.currentFile?.IsFolder) {
         return 'Delete selected folder permanently?'
       }
       return 'Delete selected file permanently?'

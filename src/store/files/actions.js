@@ -127,3 +127,6 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
     }
   })
 }
+export function copyFiles ({ state, commit, getters, dispatch }, { fromType, fromPath, files }) {
+  commit('setCopiedFiles', { fromType, fromPath, files })
+}

@@ -38,3 +38,8 @@ export function setCurrentPath (state, { path }) {
 export function setCheckedItems (state, { checkedItems }) {
   state.checkedItems = checkedItems
 }
+export function setCopiedFiles (state, { fromType, fromPath, files }) {
+  state.copiedFiles.fromType = fromType
+  state.copiedFiles.fromPath = fromPath
+  state.copiedFiles.files = files
+}

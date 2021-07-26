@@ -27,3 +27,6 @@ export function getCurrentPath (state) {
 export function getCheckedItems (state) {
   return state.checkedItems
 }
+export function getCopiedFiles (state) {
+  return state.copiedFiles
+}

@@ -11,8 +11,10 @@
          <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined" :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog" />
       </span>
       <q-btn :disable="!currentFile" flat color="primary" label="cut" @click="cutFile" />
-      <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile" />
-      <q-btn :disable="!currentFile" flat color="primary" label="past" @click="pastFile" />
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile" />
+      </span>
+      <q-btn :disable="!currentFile" flat color="primary" icon="content_paste" :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile" />
       <q-space/>
       <q-btn flat color="primary" icon="sync" @click="syncFiles" />
       <!-- <q-btn flat color="primary" label="Flat" /> -->
@@ -61,6 +63,9 @@ export default {
   computed: {
     checkedItems () {
       return this.$store.getters['files/getCheckedItems']
+    },
+    copiedFiles () {
+      return this.$store.getters['files/getCopiedFiles']
     },
     isFolder () {
       const file = this.$store.getters['files/getCurrentFile']
@@ -126,9 +131,22 @@ export default {
       })
     },
     cutFile () {
-      console.log('Comming soon')
+      console.log('cutFile', this.$store.getters['files/getCopiedFiles'])
     },
     copyFile () {
+      let files = this.checkedItems.map( item => {
+        return {
+          FromType: item.Type,
+          FromPath: item.Path,
+          Name: item.Name,
+          IsFolder: item.IsFolder
+        }
+      })
+      this.$store.dispatch('files/copyFiles', {
+        fromType: this.currentStorage.Type,
+        fromPath: this.currentFolderPath,
+        files: files
+      })
       console.log('Comming soon')
     },
     pastFile () {

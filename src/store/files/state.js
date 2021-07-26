@@ -7,5 +7,10 @@ export default {
   currentFile: null,
   currentPaths: [],
   currentPath: '',
-  checkedItems: []
+  checkedItems: [],
+  copiedFiles: {
+    fromType: null,
+    fromPath: null,
+    files: []
+  }
 }

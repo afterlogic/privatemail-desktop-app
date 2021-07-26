@@ -62,5 +62,29 @@ export default {
         },
       })
     })
+    ipcMain.on('files-rename-item', (oEvent, { sApiHost, sAuthToken, type, path, name, newName, isLink, isFolder }) => {
+      const oParameters = {
+        Type: type,
+        Path: path,
+        Name: name,
+        NewName: newName,
+        IsLink: isLink,
+        IsFolder: isFolder
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Files',
+        sMethod: 'Rename',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-rename-item', { result })
+          } else {
+            oEvent.sender.send('files-rename-item', { error })
+          }
+        },
+      })
+    })
   }
 }

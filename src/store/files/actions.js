@@ -103,3 +103,27 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
     }
   })
 }
+export function renameItem ({ state, commit, getters, dispatch }, { type, path, name, newName, isLink, isFolder }) {
+  commit('setLoadingStatus', { status: true })
+  ipcRenderer.send('files-rename-item', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    type,
+    path,
+    name,
+    newName,
+    isLink,
+    isFolder
+  })
+
+  ipcRenderer.once('files-rename-item', (event, { result, oError }) => {
+    if (result) {
+      dispatch('getFiles', {
+        currentStorage: type,
+        path: path
+      })
+    } else {
+      commit('setLoadingStatus', { status: false })
+    }
+  })
+}

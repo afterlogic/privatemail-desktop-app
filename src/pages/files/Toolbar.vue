@@ -35,7 +35,8 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles"></delete-items-dialog>
+    <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles" />
+    <rename-item-dialog ref="renameItemDialog" @renameItem="renameItem" />
   </div>
 </template>
 
@@ -43,11 +44,13 @@
 
 <script>
 import DeleteItemsDialog from './DeleteItemsDialog'
+import RenameItemDialog from './RenameItemDialog'
 
 export default {
   name: 'Toolbar',
   components: {
-    DeleteItemsDialog
+    DeleteItemsDialog,
+    RenameItemDialog
   },
   data () {
     return {
@@ -78,7 +81,7 @@ export default {
     cancelDialog () {
       this.createFolderDialog = false
     },
-    createNewFolder (){
+    createNewFolder () {
       this.$store.dispatch('files/createFolder', {
         type: this.currentStorage.Type,
         path: this.currentFolderPath,
@@ -97,7 +100,17 @@ export default {
       console.log('Comming soon')
     },
     editFile () {
-      console.log('Comming soon')
+      this.$refs.renameItemDialog.openDialog(this.currentFile.Name)
+    },
+    renameItem (name) {
+      this.$store.dispatch('files/renameItem', {
+        type: this.currentStorage.Type,
+        path: this.currentFolderPath,
+        name: this.currentFile.Name,
+        newName: name,
+        isLink: 0,
+        isFolder: this.currentFile.IsFolder
+      })
     },
     createSecureLink () {
       console.log('Comming soon')

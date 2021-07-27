@@ -86,5 +86,47 @@ export default {
         },
       })
     })
+    ipcMain.on('files-past-files', (oEvent, { sApiHost, sAuthToken, toType, toPath, copiedFiles }) => {
+      const oParameters = {
+        FromType: copiedFiles.fromType,
+        ToType: toType,
+        FromPath: copiedFiles.fromPath,
+        ToPath: toPath,
+        Files: copiedFiles.files
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Files',
+        sMethod: copiedFiles.isCut ? 'Move' : 'Copy',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-past-files', { result })
+          } else {
+            oEvent.sender.send('files-past-files', { error })
+          }
+        },
+      })
+    })
+    ipcMain.on('files-save-temp', (oEvent, { sApiHost, sAuthToken, files }) => {
+      const oParameters = {
+        Files: files
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'Files',
+        sMethod: 'SaveFilesAsTempFiles',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-save-temp', { result })
+          } else {
+            oEvent.sender.send('files-save-temp', { error })
+          }
+        },
+      })
+    })
   }
 }

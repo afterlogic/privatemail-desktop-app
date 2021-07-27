@@ -11,6 +11,7 @@ export default {
   copiedFiles: {
     fromType: null,
     fromPath: null,
+    isCut: false,
     files: []
   }
 }

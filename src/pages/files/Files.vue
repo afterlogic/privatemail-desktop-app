@@ -91,7 +91,7 @@ export default {
       }
       if (oMouseEvent) {
         if (oMouseEvent.ctrlKey) {
-          this.checkedList = _.union(this.checkedList, [selectedFile])
+          this.checkedList = _.union(this.checkedList, [file])
         } else if (oMouseEvent.shiftKey) {
           let files = _.map(this.filesList, function (file) {
             return {

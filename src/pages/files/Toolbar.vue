@@ -3,8 +3,8 @@
     <div class="row q-pa-sm items-center">
       <q-btn :disable="!currentStorage" flat color="primary" icon="create_new_folder" @click="showCreateNewFolderDialog" />
       <!--<q-btn flat color="primary" label="Shortcut" @click=""/>-->
-      <q-btn :disable="!currentFile || isFolder" flat color="primary" label="Download" @click="downloadFile" />
-      <q-btn :disable="!currentFile" flat color="primary" icon="alternate_email" @click="sendFile" />
+      <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1" flat color="primary" label="Download" @click="downloadFile" />
+      <q-btn :disable="!currentFile || (checkedItems.length === 1 && isFolder)" flat color="primary" icon="alternate_email" @click="sendFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="edit" @click="editFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="createSecureLink" />
       <span>
@@ -14,7 +14,7 @@
       <span>
         <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile" />
       </span>
-      <q-btn :disable="!currentFile" flat color="primary" icon="content_paste" :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile" />
+      <q-btn :disable="!copiedFiles.files.length > 0" flat color="primary" icon="content_paste" :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile" />
       <q-space/>
       <q-btn flat color="primary" icon="sync" @click="syncFiles" />
       <!-- <q-btn flat color="primary" label="Flat" /> -->
@@ -34,6 +34,19 @@
                  label="Save" />
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
                  label="Cancel" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="confirmCopyDialog" persistent>
+      <q-card class="q-dialog-size" style="min-width: 300px">
+        <q-item class="q-mt-md">
+          <q-item-section>
+            <q-item-label>{{ titleAfterCopying }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-card-actions align="right">
+          <q-btn flat class="q-px-sm" :ripple="false" color="primary" v-close-popup
+                 label="Ok" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -57,7 +70,9 @@ export default {
   data () {
     return {
       createFolderDialog: false,
-      folderName: ''
+      confirmCopyDialog: false,
+      folderName: '',
+      titleAfterCopying: ''
     }
   },
   computed: {
@@ -69,7 +84,6 @@ export default {
     },
     isFolder () {
       const file = this.$store.getters['files/getCurrentFile']
-      console.log(file, 'filefilefile')
       return file?.IsFolder
     },
     currentFile () {
@@ -102,7 +116,22 @@ export default {
       this.$emit('downloadFile')
     },
     sendFile () {
-      console.log('Comming soon')
+      let files = this.checkedItems.map( item => {
+        return {
+          Storage: item.Type,
+          Path: item.Path,
+          Name: item.Name,
+          Id: item.Id,
+          IsEncrypted: false
+        }
+      })
+      this.$store.dispatch('files/saveFilesAsTempFiles', {
+        files
+      }).then(res => {
+        this.openCompose({
+          aAttachments: res
+        })
+      })
     },
     editFile () {
       this.$refs.renameItemDialog.openDialog(this.currentFile.Name)
@@ -131,9 +160,8 @@ export default {
       })
     },
     cutFile () {
-      console.log('cutFile', this.$store.getters['files/getCopiedFiles'])
-    },
-    copyFile () {
+      this.titleAfterCopying = 'Items have been cut. Choose a destination folder and click Paste button to move them.'
+      this.confirmCopyDialog = true
       let files = this.checkedItems.map( item => {
         return {
           FromType: item.Type,
@@ -145,15 +173,39 @@ export default {
       this.$store.dispatch('files/copyFiles', {
         fromType: this.currentStorage.Type,
         fromPath: this.currentFolderPath,
+        isCut: true,
         files: files
       })
-      console.log('Comming soon')
+    },
+    copyFile () {
+      this.titleAfterCopying = 'Items have been copied. Choose a destination folder and click Paste button to insert them.'
+      this.confirmCopyDialog = true
+      let files = this.checkedItems.map( item => {
+        return {
+          FromType: item.Type,
+          FromPath: item.Path,
+          Name: item.Name,
+          IsFolder: item.IsFolder
+        }
+      })
+      this.$store.dispatch('files/copyFiles', {
+        fromType: this.currentStorage.Type,
+        fromPath: this.currentFolderPath,
+        isCut: false,
+        files: files
+      })
     },
     pastFile () {
-      console.log('Comming soon')
+      this.$store.dispatch('files/pastFiles', {
+        toType: this.currentStorage.Type,
+        toPath: this.currentFolderPath,
+      })
     },
     syncFiles () {
-      console.log('Comming soon')
+      this.$store.dispatch('files/getFiles', {
+        currentStorage: this.currentStorage.Type,
+        path: this.currentFolderPath,
+      })
     }
   }
 }

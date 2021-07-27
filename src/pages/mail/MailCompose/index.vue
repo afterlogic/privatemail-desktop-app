@@ -1000,8 +1000,10 @@ export default {
           let oAttach = new cAttachment()
           oAttach.parseDataFromServer(oAttachData)
           this.attachments.push(oAttach)
-          if (typesUtils.isNonEmptyString(oAttach.sHash)) {
-            aHashes.push(oAttach.sHash)
+          if (!typesUtils.isNonEmptyString(oAttach.sTempName)) {
+            if (typesUtils.isNonEmptyString(oAttach.sHash)) {
+              aHashes.push(oAttach.sHash)
+            }
           }
         })
         if (aHashes.length > 0) {
@@ -1110,6 +1112,14 @@ export default {
                 this.save(true)
               }
             },
+          })
+        } else if (this.attachments[0].sTempName) {
+          this.attachments.map((attach, index) => {
+            if (attach) {
+              attach.parseDataFromServer(aAttachments[index])
+              attach.onUploadComplete()
+            }
+            this.commitMessageData()
           })
         }
       }

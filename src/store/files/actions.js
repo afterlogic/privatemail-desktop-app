@@ -43,6 +43,7 @@ export function getFiles ({ state, commit, getters, dispatch }, { currentStorage
       oParameters: parameters,
       fCallback: (files, error) => {
         if (_.isArray(files?.Items)) {
+          commit('setCheckedItems', { checkedItems: [] })
           let currentPath = getters['getCurrentPath']
           let storage = getters['getCurrentStorage']
           if (currentStorage === storage.Type && path === currentPath) {
@@ -127,6 +128,47 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
     }
   })
 }
-export function copyFiles ({ state, commit, getters, dispatch }, { fromType, fromPath, files }) {
-  commit('setCopiedFiles', { fromType, fromPath, files })
+export function copyFiles ({ state, commit, getters, dispatch }, { fromType, fromPath, isCut, files }) {
+  commit('setCopiedFiles', { fromType, fromPath, isCut, files })
+}
+export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPath }) {
+  commit('setLoadingStatus', { status: true })
+  const copiedFiles = getters['getCopiedFiles']
+  ipcRenderer.send('files-past-files', {
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    toType,
+    toPath,
+    copiedFiles
+  })
+
+  ipcRenderer.once('files-past-files', (event, { result, oError }) => {
+    if (!oError) {
+      dispatch('getFiles', {
+        currentStorage: toType,
+        path: toPath
+      })
+      commit('setCopiedFiles', {
+        fromType: null,
+        fromPath: null,
+        isCUt: false,
+        files: []
+      })
+    } else {
+      commit('setLoadingStatus', { status: false })
+    }
+  })
+}
+export function saveFilesAsTempFiles ({ state, commit, getters, dispatch }, { files }) {
+  return new Promise((resolve) => {
+    ipcRenderer.send('files-save-temp', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      files
+    })
+
+    ipcRenderer.once('files-save-temp', (event, { result, oError }) => {
+      resolve(result)
+    })
+  })
 }

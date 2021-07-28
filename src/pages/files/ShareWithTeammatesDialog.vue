@@ -105,12 +105,12 @@ export default {
       this.confirm = true
     },
     getContactsEditOptions (sSearch, update, abort) {
-      this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions', 'whoCanEdit')
+      this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions')
     },
     getContactsSeeOptions (sSearch, update, abort) {
-      this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions', 'whoCanSee')
+      this.getRecipientOptions(sSearch, update, abort, 'toAddrOptions')
     },
-    getRecipientOptions (sSearch, update, abort, sOptionsName, sSelectName) {
+    getRecipientOptions (sSearch, update, abort, sOptionsName) {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let iExactlySearchIndex = -1
         let aOptions = []
@@ -136,14 +136,22 @@ export default {
           })
         }
         update(async () => {
-          this[sOptionsName] = aOptions
-          if (bAddFirstOption) {
-            await this.$nextTick()
-            this.$refs[sSelectName].setOptionIndex(0)
-          } else if (iExactlySearchIndex >= 0) {
-            await this.$nextTick()
-            this.$refs[sSelectName].setOptionIndex(iExactlySearchIndex)
-          }
+          let options = []
+          aOptions.map( contact => {
+            options.push({
+              email: contact.email,
+              label: contact.email,
+              value: contact.email,
+            })
+          })
+          const currentAccount = this.$store.getters['mail/getCurrentAccount']
+          const index = options.findIndex( contact => {
+            return contact.value === currentAccount.sEmail
+          })
+         if (index !== -1) {
+           options.splice(index, 1)
+         }
+          this[sOptionsName] = options
         })
       })
       ipcRenderer.send('contacts-get-frequently-used-contacts', { sSearch, storage: 'team' })

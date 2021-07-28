@@ -89,11 +89,11 @@ export default {
       return date.getFullDate(timestamp)
     },
     openDialog (file) {
+      this.historyList = []
       this.getHistory(file)
       this.confirm = true
     },
     getHistory (file) {
-      this.historyList = []
       this.file = file
       const resourceId = file.Type + file.Path + '/' + file.Name
       this.$store.dispatch('files/getHistory', {

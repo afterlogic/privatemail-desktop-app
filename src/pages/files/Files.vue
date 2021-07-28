@@ -18,6 +18,7 @@
               <q-card-section >
                 {{ file.Name }}
               </q-card-section>
+              <q-icon v-if="isShared(file)" name="share" @click="share(file)"/>
               <q-card-actions align="center">
                 <q-btn v-if="hasViewAction" flat @click="viewFile(file)">view</q-btn>
                 <q-btn v-if="hasDownloadAction" flat @click="downloadFile(file)">download</q-btn>
@@ -27,7 +28,7 @@
               <q-card-section >
                 <div class="text-subtitle2">folder</div>
               </q-card-section>
-
+              <q-icon v-if="isShared(file)" name="share" @click="share(file)"/>
               <q-separator/>
               <q-card-section >
                 {{ file.Name }}
@@ -70,6 +71,12 @@ export default {
     }
   },
   methods: {
+    share (file) {
+      this.$emit('shareFiles', file)
+    },
+    isShared (file) {
+      return file.ExtendedProps.Shares.length
+    },
     downloadFile (file = null) {
       let url = ''
       if (file) {
@@ -84,12 +91,8 @@ export default {
       webApi.viewByUrlInNewWindow(url, file.Name)
     },
     selectedFile (file, oMouseEvent) {
-      let selectedFile = {
-        Path: file.Path,
-        Name: file.Name,
-        IsFolder: file.IsFolder
-      }
-      if (oMouseEvent) {
+      console.log(file, 'file')
+       if (oMouseEvent) {
         if (oMouseEvent.ctrlKey) {
           this.checkedList = _.union(this.checkedList, [file])
         } else if (oMouseEvent.shiftKey) {
@@ -105,7 +108,7 @@ export default {
           this.currentFile = file
           this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
         }
-      }
+       }
       this.$store.dispatch('files/changeCheckedItems', { checkedItems:  this.checkedList })
     },
     hasDownloadAction () {

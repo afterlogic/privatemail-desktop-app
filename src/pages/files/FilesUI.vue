@@ -43,7 +43,7 @@
         <template v-slot:after>
           <div class="column no-wrap full-height bg-white text-grey-8 panel-rounded" style="overflow: hidden">
             <div class="col-auto">
-              <toolbar :currentFile="currentFile" @downloadFile="$refs.files.downloadFile()"/>
+              <toolbar ref="toolbar" :currentFile="currentFile" @downloadFile="$refs.files.downloadFile()"/>
               <q-toolbar style="width: 100%; background: #eee;">
                 <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
                   <template v-slot:prepend>
@@ -62,7 +62,7 @@
               </q-breadcrumbs>
               <q-separator />
             </div>
-            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files"/>
+            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles"/>
 <!--            <div class="col">
               <q-scroll-area class="full-height">
                 <div class="row q-pa-sm">
@@ -136,6 +136,9 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    shareFiles (file) {
+      this.$refs.toolbar.share(file)
+    },
     clearSearchData () {
       this.searchProgress = false
       this.searchText = ''

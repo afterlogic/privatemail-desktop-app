@@ -89,8 +89,8 @@ export default {
       )
     })
 
-    ipcMain.on('contacts-get-frequently-used-contacts', (oEvent, { sSearch }) => {
-      contactsDbManager.getFrequentlyUsedContacts({ sSearch }).then(
+    ipcMain.on('contacts-get-frequently-used-contacts', (oEvent, { sSearch, storage = 'personal' }) => {
+      contactsDbManager.getFrequentlyUsedContacts({ sSearch, storage }).then(
         ({ aContacts }) => {
           oEvent.sender.send('contacts-get-frequently-used-contacts', { aContacts })
         },

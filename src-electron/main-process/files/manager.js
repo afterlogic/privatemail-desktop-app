@@ -128,5 +128,72 @@ export default {
         },
       })
     })
+    ipcMain.on('files-update-share', (oEvent, { sApiHost, sAuthToken, storage, path, id, isDir, shares }) => {
+      const oParameters = {
+        Storage: storage,
+        Path: path,
+        Id: id,
+        IsDir: isDir,
+        Shares: shares
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'SharedFiles',
+        sMethod: 'UpdateShare',
+        oParameters,
+        fCallback: (result, error) => {
+          console.log(result, 'result')
+          console.log(error, 'error')
+          if (result) {
+            oEvent.sender.send('files-update-share', { result })
+          } else {
+            oEvent.sender.send('files-update-share', { error })
+          }
+        },
+      })
+    })
+    ipcMain.on('files-get-history', (oEvent, { sApiHost, sAuthToken, resourceType, resourceId, offset, limit }) => {
+      const oParameters = {
+        ResourceType: resourceType,
+        ResourceId: resourceId,
+        Offset: offset,
+        Limit: limit
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'ActivityHistory',
+        sMethod: 'GetList',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-get-history', { result })
+          } else {
+            oEvent.sender.send('files-get-history', { error })
+          }
+        },
+      })
+    })
+    ipcMain.on('files-clear-history', (oEvent, { sApiHost, sAuthToken, resourceType, resourceId }) => {
+      const oParameters = {
+        ResourceType: resourceType,
+        ResourceId: resourceId,
+      }
+      webApi.sendRequest({
+        sApiHost,
+        sAuthToken,
+        sModule: 'ActivityHistory',
+        sMethod: 'Delete',
+        oParameters,
+        fCallback: (result, error) => {
+          if (result) {
+            oEvent.sender.send('files-clear-history', { result })
+          } else {
+            oEvent.sender.send('files-clear-history', { error })
+          }
+        },
+      })
+    })
   }
 }

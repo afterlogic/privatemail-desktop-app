@@ -12,10 +12,6 @@ let aRequestsNumbers = []
 
 export default {
   sendRequest: function ({sApiHost, sAuthToken, sModule, sMethod, oParameters, fCallback}) {
-/*    if (oRequest !== null) {
-      oRequest.abort()
-      oRequest = null
-    }*/
     let protocol = http
     let iPort = 80
     if (_.trim(sApiHost).indexOf('https://') === 0) {

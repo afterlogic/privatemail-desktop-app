@@ -14,6 +14,9 @@
       <span>
         <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile" />
       </span>
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="share" @click="share(null)" />
+      </span>
       <q-btn :disable="!copiedFiles.files.length > 0" flat color="primary" icon="content_paste" :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile" />
       <q-space/>
       <q-btn flat color="primary" icon="sync" @click="syncFiles" />
@@ -52,6 +55,7 @@
     </q-dialog>
     <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles" />
     <rename-item-dialog ref="renameItemDialog" @renameItem="renameItem" />
+    <share-with-teammates-dialog ref="shareWithTeammatesDialog"></share-with-teammates-dialog>
   </div>
 </template>
 
@@ -60,12 +64,14 @@
 <script>
 import DeleteItemsDialog from './DeleteItemsDialog'
 import RenameItemDialog from './RenameItemDialog'
+import ShareWithTeammatesDialog from './ShareWithTeammatesDialog'
 
 export default {
   name: 'Toolbar',
   components: {
     DeleteItemsDialog,
-    RenameItemDialog
+    RenameItemDialog,
+    ShareWithTeammatesDialog
   },
   data () {
     return {
@@ -132,6 +138,15 @@ export default {
           aAttachments: res
         })
       })
+    },
+    share (file = null) {
+      let currentFile = null
+      if (file) {
+        currentFile = file
+      } else {
+        currentFile = this.currentFile
+      }
+      this.$refs.shareWithTeammatesDialog.openDialog(currentFile)
     },
     editFile () {
       this.$refs.renameItemDialog.openDialog(this.currentFile.Name)

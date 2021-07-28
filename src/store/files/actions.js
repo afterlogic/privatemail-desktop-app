@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import store from 'src/store'
 import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
+import notification from "../../utils/notification";
 
 export function asyncGetStorages ({ state, commit, getters, dispatch }) {
   ipcRenderer.send('files-get-storages', {
@@ -168,6 +169,63 @@ export function saveFilesAsTempFiles ({ state, commit, getters, dispatch }, { fi
     })
 
     ipcRenderer.once('files-save-temp', (event, { result, oError }) => {
+      resolve(result)
+    })
+  })
+}
+export function updateShare ({ state, commit, getters, dispatch }, { storage, path, id, isDir, shares }) {
+  return new Promise((resolve) => {
+    ipcRenderer.send('files-update-share', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      storage,
+      path,
+      id,
+      isDir,
+      shares
+    })
+
+    ipcRenderer.once('files-update-share', (event, { result, oError }) => {
+      if (result) {
+        notification.showReport('Sharing status updated')
+        dispatch('getFiles', {
+          currentStorage: storage,
+          path: path
+        })
+      }
+      resolve(result)
+    })
+  })
+}
+export function getHistory ({ state, commit, getters, dispatch }, { resourceType, resourceId, offset, limit }) {
+  return new Promise((resolve) => {
+    ipcRenderer.send('files-get-history', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      resourceType,
+      resourceId,
+      offset,
+      limit
+    })
+
+    ipcRenderer.once('files-get-history', (event, { result, oError }) => {
+      resolve(result)
+    })
+  })
+}
+export function clearHistory ({ state, commit, getters, dispatch }, { resourceType, resourceId }) {
+  return new Promise((resolve) => {
+    ipcRenderer.send('files-clear-history', {
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      resourceType,
+      resourceId,
+    })
+
+    ipcRenderer.once('files-clear-history', (event, { result, oError }) => {
+      if (result) {
+        notification.showReport('Activity history has been cleared')
+      }
       resolve(result)
     })
   })

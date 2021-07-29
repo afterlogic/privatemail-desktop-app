@@ -192,6 +192,8 @@ export function updateShare ({ state, commit, getters, dispatch }, { storage, pa
           currentStorage: storage,
           path: path
         })
+      } else {
+        notification.showError('Unknown error')
       }
       resolve(result)
     })

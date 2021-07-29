@@ -89,6 +89,8 @@ export default {
       return date.getFullDate(timestamp)
     },
     openDialog (file) {
+      this.currentPage = 1
+      this.offset = 0
       this.historyList = []
       this.getHistory(file)
       this.confirm = true

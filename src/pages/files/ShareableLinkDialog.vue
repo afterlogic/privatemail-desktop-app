@@ -140,7 +140,6 @@ export default {
         path: this.file.Path,
         name: this.file.Name
       }).then( result => {
-        console.log(result, 'result')
         if (result) {
           this.confirm = false
           this.$store.dispatch('files/getFiles', {
@@ -177,7 +176,6 @@ export default {
             pgpSign: false,
           })
         }
-        console.log(aOptions, 'aOptionsaOptionsaOptions')
         update(async () => {
           const currentAccount = this.$store.getters['mail/getCurrentAccount']
           const index = aOptions.findIndex( contact => {

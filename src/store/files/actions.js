@@ -232,3 +232,49 @@ export function clearHistory ({ state, commit, getters, dispatch }, { resourceTy
     })
   })
 }
+export function createPublicLink ({state, commit, getters, dispatch}, parameters) {
+  return new Promise((resolve) => {
+    const oParameters = {
+      Type: parameters.type,
+      Path: parameters.path,
+      Name: parameters.name,
+      Size: parameters.size,
+      IsFolder: parameters.isFolder,
+      RecipientEmail: parameters.recipientEmail,
+      PgpEncryptionMode: parameters.pgpEncryptionMode,
+      LifetimeHrs: parameters.lifetimeHrs
+    }
+    if (parameters?.password) {
+      oParameters.Password = parameters.password
+    }
+    webApi.sendRequest({
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sModule: 'OpenPgpFilesWebclient',
+      sMethod: 'CreatePublicLink',
+      oParameters,
+      fCallback: (result, error) => {
+        resolve(result)
+      },
+    })
+  })
+}
+export function removeLink ({state, commit, getters, dispatch}, {type, personal, name}) {
+  return new Promise((resolve) => {
+    const oParameters = {
+      Type: type,
+      Personal: personal,
+      Name: name
+    }
+    webApi.sendRequest({
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sModule: 'Files',
+      sMethod: 'DeletePublicLink',
+      oParameters,
+      fCallback: (result, error) => {
+        resolve(result)
+      },
+    })
+  })
+}

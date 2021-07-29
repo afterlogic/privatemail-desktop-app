@@ -62,7 +62,7 @@
               </q-breadcrumbs>
               <q-separator />
             </div>
-            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles"/>
+            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles" @linkDialog="linkDialog"/>
 <!--            <div class="col">
               <q-scroll-area class="full-height">
                 <div class="row q-pa-sm">
@@ -138,6 +138,9 @@ export default {
   methods: {
     shareFiles (file) {
       this.$refs.toolbar.share(file)
+    },
+    linkDialog (file) {
+      this.$refs.toolbar.linkDialog(file)
     },
     clearSearchData () {
       this.searchProgress = false

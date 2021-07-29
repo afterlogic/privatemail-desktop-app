@@ -6,7 +6,7 @@
       <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1" flat color="primary" label="Download" @click="downloadFile" />
       <q-btn :disable="!currentFile || (checkedItems.length === 1 && isFolder)" flat color="primary" icon="alternate_email" @click="sendFile" />
       <q-btn :disable="!currentFile" flat color="primary" icon="edit" @click="editFile" />
-      <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="createSecureLink" />
+      <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="linkDialog(null)" />
       <span>
          <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined" :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog" />
       </span>
@@ -56,6 +56,7 @@
     <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles" />
     <rename-item-dialog ref="renameItemDialog" @renameItem="renameItem" />
     <share-with-teammates-dialog ref="shareWithTeammatesDialog"></share-with-teammates-dialog>
+    <shareable-link-dialog ref="shareableLinkDialog" :file="currentFile"/>
   </div>
 </template>
 
@@ -65,13 +66,15 @@
 import DeleteItemsDialog from './DeleteItemsDialog'
 import RenameItemDialog from './RenameItemDialog'
 import ShareWithTeammatesDialog from './ShareWithTeammatesDialog'
+import ShareableLinkDialog from './ShareableLinkDialog'
 
 export default {
   name: 'Toolbar',
   components: {
     DeleteItemsDialog,
     RenameItemDialog,
-    ShareWithTeammatesDialog
+    ShareWithTeammatesDialog,
+    ShareableLinkDialog
   },
   data () {
     return {
@@ -148,6 +151,15 @@ export default {
       }
       this.$refs.shareWithTeammatesDialog.openDialog(currentFile)
     },
+    linkDialog (file = null) {
+      let currentFile = null
+      if (file) {
+        currentFile = file
+      } else {
+        currentFile = this.currentFile
+      }
+      this.$refs.shareableLinkDialog.openDialog(currentFile)
+    },
     editFile () {
       this.$refs.renameItemDialog.openDialog(this.currentFile.Name)
     },
@@ -162,7 +174,7 @@ export default {
       })
     },
     createSecureLink () {
-      console.log('Comming soon')
+      this.$refs.shareableLinkDialog.openDialog()
     },
     openRemoveItemsDialog () {
       this.$refs.deleteItemDialog.openDialog()

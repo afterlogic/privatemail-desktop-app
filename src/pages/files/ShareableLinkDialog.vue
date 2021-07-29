@@ -71,6 +71,7 @@ import {ipcRenderer} from 'electron'
 import _ from 'lodash'
 import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
+import store from "../../store";
 
 export default {
   name: 'ShareableLinkDialog',
@@ -121,7 +122,8 @@ export default {
       this.recipient = null
       this.file = file
       this.hasLinkPassword = false
-      this.publicLink = file?.ExtendedProps?.PublicLink || ''
+      const publicLink = file?.ExtendedProps?.PublicLink
+      this.publicLink = publicLink ? this.$store.getters['main/getApiHost'] + '/' + publicLink : ''
       this.passwordForSharing = file?.ExtendedProps?.PasswordForSharing || ''
       this.lifetime = {
         value: 0,
@@ -222,7 +224,7 @@ export default {
       }
       this.$store.dispatch('files/createPublicLink', parameters).then( result => {
         if (result) {
-          this.publicLink = result.link
+          this.publicLink = this.$store.getters['main/getApiHost'] + '/' + result.link
           this.$store.dispatch('files/getFiles', {
             currentStorage: this.file.Type,
             path: this.file.Path })

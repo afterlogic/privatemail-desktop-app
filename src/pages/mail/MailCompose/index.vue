@@ -230,9 +230,6 @@ export default {
     },
   },
   watch: {
-    toAddrOptions (val) {
-      console.log(val, 'toAddrOptions')
-    },
     allIdentities () {
       this.setSelectedIdentity()
     },

@@ -1,25 +1,74 @@
 <template>
   <div>
     <div class="row q-pa-sm items-center">
-      <q-btn :disable="!currentStorage" flat color="primary" icon="create_new_folder" @click="showCreateNewFolderDialog" />
+      <span>
+        <q-btn :disable="!currentStorage" flat color="primary" icon="create_new_folder"
+               @click="showCreateNewFolderDialog"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Create folder
+        </q-tooltip>
+      </span>
       <!--<q-btn flat color="primary" label="Shortcut" @click=""/>-->
-      <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1" flat color="primary" label="Download" @click="downloadFile" />
-      <q-btn :disable="!currentFile || (checkedItems.length === 1 && isFolder)" flat color="primary" icon="alternate_email" @click="sendFile" />
-      <q-btn :disable="!currentFile" flat color="primary" icon="edit" @click="editFile" />
-      <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="linkDialog(null)" />
       <span>
-         <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined" :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog" />
-      </span>
-      <q-btn :disable="!currentFile" flat color="primary" label="cut" @click="cutFile" />
-      <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile" />
+        <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1" flat color="primary" icon="file_download"
+               @click="downloadFile"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Delete file
+        </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="share" @click="share(null)" />
+        <q-btn :disable="!currentFile || (checkedItems.length === 1 && isFolder)" flat color="primary"
+               icon="alternate_email" @click="sendFile"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Send file
+        </q-tooltip>
       </span>
-      <q-btn :disable="!copiedFiles.files.length > 0" flat color="primary" icon="content_paste" :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile" />
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="edit" @click="editFile"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Rename
+        </q-tooltip>
+      </span>
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined"
+               :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Delete
+        </q-tooltip>
+      </span>
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="content_cut" @click="cutFile"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Cut
+        </q-tooltip>
+      </span>
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Copy
+        </q-tooltip>
+      </span>
+      <span>
+        <q-btn :disable="!copiedFiles.files.length > 0" flat color="primary" icon="content_paste"
+               :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Paste
+        </q-tooltip>
+      </span>
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="linkDialog(null)"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Create secure link
+        </q-tooltip>
+      </span>
+      <span>
+        <q-btn :disable="!currentFile" flat color="primary" icon="share" @click="share(null)"/>
+           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+          Share with teammates
+        </q-tooltip>
+      </span>
       <q-space/>
-      <q-btn flat color="primary" icon="sync" @click="syncFiles" />
+      <q-btn flat color="primary" icon="sync" @click="syncFiles"/>
       <!-- <q-btn flat color="primary" label="Flat" /> -->
     </div>
     <q-dialog v-model="createFolderDialog" persistent>

@@ -71,7 +71,6 @@ import {ipcRenderer} from 'electron'
 import _ from 'lodash'
 import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
-import store from "../../store";
 
 export default {
   name: 'ShareableLinkDialog',

@@ -27,7 +27,24 @@
                       :class="{active: currentStorage.DisplayName === storage.DisplayName}"
                       clickable v-ripple @click="selectStorage(storage)">
                       <q-item-section avatar>
-                        <q-icon name="folder"></q-icon>
+                        <q-icon v-if="storage.Type === 'personal'">
+                          <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
+                            <path class="svg-icon"
+                                  d="m 12,6 c -3.3018639,0 -6,2.6981361 -6,6 0,3.301864 2.6981361,6 6,6 3.301864,0 6,-2.698136 6,-6 0,-3.3018639 -2.698136,-6 -6,-6 z m 0,2 c 2.220984,0 4,1.7790164 4,4 0,2.220984 -1.779016,4 -4,4 C 9.7790164,16 8,14.220984 8,12 8,9.7790164 9.7790164,8 12,8 Z"/>
+                          </svg>
+                        </q-icon>
+                        <q-icon v-if="storage.Type === 'encrypted'">
+                          <encrypted-icon></encrypted-icon>
+                        </q-icon>
+                        <q-icon v-if="storage.Type === 'corporate'">
+                          <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
+                            <path class="svg-icon"
+                                  d="m 12,3 c -4.9587181,0 -9,4.0412819 -9,9 0,4.958718 4.0412819,9 9,9 4.958718,0 9,-4.041282 9,-9 0,-4.9587181 -4.041282,-9 -9,-9 z m 0,2 c 3.877838,0 7,3.1221621 7,7 0,3.877838 -3.122162,7 -7,7 C 8.1221621,19 5,15.877838 5,12 5,8.1221621 8.1221621,5 12,5 Z m 0,1 c -3.3018639,0 -6,2.6981361 -6,6 0,3.301864 2.6981361,6 6,6 3.301864,0 6,-2.698136 6,-6 0,-3.3018639 -2.698136,-6 -6,-6 z m 0,2 c 2.220984,0 4,1.7790164 4,4 0,2.220984 -1.779016,4 -4,4 C 9.7790164,16 8,14.220984 8,12 8,9.7790164 9.7790164,8 12,8 Z"/>
+                          </svg>
+                        </q-icon>
+                        <q-icon v-if="storage.Type === 'shared'">
+                          <share-icon/>
+                        </q-icon>
                       </q-item-section>
                       <q-item-section avatar>
                         <q-item-label lines="1">{{ storage.DisplayName }}</q-item-label>
@@ -92,11 +109,15 @@
 <script>
 import Toolbar from './Toolbar'
 import notification from '../../utils/notification'
+import ShareIcon from '../../assets/icons/ShareIcon'
+import EncryptedIcon from '../../assets/icons/EncryptedIcon'
 
 export default {
   name: "FilesUI",
   components: {
     Toolbar,
+    ShareIcon,
+    EncryptedIcon
   },
   data () {
     return {
@@ -116,6 +137,7 @@ export default {
       return this.$store.getters['files/getLoadingStatus']
     },
     storageList () {
+      console.log(this.$store.getters['files/getStorageList'], 'this.$store.getters[\'files/getStorageList\']')
       return this.$store.getters['files/getStorageList']
     },
     currentStorage () {

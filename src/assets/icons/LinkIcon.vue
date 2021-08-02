@@ -5,8 +5,8 @@
     version="1.1"
     id="svg17780"
     viewBox="0 0 32 32.000001"
-    height="20"
-    width="20">
+    :height="height"
+    :width="width">
     <defs
       id="defs17782">
       <clipPath
@@ -67,7 +67,17 @@
 
 <script>
 export default {
-  name: 'LinkIcon'
+  name: 'LinkIcon',
+  props: {
+    width: {
+      Type: Number,
+      default: 32
+    },
+    height: {
+      Type: Number,
+      default: 32
+    }
+  }
 }
 </script>
 

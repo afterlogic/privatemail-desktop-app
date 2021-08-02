@@ -5,8 +5,8 @@
     version="1.1"
     id="svg17780"
     viewBox="0 0 32 32.000001"
-    height="20"
-    width="20">
+    :height="height"
+    :width="width">
     <defs
       id="defs17782">
       <clipPath
@@ -295,7 +295,7 @@
       transform="scale(3.5405632,3.5405632)" />
     <path
       class="icon"
-      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;baseline-shift:baseline;text-anchor:start;white-space:normal;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:0.98999999;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;baseline-shift:baseline;text-anchor:start;white-space:normal;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:0.98999999;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
       d="M 21.5 5 C 19.572926 5 18 6.5729257 18 8.5 C 18 9.2405969 18.235411 9.9273349 18.630859 10.494141 L 13.427734 14.095703 C 12.801993 13.137695 11.724906 12.5 10.5 12.5 C 8.5729257 12.5 7 14.072926 7 16 C 7 17.927074 8.5729257 19.5 10.5 19.5 C 11.724906 19.5 12.801993 18.862305 13.427734 17.904297 L 18.630859 21.505859 C 18.235411 22.072665 18 22.759403 18 23.5 C 18 25.427074 19.572926 27 21.5 27 C 23.427074 27 25 25.427074 25 23.5 C 25 21.572926 23.427074 20 21.5 20 C 20.678302 20 19.930465 20.297916 19.332031 20.775391 L 13.84375 16.976562 C 13.935596 16.664344 14 16.341185 14 16 C 14 15.658815 13.935596 15.335656 13.84375 15.023438 L 19.332031 11.224609 C 19.930465 11.702084 20.678302 12 21.5 12 C 23.427074 12 25 10.427074 25 8.5 C 25 6.5729257 23.427074 5 21.5 5 z M 21.5 6 C 22.886634 6 24 7.1133658 24 8.5 C 24 9.8866342 22.886634 11 21.5 11 C 20.113366 11 19 9.8866342 19 8.5 C 19 7.1133658 20.113366 6 21.5 6 z M 10.5 13.5 C 11.886634 13.5 13 14.613366 13 16 C 13 17.386634 11.886634 18.5 10.5 18.5 C 9.1133658 18.5 8 17.386634 8 16 C 8 14.613366 9.1133658 13.5 10.5 13.5 z M 21.5 21 C 22.886634 21 24 22.113366 24 23.5 C 24 24.886634 22.886634 26 21.5 26 C 20.113366 26 19 24.886634 19 23.5 C 19 22.113366 20.113366 21 21.5 21 z "
       id="path4210" />
   </svg>
@@ -304,7 +304,17 @@
 
 <script>
 export default {
-  name: 'ShareIcon'
+  name: 'ShareIcon',
+  props: {
+    width: {
+      Type: Number,
+      default: 32
+    },
+    height: {
+      Type: Number,
+      default: 32
+    }
+  }
 }
 </script>
 

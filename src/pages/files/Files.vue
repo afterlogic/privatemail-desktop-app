@@ -10,71 +10,77 @@
         <div class="row q-pa-sm large" v-if="!isUploadingFiles">
           <q-card
             flat
-            class="q-mx-sm q-my-md select-text-disable"
-            v-for="file in filesList" :key="file.Id" style="width: 150px; height: 170px;" align="center"
+            class="q-mx-sm q-mb-md select-text-disable"
+            v-for="file in filesList" :key="file.Id" style="width: 150px; height: 175px;" align="center"
           >
             <div class="file-focus file q-mt-md" v-if="!file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
               <div
                 class="file-card"
-                style="height: 155px"
+                style="height: 150px; border-radius: 3px"
                 :class="{
                  'file-selected': isChecked(file)
                  }"
               >
-                <span class="display-none tooltip" :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }"
-
-                >
+                <span class="display-none tooltip" :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
                   {{ getDescription(file) }}
                 </span>
-                <div class="image q-px-sm q-pt-md" v-if="!getPreviewFile(file)">
+                <div class="image q-px-sm" style="padding-top: 28px" v-if="!getPreviewFile(file)">
                   <div class="img-block">
                     <span class="icon" :class="formatFile(file)"></span>
                   </div>
                 </div>
-                <div class="image q-px-sm q-pt-xs" v-if="getPreviewFile(file)">
+                <div class="image q-px-sm q-pt-sm" v-if="getPreviewFile(file)">
                     <img class="img-preview" :src="getPreviewFile(file)" alt="">
                 </div>
-                <div class="flex q-px-sm q-pt-xs" style="border-bottom: 1px solid #c9c9c9;">
+                <div class="flex q-mt-sm q-mx-sm" style="position: absolute; top: 85px; width: 100%;">
                   <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
-                    <share-icon style="fill: white !important;"/>
+                      <share-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
                   <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
-                    <link-icon style="fill: white !important;"/>
+                      <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
-                  <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
                 </div>
-                <q-card-actions align="center">
-                  <span v-if="hasViewAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
-                  <span v-if="hasOpenAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
-                  <span v-if="hasDownloadAction(file)" class=" text-primary" @click="downloadFile(file)">Download</span>
-                </q-card-actions>
+                <div v-if="getPreviewFile(file)" class="q-mx-sm" style="height: 26px; border-bottom: 1px solid #dedede;"></div>
+                <div v-if="!getPreviewFile(file)" class="q-mx-sm" style="height: 14px; border-bottom: 1px solid #dedede;"></div>
+                <div class="flex q-mt-sm" style="justify-content: space-between; font-size: 9pt">
+                  <div class="q-ml-sm">
+                    <span v-if="hasViewAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
+                    <span v-if="hasOpenAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
+                  </div>
+                  <div class="q-mr-sm">
+                    <span v-if="hasDownloadAction(file)" class="text-primary" @click="downloadFile(file)">Download</span>
+                  </div>
+                </div>
               </div>
-              <q-card-section tag="span" style="padding: 0">
-                <div class="q-mt-xs">
+              <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
+                <div>
                   <b>{{ getShortName(file.Name) }}</b>
                   <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">{{file.Name}}</q-tooltip>
                 </div>
-              </q-card-section>
+                <div style="align-items: center">
+                  <span>{{ getFileSize(file) }}</span>
+                </div>
+              </div>
             </div>
             <div
               class="file-focus folder q-mt-md"
               v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
               @dblclick="openFolder(file)"
             >
-              <div class="file-focus__border" style="height: 155px; position:relative" :class="{
+              <div class="file-focus__border" style="height: 150px; position:relative" :class="{
                 'folder-selected': isChecked(file) && file.IsFolder
                }">
-                <div class="image q-px-sm q-pt-md">
+                <div class="image q-px-sm" style="padding-top: 28px">
                   <div class="img-block">
                     <span class="icon"></span>
                   </div>
                 </div>
-                <div class="flex">
+                <div class="flex q-px-md" style="position: absolute; top: 65px; width: 100%;">
                   <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
-                    <share-icon style="fill: white !important;"/>
+                    <share-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
                   <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
-                    <link-icon style="fill: white !important;"/>
+                    <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
                   <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
                 </div>
@@ -97,6 +103,7 @@ import ShareIcon from '../../assets/icons/ShareIcon'
 import LinkIcon from '../../assets/icons/LinkIcon'
 import date from '../../utils/date'
 import _ from 'lodash'
+import text from '../../utils/text'
 
 export default {
   name: 'Files',
@@ -145,10 +152,13 @@ export default {
       return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified)
     },
     getShortName (name) {
-      if (name.length > 12) {
-        return name.substr(0, 10) + '...'
+      if (name.length > 14) {
+        return name.substr(0, 12) + '...'
       }
       return name
+    },
+    getFileSize (file) {
+      return text.getFriendlySize(file.Size)
     },
     formatFile (file) {
       let fileName = file.Name
@@ -254,7 +264,7 @@ export default {
 }
 .img-preview {
   display: block;
-  height: 86px;
+  height: 82px;
   max-width: 130px;
 }
 .img-block {

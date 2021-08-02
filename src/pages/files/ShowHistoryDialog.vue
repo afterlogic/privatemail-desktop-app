@@ -1,45 +1,46 @@
 <template>
   <div>
-    <q-dialog v-model="confirm" persistent>
-      <q-card class="q-dialog-size" style="min-width: 900px">
-        <div>
-          <q-item class="bg-grey-4">
-            <q-item-section>
-              <q-item-label>Date</q-item-label>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Action</q-item-label>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>IP</q-item-label>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>User</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item clickable v-for="item in historyList" :key="item.Timestamp">
-            <q-item-section>
-              <q-item-label>{{ getDate(item.Timestamp) }}</q-item-label>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ item.Action }}</q-item-label>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ item.IpAddress }}</q-item-label>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ item.GuestPublicId }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </div>
-        <pagination :currentPage="currentPage" :itemsPerPage="10" :itemsCount="itemsCount" :changePage="changePage"></pagination>
-        <q-card-actions align="right">
-          <q-btn flat :ripple="false" color="primary"
-                 label="Clear" @click="openClearDialog"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary"
-                 label="Cancel" @click="cancel"/>
-        </q-card-actions>
-      </q-card>
+    <q-dialog v-model="confirm" >
+        <q-card class="q-dialog-size" style="min-width: 900px">
+          <h6 class="q-mx-md q-my-md">Shared file activity history</h6>
+          <div class="q-mx-md" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px">
+            <q-item class="bg-grey-4" style="border-bottom: 1px solid #d5d9dc;">
+              <q-item-section>
+                <q-item-label><b>Date</b></q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label><b>Action</b></q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label><b>IP</b></q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label><b>User</b></q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-for="item in historyList" :key="item.Timestamp" style="border-bottom: 1px solid #d5d9dc">
+              <q-item-section>
+                <q-item-label>{{ getDate(item.Timestamp) }}</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ item.Action }}</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ item.IpAddress }}</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ item.GuestPublicId }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </div>
+          <pagination :currentPage="currentPage" :itemsPerPage="10" :itemsCount="itemsCount" :changePage="changePage"></pagination>
+          <q-card-actions align="right">
+            <q-btn flat :ripple="false" color="primary"
+                   label="Clear" @click="openClearDialog"/>
+            <q-btn flat class="q-px-sm" :ripple="false" color="primary"
+                   label="Cancel" @click="cancel"/>
+          </q-card-actions>
+        </q-card>
     </q-dialog>
     <q-dialog v-model="confirmClearDialog" persistent>
       <q-card class="q-dialog-size" style="min-width: 300px">

@@ -143,8 +143,6 @@ export default {
         sMethod: 'UpdateShare',
         oParameters,
         fCallback: (result, error) => {
-          console.log(result, 'result')
-          console.log(error, 'error')
           if (result) {
             oEvent.sender.send('files-update-share', { result })
           } else {

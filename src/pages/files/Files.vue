@@ -11,7 +11,7 @@
           <q-card
             flat
             class="q-mx-sm q-my-md select-text-disable"
-            v-for="file in filesList" :key="file.Id" style="width: 150px; height: 160px;" align="center"
+            v-for="file in filesList" :key="file.Id" style="width: 150px; height: 170px;" align="center"
           >
             <div class="file-focus file q-mt-md" v-if="!file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
               <div
@@ -26,10 +26,15 @@
                 >
                   {{ getDescription(file) }}
                 </span>
-                <div class="image q-px-sm q-pt-md">
-                  <span class="icon" :class="formatFile(file)"></span>
+                <div class="image q-px-sm q-pt-md" v-if="!getPreviewFile(file)">
+                  <div class="img-block">
+                    <span class="icon" :class="formatFile(file)"></span>
+                  </div>
                 </div>
-                <div class="flex q-mx-sm" style="border-bottom: 1px solid #c9c9c9;">
+                <div class="image q-px-sm q-pt-xs" v-if="getPreviewFile(file)">
+                    <img class="img-preview" :src="getPreviewFile(file)" alt="">
+                </div>
+                <div class="flex q-px-sm q-pt-xs" style="border-bottom: 1px solid #c9c9c9;">
                   <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
                     <share-icon style="fill: white !important;"/>
                   </div>
@@ -56,11 +61,13 @@
               v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
               @dblclick="openFolder(file)"
             >
-              <div class="file-focus__border" style="height: 150px; position:relative" :class="{
+              <div class="file-focus__border" style="height: 155px; position:relative" :class="{
                 'folder-selected': isChecked(file) && file.IsFolder
                }">
                 <div class="image q-px-sm q-pt-md">
-                  <span class="icon"></span>
+                  <div class="img-block">
+                    <span class="icon"></span>
+                  </div>
                 </div>
                 <div class="flex">
                   <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
@@ -108,12 +115,21 @@ export default {
       currentFile: null,
       checkedList: [],
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf'],
-      hover: false
     }
   },
   computed: {
     filesList () {
-      return this.$store.getters['files/getCurrentFiles']
+      let folders = []
+      let files = []
+      const currentFiles = this.$store.getters['files/getCurrentFiles']
+      currentFiles.map( file => {
+        if (file.IsFolder) {
+          folders.push(file)
+        } else {
+          files.push(file)
+        }
+      })
+      return folders.concat(files)
     },
     isUploadingFiles () {
       return this.$store.getters['files/getLoadingStatus']
@@ -163,6 +179,14 @@ export default {
     viewFile (file) {
       const url = file.Actions.view.url
       webApi.viewByUrlInNewWindow(url, file.Name)
+    },
+    getPreviewFile (file) {
+      if (file?.ThumbnailUrl) {
+        let api = this.$store.getters['main/getApiHost']
+        let link = file.ThumbnailUrl
+        return api + '/' + link
+      }
+      return null
     },
     selectedFile (file, oMouseEvent) {
       console.log(file, 'file')
@@ -227,6 +251,14 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+.img-preview {
+  display: block;
+  height: 86px;
+  max-width: 130px;
+}
+.img-block {
+  height: 74px;
 }
 .file-icon {
   height: 20px;

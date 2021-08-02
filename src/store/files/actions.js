@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import store from 'src/store'
 import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
-import notification from "../../utils/notification";
+import notification from '../../utils/notification'
 
 export function asyncGetStorages ({ state, commit, getters, dispatch }) {
   ipcRenderer.send('files-get-storages', {

@@ -50,18 +50,19 @@
         </q-item>
       </div>
       <q-card-actions align="right">
-        <q-btn v-if="!publicLink" flat :ripple="false" color="primary" @click="createPublicLink"
-               label="Create shareable link" />
-        <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="createPublicLink"
+        <q-btn :disable="creating" v-if="!publicLink" flat :ripple="false" color="primary" @click="createPublicLink"
+               :label="creating ? 'Creating shareable link' : 'Create shareable link'" />
+        <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="showHistory"
                label="Show history" />
         <q-btn v-if="publicLink" flat :disable="!recipient" :ripple="false" color="primary"
                label="Send via email" @click="sendViaEmail"/>
-        <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
-               label="Remove link" />
+        <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
+               :label="removing ? 'Removing link' : 'Remove link'" />
         <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
                label="Cancel" />
       </q-card-actions>
     </q-card>
+    <show-history-dialog ref="showHistoryDialog"/>
   </q-dialog>
 </template>
 
@@ -71,12 +72,14 @@ import {ipcRenderer} from 'electron'
 import _ from 'lodash'
 import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
-
+import ShowHistoryDialog from './ShowHistoryDialog'
 export default {
   name: 'ShareableLinkDialog',
   data () {
     return {
       file: null,
+      creating: false,
+      removing: false,
       confirm: false,
       hasLinkPassword: false,
       recipient: null,
@@ -107,17 +110,26 @@ export default {
       ]
     }
   },
+  components: {
+    ShowHistoryDialog
+  },
   computed: {
     isFolder () {
       return this.file?.IsFolder
     }
   },
   methods: {
+    showHistory () {
+      const title = 'Shareable link activity history'
+      this.$refs.showHistoryDialog.openDialog(this.file, title)
+    },
     openDialog (file) {
       this.populate(file)
       this.confirm = true
     },
     populate (file) {
+      this.removing = false
+      this.creating = false
       this.recipient = null
       this.file = file
       this.hasLinkPassword = false
@@ -136,6 +148,7 @@ export default {
       })
     },
     removeLink () {
+      this.removing = true
       this.$store.dispatch('files/removeLink', {
         type: this.file.Type,
         path: this.file.Path,
@@ -207,6 +220,7 @@ export default {
       }
     },
     createPublicLink () {
+      this.creating = true
       const parameters = {
         type: this.file.Type,
         path: this.file.Path,

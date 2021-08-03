@@ -1,9 +1,6 @@
 <template>
   <div class="col panel-rounded" style="box-sizing: border-box;">
       <q-scroll-area class="full-height">
-<!--        <div style="text-align: center" class="q-mt-xl" v-if="isUploadingFiles">
-          Loading...
-        </div>-->
         <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="isUploadingFiles">
           Loading...
         </div>
@@ -147,6 +144,11 @@ export default {
   watch: {
     $route () {
       this.currentFile = null
+    },
+    isUploadingFiles (loading) {
+      if (loading) {
+        this.checkedList = []
+      }
     }
   },
   methods: {

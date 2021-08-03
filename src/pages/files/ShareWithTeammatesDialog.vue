@@ -43,8 +43,8 @@
         <q-card-actions align="right">
           <q-btn flat class="q-px-sm" :ripple="false" color="primary"
                  label="Show history" @click="showHistory"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary"
-                 label="Save" @click="updateShare"/>
+          <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="primary"
+                 :label="saving ? 'Saving' : 'Save'" @click="updateShare"/>
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
                  label="Cancel"/>
         </q-card-actions>
@@ -72,14 +72,17 @@ export default {
       whoCanSee: [],
       whoCanEdit: [],
       toAddrOptions: [],
-      file: null
+      file: null,
+      saving: false
     }
   },
   methods: {
     showHistory () {
-      this.$refs.showHistoryDialog.openDialog(this.file)
+      const title = 'Shared file activity history'
+      this.$refs.showHistoryDialog.openDialog(this.file, title)
     },
     openDialog (file) {
+      this.saving = false
       this.file = file
       const shares = this.file?.ExtendedProps?.Shares
       if (shares) {
@@ -178,6 +181,7 @@ export default {
       this.confirm = false
     },
     updateShare () {
+      this.saving = true
       const shares = []
       this.whoCanSee.map( contact => {
         shares.push({

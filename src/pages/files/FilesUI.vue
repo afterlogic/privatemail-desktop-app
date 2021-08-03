@@ -137,7 +137,6 @@ export default {
       return this.$store.getters['files/getLoadingStatus']
     },
     storageList () {
-      console.log(this.$store.getters['files/getStorageList'], 'this.$store.getters[\'files/getStorageList\']')
       return this.$store.getters['files/getStorageList']
     },
     currentStorage () {

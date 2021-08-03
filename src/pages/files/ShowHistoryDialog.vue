@@ -2,7 +2,7 @@
   <div>
     <q-dialog v-model="confirm" >
         <q-card class="q-dialog-size" style="min-width: 900px">
-          <h6 class="q-mx-md q-my-md">Shared file activity history</h6>
+          <h6 class="q-mx-md q-my-md">{{ title }}</h6>
           <div class="q-mx-md" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px">
             <q-item class="bg-grey-4" style="border-bottom: 1px solid #d5d9dc;">
               <q-item-section>
@@ -74,6 +74,7 @@ export default {
       confirm: false,
       confirmClearDialog: false,
       file: null,
+      title: '',
       historyList: [],
       itemsCount: 0,
       offset: 0,
@@ -89,7 +90,8 @@ export default {
     getDate (timestamp) {
       return date.getFullDate(timestamp)
     },
-    openDialog (file) {
+    openDialog (file, title) {
+      this.title = title
       this.currentPage = 1
       this.offset = 0
       this.historyList = []

@@ -5,7 +5,29 @@
         <template v-slot:before>
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
-              <q-btn flat no-caps no-wrap @click="uploadFiles" label="Upload files" size=18px color="primary" class="full-width big-button" />
+<!--              <q-btn flat no-caps no-wrap @click="uploadFiles" label="Upload files" size=18px color="primary" class="full-width big-button" />-->
+             <q-btn-dropdown size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
+               <q-list class="bg-primary" style="font-size: 18px; color: white">
+                 <q-item clickable v-close-popup @click="uploadFiles">
+                   <q-item-section>
+                     <q-item-label>Upload files</q-item-label>
+                   </q-item-section>
+                 </q-item>
+
+                 <q-item clickable v-close-popup @click="createFolder">
+                   <q-item-section>
+                     <q-item-label>Create folder</q-item-label>
+                   </q-item-section>
+                 </q-item>
+
+                 <q-item clickable v-close-popup @click="createShortcut">
+                   <q-item-section>
+                     <q-item-label>Create shortcut</q-item-label>
+                   </q-item-section>
+                 </q-item>
+               </q-list>
+              </q-btn-dropdown>
+              <create-shortcut-dialog ref="createShortcutDialog"></create-shortcut-dialog>
               <q-uploader
                 multiple
                 style="max-height: initial; display: none"
@@ -111,13 +133,15 @@ import Toolbar from './Toolbar'
 import notification from '../../utils/notification'
 import ShareIcon from '../../assets/icons/ShareIcon'
 import EncryptedIcon from '../../assets/icons/EncryptedIcon'
+import CreateShortcutDialog from './CreateShortcutDialog'
 
 export default {
   name: "FilesUI",
   components: {
     Toolbar,
     ShareIcon,
-    EncryptedIcon
+    EncryptedIcon,
+    CreateShortcutDialog
   },
   data () {
     return {
@@ -149,14 +173,17 @@ export default {
       return this.$store.getters['files/getCurrentPath']
     }
   },
-  watch: {
-
-  },
   beforeDestroy () {
     this.$store.commit('files/setCurrentPaths', { path: [] })
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    createShortcut () {
+      this.$refs.createShortcutDialog.openDialog()
+    },
+    createFolder () {
+      this.$refs.toolbar.showCreateNewFolderDialog()
+    },
     shareFiles (file) {
       this.$refs.toolbar.share(file)
     },

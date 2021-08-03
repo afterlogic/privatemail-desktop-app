@@ -1,5 +1,5 @@
 <template>
-  <div class="pagination" :class="{'hidden': pages.length <= 1}">
+  <div class="pagination" :class="{'hidden': pages.length <= 1, 'border': border}">
     <q-btn icon="chevron_left" dense flat unelevated color="primary" v-if="firstPage !== null" @click="changePage(firstPage)" />
     <q-btn unelevated flat color="primary" :disable="currentPage === page" :class="{'current-page': currentPage === page}" :label="page" v-for="page in pages" :key="page" @click="changePage(page)" />
     <q-btn icon="chevron_right" dense flat unelevated color="primary" v-if="lastPage !== null" @click="changePage(lastPage)" />
@@ -8,7 +8,6 @@
 
 <style lang="scss" scoped>
   .pagination {
-    border-top: solid 1px #ddd;
     padding: 10px;
     text-align: right;
 
@@ -22,6 +21,9 @@
           cursor: default !important;
       }
     }
+  }
+  .border {
+    border-top: solid 1px #ddd;
   }
 </style>
 
@@ -42,6 +44,10 @@ export default {
       default: 0,
     },
     changePage: Function,
+    border: {
+      type: Boolean,
+      default: true
+    }
   },
   computed: {
     pagesCount: function () {

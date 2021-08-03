@@ -30,14 +30,13 @@
                   </div>
                 </div>
                 <div class="image  q-pt-sm" v-if="getPreviewFile(file)">
-                  <div class="img-preview" :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`}">
-                  </div>
+                  <div class="img-preview" :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`, 'background-size': 'contain'}" />
                 </div>
-                <div class="flex q-mt-sm q-mx-sm" style="position: absolute; top: 90px; width: 100%;">
-                  <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
+                <div class="flex q-mt-sm q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
+                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
                       <share-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
-                  <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
+                  <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
                       <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
                 </div>
@@ -52,11 +51,11 @@
                 </div>
               </div>
               <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
-                <div>
+                <div class="q-ml-sm">
                   <b>{{ getShortName(file.Name) }}</b>
                   <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">{{file.Name}}</q-tooltip>
                 </div>
-                <div style="align-items: center">
+                <div class="q-mr-sm" style="align-items: center">
                   <span>{{ getFileSize(file) }}</span>
                 </div>
               </div>
@@ -74,16 +73,16 @@
                     <span class="icon"></span>
                   </div>
                 </div>
-                <div class="flex q-px-md" style="position: absolute; top: 67px; width: 100%;">
-                  <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
+                <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
+                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
                     <share-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
-                  <div class="q-mr-sm q-mb-xs q-ml-sm file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
+                  <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
                     <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
                   <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
                 </div>
-                <q-card-section tag="span" style="padding: 0">
+                <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
                   <div>
                     {{ getShortName(file.Name) }}
                   </div>
@@ -156,8 +155,8 @@ export default {
       return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified)
     },
     getShortName (name) {
-      if (name.length > 14) {
-        return name.substr(0, 12) + '...'
+      if (name.length > 12) {
+        return name.substr(0, 10) + '...'
       }
       return name
     },
@@ -208,18 +207,35 @@ export default {
         if (oMouseEvent.ctrlKey) {
           this.checkedList = _.union(this.checkedList, [file])
         } else if (oMouseEvent.shiftKey) {
-          let files = _.map(this.filesList, function (file) {
+          /*let files = _.map(this.filesList, function (file) {
             return {
               Path: file.Path,
               Name: file.Name,
               IsFolder: file.IsFolder
             }
+          })*/
+          let files = _.map(this.filesList, function (file) {
+            return file
           })
+          let iLastCheckedIndex = files.indexOf(this.currentFile)
+          let iCurrCheckedIndex = files.indexOf(file)
+          if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
+            let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
+            let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
+            let aUidsToCheck = files.slice(iStartIndex, iEndIndex + 1)
+            if (aUidsToCheck.length > 0) {
+              this.checkedList = _.union(this.checkedList, aUidsToCheck)
+            }
+          }
         } else {
           this.checkedList = [file]
           this.currentFile = file
-          this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
         }
+       }
+       if (this.checkedList.length > 1) {
+         this.$store.dispatch('files/changeCurrentFile', { currentFile: null })
+       } else {
+         this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
        }
       this.$store.dispatch('files/changeCheckedItems', { checkedItems:  this.checkedList })
     },

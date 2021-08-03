@@ -17,7 +17,7 @@
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile || (checkedItems.length === 1 && isFolder)" flat color="primary"
+        <q-btn :disable="!checkedItems.length || isFolder" flat color="primary"
                icon="alternate_email" @click="sendFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Send file
@@ -30,20 +30,20 @@
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="delete_outlined"
+        <q-btn :disable="!checkedItems.length" flat color="primary" icon="delete_outlined"
                :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Delete
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="content_cut" @click="cutFile"/>
+        <q-btn :disable="!checkedItems.length" flat color="primary" icon="content_cut" @click="cutFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Cut
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="file_copy" @click="copyFile"/>
+        <q-btn :disable="!checkedItems.length" flat color="primary" icon="file_copy" @click="copyFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Copy
         </q-tooltip>

@@ -1,10 +1,10 @@
 <template>
   <div>
     <q-dialog v-model="confirm" >
-        <q-card class="q-dialog-size" style="min-width: 900px">
+        <q-card class="q-dialog-size" style="min-width: 820px">
           <h6 class="q-mx-md q-my-md">{{ title }}</h6>
-          <div class="q-mx-md" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px">
-            <q-item class="bg-grey-4" style="border-bottom: 1px solid #d5d9dc;">
+          <div class="q-mx-md" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px; font-size: 10pt">
+            <q-item class="bg-grey-4" style="border-bottom: 1px solid #d5d9dc;" dense>
               <q-item-section>
                 <q-item-label><b>Date</b></q-item-label>
               </q-item-section>
@@ -18,7 +18,7 @@
                 <q-item-label><b>User</b></q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-for="item in historyList" :key="item.Timestamp" style="border-bottom: 1px solid #d5d9dc">
+            <q-item clickable v-for="item in historyList" :key="item.Timestamp" style="border-bottom: 1px solid #d5d9dc" dense>
               <q-item-section>
                 <q-item-label>{{ getDate(item.Timestamp) }}</q-item-label>
               </q-item-section>
@@ -33,7 +33,7 @@
               </q-item-section>
             </q-item>
           </div>
-          <pagination :currentPage="currentPage" :itemsPerPage="10" :itemsCount="itemsCount" :changePage="changePage"></pagination>
+          <pagination :currentPage="currentPage" :itemsPerPage="10" :itemsCount="itemsCount" :changePage="changePage" :border="false"></pagination>
           <q-card-actions align="right">
             <q-btn flat :ripple="false" color="primary"
                    label="Clear" @click="openClearDialog"/>

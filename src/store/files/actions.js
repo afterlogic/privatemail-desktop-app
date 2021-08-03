@@ -232,7 +232,7 @@ export function clearHistory ({ state, commit, getters, dispatch }, { resourceTy
     })
   })
 }
-export function createPublicLink ({state, commit, getters, dispatch}, parameters) {
+export function createPublicLink ({ state, commit, getters, dispatch }, parameters) {
   return new Promise((resolve) => {
     const oParameters = {
       Type: parameters.type,
@@ -259,7 +259,7 @@ export function createPublicLink ({state, commit, getters, dispatch}, parameters
     })
   })
 }
-export function removeLink ({state, commit, getters, dispatch}, {type, personal, name}) {
+export function removeLink ({ state, commit, getters, dispatch }, { type, personal, name }) {
   return new Promise((resolve) => {
     const oParameters = {
       Type: type,
@@ -277,4 +277,41 @@ export function removeLink ({state, commit, getters, dispatch}, {type, personal,
       },
     })
   })
+}
+export function checkUrl ({ state, commit, getters, dispatch }, { url }) {
+  return new Promise( (resolve => {
+    const oParameters = {
+      Url: url
+    }
+    webApi.sendRequest({
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sModule: 'Files',
+      sMethod: 'CheckUrl',
+      oParameters,
+      fCallback: (result, error) => {
+        resolve(result)
+      },
+    })
+  }))
+}
+export function createLink ({ state, commit, getters, dispatch }, { type, path, link, name }) {
+  return new Promise( (resolve => {
+    const oParameters = {
+      Type: type,
+      Path: path,
+      Link: link,
+      Name: name
+    }
+    webApi.sendRequest({
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sModule: 'Files',
+      sMethod: 'CreateLink',
+      oParameters,
+      fCallback: (result, error) => {
+        resolve(result)
+      },
+    })
+  }))
 }

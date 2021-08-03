@@ -54,7 +54,7 @@
                :label="creating ? 'Creating shareable link' : 'Create shareable link'" />
         <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="showHistory"
                label="Show history" />
-        <q-btn v-if="publicLink" flat :disable="!recipient" :ripple="false" color="primary"
+        <q-btn v-if="publicLink" flat :disable="!recipient || removing" :ripple="false" color="primary"
                label="Send via email" @click="sendViaEmail"/>
         <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
                :label="removing ? 'Removing link' : 'Remove link'" />

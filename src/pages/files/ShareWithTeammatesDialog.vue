@@ -207,6 +207,7 @@ export default {
           this.whoCanEdit = []
           this.confirm = false
         }
+        this.saving = false
       })
     }
   }

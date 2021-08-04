@@ -45,7 +45,7 @@
           <q-btn flat class="q-px-sm" :ripple="false" color="primary"
                  label="Show history" @click="showHistory"/>
           <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="primary"
-                 :label="saving ? 'Saving' : 'Save'" @click="updateShare"/>
+                 :label="saving ? 'Saving...' : 'Save'" @click="updateShare"/>
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
                  label="Cancel"/>
         </q-card-actions>

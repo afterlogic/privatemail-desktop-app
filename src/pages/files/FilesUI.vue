@@ -6,7 +6,7 @@
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
 <!--              <q-btn flat no-caps no-wrap @click="uploadFiles" label="Upload files" size=18px color="primary" class="full-width big-button" />-->
-             <q-btn-dropdown size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
+             <q-btn-dropdown :disable="currentStorage.Type === 'shared'" size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
                <q-list class="bg-primary" style="font-size: 18px; color: white">
                  <q-item clickable v-close-popup @click="uploadFiles">
                    <q-item-section>
@@ -20,7 +20,7 @@
                    </q-item-section>
                  </q-item>
 
-                 <q-item clickable v-close-popup @click="createShortcut">
+                 <q-item :disable="currentStorage.Type === 'encrypted'" clickable v-close-popup @click="createShortcut">
                    <q-item-section>
                      <q-item-label>Create shortcut</q-item-label>
                    </q-item-section>
@@ -102,22 +102,6 @@
               <q-separator />
             </div>
             <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles" @linkDialog="linkDialog"/>
-<!--            <div class="col">
-              <q-scroll-area class="full-height">
-                <div class="row q-pa-sm">
-                  <q-card class="q-ma-md" v-for="n in 20" :key="n">
-                    <q-card-section>
-                      <div class="text-subtitle2">by John Doe</div>
-                    </q-card-section>
-
-                    <q-separator />
-                    <q-card-section>
-                      Image.jpg
-                    </q-card-section>
-                  </q-card>
-                </div>
-              </q-scroll-area>
-            </div>-->
           </div>
         </template>
       </q-splitter>

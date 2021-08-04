@@ -24,45 +24,63 @@
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="edit" @click="editFile"/>
+        <q-btn
+          :disable="!currentFile || currentStorage.Type === 'shared'" flat color="primary" icon="edit" @click="editFile"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Rename
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!checkedItems.length" flat color="primary" icon="delete_outlined"
-               :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog"/>
+        <q-btn
+          :disable="!checkedItems.length || currentStorage.Type === 'shared'" flat color="primary" icon="delete_outlined"
+          :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Delete
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!checkedItems.length" flat color="primary" icon="content_cut" @click="cutFile"/>
+        <q-btn
+          :disable="!checkedItems.length || currentStorage.Type === 'shared'" flat color="primary" icon="content_cut" @click="cutFile"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Cut
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!checkedItems.length" flat color="primary" icon="file_copy" @click="copyFile"/>
+        <q-btn
+          :disable="!checkedItems.length || currentStorage.Type === 'shared'" flat color="primary" icon="file_copy" @click="copyFile"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Copy
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!copiedFiles.files.length > 0" flat color="primary" icon="content_paste"
-               :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile"/>
+        <q-btn
+          :disable="!copiedFiles.files.length > 0 || currentStorage.Type === 'encrypted' || currentStorage.Type === 'shared'"
+          flat color="primary" icon="content_paste"
+          :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Paste
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="link" @click="linkDialog(null)"/>
+        <q-btn
+          :disable="!currentFile || currentStorage.Type === 'shared' || (currentStorage.Type === 'encrypted' && isFolder)"
+          flat color="primary" icon="link" @click="linkDialog(null)"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Create secure link
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!currentFile" flat color="primary" icon="share" @click="share(null)"/>
+        <q-btn
+          v-if="currentStorage.Type !== 'shared'"
+          :disable="!currentFile || (currentStorage.Type === 'encrypted' && isFolder) || currentStorage.Type === 'corporate'"
+          flat color="primary" icon="share" @click="share(null)"
+        />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Share with teammates
         </q-tooltip>

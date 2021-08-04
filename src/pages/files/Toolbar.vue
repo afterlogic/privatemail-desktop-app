@@ -13,7 +13,7 @@
         <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1" flat color="primary" icon="file_download"
                @click="downloadFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-          Delete file
+          Download file
         </q-tooltip>
       </span>
       <span>

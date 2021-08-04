@@ -203,41 +203,54 @@ export default {
     },
     selectedFile (file, oMouseEvent) {
       console.log(file, 'file')
+      let checkedList = _.map(this.checkedList, function (file) {
+        return file
+      })
        if (oMouseEvent) {
         if (oMouseEvent.ctrlKey) {
-          this.checkedList = _.union(this.checkedList, [file])
+          const index = checkedList.findIndex( checkedFile => {
+            return checkedFile === file
+          })
+          if (index === -1) {
+            checkedList = _.union(checkedList, [file])
+          } else {
+            checkedList = _.without(checkedList, file)
+          }
         } else if (oMouseEvent.shiftKey) {
-          /*let files = _.map(this.filesList, function (file) {
-            return {
-              Path: file.Path,
-              Name: file.Name,
-              IsFolder: file.IsFolder
-            }
-          })*/
           let files = _.map(this.filesList, function (file) {
             return file
           })
           let iLastCheckedIndex = files.indexOf(this.currentFile)
           let iCurrCheckedIndex = files.indexOf(file)
           if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
-            let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
-            let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
-            let aUidsToCheck = files.slice(iStartIndex, iEndIndex + 1)
-            if (aUidsToCheck.length > 0) {
-              this.checkedList = _.union(this.checkedList, aUidsToCheck)
+            const index = checkedList.findIndex( checkedFile => {
+              return checkedFile === file
+            })
+            if (index === -1) {
+              let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
+              let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
+              let aUidsToCheck = files.slice(iStartIndex, iEndIndex + 1)
+              if (aUidsToCheck.length > 0) {
+                checkedList = _.union(checkedList, aUidsToCheck)
+              }
+            } else {
+              if (index > iLastCheckedIndex) {
+                checkedList.splice(index + 1)
+              } else {
+                checkedList.splice(0, index)
+              }
             }
           }
         } else {
-          this.checkedList = [file]
+          checkedList = [file]
           this.currentFile = file
         }
        }
-       if (this.checkedList.length > 1) {
-         this.$store.dispatch('files/changeCurrentFile', { currentFile: null })
-       } else {
+       if (checkedList.length === 1) {
          this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
        }
-      this.$store.dispatch('files/changeCheckedItems', { checkedItems:  this.checkedList })
+      this.checkedList = checkedList
+      this.$store.dispatch('files/changeCheckedItems', { checkedItems: this.checkedList })
     },
     hasDownloadAction (file) {
       if (file) {

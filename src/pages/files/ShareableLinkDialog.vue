@@ -2,7 +2,8 @@
   <q-dialog v-model="confirm" persistent>
     <q-card class="q-dialog-size" style="min-width: 300px">
       <div v-if="!publicLink">
-        <q-item class="q-mt-md">
+        <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
+        <q-item>
           <q-checkbox v-model="hasLinkPassword" :disable="isFolder" label="Protect link with password" />
         </q-item>
         <q-item class="q-mx-sm" v-if="hasLinkPassword">
@@ -13,6 +14,9 @@
             <q-select style="width: 150px" outlined dense v-model="lifetime" :options="lifetimeOptions"/>
           </q-item-section>
         </q-item>
+        <div style="margin: 0 26px" v-if="isFolder">
+          <q-item-label caption >Shareable links for folders don't support password protection</q-item-label>
+        </div>
       </div>
       <div v-if="publicLink">
         <q-item class="q-mt-md">

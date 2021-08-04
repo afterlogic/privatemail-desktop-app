@@ -4,7 +4,7 @@
         <q-card
           v-if="shortcut"
           flat
-          class="q-ma-md select-text-disable"
+          class="q-mx-md q-mt-md select-text-disable"
           style="width: 150px; height: 175px;" align="center"
         >
           <div class="large">
@@ -31,12 +31,12 @@
             </div>
           </div>
       </q-card>
-      <q-item class="q-mt-md">
+      <q-item class="q-mt-sm">
         <div class="q-mr-md flex" style="align-items: center;">
           <span>External document URL</span>
         </div>
         <q-item-section style="width: 100%">
-          <q-input outlined dense v-model="url" @keyup.enter="checkUrl"/>
+          <q-input outlined dense v-model="url" @input="throttledSave"/>
         </q-item-section>
       </q-item>
       <q-item>
@@ -55,6 +55,7 @@
 
 <script>
 import text from '../../utils/text'
+import _ from 'lodash'
 
 export default {
   name: 'CreateShortcutDialog',
@@ -72,7 +73,10 @@ export default {
     },
     currentStorage () {
       return this.$store.getters['files/getCurrentStorage']
-    }
+    },
+    throttledSave () {
+     return _.throttle(this.checkUrl, 2000);
+    },
   },
   methods: {
     getShortName (shortcut) {

@@ -2,6 +2,7 @@
   <div>
     <q-dialog v-model="confirm" persistent>
       <q-card class="q-dialog-size" style="min-width: 300px">
+        <div class="q-mx-sm q-mt-md q-pl-xs" style="font-size: 13pt"><b>Share with teammates</b></div>
         <q-item class="q-mt-md">
           <q-item-section>
             <q-item-label>Who can see</q-item-label>

@@ -1,8 +1,8 @@
 <template>
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="32"
-    height="32"
+    :width="width"
+    :height="height"
     viewBox="0 0 32 32.000001"
     id="svg17780">
     <defs
@@ -386,7 +386,17 @@
 
 <script>
 export default {
-  name: 'EncryptedIcon'
+  name: 'EncryptedIcon',
+  props: {
+    height: {
+      type: Number,
+      default: 25
+    },
+    width: {
+      type: Number,
+      default: 25
+    }
+  }
 }
 </script>
 

@@ -48,7 +48,7 @@ export default {
   computed: {
     userSpace() {
       let accountQuota = this.$store.getters['mail/getAccountQuota']
-      if (accountQuota.length) {
+      if (accountQuota?.length) {
         return accountQuota[1]
       }
       return 0
@@ -58,7 +58,7 @@ export default {
     },
     busyMemory() {
       let accountQuota = this.$store.getters['mail/getAccountQuota']
-      if (accountQuota.length) {
+      if (accountQuota?.length) {
         return accountQuota[0]
       }
       return 0

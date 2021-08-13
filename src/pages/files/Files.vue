@@ -39,6 +39,9 @@
                   <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
                       <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
+                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isEncripted(file)" @click="openEncryptedFileDialog(file)">
+                    <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
+                  </div>
                 </div>
                 <div class="flex q-mt-sm q-mx-sm" style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
                   <div class="q-mt-xs">
@@ -46,7 +49,12 @@
                     <span v-if="hasOpenAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
                   </div>
                   <div class="q-mt-xs">
-                    <span v-if="hasDownloadAction(file)" class="text-primary" @click="downloadFile(file)">Download</span>
+                    <span
+                      v-if="hasDownloadAction(file)" class="text-primary"
+                      @click="isEncripted(file) ? downloadEncryptedFile(file) : downloadFile(file)"
+                    >
+                      Download
+                    </span>
                   </div>
                 </div>
               </div>
@@ -92,6 +100,7 @@
           </q-card>
         </div>
       </q-scroll-area>
+    <encrypted-file-information-dialog ref="encryptedFileInformationDialog" @downloadEncrypted="downloadFile"></encrypted-file-information-dialog>
   </div>
 </template>
 
@@ -99,15 +108,21 @@
 import webApi from 'src/utils/webApi'
 import ShareIcon from '../../assets/icons/ShareIcon'
 import LinkIcon from '../../assets/icons/LinkIcon'
+import EncryptedIcon from '../../assets/icons/EncryptedIcon'
 import date from '../../utils/date'
 import _ from 'lodash'
 import text from '../../utils/text'
+import EncryptedFileInformationDialog from './EncryptedFileInformationDialog'
+import Crypto from 'src/modules/openpgp/classes/CCrypto'
+import OpenPgp from 'src/modules/openpgp/OpenPgp'
 
 export default {
   name: 'Files',
   components: {
     ShareIcon,
-    LinkIcon
+    LinkIcon,
+    EncryptedIcon,
+    EncryptedFileInformationDialog
   },
   props: {
     currentStorage: {
@@ -173,9 +188,18 @@ export default {
     openLinkDialog (file) {
       this.$emit('linkDialog', file)
     },
+    openEncryptedFileDialog (file) {
+      this.$refs.encryptedFileInformationDialog.openDialog(file)
+    },
     isShared (file) {
       const shares = file.ExtendedProps?.Shares
       return _.isArray(shares) && shares.length
+    },
+    isEncripted (file) {
+      if (file.ExtendedProps?.ParanoidKey) {
+        return true
+      }
+      return false
     },
     hasLink (file) {
       return file?.ExtendedProps?.PublicLink
@@ -188,6 +212,26 @@ export default {
         url = this.currentFile.Actions.download.url
       }
       webApi.downloadByUrl(url)
+    },
+    async downloadEncryptedFile (file) {
+      let iv = file?.ExtendedProps?.InitializationVector || false
+      let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
+      /*const fProcessBlobCallback = oParams.fProcessBlobCallback
+      const fProcessBlobErrorCallback = oParams.fProcessBlobErrorCallback*/
+      /*OpenPgp.downloadDividedFile(file, iv, paranoidEncryptedKey,);*/
+      const aesKey = await this.getAesKey(file)
+
+      Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
+    },
+    async getAesKey (file) {
+      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+      let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
+      if (privateKey) {
+        const decryptData = await OpenPgp.decryptAndVerifyText(file?.ExtendedProps?.ParanoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
+        return decryptData.sDecryptedData
+      }
     },
     viewFile (file) {
       const url = file.Actions.view.url

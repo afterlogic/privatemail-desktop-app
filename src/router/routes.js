@@ -120,6 +120,7 @@ const routes = [
           },
           { path: 'contacts', component: () => import('pages/settings/Contacts.vue') },
           { path: 'open-pgp', component: () => import('pages/settings/OpenPgp.vue') },
+          { path: 'paranoid-encryption', component: () => import('pages/settings/ParanoidEncryption.vue') },
           { path: 'about', component: () => import('pages/settings/About.vue') },
         ]
       },

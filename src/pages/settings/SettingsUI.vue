@@ -18,6 +18,12 @@
             <q-tab name="files" icon="folder" label="Files" style="justify-content: start;" />
             <q-tab name="mobile-sync" icon="sync" label="Mobile Sync" style="justify-content: start;" /> -->
             <q-route-tab to="/settings/open-pgp"  icon="vpn_key" label="Open PGP" style="justify-content: start;" name="open-pgp"/>
+            <q-route-tab to="/settings/paranoid-encryption" style="justify-content: start;" name="paranoid-encryption">
+              <encrypted-icon style="fill: white" :width="25" :height="25"></encrypted-icon>
+              <q-item-section class="q-ml-sm">
+                Paranoid Encryption
+              </q-item-section>
+            </q-route-tab>
             <q-route-tab to="/settings/about" icon="error" label="About" style="justify-content: start;" name="about"/>
           </q-tabs>
         </template>
@@ -43,8 +49,13 @@
 <style></style>
 
 <script>
+import EncryptedIcon from '../../assets/icons/EncryptedIcon'
+
 export default {
   name: "SettingsUI",
+  components: {
+    EncryptedIcon
+  },
   data () {
     return {
       tab: 'static',

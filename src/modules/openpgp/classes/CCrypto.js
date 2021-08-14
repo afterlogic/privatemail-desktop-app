@@ -472,6 +472,7 @@ CDownloadFile.prototype.init = async function (oFile, iv, iChunkSize, fProcessBl
   };
   if (sKey) {//the key was transferred from outside
     let oKey = await this.getKeyFromString(sKey);
+    console.log(oKey, 'oKey')
     if (oKey) {
       this.key = oKey;
       this.decryptChunk();

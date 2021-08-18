@@ -1,20 +1,20 @@
-import typesUtils from "../../utils/types";
 
 function CSettings () {
-  this.encryptFilesPersonalStorage = false
+  this.enableInPersonalStorage = false
   this.enableParanoidEncryption = false
+  this.AllowMultiChunkUpload = false
+  this.chunkSize = 111149056
 }
 
-CSettings.prototype.parse = function (oData, oWebclientData) {
-  console.log(oData, 'oData')
-  console.log(oWebclientData, 'oWebclientData')
+CSettings.prototype.parse = function (oData) {
   if (oData) {
     this.enableParanoidEncryption = oData.EnableModule
+    this.enableInPersonalStorage = oData.EnableInPersonalStorage
   }
 }
 
-CSettings.prototype.setEncryptFilesPersonalStorage = function (encryptFilesPersonalStorage) {
-  this.encryptFilesPersonalStorage = encryptFilesPersonalStorage
+CSettings.prototype.setEncryptFilesPersonalStorage = function (enableInPersonalStorage) {
+  this.enableInPersonalStorage = enableInPersonalStorage
 }
 
 CSettings.prototype.setEnableParanoidEncryption = function (enableParanoidEncryption) {

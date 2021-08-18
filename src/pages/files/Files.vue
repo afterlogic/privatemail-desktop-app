@@ -113,7 +113,7 @@ import date from '../../utils/date'
 import _ from 'lodash'
 import text from '../../utils/text'
 import EncryptedFileInformationDialog from './EncryptedFileInformationDialog'
-import Crypto from 'src/modules/openpgp/classes/CCrypto'
+import Crypto from 'src/modules/crypto/CCrypto'
 import OpenPgp from 'src/modules/openpgp/OpenPgp'
 
 export default {
@@ -217,11 +217,11 @@ export default {
       let iv = file?.ExtendedProps?.InitializationVector || false
       let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
       /*const fProcessBlobCallback = oParams.fProcessBlobCallback
-      const fProcessBlobErrorCallback = oParams.fProcessBlobErrorCallback*/
-      /*OpenPgp.downloadDividedFile(file, iv, paranoidEncryptedKey,);*/
+      const fProcessBlobErrorCallback = oParams.fProcessBlobErrorCallback*!/
+      /!*OpenPgp.downloadDividedFile(file, iv, paranoidEncryptedKey,);*/
       const aesKey = await this.getAesKey(file)
-
       Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
+
     },
     async getAesKey (file) {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']

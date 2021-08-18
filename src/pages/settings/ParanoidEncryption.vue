@@ -36,7 +36,7 @@
       </q-item>
       <q-item tag="label" v-ripple dense>
         <q-item-section side top>
-          <q-checkbox v-model="encryptFilesPersonalStorage" />
+          <q-checkbox v-model="enableInPersonalStorage" />
         </q-item-section>
         <q-item-section>
           <q-item-label>Allow encrypt files in Personal Storage.</q-item-label>
@@ -65,12 +65,12 @@ export default {
     return {
       saving: false,
       enableParanoidEncryption: false,
-      encryptFilesPersonalStorage: false,
+      enableInPersonalStorage: false,
     }
   },
   mounted() {
     this.enableParanoidEncryption = encryptionSettings.enableParanoidEncryption
-    this.encryptFilesPersonalStorage = encryptionSettings.encryptFilesPersonalStorage
+    this.enableInPersonalStorage = encryptionSettings.enableInPersonalStorage
   },
   methods: {
     save () {
@@ -80,13 +80,13 @@ export default {
         sMethod: 'UpdateSettings',
         oParameters: {
           EnableModule: this.enableParanoidEncryption,
-          EnableInPersonalStorage: this.encryptFilesPersonalStorage
+          EnableInPersonalStorage: this.enableInPersonalStorage
         },
         fCallback: (result, error) => {
-          console.log(result, 'res')
           if (result) {
             encryptionSettings.setEnableParanoidEncryption(this.enableParanoidEncryption)
-            encryptionSettings.setEncryptFilesPersonalStorage((this.encryptFilesPersonalStorage))
+            encryptionSettings.setEncryptFilesPersonalStorage((this.enableInPersonalStorage))
+            this.$store.dispatch('files/asyncGetStorages')
           }
           this.saving = false
         }

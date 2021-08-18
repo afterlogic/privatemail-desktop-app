@@ -37,6 +37,7 @@
                 auto-upload
                 hide-upload-btn
                 :factory="addedFiles"
+                @added="onFileAdded"
                 @uploaded="showReport"
               >
               </q-uploader>
@@ -118,6 +119,10 @@ import notification from '../../utils/notification'
 import ShareIcon from '../../assets/icons/ShareIcon'
 import EncryptedIcon from '../../assets/icons/EncryptedIcon'
 import CreateShortcutDialog from './CreateShortcutDialog'
+import types from 'src/utils/types'
+import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings.js'
+import OpenPgp from '../../modules/openpgp/OpenPgp'
+import Crypto from 'src/modules/crypto/CCrypto'
 
 export default {
   name: "FilesUI",
@@ -134,7 +139,9 @@ export default {
       checkboxVal: false,
       searchText: '',
       currentFile: null,
-      searchProgress: false
+      searchProgress: false,
+      fileIndex: 0,
+      downloadFiles: []
     }
   },
   mounted() {
@@ -203,28 +210,84 @@ export default {
       this.getFiles(this.currentStorage.Type, path.path, '')
       this.$store.dispatch('files/changeCurrentPaths', {path})
     },
-    addedFiles () {
-      this.$store.commit('files/setLoadingStatus', { status: true })
-      let url = this.$store.getters['main/getApiHost'] + '/?/Api/'
-      let sAuthToken = this.$store.getters['user/getAuthToken']
-      let headers = []
-      if (sAuthToken) {
-        headers.push({name: 'Authorization', value: 'Bearer ' + sAuthToken})
-      }
-      return {
-        url,
-        method: 'POST',
-        headers,
-        fieldName: 'jua-uploader',
-        formFields: [
-          {name: 'jua-post-type', value: 'ajax'},
-          {name: 'Module', value: 'Files'},
-          {name: 'Method', value: 'UploadFile'},
-          {name: 'Parameters', value: JSON.stringify({"Type": this.currentStorage.Type, "SubPath": "", "Path": this.currentFilePath, "Overwrite": false})},
-        ],
+    onFileAdded (files) {
+      if (this.currentStorage.Type === 'encrypted') {
+        this.downloadFiles = files
+        this.uploadEncryptFiles()
       }
     },
-    showReport () {
+    getNewUid () {
+      return 'jua-uid-' + this.fakeMd5(16) + '-' + (new Date()).getTime().toString();
+    },
+    fakeMd5 (iLen) {
+       let sResult = ''
+       let sLine = '0123456789abcdefghijklmnopqrstuvwxyz'
+       iLen = this.isUndefined(iLen) ? 32 : types.pInt(iLen);
+
+      while (sResult.length < iLen) {
+        sResult += sLine.substr(Math.round(Math.random() * sLine.length), 1);
+      }
+
+      return sResult;
+    },
+    isUndefined (mValue) {
+      return 'undefined' === typeof mValue;
+    },
+    uploadEncryptFiles () {
+     /* console.log(this.downloadFiles.length - 1, 'this.downloadFiles.length - 1')
+      console.log(this.downloadFiles, 'this.downloadFiles')*/
+      if (this.fileIndex > this.downloadFiles.length - 1) {
+        this.fileIndex = 0
+        this.downloadFiles = []
+      } else {
+        const fileInfo = {
+          file: this.downloadFiles[this.fileIndex],
+          fileName: this.downloadFiles[this.fileIndex].name,
+          folder: this.$store.getters['files/getCurrentPath'],
+          size: this.downloadFiles[this.fileIndex].size,
+          type: ''
+        }
+        this.fileIndex++
+        this.cryptoUpload({
+          uid: this.getNewUid(),
+          fileInfo: fileInfo,
+          storageType: this.currentStorage.Type,
+          callBack: this.uploadEncryptFiles
+        })
+      }
+    },
+    addedFiles (files) {
+      console.log(files, 'files')
+      if (this.currentStorage.Type !== 'encrypted') {
+        let url = this.$store.getters['main/getApiHost'] + '/?/Api/'
+        let sAuthToken = this.$store.getters['user/getAuthToken']
+        let headers = []
+        if (sAuthToken) {
+          headers.push({name: 'Authorization', value: 'Bearer ' + sAuthToken})
+        }
+        this.$store.commit('files/setLoadingStatus', { status: true })
+        return {
+          url,
+          method: 'POST',
+          headers,
+          fieldName: 'jua-uploader',
+          formFields: [
+            {name: 'jua-post-type', value: 'ajax'},
+            {name: 'Module', value: 'Files'},
+            {name: 'Method', value: 'UploadFile'},
+            {name: 'Parameters', value: JSON.stringify({"Type": this.currentStorage.Type, "SubPath": "", "Path": this.currentFilePath, "Overwrite": false})},
+          ],
+        }
+      }
+    },
+    async cryptoUpload (params) {
+      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+      let publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+      //CryptoManager.upload(params, privateKey, publicKey, currentAccountEmail, this.askOpenPgpKeyPassword)
+      await Crypto.startUpload(params.fileInfo, params.uid,null,null, privateKey, publicKey, currentAccountEmail, this.askOpenPgpKeyPassword, params.callBack)
+    },
+    showReport (file) {
       notification.showReport('Complete')
       this.getFiles(this.currentStorage.Type, this.currentFilePath, '')
     },

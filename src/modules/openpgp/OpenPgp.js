@@ -616,11 +616,12 @@ COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsE
       if (oPrivateUserKey) {
         let sPassphrase = oPrivateUserKey.getPassphrase()
         if (sPassphrase === null) {
-          fAskForKeyPassword(oPrivateUserKey.sEmail, async (sPassphrase) => {
+         await fAskForKeyPassword(oPrivateUserKey.sEmail, async (sPassphrase) => {
             let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
             oResult.sPassphrase = sPassphrase
             resolve(oResult)
           })
+          console.log('fAskForKeyPassword')
         } else {
           let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
           oResult.sPassphrase = sPassphrase

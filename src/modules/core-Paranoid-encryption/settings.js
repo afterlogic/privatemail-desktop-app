@@ -7,6 +7,7 @@ function CSettings () {
 }
 
 CSettings.prototype.parse = function (oData) {
+  console.log(oData, 'oData')
   if (oData) {
     this.enableParanoidEncryption = oData.EnableModule
     this.enableInPersonalStorage = oData.EnableInPersonalStorage

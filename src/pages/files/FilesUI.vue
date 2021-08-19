@@ -13,7 +13,6 @@
                      <q-item-label>Upload files</q-item-label>
                    </q-item-section>
                  </q-item>
-
                  <q-item clickable v-close-popup @click="createFolder">
                    <q-item-section>
                      <q-item-label>Create folder</q-item-label>
@@ -34,8 +33,6 @@
                 class="col full-height full-width"
                 flat
                 ref="uploader"
-                auto-upload
-                hide-upload-btn
                 :factory="addedFiles"
                 @added="onFileAdded"
                 @uploaded="showReport"
@@ -106,6 +103,7 @@
           </div>
         </template>
       </q-splitter>
+      <file-upload-type-selection-dialog @encrypt="continueUploadingFiles" @cancelUploading="cancelUploading" :files="downloadFiles" ref="fileUploadTypeSelectionDialog"></file-upload-type-selection-dialog>
     </q-page>
   </q-page-container>
 </template>
@@ -123,6 +121,7 @@ import types from 'src/utils/types'
 import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings.js'
 import OpenPgp from '../../modules/openpgp/OpenPgp'
 import Crypto from 'src/modules/crypto/CCrypto'
+import FileUploadTypeSelectionDialog from './FileUploadTypeSelectionDialog'
 
 export default {
   name: "FilesUI",
@@ -130,7 +129,8 @@ export default {
     Toolbar,
     ShareIcon,
     EncryptedIcon,
-    CreateShortcutDialog
+    CreateShortcutDialog,
+    FileUploadTypeSelectionDialog
   },
   data () {
     return {
@@ -211,10 +211,27 @@ export default {
       this.$store.dispatch('files/changeCurrentPaths', {path})
     },
     onFileAdded (files) {
-      if (this.currentStorage.Type === 'encrypted') {
-        this.downloadFiles = files
-        this.uploadEncryptFiles()
+      console.log(files, 'files')
+      this.downloadFiles = files
+      if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
+        this.$refs.fileUploadTypeSelectionDialog.openDialog()
+      } else {
+        if (this.currentStorage.Type === 'encrypted') {
+          this.uploadEncryptFiles()
+        } else {
+          this.$refs.uploader.upload()
+        }
       }
+    },
+    continueUploadingFiles (encrypt) {
+      if (encrypt) {
+        this.uploadEncryptFiles()
+      } else {
+        this.$refs.uploader.upload()
+      }
+    },
+    cancelUploading () {
+      this.$refs.uploader.removeQueuedFiles()
     },
     getNewUid () {
       return 'jua-uid-' + this.fakeMd5(16) + '-' + (new Date()).getTime().toString();
@@ -234,8 +251,8 @@ export default {
       return 'undefined' === typeof mValue;
     },
     uploadEncryptFiles () {
-     /* console.log(this.downloadFiles.length - 1, 'this.downloadFiles.length - 1')
-      console.log(this.downloadFiles, 'this.downloadFiles')*/
+      this.$refs.uploader.removeQueuedFiles()
+      this.$refs.uploader.removeUploadedFiles()
       if (this.fileIndex > this.downloadFiles.length - 1) {
         this.fileIndex = 0
         this.downloadFiles = []
@@ -290,6 +307,7 @@ export default {
     showReport (file) {
       notification.showReport('Complete')
       this.getFiles(this.currentStorage.Type, this.currentFilePath, '')
+      this.$refs.uploader.removeUploadedFiles()
     },
     populate () {
       this.$store.commit('files/setLoadingStatus', { status: true })

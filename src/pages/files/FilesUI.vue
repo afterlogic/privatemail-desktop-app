@@ -211,8 +211,8 @@ export default {
       this.$store.dispatch('files/changeCurrentPaths', {path})
     },
     onFileAdded (files) {
-      console.log(files, 'files')
       this.downloadFiles = files
+      this.fileIndex = 0
       if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
         this.$refs.fileUploadTypeSelectionDialog.openDialog()
       } else {
@@ -231,7 +231,7 @@ export default {
       }
     },
     cancelUploading () {
-      this.$refs.uploader.removeQueuedFiles()
+
     },
     getNewUid () {
       return 'jua-uid-' + this.fakeMd5(16) + '-' + (new Date()).getTime().toString();
@@ -251,8 +251,6 @@ export default {
       return 'undefined' === typeof mValue;
     },
     uploadEncryptFiles () {
-      this.$refs.uploader.removeQueuedFiles()
-      this.$refs.uploader.removeUploadedFiles()
       if (this.fileIndex > this.downloadFiles.length - 1) {
         this.fileIndex = 0
         this.downloadFiles = []
@@ -269,12 +267,14 @@ export default {
           uid: this.getNewUid(),
           fileInfo: fileInfo,
           storageType: this.currentStorage.Type,
-          callBack: this.uploadEncryptFiles
+          callBack: this.uploadEncryptFiles,
+          fileIndexUp: (fileIndex) => {
+            this.fileIndex = fileIndex
+          }
         })
       }
     },
     addedFiles (files) {
-      console.log(files, 'files')
       if (this.currentStorage.Type !== 'encrypted') {
         let url = this.$store.getters['main/getApiHost'] + '/?/Api/'
         let sAuthToken = this.$store.getters['user/getAuthToken']
@@ -302,12 +302,22 @@ export default {
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       let publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
       //CryptoManager.upload(params, privateKey, publicKey, currentAccountEmail, this.askOpenPgpKeyPassword)
-      await Crypto.startUpload(params.fileInfo, params.uid,null,null, privateKey, publicKey, currentAccountEmail, this.askOpenPgpKeyPassword, params.callBack)
+      await Crypto.startUpload(
+        params.fileInfo,
+        params.uid,
+        null,
+        null,
+        privateKey,
+        publicKey,
+        currentAccountEmail,
+        this.askOpenPgpKeyPassword,
+        params.callBack,
+        params.fileIndexUp
+      )
     },
     showReport (file) {
       notification.showReport('Complete')
       this.getFiles(this.currentStorage.Type, this.currentFilePath, '')
-      this.$refs.uploader.removeUploadedFiles()
     },
     populate () {
       this.$store.commit('files/setLoadingStatus', { status: true })
@@ -339,6 +349,8 @@ export default {
       }
     },
     uploadFiles() {
+      this.$refs.uploader.removeQueuedFiles()
+      this.$refs.uploader.removeUploadedFiles()
       this.$refs.uploader.pickFiles()
     }
   }

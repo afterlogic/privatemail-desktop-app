@@ -39,19 +39,20 @@
                   <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
                       <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
-                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isEncripted(file)" @click="openEncryptedFileDialog(file)">
+                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isEncrypted(file)" @click="openEncryptedFileDialog(file)">
                     <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
                   </div>
                 </div>
                 <div class="flex q-mt-sm q-mx-sm" style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
                   <div class="q-mt-xs">
-                    <span v-if="hasViewAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
+                    <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary" @click="viewEncryptedFile(file)">View</span>
+                    <span v-else-if="hasViewAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
                     <span v-if="hasOpenAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
                   </div>
                   <div class="q-mt-xs">
                     <span
                       v-if="hasDownloadAction(file)" class="text-primary"
-                      @click="isEncripted(file) ? downloadEncryptedFile(file) : downloadFile(file)"
+                      @click="isEncrypted(file) ? downloadEncryptedFile(file) : downloadFile(file)"
                     >
                       Download
                     </span>
@@ -135,6 +136,7 @@ export default {
       currentFile: null,
       checkedList: [],
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf'],
+      imgFormats: ['jpeg', 'png', 'jpg']
     }
   },
   computed: {
@@ -166,6 +168,12 @@ export default {
     }
   },
   methods: {
+    isImg (file) {
+      const formatFile = this.formatFile(file)
+      return this.imgFormats.find( format => {
+        return format === formatFile
+      })
+    },
     getDescription (file) {
       return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified)
     },
@@ -195,11 +203,8 @@ export default {
       const shares = file.ExtendedProps?.Shares
       return _.isArray(shares) && shares.length
     },
-    isEncripted (file) {
-      if (file.ExtendedProps?.ParanoidKey) {
-        return true
-      }
-      return false
+    isEncrypted (file) {
+      return file.ExtendedProps?.ParanoidKey ? true : false
     },
     hasLink (file) {
       return file?.ExtendedProps?.PublicLink
@@ -213,15 +218,17 @@ export default {
       }
       webApi.downloadByUrl(url)
     },
+    async viewEncryptedFile (file) {
+      let iv = file?.ExtendedProps?.InitializationVector || false
+      let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
+      const aesKey = await this.getAesKey(file)
+      Crypto.viewEncryptedImage(file, iv, paranoidEncryptedKey, aesKey)
+    },
     async downloadEncryptedFile (file) {
       let iv = file?.ExtendedProps?.InitializationVector || false
       let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
-      /*const fProcessBlobCallback = oParams.fProcessBlobCallback
-      const fProcessBlobErrorCallback = oParams.fProcessBlobErrorCallback*!/
-      /!*OpenPgp.downloadDividedFile(file, iv, paranoidEncryptedKey,);*/
       const aesKey = await this.getAesKey(file)
       Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
-
     },
     async getAesKey (file) {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
@@ -238,10 +245,12 @@ export default {
       webApi.viewByUrlInNewWindow(url, file.Name)
     },
     getPreviewFile (file) {
-      if (file?.ThumbnailUrl) {
-        let api = this.$store.getters['main/getApiHost']
-        let link = file.ThumbnailUrl
-        return api + '/' + link
+      if (!this.isEncrypted(file)) {
+        if (file?.ThumbnailUrl) {
+          let api = this.$store.getters['main/getApiHost']
+          let link = file.ThumbnailUrl
+          return api + '/' + link
+        }
       }
       return null
     },

@@ -8,6 +8,7 @@ import FileSaver from 'src/utils/FileSaver'
 import types from 'src/utils/types'
 import notification from "../../utils/notification"
 import {error} from "electron-log"
+import electron from "electron";
 
 /**
  * @constructor
@@ -53,8 +54,8 @@ CCrypto.prototype.startUpload = async function (oFileInfo, sUid, fOnChunkEncrypt
     const CurrentUserPublicKey = publicKeys
     if (CurrentUserPublicKey) {
       const sEncryptedKey = await this.encryptParanoidKey(sKeyData, [CurrentUserPublicKey], '', privateKey, currentAccountEmail, askOpenPgpKeyPassword)
-      if (sEncryptedKey) {
-        await this.start(oFileInfo, sEncryptedKey)
+      if (sEncryptedKey.data) {
+        await this.start(oFileInfo, sEncryptedKey.data)
         await this.readChunk(sUid, this.fOnChunkReadyCallback, callBack)
       } else if (_.isFunction(fCancelCallback)) {
         fCancelCallback()
@@ -64,6 +65,33 @@ CCrypto.prototype.startUpload = async function (oFileInfo, sUid, fOnChunkEncrypt
     }
   } else if (_.isFunction(fCancelCallback)) {
     fCancelCallback()
+  }
+}
+CCrypto.prototype.getAesKey = async function (file, passphrase) {
+  const currentAccountEmail = store.getters['mail/getCurrentAccountEmail']
+  const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+  let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+  let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
+  if (privateKey) {
+    const decryptData = await OpenPgp.decryptAndVerifyTextWithPassphrase(file?.ExtendedProps?.ParanoidKey, privateKey, passphrase, aPublicKeys)
+    return decryptData.sDecryptedData
+  }
+}
+CCrypto.prototype.getEncryptedKey = async function ( file, privateKey, publicKey, currentAccountEmail,passphrase, cancelCallback, bPasswordBasedEncryption = false) {
+  const sKeyData = await this.getAesKey(file, passphrase)
+  if (privateKey && sKeyData) {
+    if (publicKey) {
+      const encryptedKey = await this.encryptParanoidKeyWithPassphrase(sKeyData, [publicKey], '', privateKey, currentAccountEmail, passphrase, bPasswordBasedEncryption)
+      if (encryptedKey) {
+       return encryptedKey
+      } else if (_.isFunction(cancelCallback)) {
+        cancelCallback()
+      }
+    } else if (_.isFunction(cancelCallback)) {
+      cancelCallback()
+    }
+  } else if (_.isFunction(cancelCallback)) {
+    cancelCallback()
   }
 }
 
@@ -104,6 +132,40 @@ CCrypto.prototype.readChunk = async function (sUid, fOnChunkEncryptCallback, cal
     }
   }
 }
+
+//  vadim view
+
+function CViewImage(oFile, iv, iChunkSize, sParanoidEncryptedKey = '')
+{
+  this.oWriter = null;
+  this.init(oFile, iv, iChunkSize, /*fProcessBlobErrorCallback*/null, sParanoidEncryptedKey);
+}
+CViewImage.prototype = Object.create(CDownloadFile.prototype);
+CViewImage.prototype.constructor = CViewImage;
+
+
+CCrypto.prototype.viewEncryptedImage = async function (oFile, iv, sParanoidEncryptedKey = '', aesKey) {
+  if (aesKey !== false) {
+    new CViewImage(oFile, iv, this.iChunkSize, aesKey)
+  }
+}
+
+
+CViewImage.prototype.writeChunk = function (oDecryptedUint8Array)
+{
+  this.oWriter = this.oWriter === null ? new CBlobViewer(this.sFileName) : this.oWriter;
+  this.oWriter.write(oDecryptedUint8Array); //write decrypted chunk
+  if (this.iCurrChunk < this.iChunkNumber)
+  { //if it was not last chunk - decrypting another chunk
+    this.decryptChunk();
+  }
+  else
+  {
+    //this.stopDownloading();
+    this.oWriter.close();
+  }
+};
+//  view image
 
 CCrypto.prototype.encryptChunk = async function (sUid, fOnChunkEncryptCallback, callBack) {
   await crypto.subtle.encrypt({name: 'AES-CBC', iv: this.iv}, this.oKey, this.oChunk)
@@ -268,29 +330,57 @@ CCrypto.prototype.uploadTask = function (sUid, oFileInfo, fCallback, bSkipComple
   return false
 }
 
-CCrypto.prototype.encryptParanoidKey = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, askOpenPgpKeyPassword) {
-  let sEncryptedKey = ""
+CCrypto.prototype.encryptParanoidKey = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, askOpenPgpKeyPassword, bPasswordBasedEncryption = false) {
+  let oEncryptedKey = ""
   if (oPrivateKey) {
-    const oPGPEncryptionResult = await OpenPgp.encryptData(
+    await OpenPgp.encryptData(
       sParanoidKey,
       currentAccountEmail,
       currentAccountEmail,
-      false,
+      bPasswordBasedEncryption,
       true,
       askOpenPgpKeyPassword
-    )
-    if (oPGPEncryptionResult.sEncryptedData) {
-      let data = oPGPEncryptionResult.sEncryptedData
-      let password = oPGPEncryptionResult.sPassword
-      sEncryptedKey = data
-    } else if (oPGPEncryptionResult.hasErrors()) {
-      notification.showError('Error load key')
-    }
+    ).then(oPGPEncryptionResult => {
+      if (oPGPEncryptionResult.sEncryptedData) {
+        let data = oPGPEncryptionResult.sEncryptedData
+        let password = oPGPEncryptionResult.sPassword
+        oEncryptedKey = {
+          data,
+          password
+        }
+      } else if (oPGPEncryptionResult.hasErrors()) {
+        notification.showError('Error load key')
+      }
+    })
   }
-
-  return sEncryptedKey
+  return oEncryptedKey
 }
-
+CCrypto.prototype.encryptParanoidKeyWithPassphrase = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, passPassphrase, bPasswordBasedEncryption = false) {
+  let oEncryptedKey = ""
+  if (oPrivateKey) {
+    await OpenPgp.encryptDataWithPassphrase(
+      sParanoidKey,
+      currentAccountEmail,
+      oPrivateKey,
+      currentAccountEmail,
+      bPasswordBasedEncryption,
+      true,
+      passPassphrase
+    ).then(oPGPEncryptionResult => {
+      if (oPGPEncryptionResult.sEncryptedData) {
+        let data = oPGPEncryptionResult.sEncryptedData
+        let password = oPGPEncryptionResult.sPassword
+        oEncryptedKey = {
+          data,
+          password
+        }
+      } else if (oPGPEncryptionResult.hasErrors()) {
+        notification.showError('Error load key')
+      }
+    })
+  }
+  return oEncryptedKey
+}
 /**
 * Checking Queue for files awaiting upload
 */
@@ -483,7 +573,14 @@ CWriter.prototype.close = function () {
 function CBlobViewer(sFileName) {
 	this.sName = sFileName
 	this.aBuffer = []
-	this.imgWindow = window.open("", "_blank", "height=auto, width=auto,toolbar=no,scrollbars=no,resizable=yes")
+  const BrowserWindow = electron.remote.BrowserWindow
+	this.imgWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      webSecurity: false
+    }
+  })
 }
 
 CBlobViewer.prototype = Object.create(CWriter.prototype)
@@ -494,13 +591,11 @@ CBlobViewer.prototype.close = function () {
       file = new Blob(this.aBuffer),
       link = window.URL.createObjectURL(file),
       img = null
-    this.imgWindow.document.write("<head><title>" + this.sName + '</title></head><body><img src="' + link + '" /></body>')
 
-    img = $(this.imgWindow.document.body).find('img')
-    img.on('load', function () {
-      //remove blob after showing image
-      window.URL.revokeObjectURL(link)
-    })
+    let sHtml = "<head><title>" + this.sName + '</title></head><body style="text-align: center;"><img style="height: 90vh; class="decrypt-img" src="' + link + '" /></body>'
+    this.imgWindow.loadURL(("data:text/html;charset=utf-8," + encodeURI(sHtml)))
+    this.imgWindow.removeMenu()
+    this.imgWindow.setTitle(this.sName)
   } catch (err) {
     notification.showError(err)
   }

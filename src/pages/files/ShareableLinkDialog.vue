@@ -1,41 +1,63 @@
 <template>
   <q-dialog v-model="confirm" persistent>
-    <q-card class="q-dialog-size" style="min-width: 300px">
-      <div v-if="!publicLink">
-        <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
-        <q-item>
-          <q-checkbox v-model="hasLinkPassword" :disable="isFolder" label="Protect link with password" />
-        </q-item>
-        <q-item class="q-mx-sm" v-if="hasLinkPassword">
-          <q-item-section class="q-ml-sm">
-            <q-item-label>Link lifetime</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-select style="width: 150px" outlined dense v-model="lifetime" :options="lifetimeOptions"/>
-          </q-item-section>
-        </q-item>
-        <div style="margin: 0 26px" v-if="isFolder">
-          <q-item-label caption >Shareable links for folders don't support password protection</q-item-label>
+    <q-card class="q-dialog-size" style="min-width: 350px">
+      <div v-if="(!isEncrypted || publicLink) && !showEncryptedLink">
+        <div v-if="!publicLink">
+          <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
+          <q-item>
+            <q-checkbox v-model="hasLinkPassword" :disable="isFolder" label="Protect link with password" />
+          </q-item>
+          <q-item class="q-mx-sm" v-if="hasLinkPassword">
+            <q-item-section class="q-ml-sm">
+              <q-item-label>Link lifetime</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-select style="width: 150px" outlined dense v-model="lifetime" :options="lifetimeOptions"/>
+            </q-item-section>
+          </q-item>
+          <div style="margin: 0 26px" v-if="isFolder">
+            <q-item-label caption >Shareable links for folders don't support password protection</q-item-label>
+          </div>
+        </div>
+        <div v-if="publicLink">
+          <q-item class="q-mt-md">
+            <q-item-section class="q-mr-md">
+              <q-item-label>Protected shareable link</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input outlined dense v-model="publicLink"  style="width: 300px"/>
+            </q-item-section>
+          </q-item>
+          <q-item class="q-mt-md" v-if="passwordForSharing">
+            <q-item-section class="q-mr-md">
+              <q-item-label>Password</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-input outlined dense v-model="passwordForSharing"  style="width: 300px"/>
+            </q-item-section>
+          </q-item>
+          <q-item class="q-mt-md">
+            <q-item-section>
+              <q-item-label>Recipient</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-select
+                ref="whoCanSee"
+                dense
+                outlined
+                style="width: 300px"
+                v-model="recipient"
+                :options="recipientOptions"
+                stack-label
+                @filter="getContactsOptions"
+              />
+            </q-item-section>
+          </q-item>
         </div>
       </div>
-      <div v-if="publicLink">
-        <q-item class="q-mt-md">
-          <q-item-section class="q-mr-md">
-            <q-item-label>Protected shareable link</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense v-model="publicLink"  style="width: 300px"/>
-          </q-item-section>
-        </q-item>
-        <q-item class="q-mt-md" v-if="passwordForSharing">
-          <q-item-section class="q-mr-md">
-            <q-item-label>Password</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-input outlined dense v-model="passwordForSharing"  style="width: 300px"/>
-          </q-item-section>
-        </q-item>
-        <q-item class="q-mt-md">
+      <div v-else class="q-mr-sm">
+        <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
+        <q-item class="q-mt-md q-ml-sm">
           <q-item-section>
             <q-item-label>Recipient</q-item-label>
           </q-item-section>
@@ -44,7 +66,7 @@
               ref="whoCanSee"
               dense
               outlined
-              style="width: 300px"
+              style="min-width: 300px"
               v-model="recipient"
               :options="recipientOptions"
               stack-label
@@ -52,18 +74,77 @@
             />
           </q-item-section>
         </q-item>
+        <div v-if="showEncryptedLink">
+          <q-item dense class="q-ml-sm">
+            <q-item-label caption>Encrypted file shareable link</q-item-label>
+          </q-item>
+          <q-item class="q-ml-sm">
+            <q-item-label>{{ publicLink }}</q-item-label>
+          </q-item>
+          <q-item dense class="q-ml-sm" v-if="!passwordForSharing">
+            <q-item-label caption>The file is encrypted using vadim's PGP public key. You can send the link via encrypted email.</q-item-label>
+          </q-item>
+          <div v-if="passwordForSharing">
+            <q-item dense class="q-ml-sm">
+              <q-item-label caption>Encrypted file password</q-item-label>
+            </q-item>
+            <q-item class="q-ml-sm">
+              <q-item-label>{{ passwordForSharing }}</q-item-label>
+            </q-item>
+            <q-item dense class="q-ml-sm">
+              <q-item-label caption>If you don't send email now, store the password somewhere. You will not be able to recover it otherwise</q-item-label>
+            </q-item>
+          </div>
+        </div>
+        <div v-else>
+          <q-item class="q-ml-sm">
+            <q-item-label caption>{{ recipientLabel }}</q-item-label>
+          </q-item>
+          <q-item class="q-ml-sm">
+            <q-item-section>Encryption type</q-item-section>
+            <div class="q-gutter-sm">
+              <q-radio :disable="!hasPgpKey" v-model="encryptionType" val="key" label="Key-based"/>
+              <q-radio v-model="encryptionType" val="password" label="Password-based"/>
+            </div>
+          </q-item>
+          <q-item dense class="q-ml-sm">
+            <q-item-label caption>{{ labelEncryptionType }}</q-item-label>
+          </q-item>
+          <div style="margin-left: 24px">
+            <q-checkbox :disable="!hasPgpKey || encryptionType === 'password'" dense v-model="digitalSignature" label="Add digital signature" />
+          </div>
+          <q-item dense class="q-ml-sm q-mt-sm">
+            <q-item-section>
+              <q-item-label caption>{{ availabilityLabel }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </div>
       </div>
       <q-card-actions align="right">
-        <q-btn :disable="creating" v-if="!publicLink" flat :ripple="false" color="primary" @click="createPublicLink"
-               :label="creating ? 'Creating shareable link' : 'Create shareable link'" />
-        <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="showHistory"
-               label="Show history" />
-        <q-btn v-if="publicLink" flat :disable="!recipient || removing" :ripple="false" color="primary"
-               label="Send via email" @click="sendViaEmail"/>
-        <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
-               :label="removing ? 'Removing link' : 'Remove link'" />
-        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
-               label="Cancel" />
+        <div v-if="isEncrypted && !publicLink && !showEncryptedLink">
+          <q-btn :disable="removing || !recipient" flat :ripple="false" color="primary" @click="askOpenPgpKeyPasswordForEncrypt"
+                 :label="removing ? 'Removing link' : 'Encrypt'" />
+          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+                 label="Cancel" />
+        </div>
+        <div v-else-if="showEncryptedLink">
+          <q-btn flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
+                 label="Send via encrypted email" />
+          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+                 label="Cancel" />
+        </div>
+        <div v-else>
+          <q-btn :disable="creating" v-if="!publicLink" flat :ripple="false" color="primary" @click="createPublicLink"
+                 :label="creating ? 'Creating shareable link' : 'Create shareable link'" />
+          <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="showHistory"
+                 label="Show history" />
+          <q-btn v-if="publicLink" flat :disable="!recipient || removing" :ripple="false" color="primary"
+                 label="Send via email" @click="sendViaEmail"/>
+          <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
+                 :label="removing ? 'Removing link' : 'Remove link'" />
+          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+                 label="Cancel" />
+        </div>
       </q-card-actions>
     </q-card>
     <show-history-dialog ref="showHistoryDialog"/>
@@ -77,6 +158,9 @@ import _ from 'lodash'
 import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
 import ShowHistoryDialog from './ShowHistoryDialog'
+import CCrypto from '../../modules/crypto/CCrypto'
+
+
 export default {
   name: 'ShareableLinkDialog',
   data () {
@@ -90,6 +174,9 @@ export default {
       recipientOptions: [],
       publicLink: '',
       passwordForSharing: '',
+      showLinkData: false,
+      showEncryptedLink: false,
+      passphrase: null,
       lifetime: {
         value: 0,
         label: 'Eternal'
@@ -111,7 +198,9 @@ export default {
           value: 168,
           label: '7 days'
         },
-      ]
+      ],
+      encryptionType: 'password',
+      digitalSignature: false
     }
   },
   components: {
@@ -120,9 +209,126 @@ export default {
   computed: {
     isFolder () {
       return this.file?.IsFolder
+    },
+    isEncrypted () {
+      if (this.file) {
+        if (this.file.ExtendedProps?.InitializationVector && this.file.ExtendedProps?.ParanoidKey) {
+          return true
+        }
+      }
+      return false
+    },
+    hasPgpKey () {
+      if (this.recipient) {
+        return this.recipient.hasPgpKey
+      }
+      return false
+    },
+    recipientLabel () {
+      if (this.recipient) {
+        if (this.recipient.hasPgpKey) {
+          return 'Selected recipient has PGP public key. The file can be encrypted using this key.'
+        } else {
+          return 'Selected recipient has no PGP public key. The Key-based encryption is not allowed.'
+        }
+      } else {
+        return 'Without selected recipient, only Password-based encryption is allowed.'
+      }
+    },
+    labelEncryptionType () {
+      if (this.encryptionType === 'password') {
+        return 'The Password-based encryption will be used.'
+      }
+      if (this.encryptionType === 'key') {
+        return 'The Key-based encryption will be used.'
+      }
+      return 'The Password-based encryption will be used.'
+    },
+    availabilityLabel () {
+      if (this.encryptionType === 'password') {
+        return 'Will not sign the data. Requires key-based encryption.'
+      }
+      if (this.encryptionType === 'key') {
+        return this.digitalSignature ? 'Will sign the data with your private key.' : 'Will not sign the data.'
+      }
+      return ''
+    }
+  },
+  watch: {
+    encryptionType(val) {
+      if (val === 'password') {
+        this.digitalSignature = false
+      }
+      if (val === 'key') {
+        this.digitalSignature = true
+      }
     }
   },
   methods: {
+    async sendViaEncryptedEmail () {
+      const linkText = 'Hi, you can get the encrypted file here: ' + '<a>' + this.publicLink + '</a>'
+      let passText = ''
+      if (this.passwordForSharing) {
+         passText = '<br>File encrypted with password: ' + this.passwordForSharing
+      }
+      if (this.encryptionType === 'key' && this.digitalSignature) {
+        this.openCompose({
+          aToContacts: [this.recipient],
+          sText: linkText + passText,
+          sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
+          needToSignEncrypt: true,
+          sPassphrase: this.passphrase
+        })
+      } else {
+        this.openCompose({
+          aToContacts: [this.recipient],
+          sText: linkText + passText,
+          sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
+          needToEncrypt: true,
+        })
+      }
+    },
+    askOpenPgpKeyPasswordForEncrypt () {
+      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
+    },
+    encryptLink (passPassphrase) {
+      this.passphrase = passPassphrase
+      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+      const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+      const passwordBasedEncryption = this.encryptionType === 'password'
+      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, passwordBasedEncryption).then( encryptKey => {
+        this.passwordForSharing = encryptKey.password
+        const parameters = {
+          type: this.$store.getters['files/getCurrentStorage'].Type,
+          path: this.$store.getters['files/getCurrentPath'],
+          name: this.file.Name,
+          paranoidKeyPublic: encryptKey.data,
+          callback: this.createEncryptPublicLink
+        }
+        this.$store.dispatch('files/updateExtendedProps', parameters)
+      })
+    },
+    createEncryptPublicLink (type, path, name) {
+      const parameters = {
+        type,
+        path,
+        name,
+        size: this.file.Size,
+        isFolder: this.file.IsFolder,
+        recipientEmail: this.recipient.email,
+        pgpEncryptionMode: this.encryptionType,
+        lifetimeHrs: 0
+      }
+      this.$store.dispatch('files/createPublicLink', parameters).then( res => {
+        if (res) {
+         const apiHost = this.$store.getters['main/getApiHost']
+          this.showEncryptedLink = true
+          this.publicLink = apiHost + res.link
+        }
+      })
+    },
     showHistory () {
       const title = 'Shareable link activity history'
       this.$refs.showHistoryDialog.openDialog(this.file, title)
@@ -132,6 +338,9 @@ export default {
       this.confirm = true
     },
     populate (file) {
+      this.encryptionType = 'password'
+      this.digitalSignature = false
+      this.showEncryptedLink = false
       this.removing = false
       this.creating = false
       this.recipient = null

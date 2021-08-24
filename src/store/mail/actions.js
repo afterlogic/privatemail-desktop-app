@@ -105,7 +105,6 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       if (oResult['OpenPgpWebclient']) {
         openpgpSettings.parse(oResult['OpenPgpWebclient'])
       }
-      console.log(oResult, 'oResult')
       if (oResult['CoreParanoidEncryptionWebclientPlugin']) {
         encryptionSettings.parse(oResult['CoreParanoidEncryptionWebclientPlugin'])
       }

@@ -938,6 +938,11 @@ export default {
         // Continue opening compose. Dialog is closed.
         this.continueOpeningCompose(oComposeParameters)
       }
+      if (oComposeParameters?.needToSignEncrypt && oComposeParameters?.sPassphrase) {
+        this.signAndEncrypt(oComposeParameters.sPassphrase)
+      } else if (oComposeParameters?.needToEncrypt) {
+        this.encrypt()
+      }
     },
     discardPreviousDraft () {
       this.continueOpeningCompose(this.composeParameters)

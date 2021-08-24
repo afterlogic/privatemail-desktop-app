@@ -26,6 +26,34 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
 export function setCurrentStorage ({ state, commit, getters, dispatch }, { currentStorage }) {
   store.commit('files/setCurrentStorage', currentStorage)
 }
+export function updateExtendedProps ({ state, commit, getters, dispatch }, { type, path, name, paranoidKeyPublic, callback } ) {
+  const parameters = {
+    Type: type,
+    Path: path,
+    Name: name,
+    ExtendedProps: {
+      ParanoidKeyPublic: paranoidKeyPublic
+    }
+  }
+  webApi.sendRequest({
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    sModule: 'Files',
+    sMethod: 'UpdateExtendedProps',
+    oParameters: parameters,
+    fCallback: (res, error) => {
+      if (res) {
+        dispatch('getFiles', {
+          currentStorage: type,
+          path,
+        })
+        callback(type, path, name)
+      } else {
+        notification.showError(error)
+      }
+    },
+  })
+}
 
 export function getFiles ({ state, commit, getters, dispatch }, { currentStorage, path, pattern = ''}) {
   dispatch('changeCurrentFile', { currentFile: null })
@@ -259,11 +287,11 @@ export function createPublicLink ({ state, commit, getters, dispatch }, paramete
     })
   })
 }
-export function removeLink ({ state, commit, getters, dispatch }, { type, personal, name }) {
+export function removeLink ({ state, commit, getters, dispatch }, { type, path, name }) {
   return new Promise((resolve) => {
     const oParameters = {
       Type: type,
-      Personal: personal,
+      Path: path,
       Name: name
     }
     webApi.sendRequest({

@@ -54,7 +54,8 @@
 
 <script>
 import AskOpenPgpKeyPassword from '../AskOpenPgpKeyPassword'
-import OpenPgp from "../../modules/openpgp/OpenPgp";
+import OpenPgp from '../../modules/openpgp/OpenPgp'
+import notification from '../../utils/notification'
 
 export default {
   name: 'EncryptedFileInformationDialog',
@@ -93,15 +94,18 @@ export default {
     async getAesKey () {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(this.file.Owner)
       let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
       if (privateKey) {
        const decryptData = await OpenPgp.decryptAndVerifyText(this.file?.ExtendedProps?.ParanoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
-        this.aesKey = decryptData.sDecryptedData
-        this.showAes = true
-
+        if (decryptData?.sDecryptedData) {
+          this.aesKey = decryptData.sDecryptedData
+          this.showAes = true
+        }
+        if (decryptData?.sError) {
+          notification.showError(decryptData.sError)
+        }
       }
-      //this.$refs.askOpenPgpKeyPassword.askOpenPgpKeyPassword(this.file.Owner)
     }
   }
 }

@@ -9,7 +9,6 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
   })
-
   ipcRenderer.once('files-get-storages', (event, {storageList, oError}) => {
     if (storageList) {
       commit('setStorageList', storageList)
@@ -22,19 +21,17 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
     }
   })
 }
-
 export function setCurrentStorage ({ state, commit, getters, dispatch }, { currentStorage }) {
   store.commit('files/setCurrentStorage', currentStorage)
 }
-export function updateExtendedProps ({ state, commit, getters, dispatch }, { type, path, name, paranoidKeyPublic, callback } ) {
+export function updateExtendedProps ({ state, commit, getters, dispatch }, { type, path, name, paranoidKey, callback } ) {
   const parameters = {
     Type: type,
     Path: path,
     Name: name,
-    ExtendedProps: {
-      ParanoidKeyPublic: paranoidKeyPublic
-    }
+    ExtendedProps: {}
   }
+  parameters.ExtendedProps[paranoidKey.key] = paranoidKey.value
   webApi.sendRequest({
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],

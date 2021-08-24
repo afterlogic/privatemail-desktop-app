@@ -153,7 +153,7 @@
 
 <script>
 import OpenPgp from '../../modules/openpgp/OpenPgp'
-import {ipcRenderer} from 'electron'
+import { ipcRenderer } from 'electron'
 import _ from 'lodash'
 import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
@@ -304,9 +304,13 @@ export default {
           type: this.$store.getters['files/getCurrentStorage'].Type,
           path: this.$store.getters['files/getCurrentPath'],
           name: this.file.Name,
-          paranoidKeyPublic: encryptKey.data,
+          paranoidKey: {
+            value: encryptKey.data,
+            key: 'ParanoidKeyPublic'
+          },
           callback: this.createEncryptPublicLink
         }
+        console.log(parameters, 'parameters')
         this.$store.dispatch('files/updateExtendedProps', parameters)
       })
     },

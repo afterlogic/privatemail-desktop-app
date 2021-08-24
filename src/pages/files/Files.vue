@@ -39,15 +39,15 @@
                   <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
                       <link-icon style="fill: white !important;" :width="20" :height="20"/>
                   </div>
-                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isEncrypted(file)" @click="openEncryptedFileDialog(file)">
+                  <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="isEncrypted(file)" @click="openEncryptedFileDialog(file)">
                     <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
                   </div>
                 </div>
                 <div class="flex q-mt-sm q-mx-sm" style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
                   <div class="q-mt-xs">
                     <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary" @click="viewEncryptedFile(file)">View</span>
-                    <span v-else-if="hasViewAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
-                    <span v-if="hasOpenAction(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
+                    <span v-else-if="hasViewAction(file) && !isEncrypted(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
+                    <span v-if="hasOpenAction(file) && !isEncrypted(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
                   </div>
                   <div class="q-mt-xs">
                     <span
@@ -363,6 +363,11 @@ export default {
   height: 20px;
   border-radius: 5px;
   background: #64aedc;
+}
+.file-icon__encrypt {
+  height: 20px;
+  border-radius: 5px;
+  background: #555;
 }
 .tooltip {
   position: absolute;

@@ -61,6 +61,8 @@ import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
 import _ from 'lodash'
 import ShowHistoryDialog from './ShowHistoryDialog'
+import OpenPgp from '../../modules/openpgp/OpenPgp'
+import CCrypto from '../../modules/crypto/CCrypto'
 
 export default {
   name: 'ShareWithTeammatesDialog',
@@ -183,6 +185,34 @@ export default {
     },
     updateShare () {
       this.saving = true
+      if (this.file.ExtendedProps.ParanoidKey) {
+        const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+        this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+      } else {
+        this.test()
+      }
+    },
+    updateExtendedProps (passPassphrase) {
+      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+      const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+      const passwordBasedEncryption = this.encryptionType === 'password'
+      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false).then( encryptKey => {
+        const parameters = {
+          type: this.$store.getters['files/getCurrentStorage'].Type,
+          path: this.$store.getters['files/getCurrentPath'],
+          name: this.file.Name,
+          paranoidKey: {
+            value: encryptKey.data,
+            key: 'ParanoidKeyShared'
+          },
+          callback: this.test
+        }
+        console.log(parameters, 'parameters')
+        this.$store.dispatch('files/updateExtendedProps', parameters)
+      })
+    },
+    test () {
       const shares = []
       this.whoCanSee.map( contact => {
         shares.push({

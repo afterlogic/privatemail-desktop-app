@@ -120,6 +120,21 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="confirmWarningDialog" persistent>
+      <q-card class="q-dialog-size" style="min-width: 300px">
+        <q-item class="q-mt-md">
+          <q-item-section>
+            <q-item-label>Some of the files you send are encrypted. To decrypt them, recipient will need Initialization Vector (IV) and AES key.</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-card-actions align="right">
+          <q-btn flat class="q-px-sm" :ripple="false" color="primary"
+                 label="Ok" @click="saveFilesAsTempFiles(filesForSending)"/>
+          <q-btn flat class="q-px-sm" :ripple="false" color="primary" v-close-popup
+                 label="Cancel" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
     <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles" />
     <rename-item-dialog ref="renameItemDialog" @renameItem="renameItem" />
     <share-with-teammates-dialog ref="shareWithTeammatesDialog"></share-with-teammates-dialog>
@@ -148,7 +163,9 @@ export default {
       createFolderDialog: false,
       confirmCopyDialog: false,
       folderName: '',
-      titleAfterCopying: ''
+      titleAfterCopying: '',
+      confirmWarningDialog: false,
+      filesForSending: null
     }
   },
   computed: {
@@ -192,7 +209,11 @@ export default {
       this.$emit('downloadFile')
     },
     sendFile () {
+      let hasEncryptFile = false
       let files = this.checkedItems.map( item => {
+        if (item?.ExtendedProps?.ParanoidKey) {
+          hasEncryptFile = true
+        }
         return {
           Storage: item.Type,
           Path: item.Path,
@@ -201,6 +222,15 @@ export default {
           IsEncrypted: false
         }
       })
+      this.filesForSending = files
+      if (hasEncryptFile) {
+        this.confirmWarningDialog = true
+      } else {
+        this.saveFilesAsTempFiles(files)
+      }
+    },
+    saveFilesAsTempFiles (files) {
+      this.confirmWarningDialog = false
       this.$store.dispatch('files/saveFilesAsTempFiles', {
         files
       }).then(res => {

@@ -1,14 +1,12 @@
 import HexUtils from 'src/utils/Hex'
 import coreParanoidSettings from 'src/modules/core-Paranoid-encryption/settings'
-import TextUtils from 'src/utils/text'
 import OpenPgp from 'src/modules/openpgp/OpenPgp'
 import _ from 'lodash'
 import store from 'src/store'
 import FileSaver from 'src/utils/FileSaver'
 import types from 'src/utils/types'
-import notification from "../../utils/notification"
-import {error} from "electron-log"
-import electron from "electron";
+import notification from '../../utils/notification'
+import electron from 'electron'
 
 /**
  * @constructor
@@ -137,11 +135,11 @@ CCrypto.prototype.readChunk = async function (sUid, fOnChunkEncryptCallback, cal
 
 function CViewImage(oFile, iv, iChunkSize, sParanoidEncryptedKey = '')
 {
-  this.oWriter = null;
-  this.init(oFile, iv, iChunkSize, /*fProcessBlobErrorCallback*/null, sParanoidEncryptedKey);
+  this.oWriter = null
+  this.init(oFile, iv, iChunkSize, /*fProcessBlobErrorCallback*/null, sParanoidEncryptedKey)
 }
-CViewImage.prototype = Object.create(CDownloadFile.prototype);
-CViewImage.prototype.constructor = CViewImage;
+CViewImage.prototype = Object.create(CDownloadFile.prototype)
+CViewImage.prototype.constructor = CViewImage
 
 
 CCrypto.prototype.viewEncryptedImage = async function (oFile, iv, sParanoidEncryptedKey = '', aesKey) {
@@ -153,18 +151,18 @@ CCrypto.prototype.viewEncryptedImage = async function (oFile, iv, sParanoidEncry
 
 CViewImage.prototype.writeChunk = function (oDecryptedUint8Array)
 {
-  this.oWriter = this.oWriter === null ? new CBlobViewer(this.sFileName) : this.oWriter;
-  this.oWriter.write(oDecryptedUint8Array); //write decrypted chunk
+  this.oWriter = this.oWriter === null ? new CBlobViewer(this.sFileName) : this.oWriter
+  this.oWriter.write(oDecryptedUint8Array) //write decrypted chunk
   if (this.iCurrChunk < this.iChunkNumber)
   { //if it was not last chunk - decrypting another chunk
-    this.decryptChunk();
+    this.decryptChunk()
   }
   else
   {
-    //this.stopDownloading();
-    this.oWriter.close();
+    //this.stopDownloading()
+    this.oWriter.close()
   }
-};
+}
 //  view image
 
 CCrypto.prototype.encryptChunk = async function (sUid, fOnChunkEncryptCallback, callBack) {
@@ -173,7 +171,7 @@ CCrypto.prototype.encryptChunk = async function (sUid, fOnChunkEncryptCallback, 
     //delete padding for all chunks except last one
     oEncryptedContent = (this.iChunkNumber > 1 && this.iCurrChunk !== this.iChunkNumber) ? oEncryptedContent.slice(0, oEncryptedContent.byteLength - 16) : oEncryptedContent
     var
-      oEncryptedFile = new Blob([oEncryptedContent], {type: "text/plain", lastModified: new Date()}),
+      oEncryptedFile = new Blob([oEncryptedContent], {type: 'text/plain', lastModified: new Date()}),
       //fProcessNextChunkCallback runs after previous chunk uploading
       fProcessNextChunkCallback = _.bind(function (sUid, fOnChunkEncryptCallback) {
         if (this.iCurrChunk < this.iChunkNumber) {// if it was not last chunk - read another chunk
@@ -231,11 +229,11 @@ CCrypto.prototype.generateKey = async function () {
   try {
     oKey = await window.crypto.subtle.generateKey(
       {
-        name: "AES-CBC",
+        name: 'AES-CBC',
         length: 256
       },
       true,
-      ["encrypt", "decrypt"]
+      ['encrypt', 'decrypt']
     )
   } catch (error) {
     notification.showError('error generate key: ' + error)
@@ -247,7 +245,7 @@ CCrypto.prototype.convertKeyToString = async function (oKey) {
   if (oKey) {
     try {
       let aKeyData = await window.crypto.subtle.exportKey(
-        "raw",
+        'raw',
         oKey
       )
       sKeyData = HexUtils.Array2HexString(new Uint8Array(aKeyData))
@@ -294,7 +292,7 @@ CCrypto.prototype.uploadTask = function (sUid, oFileInfo, fCallback, bSkipComple
             'FirstChunk': oFileInfo?.Hidden?.ExtendedProps?.FirstChunk,
           }
         }),
-        TenantName: "Default"
+        TenantName: 'Default'
       }
 
     oXhr.open('POST', sAction, true)
@@ -331,7 +329,7 @@ CCrypto.prototype.uploadTask = function (sUid, oFileInfo, fCallback, bSkipComple
 }
 
 CCrypto.prototype.encryptParanoidKey = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, askOpenPgpKeyPassword, bPasswordBasedEncryption = false) {
-  let oEncryptedKey = ""
+  let oEncryptedKey = ''
   if (oPrivateKey) {
     await OpenPgp.encryptData(
       sParanoidKey,
@@ -356,7 +354,7 @@ CCrypto.prototype.encryptParanoidKey = async function (sParanoidKey, aPublicKeys
   return oEncryptedKey
 }
 CCrypto.prototype.encryptParanoidKeyWithPassphrase = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, passPassphrase, bPasswordBasedEncryption = false) {
-  let oEncryptedKey = ""
+  let oEncryptedKey = ''
   if (oPrivateKey) {
     await OpenPgp.encryptDataWithPassphrase(
       sParanoidKey,
@@ -449,13 +447,13 @@ CDownloadFile.prototype.getKeyFromString = async function (sParanoidKey) {
 
 CDownloadFile.prototype.generateKeyFromArray = function (aKey) {
   return window.crypto.subtle.importKey(
-    "raw",
+    'raw',
     aKey,
     {
-      name: "AES-CBC"
+      name: 'AES-CBC'
     },
     true,
-    ["encrypt", "decrypt"]
+    ['encrypt', 'decrypt']
   )
 }
 
@@ -471,7 +469,7 @@ CDownloadFile.prototype.writeChunk = function (oDecryptedUint8Array) {
 CDownloadFile.prototype.decryptChunk = function () {
   var oReq = new XMLHttpRequest()
   let sAuthToken = store.getters['user/getAuthToken']
-  oReq.open("GET", this.getChunkLink(), true)
+  oReq.open('GET', this.getChunkLink(), true)
   oReq.setRequestHeader('Authorization','Bearer ' + sAuthToken)
 
   oReq.responseType = 'arraybuffer'
@@ -592,7 +590,7 @@ CBlobViewer.prototype.close = function () {
       link = window.URL.createObjectURL(file),
       img = null
 
-    let sHtml = "<head><title>" + this.sName + '</title></head><body style="text-align: center;"><img style="height: 90vh; class="decrypt-img" src="' + link + '" /></body>'
+    let sHtml = "<head><title>" + this.sName + '</title></head><body style="text-align: center"><img style="height: 90vh" class="decrypt-img" src="' + link + '" /></body>'
     this.imgWindow.loadURL(("data:text/html;charset=utf-8," + encodeURI(sHtml)))
     this.imgWindow.removeMenu()
     this.imgWindow.setTitle(this.sName)

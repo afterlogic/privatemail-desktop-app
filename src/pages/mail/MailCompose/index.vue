@@ -1364,7 +1364,7 @@ export default {
       const { sEncryptedData, sPassword, sError, sPassphrase } = await OpenPgp.encryptData(
         this.getPlainEditorText(),
         sUserEmail,
-        this.selfDestructingRecipient.email,
+        [this.selfDestructingRecipient.email],
         this.selfDestructingEncryptType === 'password',
         this.selfDestructingAddSignature,
         this.askOpenPgpKeyPassword,

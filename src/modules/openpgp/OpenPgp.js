@@ -603,13 +603,13 @@ COpenPgp.prototype.generatePassword = function () {
 /**
  * @param {Mixed} mData
  * @param {String} sUserEmail
- * @param {String} sPrincipalsEmail
+ * @param {Array} aPrincipalsEmail
  * @param {Boolean} bPasswordBasedEncryption
  * @param {Boolean} bSign
  * @param {Function} fAskForKeyPassword
  * @return {Object}
  */
-COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsEmail, bPasswordBasedEncryption, bSign, fAskForKeyPassword) {
+COpenPgp.prototype.encryptData = async function (mData, sUserEmail, aPrincipalsEmail, bPasswordBasedEncryption, bSign, fAskForKeyPassword) {
   return new Promise(async (resolve, reject) => {
     if (!bPasswordBasedEncryption && bSign) {
       let oPrivateUserKey = this.getPrivateKeyByEmail(sUserEmail)
@@ -617,12 +617,12 @@ COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsE
         let sPassphrase = oPrivateUserKey.getPassphrase()
         if (sPassphrase === null) {
          await fAskForKeyPassword(oPrivateUserKey.sEmail, async (sPassphrase) => {
-            let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
+            let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, aPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
             oResult.sPassphrase = sPassphrase
             resolve(oResult)
           })
         } else {
-          let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
+          let oResult = await this.encryptDataWithPassphrase(mData, sUserEmail, oPrivateUserKey, aPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase)
           oResult.sPassphrase = sPassphrase
           resolve(oResult)
         }
@@ -630,7 +630,7 @@ COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsE
         return { sError: 'No private key found for ' + sUserEmail + ' user.' }
       }
     } else {
-      resolve(this.encryptDataWithPassphrase(mData, sUserEmail, null, sPrincipalsEmail, bPasswordBasedEncryption, bSign, null))
+      resolve(this.encryptDataWithPassphrase(mData, sUserEmail, null, aPrincipalsEmail, bPasswordBasedEncryption, bSign, null))
     }
   })
 }
@@ -638,7 +638,7 @@ COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsE
 /**
  * @param {Mixed} mData
  * @param {String} sUserEmail
- * @param {String} sPrincipalsEmail
+ * @param {Array} aPrincipalsEmails
  * @param {Boolean} bPasswordBasedEncryption
  * @param {Boolean} bSign
  * @param {String} sPassphrase

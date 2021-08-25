@@ -330,7 +330,7 @@ CCrypto.prototype.encryptParanoidKey = async function (sParanoidKey, aPublicKeys
     await OpenPgp.encryptData(
       sParanoidKey,
       currentAccountEmail,
-      currentAccountEmail,
+      [currentAccountEmail],
       bPasswordBasedEncryption,
       true,
       askOpenPgpKeyPassword

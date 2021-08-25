@@ -63,7 +63,8 @@
           :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-          Paste
+          Paste:<br>
+             <span v-for="file in copiedFiles.files" :key="file.Name">{{file.Name}}<br></span>
         </q-tooltip>
       </span>
       <span>
@@ -149,6 +150,7 @@ import DeleteItemsDialog from './DeleteItemsDialog'
 import RenameItemDialog from './RenameItemDialog'
 import ShareWithTeammatesDialog from './ShareWithTeammatesDialog'
 import ShareableLinkDialog from './ShareableLinkDialog'
+import text from "../../utils/text";
 
 export default {
   name: 'Toolbar',
@@ -200,6 +202,9 @@ export default {
     },
   },
   methods: {
+    getFilename (file) {
+     return file.Name
+    },
     cancelDialog () {
       this.createFolderDialog = false
     },

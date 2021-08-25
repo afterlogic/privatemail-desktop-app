@@ -71,25 +71,21 @@ CCrypto.prototype.getAesKey = async function (file, passphrase) {
   let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
   let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
   if (privateKey) {
-    const decryptData = await OpenPgp.decryptAndVerifyTextWithPassphrase(file?.ExtendedProps?.ParanoidKey, privateKey, passphrase, aPublicKeys)
-    return decryptData.sDecryptedData
+    return await OpenPgp.decryptAndVerifyTextWithPassphrase(file?.ExtendedProps?.ParanoidKey, privateKey, passphrase, aPublicKeys)
   }
 }
-CCrypto.prototype.getEncryptedKey = async function ( file, privateKey, publicKey, currentAccountEmail,passphrase, cancelCallback, bPasswordBasedEncryption = false) {
+CCrypto.prototype.getEncryptedKey = async function ( file, privateKey, publicKey, currentAccountEmail,passphrase, cancelCallback, bPasswordBasedEncryption = false, aPrincipalsEmails = []) {
   const sKeyData = await this.getAesKey(file, passphrase)
-  if (privateKey && sKeyData) {
+  if (sKeyData?.sError) {
+    return sKeyData
+  }
+  if (privateKey && sKeyData.sDecryptedData) {
     if (publicKey) {
-      const encryptedKey = await this.encryptParanoidKeyWithPassphrase(sKeyData, [publicKey], '', privateKey, currentAccountEmail, passphrase, bPasswordBasedEncryption)
+      const encryptedKey = await this.encryptParanoidKeyWithPassphrase(sKeyData.sDecryptedData, [publicKey], '', privateKey, currentAccountEmail, passphrase, bPasswordBasedEncryption, aPrincipalsEmails)
       if (encryptedKey) {
        return encryptedKey
-      } else if (_.isFunction(cancelCallback)) {
-        cancelCallback()
       }
-    } else if (_.isFunction(cancelCallback)) {
-      cancelCallback()
     }
-  } else if (_.isFunction(cancelCallback)) {
-    cancelCallback()
   }
 }
 
@@ -353,14 +349,14 @@ CCrypto.prototype.encryptParanoidKey = async function (sParanoidKey, aPublicKeys
   }
   return oEncryptedKey
 }
-CCrypto.prototype.encryptParanoidKeyWithPassphrase = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, passPassphrase, bPasswordBasedEncryption = false) {
+CCrypto.prototype.encryptParanoidKeyWithPassphrase = async function (sParanoidKey, aPublicKeys, sPassword = '', oPrivateKey, currentAccountEmail, passPassphrase, bPasswordBasedEncryption = false, aPrincipalsEmails) {
   let oEncryptedKey = ''
   if (oPrivateKey) {
     await OpenPgp.encryptDataWithPassphrase(
       sParanoidKey,
       currentAccountEmail,
       oPrivateKey,
-      currentAccountEmail,
+      aPrincipalsEmails,
       bPasswordBasedEncryption,
       true,
       passPassphrase

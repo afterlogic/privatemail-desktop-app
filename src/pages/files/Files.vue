@@ -236,7 +236,13 @@ export default {
       let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
       let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
       if (privateKey) {
-        const decryptData = await OpenPgp.decryptAndVerifyText(file?.ExtendedProps?.ParanoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
+        let paranoidKey = ''
+        if (this.$store.getters['files/getCurrentStorage'].Type === 'shared') {
+          paranoidKey = file?.ExtendedProps?.ParanoidKeyShared
+        } else {
+          paranoidKey = file?.ExtendedProps?.ParanoidKey
+        }
+        const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
         return decryptData.sDecryptedData
       }
     },

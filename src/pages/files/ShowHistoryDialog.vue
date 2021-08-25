@@ -18,6 +18,11 @@
                 <q-item-label><b>User</b></q-item-label>
               </q-item-section>
             </q-item>
+            <q-item v-if="!historyList.length" clickable style="border-bottom: 1px solid #d5d9dc">
+              <q-item-section>
+                <q-item-label><div style="text-align: center">There is no history yet</div></q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item clickable v-for="item in historyList" :key="item.Timestamp" style="border-bottom: 1px solid #d5d9dc" dense>
               <q-item-section>
                 <q-item-label>{{ getDate(item.Timestamp) }}</q-item-label>

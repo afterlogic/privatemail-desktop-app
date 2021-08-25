@@ -644,7 +644,7 @@ COpenPgp.prototype.encryptData = async function (mData, sUserEmail, sPrincipalsE
  * @param {String} sPassphrase
  * @return {Object}
  */
-COpenPgp.prototype.encryptDataWithPassphrase = async function (mData, sUserEmail, oPrivateUserKey, sPrincipalsEmail, bPasswordBasedEncryption, bSign, sPassphrase) {
+COpenPgp.prototype.encryptDataWithPassphrase = async function (mData, sUserEmail, oPrivateUserKey, aPrincipalsEmails, bPasswordBasedEncryption, bSign, sPassphrase) {
   let
     sPassword = '',
     bIsBlob = mData instanceof Blob,
@@ -665,11 +665,15 @@ COpenPgp.prototype.encryptDataWithPassphrase = async function (mData, sUserEmail
     oOptions.passwords = [sPassword]
   } else {
     let aPublicKeys = []
-    let oPrincipalPublicKey = this.getPublicKeyByEmail(sPrincipalsEmail)
-    if (oPrincipalPublicKey) {
-      aPublicKeys.push(oPrincipalPublicKey)
-    } else {
-      return { sError: 'No public key found for ' + sPrincipalsEmail + ' user.' }
+    if (aPrincipalsEmails.length) {
+      aPrincipalsEmails.map( email => {
+        let oPrincipalPublicKey = this.getPublicKeyByEmail(email)
+        if (oPrincipalPublicKey) {
+          aPublicKeys.push(oPrincipalPublicKey)
+        } else {
+          return { sError: 'No public key found for ' + email + ' user.' }
+        }
+      })
     }
     let oUserPublicKey = this.getPublicKeyByEmail(sUserEmail)
     if (oUserPublicKey) {

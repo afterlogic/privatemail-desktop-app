@@ -94,10 +94,16 @@ export default {
     async getAesKey () {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(this.file.Owner)
+      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
       let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
       if (privateKey) {
-       const decryptData = await OpenPgp.decryptAndVerifyText(this.file?.ExtendedProps?.ParanoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
+       let paranoidKey = ''
+        if (this.$store.getters['files/getCurrentStorage'].Type === 'shared') {
+          paranoidKey = this.file?.ExtendedProps?.ParanoidKeyShared
+        } else {
+          paranoidKey = this.file?.ExtendedProps?.ParanoidKey
+        }
+       const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
         if (decryptData?.sDecryptedData) {
           this.aesKey = decryptData.sDecryptedData
           this.showAes = true

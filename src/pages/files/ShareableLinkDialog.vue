@@ -159,6 +159,7 @@ import cContact from '../../modules/contacts/classes/CContact'
 import addressUtils from '../../utils/address'
 import ShowHistoryDialog from './ShowHistoryDialog'
 import CCrypto from '../../modules/crypto/CCrypto'
+import notification from "../../utils/notification";
 
 
 export default {
@@ -290,7 +291,13 @@ export default {
     },
     askOpenPgpKeyPasswordForEncrypt () {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
-      this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
+      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+      let sPassphrase = privateKey.getPassphrase()
+      if (sPassphrase) {
+        this.encryptLink(sPassphrase)
+      } else {
+        this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
+      }
     },
     encryptLink (passPassphrase) {
       this.passphrase = passPassphrase
@@ -298,20 +305,24 @@ export default {
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
       const passwordBasedEncryption = this.encryptionType === 'password'
-      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, passwordBasedEncryption).then( encryptKey => {
-        this.passwordForSharing = encryptKey.password
-        const parameters = {
-          type: this.$store.getters['files/getCurrentStorage'].Type,
-          path: this.$store.getters['files/getCurrentPath'],
-          name: this.file.Name,
-          paranoidKey: {
-            value: encryptKey.data,
-            key: 'ParanoidKeyPublic'
-          },
-          callback: this.createEncryptPublicLink
+      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, passwordBasedEncryption).then(encryptKey => {
+        console.log(encryptKey, 'encryptKey')
+        if (encryptKey?.sError) {
+          notification.showError(encryptKey.sError)
+        } else if (encryptKey) {
+          this.passwordForSharing = encryptKey.password
+          const parameters = {
+            type: this.$store.getters['files/getCurrentStorage'].Type,
+            path: this.$store.getters['files/getCurrentPath'],
+            name: this.file.Name,
+            paranoidKey: {
+              value: encryptKey.data,
+              key: 'ParanoidKeyPublic'
+            },
+            callback: this.createEncryptPublicLink
+          }
+          this.$store.dispatch('files/updateExtendedProps', parameters)
         }
-        console.log(parameters, 'parameters')
-        this.$store.dispatch('files/updateExtendedProps', parameters)
       })
     },
     createEncryptPublicLink (type, path, name) {
@@ -391,7 +402,8 @@ export default {
           if (sSearch === oContact.getFull()) {
             iExactlySearchIndex = iIndex
           }
-          aOptions.push(this.getOptionFromContact(oContact))
+          let option = this.getOptionFromContact(oContact)
+          aOptions.push(option)
         })
         let bAddFirstOption = sSearch !== '' && iExactlySearchIndex === -1
         if (bAddFirstOption) {
@@ -415,6 +427,7 @@ export default {
           if (index !== -1) {
             aOptions.splice(index, 1)
           }
+          console.log(aOptions, 'optionss')
           this[sOptionsName] = aOptions
         })
       })
@@ -428,7 +441,7 @@ export default {
       return {
         full: oContact.getFull(),
         label: oContact.getFull(),
-        value: 'id_' + oContact.EntityId,
+        value: oContact.UUID,
         short: sName || sEmail,
         email: sEmail,
         hasPgpKey: !!oContact.PublicPgpKey,

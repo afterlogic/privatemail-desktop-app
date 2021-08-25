@@ -63,6 +63,7 @@ import _ from 'lodash'
 import ShowHistoryDialog from './ShowHistoryDialog'
 import OpenPgp from '../../modules/openpgp/OpenPgp'
 import CCrypto from '../../modules/crypto/CCrypto'
+import notification from "../../utils/notification";
 
 export default {
   name: 'ShareWithTeammatesDialog',
@@ -125,6 +126,7 @@ export default {
           if (sSearch === oContact.getFull()) {
             iExactlySearchIndex = iIndex
           }
+          console.log(oContact, 'oContact')
           aOptions.push(this.getOptionFromContact(oContact))
         })
         let bAddFirstOption = sSearch !== '' && iExactlySearchIndex === -1
@@ -170,7 +172,7 @@ export default {
       return {
         full: oContact.getFull(),
         label: oContact.getFull(),
-        value: 'id_' + oContact.EntityId,
+        value: oContact.UUID,
         short: sName || sEmail,
         email: sEmail,
         hasPgpKey: !!oContact.PublicPgpKey,
@@ -187,32 +189,51 @@ export default {
       this.saving = true
       if (this.file.ExtendedProps.ParanoidKey) {
         const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
-        this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+        const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+        let sPassphrase = privateKey.getPassphrase()
+        if (sPassphrase) {
+          this.updateExtendedProps(sPassphrase)
+        } else {
+          this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+        }
       } else {
-        this.test()
+        this.nextUpdateShare()
       }
     },
     updateExtendedProps (passPassphrase) {
+      console.log(this.whoCanSee, 'this.whoCanSee.email')
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
-      const passwordBasedEncryption = this.encryptionType === 'password'
-      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false).then( encryptKey => {
-        const parameters = {
-          type: this.$store.getters['files/getCurrentStorage'].Type,
-          path: this.$store.getters['files/getCurrentPath'],
-          name: this.file.Name,
-          paranoidKey: {
-            value: encryptKey.data,
-            key: 'ParanoidKeyShared'
-          },
-          callback: this.test
+      let principalsEmails = []
+      this.whoCanSee.map( contact => {
+        principalsEmails.push(contact.email)
+      })
+      this.whoCanEdit.map( contact => {
+        principalsEmails.push(contact.email)
+      })
+      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false, principalsEmails).then( encryptKey => {
+        if (encryptKey?.sError) {
+          notification.showError(encryptKey.sError)
+          this.saving = false
+        } else if (encryptKey) {
+          const parameters = {
+            type: this.$store.getters['files/getCurrentStorage'].Type,
+            path: this.$store.getters['files/getCurrentPath'],
+            name: this.file.Name,
+            paranoidKey: {
+              value: encryptKey.data,
+              key: 'ParanoidKeyShared'
+            },
+            callback: this.nextUpdateShare
+          }
+          this.$store.dispatch('files/updateExtendedProps', parameters)
+        } else {
+          this.saving = false
         }
-        console.log(parameters, 'parameters')
-        this.$store.dispatch('files/updateExtendedProps', parameters)
       })
     },
-    test () {
+    nextUpdateShare () {
       const shares = []
       this.whoCanSee.map( contact => {
         shares.push({

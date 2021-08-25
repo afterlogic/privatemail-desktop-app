@@ -58,7 +58,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!copiedFiles.files.length > 0 || currentStorage.Type === 'encrypted' || currentStorage.Type === 'shared'"
+          :disable="availabilityPastAction"
           flat color="primary" icon="content_paste"
           :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile"
         />
@@ -187,7 +187,17 @@ export default {
     },
     currentFolderPath () {
       return this.$store.getters['files/getCurrentPath']
-    }
+    },
+    availabilityPastAction () {
+      let copiedFilesType = ''
+      if (this.copiedFiles.files.length) {
+        copiedFilesType = this.copiedFiles.files[0].FromType
+      }
+      return !this.copiedFiles.files.length > 0
+        || (this.currentStorage.Type !== copiedFilesType && copiedFilesType === 'encrypted')
+        || (copiedFilesType !== 'encrypted' && this.currentStorage.Type === 'encrypted')
+        || this.currentStorage.Type === 'shared'
+    },
   },
   methods: {
     cancelDialog () {

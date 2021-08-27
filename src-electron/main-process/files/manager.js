@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
-import http from "http";
+import axios from "axios";
 
 export default {
   initSubscriptions: function () {
@@ -194,14 +194,60 @@ export default {
         },
       })
     })
-   ipcMain.on('files-decrypt-chunk', (oEvent, {sAuthToken, chunkLink}) => {
+    ipcMain.on('files-decrypt-chunk', (oEvent, {sAuthToken, chunkLink, oFormData}) => {
+       const config = {
+         method: 'get',
+         url: chunkLink,
+         headers: {
+           'Authorization': 'Bearer ' + sAuthToken
+           // 'Authorization': 'Bearer ' . sAuthToken
+         },
+         maxRedirects: 0
+       };
 
-     /*let oReq = new XMLHttpRequest()
-      oReq.open('GET', chunkLink, true)
-      oReq.setRequestHeader('Authorization', 'Bearer ' + sAuthToken)
-      oReq.responseType = 'arraybuffer'
+       axios(config)
+         .then( res => {
 
-      oEvent.sender.send('files-decrypt-chunk', {oReq})*/
+         })
+         .catch(err => {
+           axios.get(err.response.headers.location, {
+             responseType: 'arraybuffer'
+           })
+           .then( res => {
+             oEvent.sender.send('files-decrypt-chunk', { res })
+           })
+           .catch(err => {
+             oEvent.sender.send('files-decrypt-chunk', { err })
+           });
+
+         });
+
+
+
+
+
+      // let oHeaders = {
+      //   //'Content-Type': 'multipart/form-data',
+      //   'Authorization': 'Bearer ' + sAuthToken
+      // }
+
+      // axios.get(chunkLink,{
+      //   headers: oHeaders
+      // }).then( res => {
+      //   oEvent.sender.send('files-decrypt-chunk', { res })
+      // }).catch( err => {
+      //   oEvent.sender.send('files-decrypt-chunk', { err, chunkLink })
+      // })
+
+      // axios.get('https://private-maildefault.sfo2.digitaloceanspaces.com/dodev%40privatemail.com/.encrypted/3.jpg?response-content-type=image%2Fjpeg&response-content-disposition=attachment%3B%20filename%3D%223.jpg%22&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=EGKBKR7Y5KLQ2H2BUJRL%2F20210827%2Fsfo2%2Fs3%2Faws4_request&X-Amz-Date=20210827T145630Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=bac22cb2ef4ed8c946bca5745281886b98e9c68e87acb514157ee89956cd962c',{
+      //   // headers: oHeaders,
+      //   responseType: 'arraybuffer'
+      // }).then( res => {
+      //   console.log(res)
+      //   oEvent.sender.send('files-decrypt-chunk', { res })
+      // }).catch( err => {
+      //   oEvent.sender.send('files-decrypt-chunk', { err, chunkLink })
+      // })
     })
   }
 }

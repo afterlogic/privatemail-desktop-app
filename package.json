@@ -39,7 +39,8 @@
     "sqlite3": "^4.1.0",
     "ua-parser-js": "^0.7.22",
     "vue-i18n": "^8.14.1",
-    "vuex-persistedstate": "^2.5.4"
+    "vuex-persistedstate": "^2.5.4",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "@quasar/app": "^1.5.8",

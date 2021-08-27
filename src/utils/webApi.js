@@ -153,6 +153,6 @@ export default {
         resData = resData.join('\n')
         let oBlob = new Blob([resData])
         saveAs(oBlob, oFileName)
-           })
+      })
   }
 }

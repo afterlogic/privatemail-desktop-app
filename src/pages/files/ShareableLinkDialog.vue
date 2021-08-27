@@ -71,7 +71,18 @@
               :options="recipientOptions"
               stack-label
               @filter="getContactsOptions"
-            />
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section class="non-selectable">
+                    <q-item-label>
+                      {{ scope.opt.label }}
+                      <q-icon v-if="hasPublicKey(scope)" name="vpn_key" />
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </q-item-section>
         </q-item>
         <div v-if="showEncryptedLink">
@@ -266,6 +277,9 @@ export default {
     }
   },
   methods: {
+    hasPublicKey (scope) {
+      return OpenPgp.getPublicKeyByEmail(scope.opt.email)
+    },
     async sendViaEncryptedEmail () {
       const linkText = 'Hi, you can get the encrypted file here: ' + '<a>' + this.publicLink + '</a>'
       let passText = ''
@@ -306,7 +320,6 @@ export default {
       const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
       const passwordBasedEncryption = this.encryptionType === 'password'
       CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, passwordBasedEncryption).then(encryptKey => {
-        console.log(encryptKey, 'encryptKey')
         if (encryptKey?.sError) {
           notification.showError(encryptKey.sError)
         } else if (encryptKey) {
@@ -422,12 +435,11 @@ export default {
         update(async () => {
           const currentAccount = this.$store.getters['mail/getCurrentAccount']
           const index = aOptions.findIndex( contact => {
-            return contact.value === currentAccount.sEmail
+            return contact.email === currentAccount.sEmail
           })
           if (index !== -1) {
             aOptions.splice(index, 1)
           }
-          console.log(aOptions, 'optionss')
           this[sOptionsName] = aOptions
         })
       })

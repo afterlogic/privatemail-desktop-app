@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
+import http from "http";
 
 export default {
   initSubscriptions: function () {
@@ -192,6 +193,15 @@ export default {
           }
         },
       })
+    })
+   ipcMain.on('files-decrypt-chunk', (oEvent, {sAuthToken, chunkLink}) => {
+
+     /*let oReq = new XMLHttpRequest()
+      oReq.open('GET', chunkLink, true)
+      oReq.setRequestHeader('Authorization', 'Bearer ' + sAuthToken)
+      oReq.responseType = 'arraybuffer'
+
+      oEvent.sender.send('files-decrypt-chunk', {oReq})*/
     })
   }
 }

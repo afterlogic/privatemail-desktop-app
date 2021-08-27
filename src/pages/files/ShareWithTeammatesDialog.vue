@@ -19,7 +19,18 @@
               use-chips
               stack-label
               @filter="getContactsSeeOptions"
-            />
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section class="non-selectable">
+                    <q-item-label>
+                      {{ scope.opt.label }}
+                      <q-icon v-if="hasPgpKey(scope)" name="vpn_key" />
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </q-item-section>
         </q-item>
         <q-item class="q-mt-md">
@@ -38,7 +49,18 @@
               use-chips
               stack-label
               @filter="getContactsEditOptions"
-            />
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                  <q-item-section class="non-selectable">
+                    <q-item-label>
+                      {{ scope.opt.label }}
+                      <q-icon v-if="hasPgpKey(scope)" name="vpn_key" />
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
@@ -77,10 +99,14 @@ export default {
       whoCanEdit: [],
       toAddrOptions: [],
       file: null,
-      saving: false
+      saving: false,
+      principalsEmails: []
     }
   },
   methods: {
+    hasPgpKey (scope) {
+      return OpenPgp.getPublicKeyByEmail(scope.opt.email)
+    },
     showHistory () {
       const title = 'Shared file activity history'
       this.$refs.showHistoryDialog.openDialog(this.file, title)
@@ -126,7 +152,6 @@ export default {
           if (sSearch === oContact.getFull()) {
             iExactlySearchIndex = iIndex
           }
-          console.log(oContact, 'oContact')
           aOptions.push(this.getOptionFromContact(oContact))
         })
         let bAddFirstOption = sSearch !== '' && iExactlySearchIndex === -1
@@ -154,7 +179,7 @@ export default {
           })
           const currentAccount = this.$store.getters['mail/getCurrentAccount']
           const index = options.findIndex( contact => {
-            return contact.value === currentAccount.sEmail
+            return contact.email === currentAccount.sEmail
           })
          if (index !== -1) {
            options.splice(index, 1)
@@ -186,25 +211,32 @@ export default {
       this.confirm = false
     },
     updateShare () {
-      this.saving = true
+      this.principalsEmails = this.getPrincipalsEmails()
       if (this.file.ExtendedProps.ParanoidKey) {
-        const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
-        const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-        let sPassphrase = privateKey.getPassphrase()
-        if (sPassphrase) {
-          this.updateExtendedProps(sPassphrase)
-        } else {
-          this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+        let keylessContacts = []
+        this.principalsEmails.map( contact => {
+          if (!OpenPgp.getPublicKeyByEmail(contact)) {
+            keylessContacts.push(contact)
+            notification.showError(`No public key found for ${contact} user.`)
+          }
+        })
+        if (!keylessContacts.length) {
+          this.saving = true
+          const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+          const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+          let sPassphrase = privateKey.getPassphrase()
+          if (sPassphrase) {
+            this.updateExtendedProps(sPassphrase)
+          } else {
+            this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+          }
         }
       } else {
+        this.saving = true
         this.nextUpdateShare()
       }
     },
-    updateExtendedProps (passPassphrase) {
-      console.log(this.whoCanSee, 'this.whoCanSee.email')
-      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
-      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-      const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+    getPrincipalsEmails () {
       let principalsEmails = []
       this.whoCanSee.map( contact => {
         principalsEmails.push(contact.email)
@@ -212,7 +244,13 @@ export default {
       this.whoCanEdit.map( contact => {
         principalsEmails.push(contact.email)
       })
-      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false, principalsEmails).then( encryptKey => {
+      return principalsEmails
+    },
+    updateExtendedProps (passPassphrase) {
+      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
+      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
+      const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
+      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false, this.principalsEmails).then( encryptKey => {
         if (encryptKey?.sError) {
           notification.showError(encryptKey.sError)
           this.saving = false

@@ -111,6 +111,8 @@ export default {
         if (decryptData?.sError) {
           notification.showError(decryptData.sError)
         }
+      } else {
+        notification.showError('No private key found for file decryption.')
       }
     }
   }

@@ -7,6 +7,8 @@ import FileSaver from 'src/utils/FileSaver'
 import types from 'src/utils/types'
 import notification from '../../utils/notification'
 import electron from 'electron'
+import { ipcRenderer } from 'electron'
+
 
 /**
  * @constructor
@@ -72,6 +74,8 @@ CCrypto.prototype.getAesKey = async function (file, passphrase) {
   let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
   if (privateKey) {
     return await OpenPgp.decryptAndVerifyTextWithPassphrase(file?.ExtendedProps?.ParanoidKey, privateKey, passphrase, aPublicKeys)
+  } else {
+    return { sError: 'No private key found for file decryption.' }
   }
 }
 CCrypto.prototype.getEncryptedKey = async function ( file, privateKey, publicKey, currentAccountEmail,passphrase, cancelCallback, bPasswordBasedEncryption = false, aPrincipalsEmails = []) {
@@ -463,15 +467,24 @@ CDownloadFile.prototype.writeChunk = function (oDecryptedUint8Array) {
 }
 
 CDownloadFile.prototype.decryptChunk = function () {
-  var oReq = new XMLHttpRequest()
   let sAuthToken = store.getters['user/getAuthToken']
+  /*ipcRenderer.send('files-decrypt-chunk', {
+    sAuthToken: sAuthToken,
+    chunkLink: this.getChunkLink(),
+  })*/
+ // ipcRenderer.once('files-decrypt-chunk', (event, { oReq }) => {
+  let oFormData = new FormData()
+  let oReq = new XMLHttpRequest()
   oReq.open('GET', this.getChunkLink(), true)
-  oReq.setRequestHeader('Authorization','Bearer ' + sAuthToken)
+  oReq.setRequestHeader('Authorization', 'Bearer ' + sAuthToken)
+  oReq.setRequestHeader('Access-Control-Allow-Origin', '*')
+  oReq.setRequestHeader('X-Client', 'WebClient')
 
+  oFormData.append('jua-post-type', 'ajax')
   oReq.responseType = 'arraybuffer'
   oReq.onload = _.bind(function () {
-      let oArrayBuffer = oReq.response
-      let oDataWithPadding = {}
+    let oArrayBuffer = oReq.response
+    let oDataWithPadding = {}
     if (oReq.status === 200 && oArrayBuffer) {
       oDataWithPadding = new Uint8Array(oArrayBuffer.byteLength + 16)
       oDataWithPadding.set(new Uint8Array(oArrayBuffer), 0)
@@ -488,38 +501,39 @@ CDownloadFile.prototype.decryptChunk = function () {
             oDataWithPadding.set(new Uint8Array(new Uint8Array(oEncryptedContent.slice(0, 16))), oArrayBuffer.byteLength)
             // decrypt data
             crypto.subtle.decrypt({name: 'AES-CBC', iv: this.iv}, this.key, oDataWithPadding.buffer)
-              .then(_.bind(function (oDecryptedArrayBuffer) {
-                var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
-                // use last 16 byte of current chunk as initial vector for next chunk
-                this.iv = new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
-                this.writeChunk(oDecryptedUint8Array)
-              }, this))
-              .catch(_.bind(function (err) {
-                if (_.isFunction(this.fProcessBlobErrorCallback)) {
-                  this.fProcessBlobErrorCallback()
-                }
-                notification.showError('Error decryption: ' + err)
-              }, this))
+            .then(_.bind(function (oDecryptedArrayBuffer) {
+              var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
+              // use last 16 byte of current chunk as initial vector for next chunk
+              this.iv = new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
+              this.writeChunk(oDecryptedUint8Array)
+            }, this))
+            .catch(_.bind(function (err) {
+              if (_.isFunction(this.fProcessBlobErrorCallback)) {
+                this.fProcessBlobErrorCallback()
+              }
+              notification.showError('Error decryption: ' + err)
+            }, this))
           }, this)
         )
       } else { //for last chunk just decrypt data
         crypto.subtle.decrypt({name: 'AES-CBC', iv: this.iv}, this.key, oArrayBuffer)
-          .then(_.bind(function (oDecryptedArrayBuffer) {
-            var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
-            // use last 16 byte of current chunk as initial vector for next chunk
-            this.iv = new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
-            this.writeChunk(oDecryptedUint8Array)
-          }, this))
-          .catch(_.bind(function (err) {
-            if (_.isFunction(this.fProcessBlobErrorCallback)) {
-              this.fProcessBlobErrorCallback()
-            }
-            notification.showError('Error decryption: ' + err)
-          }, this))
+        .then(_.bind(function (oDecryptedArrayBuffer) {
+          var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
+          // use last 16 byte of current chunk as initial vector for next chunk
+          this.iv = new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
+          this.writeChunk(oDecryptedUint8Array)
+        }, this))
+        .catch(_.bind(function (err) {
+          if (_.isFunction(this.fProcessBlobErrorCallback)) {
+            this.fProcessBlobErrorCallback()
+          }
+          notification.showError('Error decryption: ' + err)
+        }, this))
       }
     }
   }, this)
   oReq.send(null)
+ // })
 }
 
 /**

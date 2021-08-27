@@ -116,6 +116,7 @@ import text from '../../utils/text'
 import EncryptedFileInformationDialog from './EncryptedFileInformationDialog'
 import Crypto from 'src/modules/crypto/CCrypto'
 import OpenPgp from 'src/modules/openpgp/OpenPgp'
+import notification from '../../utils/notification'
 
 export default {
   name: 'Files',
@@ -135,8 +136,8 @@ export default {
     return {
       currentFile: null,
       checkedList: [],
-      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf'],
-      imgFormats: ['jpeg', 'png', 'jpg']
+      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG'],
+      imgFormats: ['jpeg', 'png', 'jpg', 'JPG']
     }
   },
   computed: {
@@ -243,7 +244,13 @@ export default {
           paranoidKey = file?.ExtendedProps?.ParanoidKey
         }
         const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
+        if (decryptData?.sError) {
+          notification.showError(decryptData.sError)
+          return false
+        }
         return decryptData.sDecryptedData
+      } else {
+        notification.showError('No private key found for file decryption.')
       }
     },
     viewFile (file) {

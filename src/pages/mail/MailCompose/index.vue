@@ -420,6 +420,7 @@ export default {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let iExactlySearchIndex = -1
         let aOptions = []
+        console.log(aContacts, 'aContacts')
         _.each(aContacts, (oContactData, iIndex) => {
           let oContact = new cContact(oContactData)
           if (sSearch === oContact.getFull()) {

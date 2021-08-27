@@ -91,13 +91,13 @@
       <!-- <q-btn flat color="primary" label="Flat" /> -->
     </div>
     <q-dialog v-model="createFolderDialog" persistent>
-      <q-card class="q-dialog-size" style="min-width: 300px">
+      <q-card class="q-dialog-size q-pt-md q-ml-md q-mr-md" style="min-width: 400px">
         <q-item class="q-mt-md">
           <q-item-section>
             <q-item-label>New folder</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense v-model="folderName" />
+            <q-input outlined dense v-model="folderName" style="width: 250px"/>
           </q-item-section>
         </q-item>
         <q-card-actions align="right">

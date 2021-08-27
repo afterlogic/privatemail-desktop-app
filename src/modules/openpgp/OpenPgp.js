@@ -326,6 +326,13 @@ COpenPgp.prototype.decryptAndVerifyTextWithPassphrase = async function (sData, o
     if (typesUtils.isNonEmptyArray(aPublicKeys)) {
       oOptions.publicKeys = await this.convertToNativeKeys(aPublicKeys) // for verification (optional)
     }
+    let aKeyIds = oOptions.message.getEncryptionKeyIds().map(oKeyId => oKeyId.toHex());
+    let hasPrivateKey = await this.findKeyById(aKeyIds[0], /*bPublic*/false)
+    if (!hasPrivateKey) {
+      return {
+        sError: 'No private key found for file decryption.'
+      }
+    }
     try {
       let oPgpResult = await openpgp.decrypt(oOptions)
       if (oPgpResult && oPgpResult.data) {
@@ -342,13 +349,13 @@ COpenPgp.prototype.decryptAndVerifyTextWithPassphrase = async function (sData, o
         return { sError: 'An error occurred during decrypting the message.' }
       }
     } catch (oError) {
+      console.log(oError.message, 'oErrors')
       return { sError: 'An error occurred during decrypting the message (' + oError.message + ').' }
     }
   } else {
     return { sError }
   }
 }
-
 /**
  * @param {String} sData
  * @param {Array} aPublicKeys

@@ -2,14 +2,6 @@
   <div>
     <div class="row q-pa-sm items-center">
       <span>
-        <q-btn :disable="!currentStorage" flat color="primary" icon="create_new_folder"
-               @click="showCreateNewFolderDialog"/>
-           <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-          Create folder
-        </q-tooltip>
-      </span>
-      <!--<q-btn flat color="primary" label="Shortcut" @click=""/>-->
-      <span>
         <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1" flat color="primary" icon="file_download"
                @click="downloadFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
@@ -150,7 +142,6 @@ import DeleteItemsDialog from './DeleteItemsDialog'
 import RenameItemDialog from './RenameItemDialog'
 import ShareWithTeammatesDialog from './ShareWithTeammatesDialog'
 import ShareableLinkDialog from './ShareableLinkDialog'
-import text from "../../utils/text";
 
 export default {
   name: 'Toolbar',
@@ -202,9 +193,6 @@ export default {
     },
   },
   methods: {
-    getFilename (file) {
-     return file.Name
-    },
     cancelDialog () {
       this.createFolderDialog = false
     },
@@ -284,9 +272,6 @@ export default {
         isLink: 0,
         isFolder: this.currentFile.IsFolder
       })
-    },
-    createSecureLink () {
-      this.$refs.shareableLinkDialog.openDialog()
     },
     openRemoveItemsDialog () {
       this.$refs.deleteItemDialog.openDialog()

@@ -473,7 +473,6 @@ CDownloadFile.prototype.decryptChunk = function () {
     chunkLink: this.getChunkLink(),
   })
   ipcRenderer.once('files-decrypt-chunk', (event, {res, err, chunkLink}) => {
-    console.log(this, 'thisthisthis')
     if (res) {
       let oArrayBuffer = res.data
       let oDataWithPadding = {}

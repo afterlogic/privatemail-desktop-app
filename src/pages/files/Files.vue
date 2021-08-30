@@ -11,7 +11,7 @@
           <q-card
             flat
             class="q-mx-sm q-mb-md select-text-disable"
-            v-for="file in filesList" :key="file.Id" style="width: 150px; height: 175px;" align="center"
+            v-for="file in filesList" :key="file.Hash" style="width: 150px; height: 175px;" align="center"
           >
             <div class="file-focus file" v-if="!file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
               <div
@@ -136,8 +136,8 @@ export default {
     return {
       currentFile: null,
       checkedList: [],
-      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG'],
-      imgFormats: ['jpeg', 'png', 'jpg', 'JPG']
+      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg'],
+      imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg']
     }
   },
   computed: {
@@ -258,10 +258,10 @@ export default {
       webApi.viewByUrlInNewWindow(url, file.Name)
     },
     getPreviewFile (file) {
-      if (!this.isEncrypted(file)) {
-        if (file?.ThumbnailUrl) {
+      if (!this.isEncrypted(file) && this.isImg(file)) {
+        if (file?.Actions.view.url) {
           let api = this.$store.getters['main/getApiHost']
-          let link = file.ThumbnailUrl
+          let link = file.Actions.view.url
           return api + '/' + link
         }
       }
@@ -346,7 +346,7 @@ export default {
       this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: file.FullPath, isFolder: true })
     },
     isChecked(file) {
-      return this.checkedList.find(checkedFile => checkedFile.Name === file.Name)
+      return this.checkedList.find(checkedFile => checkedFile.Hash === file.Hash)
     },
   }
 }

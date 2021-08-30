@@ -139,8 +139,10 @@
                  label="Cancel" />
         </div>
         <div v-else-if="showEncryptedLink">
-          <q-btn flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
+          <q-btn v-if="hasPgpKey" :disable="!recipient || removing" flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
                  label="Send via encrypted email" />
+          <q-btn v-else flat :disable="!recipient || removing" :ripple="false" color="primary"
+                 label="Send via email" @click="sendViaEmail"/>
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
                  label="Cancel" />
         </div>

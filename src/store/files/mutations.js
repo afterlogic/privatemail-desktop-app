@@ -15,6 +15,9 @@ export function setCurrentFiles (state, { files }) {
 export function setLoadingStatus (state, { status }) {
   state.uploadingFiles = status
 }
+export function setCurrentPattern (state, { pattern }) {
+  state.currentPattern = pattern
+}
 export function setCurrentFile (state, { currentFile }) {
   state.currentFile = currentFile
 }

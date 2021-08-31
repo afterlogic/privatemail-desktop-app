@@ -55,6 +55,7 @@ export function updateExtendedProps ({ state, commit, getters, dispatch }, { typ
 export function getFiles ({ state, commit, getters, dispatch }, { currentStorage, path, pattern = ''}) {
   dispatch('changeCurrentFile', { currentFile: null })
     commit('setLoadingStatus', { status: true })
+    commit('setCurrentPattern', { pattern })
     const parameters = {
       Type: currentStorage,
       Path: path,
@@ -70,9 +71,10 @@ export function getFiles ({ state, commit, getters, dispatch }, { currentStorage
       fCallback: (files, error) => {
         if (_.isArray(files?.Items)) {
           commit('setCheckedItems', { checkedItems: [] })
-          let currentPath = getters['getCurrentPath']
-          let storage = getters['getCurrentStorage']
-          if (currentStorage === storage.Type && path === currentPath) {
+          const currentPath = getters['getCurrentPath']
+          const storage = getters['getCurrentStorage']
+          const currentPattern = getters['getCurrentPattern']
+          if (currentStorage === storage.Type && path === currentPath && currentPattern === pattern) {
             commit('setCurrentFiles', { files: files.Items })
             commit('setLoadingStatus', { status: false })
           }

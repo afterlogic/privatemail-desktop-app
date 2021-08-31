@@ -24,6 +24,9 @@ export function getCurrentPaths (state) {
 export function getCurrentPath (state) {
   return state.currentPath
 }
+export function getCurrentPattern (state) {
+  return state.currentPattern
+}
 export function getCheckedItems (state) {
   return state.checkedItems
 }

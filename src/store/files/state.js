@@ -3,6 +3,7 @@ export default {
   filesTree: {},
   currentFileStorage: {},
   currentFiles: [],
+  currentPattern: '',
   uploadingFiles: false,
   currentFile: null,
   currentPaths: [],

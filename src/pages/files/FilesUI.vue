@@ -301,19 +301,22 @@ export default {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       let publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
-      //CryptoManager.upload(params, privateKey, publicKey, currentAccountEmail, this.askOpenPgpKeyPassword)
-      await Crypto.startUpload(
-        params.fileInfo,
-        params.uid,
-        null,
-        null,
-        privateKey,
-        publicKey,
-        currentAccountEmail,
-        this.askOpenPgpKeyPassword,
-        params.callBack,
-        params.fileIndexUp
-      )
+      if (privateKey) {
+        await Crypto.startUpload(
+          params.fileInfo,
+          params.uid,
+          null,
+          null,
+          privateKey,
+          publicKey,
+          currentAccountEmail,
+          this.askOpenPgpKeyPassword,
+          params.callBack,
+          params.fileIndexUp
+        )
+      } else {
+        notification.showError(`No private key found for ${currentAccountEmail} user.`)
+      }
     },
     showReport (file) {
       notification.showReport('Complete')

@@ -283,7 +283,7 @@ export default {
       return OpenPgp.getPublicKeyByEmail(scope.opt.email)
     },
     async sendViaEncryptedEmail () {
-      const linkText = 'Hi, you can get the encrypted file here: ' + '<a>' + this.publicLink + '</a>'
+      const linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
       let passText = ''
       if (this.passwordForSharing) {
          passText = '<br>File encrypted with password: ' + this.passwordForSharing
@@ -308,12 +308,17 @@ export default {
     askOpenPgpKeyPasswordForEncrypt () {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-      let sPassphrase = privateKey.getPassphrase()
-      if (sPassphrase) {
-        this.encryptLink(sPassphrase)
+      if (privateKey) {
+        let sPassphrase = privateKey.getPassphrase()
+        if (sPassphrase) {
+          this.encryptLink(sPassphrase)
+        } else {
+          this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
+        }
       } else {
-        this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
+        notification.showError('No private key found for message decryption.')
       }
+
     },
     encryptLink (passPassphrase) {
       this.passphrase = passPassphrase
@@ -387,7 +392,8 @@ export default {
     sendViaEmail () {
       this.openCompose({
         aToContacts: [this.recipient],
-        sText: 'Hello, You can download the file at: ' + '<a>' + this.publicLink + '</a>'
+        sText: 'Hello, <br> You can download the file at: ' + '<a class="text-primary">' + this.publicLink + '</a>',
+        sSubject: `The ${this.file.IsFolder ? 'folder' : 'file'} was shared with you: '${this.file.Name}'`
       })
     },
     removeLink () {

@@ -40,7 +40,7 @@
           </div>
           <pagination :currentPage="currentPage" :itemsPerPage="10" :itemsCount="itemsCount" :changePage="changePage" :border="false"></pagination>
           <q-card-actions align="right">
-            <q-btn flat :ripple="false" color="primary"
+            <q-btn :disable="!historyList.length" flat :ripple="false" color="primary"
                    label="Clear" @click="openClearDialog"/>
             <q-btn flat class="q-px-sm" :ripple="false" color="primary"
                    label="Cancel" @click="cancel"/>

@@ -1,3 +1,4 @@
+import types from '../../utils/types'
 
 function CSettings () {
   this.enableInPersonalStorage = false
@@ -8,8 +9,8 @@ function CSettings () {
 
 CSettings.prototype.parse = function (oData) {
   if (oData) {
-    this.enableParanoidEncryption = oData.EnableModule
-    this.enableInPersonalStorage = oData.EnableInPersonalStorage
+    this.enableParanoidEncryption = types.pBool(oData.EnableModule, false)
+    this.enableInPersonalStorage = types.pBool(oData.EnableInPersonalStorage, false)
   }
 }
 

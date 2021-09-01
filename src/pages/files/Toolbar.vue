@@ -25,7 +25,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!checkedItems.length || currentStorage.Type === 'shared'" flat color="primary" icon="delete_outlined"
+          :disable="!checkedItems.length || currentStorage.Type === 'shared'" flat color="primary" icon="delete_outline"
           :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
@@ -68,7 +68,7 @@
           Create secure link
         </q-tooltip>
       </span>
-      <span>
+      <span v-if="hasRecipients">
         <q-btn
           v-if="currentStorage.Type !== 'shared'"
           :disable="!currentFile || (currentStorage.Type === 'encrypted' && isFolder) || currentStorage.Type === 'corporate'"
@@ -142,6 +142,7 @@ import DeleteItemsDialog from './DeleteItemsDialog'
 import RenameItemDialog from './RenameItemDialog'
 import ShareWithTeammatesDialog from './ShareWithTeammatesDialog'
 import ShareableLinkDialog from './ShareableLinkDialog'
+import { ipcRenderer } from 'electron'
 
 export default {
   name: 'Toolbar',
@@ -158,12 +159,19 @@ export default {
       folderName: '',
       titleAfterCopying: '',
       confirmWarningDialog: false,
-      filesForSending: null
+      filesForSending: null,
+      recipients: []
     }
+  },
+  mounted() {
+    this.getRecipients()
   },
   computed: {
     checkedItems () {
       return this.$store.getters['files/getCheckedItems']
+    },
+    hasRecipients () {
+      return !!this.recipients.length
     },
     copiedFiles () {
       return this.$store.getters['files/getCopiedFiles']
@@ -231,6 +239,12 @@ export default {
       } else {
         this.saveFilesAsTempFiles(files)
       }
+    },
+    getRecipients() {
+      ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, {aContacts}) => {
+        this.recipients = aContacts
+      })
+      ipcRenderer.send('contacts-get-frequently-used-contacts', {sSearch: '', storage: 'team'})
     },
     saveFilesAsTempFiles (files) {
       this.confirmWarningDialog = false

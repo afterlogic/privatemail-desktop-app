@@ -26,12 +26,14 @@ import openpgpSettings from 'src/modules/openpgp/settings.js'
 import cContact from 'src/modules/contacts/classes/CContact.js'
 
 import ScheduleSendingDialog from "../ScheduleSendingDialog.vue"
+import FilesUI from 'src/pages/files/filesInCompose/FilesUI'
 
 export default {
   name: 'MailCompose',
 
   components: {
     ScheduleSendingDialog,
+    FilesUI
   },
 
   data () {
@@ -297,6 +299,9 @@ export default {
   },
 
   methods: {
+    selectFiles () {
+      this.$refs.files.openDialog()
+    },
     setImportance (iImportance) {
       this.iImportance = iImportance
     },

@@ -6,7 +6,7 @@
           <q-item-label>Name</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-input outlined dense v-model="itemName" />
+          <q-input autofocus outlined dense v-model="itemName" />
         </q-item-section>
       </q-item>
       <q-card-actions align="right">

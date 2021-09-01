@@ -4,8 +4,23 @@
         <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="isUploadingFiles">
           Loading...
         </div>
-        <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="!isUploadingFiles && !filesList.length">
+        <div class="pannel-hint non-selectable full-width" style="width: 100%"
+             v-else-if="!isUploadingFiles && !filesList.length && !searchInProgress && currentStorage.Type !== 'shared' && !isFolder"
+        >
           You can drag-n-drop files from other folders or from your desktop, or click New Folder to create a folder
+        </div>
+        <div class="pannel-hint non-selectable full-width" style="width: 100%"
+             v-else-if="!isUploadingFiles && !filesList.length && !searchInProgress && currentStorage.Type !== 'shared' && isFolder"
+        >
+          Folder is empty
+        </div>
+        <div class="pannel-hint non-selectable full-width" style="width: 100%" v-else-if="!isUploadingFiles && !filesList.length && searchInProgress">
+          Nothing found
+        </div>
+        <div class="pannel-hint non-selectable full-width" style="width: 100%"
+             v-else-if="!filesList.length && currentStorage.Type === 'shared' && !searchInProgress"
+        >
+          No shared files
         </div>
         <div class="row q-pa-sm large" v-if="!isUploadingFiles">
           <q-card
@@ -21,7 +36,7 @@
                  'file-selected': isChecked(file)
                  }"
               >
-                <span class="display-none tooltip" :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
+                <span class="display-none tooltip" style="line-height: 1.2" :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
                   {{ getDescription(file) }}
                 </span>
                 <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile(file)">
@@ -154,8 +169,16 @@ export default {
       })
       return folders.concat(files)
     },
+    searchInProgress () {
+      const currentPattern = this.$store.getters['files/getCurrentPattern']
+      return !!currentPattern
+    },
     isUploadingFiles () {
       return this.$store.getters['files/getLoadingStatus']
+    },
+    isFolder () {
+      const currentPath = this.$store.getters['files/getCurrentPath']
+      return !!currentPath
     }
   },
   watch: {
@@ -385,13 +408,13 @@ export default {
 .tooltip {
   position: absolute;
   left: 0;
-  background-color:rgba(255,255,255, 0.6);
+  background-color:rgba(255,255,255, 0.8);
   font-size: 12px;
   margin: 0 1px;
   border-radius: 4px
 }
 .tooltip-checked {
-  background-color: rgba(235, 247, 203, 0.6);
+  background-color: rgba(235, 247, 203, 0.8);
 }
 .display-none {
   display: none;

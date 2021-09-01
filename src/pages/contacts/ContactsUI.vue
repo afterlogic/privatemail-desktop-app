@@ -96,6 +96,7 @@ export default {
   },
 
   mounted: function () {
+    this.$router.push('/contacts/groups/no-contact')
     this.scrollToSelectedContact(true)
   },
 

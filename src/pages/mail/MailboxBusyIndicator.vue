@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="progress-bar-prompt q-px-lg">
+  <div v-if="userSpace">
+    <div v-if="page === 'mail'" class="progress-bar-prompt q-px-lg">
       <router-link :to="'/settings/accounts/account/' + currentAccountId + '/folders'" class="text-primary">Manage folders</router-link>
     </div>
     <div class="progress-bar q-px-lg">
@@ -39,29 +39,49 @@
 </style>
 
 <script>
+import text from '../../utils/text'
+
 export default {
-  name: "MailboxBusyIndicator",
+  name: 'MailboxBusyIndicator',
+  props: {
+    page: {
+      type: String,
+      default: 'mail'
+    }
+  },
   data () {
     return {
     }
   },
   computed: {
     userSpace() {
-      let accountQuota = this.$store.getters['mail/getAccountQuota']
-      if (accountQuota?.length) {
-        return accountQuota[1]
+      let accountQuota = this.$store.getters[`${this.page}/getAccountQuota`]
+      if (this.page === 'mail') {
+        if (accountQuota?.length) {
+          return accountQuota[1]
+        }
+        return 0
+      }
+      if (this.page === 'files') {
+        return this.$store.getters['files/getFilesQuota'].Limit
       }
       return 0
     },
     currentAccountId() {
-      return this.$store.getters['mail/getCurrentAccountId']
+      return this.$store.getters[`mail/getCurrentAccountId`]
     },
     busyMemory() {
-      let accountQuota = this.$store.getters['mail/getAccountQuota']
-      if (accountQuota?.length) {
-        return accountQuota[0]
+      if (this.page === 'mail') {
+        let accountQuota = this.$store.getters[`mail/getAccountQuota`]
+        if (accountQuota?.length) {
+          return accountQuota[0]
+        }
+        return 0
       }
-      return 0
+     if (this.page === 'files') {
+       return this.$store.getters['files/getFilesQuota'].Used
+     }
+     return 0
     },
     mailboxBusy() {
       if (this.busyMemory && this.userSpace) {
@@ -70,16 +90,14 @@ export default {
       return 0
     },
     mailBoxMemory() {
-      let userSpace = this.userSpace
-      let userSpaceLength = String(userSpace).length
-      if (this.busyMemory && this.userSpace) {
-        if (userSpaceLength > 6) {
-          return this.userSpace / 1024 / 1024 + 'GB'
-        } else {
-          return this.userSpace / 1024 + 'MB'
-        }
+      let userSpace = 0
+      if (this.page === 'mail') {
+       userSpace = this.userSpace * 1024
       }
-      return 0
+      if (this.page === 'files') {
+       userSpace = this.userSpace
+      }
+      return text.getFriendlySize(userSpace)
     }
   },
 }

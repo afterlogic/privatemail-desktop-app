@@ -227,8 +227,8 @@ export default {
           }
           this.sLastCheckedUuid = sUUID
         }
-        if (this.$route.path !== `/${sUUID}/view`) {
-          this.$router.push(`/${sUUID}/view`)
+        if (this.$route.path !== `/contacts/group/${this.currentStorage}/${sUUID}/view`) {
+          this.$router.push(`/contacts/group/${this.currentStorage}/${sUUID}/view`)
         }
       } else {
         this.$store.dispatch('contacts/setCurrentContactByUUID', sUUID)

@@ -62,6 +62,9 @@ export default {
       splitterModel: 20
     }
   },
+  mounted () {
+    this.$router.push('/settings/common')
+  },
   computed: {
     accounts () {
       return this.$store.getters['mail/getAccounts']

@@ -20,15 +20,15 @@ const routes = [
             component: () => import('pages/contacts/ContactsView'),
             children: [
               {
-                path: '/:uuid/view',
+                path: ':uuid/view',
                 component: () => import('pages/contacts/ContactView'),
               },
               {
-                path: '/:uuid/edit',
+                path: ':uuid/edit',
                 component: () => import('pages/contacts/ContactEditView')
               },
               {
-                path: '/:uuid/group-view',
+                path: ':uuid/group-view',
                 component: () => import('pages/contacts/GroupView')
               },
               {

@@ -79,6 +79,9 @@ export function getFiles ({ state, commit, getters, dispatch }, { currentStorage
             commit('setLoadingStatus', { status: false })
           }
         }
+        if (files.Quota) {
+          commit('setFilesQuota', { quota: files.Quota })
+        }
       },
     })
 }

@@ -33,3 +33,6 @@ export function getCheckedItems (state) {
 export function getCopiedFiles (state) {
   return state.copiedFiles
 }
+export function getFilesQuota (state) {
+  return state.quota
+}

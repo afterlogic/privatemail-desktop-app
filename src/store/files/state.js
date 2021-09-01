@@ -14,5 +14,9 @@ export default {
     fromPath: null,
     isCut: false,
     files: []
+  },
+  quota: {
+    Limit: 0,
+    Used: 0
   }
 }

@@ -25,13 +25,8 @@
       </q-item>
       <q-item class="q-ml-sm">
         <q-item-label caption>
-          Enables browser-level on-the-fly encryption in Files. Files are encrypted/decrypted right on this device, even the server itself cannot get access <br>
-          to non-encrypted content of paranoid-encrypted files. Encryption method is AES256.
-        </q-item-label>
-      </q-item>
-      <q-item class="q-ml-sm">
-        <q-item-label caption>
-          Only files in Encrypted folder will be encrypted.
+          Enables on-the-fly encryption in Files. Files are encrypted/decrypted right on this device, even the server itself cannot get access to non-encrypted
+          content of Paranoid-encrypted files. Encryption method is AES256.
         </q-item-label>
       </q-item>
       <q-item tag="label" v-ripple dense>
@@ -44,7 +39,8 @@
       </q-item>
       <q-item class="q-ml-sm">
         <q-item-label caption>
-          Every time while upload you will be asked if the file should be encrypted.
+          <div><p>On every file upload you will be asked if the file should be encrypted.</p></div>
+          <div><p>If this option is unchecked, only files in Encrypted folder will be encrypted.</p></div>
         </q-item-label>
       </q-item>
     </q-list>

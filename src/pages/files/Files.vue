@@ -151,7 +151,7 @@ export default {
     return {
       currentFile: null,
       checkedList: [],
-      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg'],
+      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg']
     }
   },

@@ -36,11 +36,11 @@
       </q-item>
 
       <q-item>
-        <q-item-section side center>
+        <q-item-section side center style="min-width: 100px;">
           Time format
         </q-item-section>
-        <q-item-section>
-          <q-btn-toggle
+        <q-item-section  style="flex-direction: row; justify-content: flex-start;" class="q-gutter-sm">
+            <!--<q-btn-toggle
               v-model="iTimeFormat"
               no-caps
               rounded
@@ -50,7 +50,9 @@
               text-color="primary"
               class="custom-toggle"
               :options="aTimeFormatList"
-            />
+            />-->
+          <q-radio v-model="iTimeFormat" :val="1" label="1PM" />
+          <q-radio v-model="iTimeFormat" :val="0" label="13:00" />
         </q-item-section>
       </q-item>
 

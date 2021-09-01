@@ -6,7 +6,11 @@
         <q-btn dense flat round icon="menu" @click="showRight = !showRight" />
       </q-toolbar> -->
       <q-tabs align="left" class="q-pa-md main-tabs" v-if="showTabsbar">
-        <q-route-tab to="/mail" :label="mailHeader" />
+
+        <q-route-tab to="/mail" :label="mailHeader">
+          <span v-if="unseenCount" class="bg-primary" style="text-align: center;  height: 11px;
+    line-height: 12px;position: absolute; top: 4px; right: -12px; font-size: 10px; color: #ffffff; border-radius: 7px;"><span class=" q-pa-xs">{{ unseenCount }}</span></span>
+        </q-route-tab>
         <q-btn-dropdown flat color="white" v-if="accountsForDropdown.length > 0" class="accounts-selector" content-class="accounts-selector-dropdown">
           <q-list class="non-selectable">
             <!-- <q-item class="dummy q-mr-xl q-pr-xl_">
@@ -43,7 +47,11 @@
 <script>
 export default {
   name: 'MainLayout',
-
+  data () {
+    return {
+      unreadMessages: ''
+    }
+  },
   mounted () {
     if (!this.isAuthorized) {
       let sCurrentPath = this.$router.currentRoute && this.$router.currentRoute.path ? this.$router.currentRoute.path : ''
@@ -74,6 +82,18 @@ export default {
     },
     currentStorage () {
       return this.$store.getters['files/getCurrentStorage']
+    },
+    unseenCount () {
+      if (this.$route.fullPath === '/mail') {
+        return ''
+      } else {
+        const folder = this.$store.getters['mail/getFolderByFullName']('INBOX')
+        if (folder) {
+          return folder.UnseenCount > 99 ? '99+' : folder.UnseenCount
+        } else {
+          return ''
+        }
+      }
     }
   },
 

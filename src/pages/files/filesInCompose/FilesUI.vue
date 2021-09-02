@@ -1,14 +1,65 @@
 <template>
   <q-dialog v-model="confirm" persistent>
-    <q-card class="popup_panel">
-      <q-img src="https://cdn.quasar.dev/img/chicken-salad.jpg" />
+    <q-card class="popup_panel select-text-disable">
       <div class="flex panels">
         <q-card-section class="storages">
-          hello1
+          <q-scroll-area class="full-height ">
+            <q-list>
+              <div v-for="storage in storageList" :key="storage.DisplayName">
+                <q-item
+                  :class="{active: currentStorage.DisplayName === storage.DisplayName}"
+                  clickable v-ripple @click="selectStorage(storage)">
+                  <q-item-section avatar>
+                    <q-icon v-if="storage.Type === 'personal'">
+                      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
+                        <path class="svg-icon"
+                              d="m 12,6 c -3.3018639,0 -6,2.6981361 -6,6 0,3.301864 2.6981361,6 6,6 3.301864,0 6,-2.698136 6,-6 0,-3.3018639 -2.698136,-6 -6,-6 z m 0,2 c 2.220984,0 4,1.7790164 4,4 0,2.220984 -1.779016,4 -4,4 C 9.7790164,16 8,14.220984 8,12 8,9.7790164 9.7790164,8 12,8 Z"/>
+                      </svg>
+                    </q-icon>
+                    <q-icon v-if="storage.Type === 'encrypted'">
+                      <encrypted-icon></encrypted-icon>
+                    </q-icon>
+                    <q-icon v-if="storage.Type === 'corporate'">
+                      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
+                        <path class="svg-icon"
+                              d="m 12,3 c -4.9587181,0 -9,4.0412819 -9,9 0,4.958718 4.0412819,9 9,9 4.958718,0 9,-4.041282 9,-9 0,-4.9587181 -4.041282,-9 -9,-9 z m 0,2 c 3.877838,0 7,3.1221621 7,7 0,3.877838 -3.122162,7 -7,7 C 8.1221621,19 5,15.877838 5,12 5,8.1221621 8.1221621,5 12,5 Z m 0,1 c -3.3018639,0 -6,2.6981361 -6,6 0,3.301864 2.6981361,6 6,6 3.301864,0 6,-2.698136 6,-6 0,-3.3018639 -2.698136,-6 -6,-6 z m 0,2 c 2.220984,0 4,1.7790164 4,4 0,2.220984 -1.779016,4 -4,4 C 9.7790164,16 8,14.220984 8,12 8,9.7790164 9.7790164,8 12,8 Z"/>
+                      </svg>
+                    </q-icon>
+                    <q-icon v-if="storage.Type === 'shared'">
+                      <share-icon/>
+                    </q-icon>
+                  </q-item-section>
+                  <q-item-section avatar>
+                    <q-item-label lines="1">{{ storage.DisplayName }}</q-item-label>
+                  </q-item-section>
+                  <!-- <q-item-section side>3</q-item-section> -->
+                </q-item>
+              </div>
+            </q-list>
+          </q-scroll-area>
         </q-card-section>
-
-        <q-card-section class="files">
-          hello2
+        <q-card-section class="files" style="max-height: 445px; padding-left: 0">
+          <div style="position: sticky">
+            <q-separator></q-separator>
+            <q-breadcrumbs class="q-px-md q-py-sm">
+              <q-breadcrumbs-el class="breadcrumbs" v-for="path in currentPaths" :key="path.name" :label="path.name"  @click="changeFolder(path)"/>
+            </q-breadcrumbs>
+            <q-separator></q-separator>
+          </div>
+          <q-card-section class="scroll" style="max-height: 390px; margin-left: 0">
+            <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="isUploadingFiles">
+              Loading...
+            </div>
+            <div class="row" v-if="!isUploadingFiles">
+              <q-card
+                flat
+                class="q-mx-sm q-mb-md select-text-disable"
+                v-for="file in filesList" :key="file.Hash" style="width: 150px; height: 175px;" align="center"
+              >
+                <file :file="file" :is-checked="isChecked(file)" @selectedFile="selectedFile" :current-storage="currentStorage" @select="select"></file>
+              </q-card>
+            </div>
+          </q-card-section>
         </q-card-section>
       </div>
 
@@ -25,28 +76,189 @@
 </template>
 
 <script>
+import ShareIcon from '../../../assets/icons/ShareIcon'
+import EncryptedIcon from '../../../assets/icons/EncryptedIcon'
+import File from './File'
+import _ from 'lodash'
+
 export default {
   name: 'FilesUI',
+  components: {
+    ShareIcon,
+    EncryptedIcon,
+    File
+  },
   data () {
     return {
-      confirm: false
+      confirm: false,
+      searchProgress: false,
+      searchText: '',
+      checkedList: [],
     }
   },
+  computed: {
+    currentPaths () {
+      return this.$store.getters['files/getCurrentPaths']
+    },
+    storageList () {
+      return this.$store.getters['files/getStorageList']
+    },
+    currentStorage () {
+      return this.$store.getters['files/getCurrentStorage']
+    },
+    isUploadingFiles () {
+      return this.$store.getters['files/getLoadingStatus']
+    },
+    filesList () {
+      let folders = []
+      let files = []
+      const currentFiles = this.$store.getters['files/getCurrentFiles']
+      currentFiles.map( file => {
+        if (file.IsFolder) {
+          folders.push(file)
+        } else {
+          files.push(file)
+        }
+      })
+      return folders.concat(files)
+    },
+  },
   methods: {
+
+    populate () {
+      this.$store.commit('files/setLoadingStatus', { status: true })
+      this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: '' })
+      const path = {
+        path: '',
+        name: this.currentStorage.DisplayName,
+      }
+      this.$store.dispatch('files/changeCurrentPaths', {
+        path,
+        lastStorage: true
+      })
+    },
     openDialog () {
+      this.populate()
       this.confirm = true
     },
     select () {
-      console.log('select')
+      let files = this.checkedList.map(item => {
+        return {
+          Storage: item.Type,
+          Path: item.Path,
+          Name: item.Name,
+          Id: item.Id,
+          IsEncrypted: false
+        }
+      })
+      this.saveFilesAsTempFiles(files)
+    },
+    saveFilesAsTempFiles (files) {
+      this.confirm = false
+      this.$store.dispatch('files/saveFilesAsTempFiles', {
+        files
+      }).then(res => {
+        this.$emit('addAttachmentsFromFiles', res)
+      })
     },
     cancel () {
       this.confirm = false
-    }
+    },
+    selectStorage (currentStorage) {
+      this.searchProgress = false
+      this.searchText = ''
+      const path = {
+        path: '',
+        name: currentStorage.DisplayName,
+      }
+      this.$store.dispatch('files/setCurrentStorage', { currentStorage })
+      this.getFiles(currentStorage.Type, '', '')
+      this.$store.dispatch('files/changeCurrentPaths', {
+        path,
+        lastStorage: true
+      })
+    },
+    getFiles (currentStorage, path, pattern) {
+      this.$store.dispatch('files/getFiles', {
+        currentStorage: currentStorage,
+        path: path,
+        pattern: pattern })
+    },
+    isChecked(file) {
+      return this.checkedList.find(checkedFile => checkedFile.Hash === file.Hash)
+    },
+    changeFolder (path) {
+      this.searchProgress = false
+      this.searchText = ''
+      this.getFiles(this.currentStorage.Type, path.path, '')
+      this.$store.dispatch('files/changeCurrentPaths', {path})
+    },
+    selectedFile ( {file, oMouseEvent} ) {
+      let checkedList = _.map(this.checkedList, function (file) {
+        return file
+      })
+      if (oMouseEvent) {
+        if (oMouseEvent.ctrlKey) {
+          const index = checkedList.findIndex( checkedFile => {
+            return checkedFile === file
+          })
+          if (index === -1) {
+            checkedList = _.union(checkedList, [file])
+          } else {
+            checkedList = _.without(checkedList, file)
+          }
+        } else if (oMouseEvent.shiftKey) {
+          let files = _.map(this.filesList, function (file) {
+            return file
+          })
+          let iLastCheckedIndex = files.indexOf(this.currentFile)
+          let iCurrCheckedIndex = files.indexOf(file)
+          if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
+            const index = checkedList.findIndex( checkedFile => {
+              return checkedFile === file
+            })
+            if (index === -1) {
+              let iStartIndex = Math.min(iLastCheckedIndex, iCurrCheckedIndex)
+              let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
+              let aUidsToCheck = files.slice(iStartIndex, iEndIndex + 1)
+              if (aUidsToCheck.length > 0) {
+                checkedList = _.union(checkedList, aUidsToCheck)
+              }
+            } else {
+              if (index > iLastCheckedIndex) {
+                checkedList.splice(index + 1)
+              } else {
+                checkedList.splice(0, index)
+              }
+            }
+          }
+        } else {
+          checkedList = [file]
+          this.currentFile = file
+        }
+      }
+      if (checkedList.length === 1) {
+        this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
+      }
+      this.checkedList = checkedList
+      this.$store.dispatch('files/changeCheckedItems', { checkedItems: this.checkedList })
+    },
   }
 }
 </script>
 
 <style scoped>
+.select-text-disable {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.breadcrumbs:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
 .storages {
   width: 30%;
 }
@@ -55,9 +267,9 @@ export default {
 }
 .popup_panel {
   min-width: 840px;
-  height: 400px;
+  height: 500px;
 }
 .panels {
-  height: 345px;
+  height: 445px;
 }
 </style>

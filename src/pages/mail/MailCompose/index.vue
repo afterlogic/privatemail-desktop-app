@@ -1003,7 +1003,6 @@ export default {
         let sSignature = oIdentity && oIdentity.bUseSignature ? typesUtils.pString(oIdentity.sSignature, '') : ''
         this.editortext = '<br><br>' + composeUtils.getTagWrappedSignature(sSignature)
       }
-
       this.attachments = []
       if (typesUtils.isNonEmptyArray(aAttachments)) {
         let aHashes = []
@@ -1223,6 +1222,7 @@ export default {
       }
     },
     onFileAdded (files) {
+      console.log(files, 'files')
       if (typesUtils.isNonEmptyArray(files)) {
         _.each(files, (oFile) => {
           let oAttach = new cAttachment()
@@ -1270,6 +1270,28 @@ export default {
       this.attachments = _.filter(this.attachments, (oTmpAttach) => {
         return oTmpAttach.sHash !== oAttach.sHash
       })
+    },
+    addAttachmentsFromFiles (files) {
+      //  vadim
+
+      let attachments = []
+      _.each(files, (oAttachData) => {
+        let oAttach = new cAttachment()
+        oAttach.parseDataFromServer(oAttachData)
+        attachments.push(oAttach)
+      })
+      if (attachments[0]?.sTempName) {
+        attachments.map((attach, index) => {
+          if (attach) {
+            attach.parseDataFromServer(files[index])
+            attach.onUploadComplete()
+          }
+          this.commitMessageData()
+        })
+      }
+      this.attachments = this.attachments.concat(attachments)
+
+      //this.continueOpeningCompose({aAttachments: files, bRemoveCurrentAttachments: false})
     },
     pickFiles () {
       this.$refs.uploader.pickFiles()

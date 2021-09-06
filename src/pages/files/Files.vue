@@ -60,6 +60,7 @@
                 </div>
                 <div class="flex q-mt-sm q-mx-sm" style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
                   <div class="q-mt-xs">
+                    <span v-if="hasProgress(file)"  class="q-mr-md text-primary">{{ getProgress(file) }}</span>
                     <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary" @click="viewEncryptedFile(file)">View</span>
                     <span v-else-if="hasViewAction(file) && !isEncrypted(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
                     <span v-if="hasOpenAction(file) && !isEncrypted(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
@@ -76,8 +77,8 @@
               </div>
               <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
                 <div class="q-ml-sm">
-                  <b>{{ getShortName(file.Name) }}</b>
-                  <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">{{file.Name}}</q-tooltip>
+                  <b>{{ getShortName(file.Name || file.name) }}</b>
+                  <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">{{file.Name || file.name}}</q-tooltip>
                 </div>
                 <div class="q-mr-sm" style="align-items: center">
                   <span>{{ getFileSize(file) }}</span>
@@ -108,7 +109,7 @@
                 </div>
                 <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
                   <div>
-                    {{ getShortName(file.Name) }}
+                    {{ getShortName(file.Name || file.name) }}
                   </div>
                 </q-card-section>
               </div>
@@ -139,27 +140,29 @@ export default {
     ShareIcon,
     LinkIcon,
     EncryptedIcon,
-    EncryptedFileInformationDialog
+    EncryptedFileInformationDialog,
   },
   props: {
-    currentStorage: {
-      Type: Object,
-      Default: {}
-    }
+    currentStorage: Object,
+    downloadFiles: Array
   },
   data() {
     return {
       currentFile: null,
       checkedList: [],
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
-      imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg']
+      imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
     }
   },
   computed: {
     filesList () {
       let folders = []
       let files = []
-      const currentFiles = this.$store.getters['files/getCurrentFiles']
+      let currentFiles = this.$store.getters['files/getCurrentFiles']
+      if (this.downloadFiles.length) {
+        console.log(this.downloadFiles, 'this.downloadFiles')
+        currentFiles = currentFiles.concat(this.downloadFiles)
+      }
       currentFiles.map( file => {
         if (file.IsFolder) {
           folders.push(file)
@@ -192,6 +195,16 @@ export default {
     }
   },
   methods: {
+    hasProgress (file) {
+      return !!file?.__progressLabel
+    },
+    getProgress (file) {
+      return file.__progressLabel
+    },
+    getUploadFile (file) {
+      console.log(file?.File ? file.File : { '__progress': 'heh' }, 'file?.File ? file.File : { \'__progress\': \'heh\' }')
+      return file?.File ? file.File : { '__progressLabel': 'heh' }
+    },
     isImg (file) {
       const formatFile = this.formatFile(file)
       return this.imgFormats.find( format => {
@@ -199,7 +212,7 @@ export default {
       })
     },
     getDescription (file) {
-      return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified)
+      return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified || file.lastModified)
     },
     getShortName (name) {
       if (name.length > 12) {
@@ -208,10 +221,10 @@ export default {
       return name
     },
     getFileSize (file) {
-      return text.getFriendlySize(file.Size)
+      return text.getFriendlySize(file.Size || file.size)
     },
     formatFile (file) {
-      let fileName = file.Name
+      let fileName = file.Name || file.name
       return fileName.split('.')[fileName.split('.').length - 1]
     },
     openShareDialog (file) {
@@ -224,11 +237,11 @@ export default {
       this.$refs.encryptedFileInformationDialog.openDialog(file)
     },
     isShared (file) {
-      const shares = file.ExtendedProps?.Shares
+      const shares = file?.ExtendedProps?.Shares
       return _.isArray(shares) && shares.length
     },
     isEncrypted (file) {
-      return file.ExtendedProps?.ParanoidKey ? true : false
+      return file?.ExtendedProps?.ParanoidKey ? true : false
     },
     hasLink (file) {
       return file?.ExtendedProps?.PublicLink
@@ -236,7 +249,7 @@ export default {
     downloadFile (file = null) {
       let url = ''
       if (file) {
-        url = file.Actions.download.url
+        url = file?.Actions.download.url
       } else {
         url = this.currentFile.Actions.download.url
       }
@@ -278,7 +291,7 @@ export default {
     },
     viewFile (file) {
       const url = file.Actions.view.url
-      webApi.viewByUrlInNewWindow(url, file.Name)
+      webApi.viewByUrlInNewWindow(url, file.Name || file.name)
     },
     getPreviewFile (file) {
       if (!this.isEncrypted(file) && this.isImg(file)) {

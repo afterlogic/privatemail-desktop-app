@@ -214,6 +214,11 @@
           </q-item-section>
           <q-separator />
         </q-item>
+        <q-item>
+            <span class="text-primary mail-link q-mt-xs" @click="saveToFiles">
+              Save to Files
+            </span>
+        </q-item>
       </div>
       <q-slide-transition>
         <div class="col-auto" v-if="!isSentFolder && !isDraftsFolder && !isScheduledFolder" v-show="!isSendingOrSaving">
@@ -256,6 +261,10 @@
 </template>
 
 <style lang="scss" scoped>
+.mail-link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
 .attachments-panel {
   background: #fafafa;
   max-height: 200px;
@@ -778,6 +787,14 @@ export default {
     },
     printMessage () {
       this.$refs.PrintMessageView.printMessage()
+    },
+    saveToFiles () {
+      let attachments = this.aAttachments.map( attach => {
+        return attach.sHash
+      })
+      this.$store.dispatch('files/saveAttachmentsToFile', { attachments }).then( res => {
+        notification.showReport('Complete')
+      })
     }
   }
 }

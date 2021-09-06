@@ -36,6 +36,8 @@
                 :factory="addedFiles"
                 @added="onFileAdded"
                 @uploaded="showReport"
+                @uploading="test"
+                @finish="finishUpload"
               >
               </q-uploader>
             </div>
@@ -54,7 +56,7 @@
                             </svg>
                           </q-icon>
                           <q-icon v-if="storage.Type === 'encrypted'">
-                            <encrypted-icon></encrypted-icon>
+                            <encrypted-icon/>
                           </q-icon>
                           <q-icon v-if="storage.Type === 'corporate'">
                             <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
@@ -100,7 +102,10 @@
               </q-breadcrumbs>
               <q-separator />
             </div>
-            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles" @linkDialog="linkDialog"/>
+            <div v-for="file in downloadFiles" :key="file.Hash">
+              {{ file.__progress }}
+            </div>
+            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles" @linkDialog="linkDialog" :downloadFiles="downloadFiles"/>
           </div>
         </template>
       </q-splitter>
@@ -143,7 +148,8 @@ export default {
       currentFile: null,
       searchProgress: false,
       fileIndex: 0,
-      downloadFiles: []
+      downloadFiles: [],
+      files: null
     }
   },
   mounted() {
@@ -164,6 +170,14 @@ export default {
     },
     currentFilePath () {
       return this.$store.getters['files/getCurrentPath']
+    },
+    progressLabel () {
+      return this.files?.__progressLabel
+    }
+  },
+  watch: {
+    files (val) {
+      console.log(val, '__progressLabel')
     }
   },
   beforeDestroy () {
@@ -171,6 +185,13 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    finishUpload () {
+      this.downloadFiles = []
+    },
+    test (info) {
+      console.log(info)
+      this.files = info.files[0]
+    },
     createShortcut () {
       this.$refs.createShortcutDialog.openDialog()
     },
@@ -213,6 +234,7 @@ export default {
       this.$store.dispatch('files/changeCurrentPaths', {path})
     },
     onFileAdded (files) {
+      console.log('files', files)
       this.downloadFiles = files
       this.fileIndex = 0
       if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
@@ -284,7 +306,7 @@ export default {
         if (sAuthToken) {
           headers.push({name: 'Authorization', value: 'Bearer ' + sAuthToken})
         }
-        this.$store.commit('files/setLoadingStatus', { status: true })
+        //this.$store.commit('files/setLoadingStatus', { status: true })
         return {
           url,
           method: 'POST',

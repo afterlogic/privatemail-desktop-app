@@ -341,7 +341,31 @@ export function createLink ({ state, commit, getters, dispatch }, { type, path, 
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
-      },
+      }
     })
   }))
+}
+export function saveAttachmentsToFile ({ state, commit, getters, dispatch }, { attachments }) {
+  return new Promise( resolve => {
+    const accountId = store.getters['mail/getCurrentAccountId']
+    const oParameters = {
+      AccountID: accountId,
+      Attachments: attachments
+    }
+    console.log(oParameters, 'oParameters')
+    webApi.sendRequest({
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sModule: 'MailSaveAttachmentsToFilesPlugin',
+      sMethod: 'Save',
+      oParameters,
+      fCallback: (result, error) => {
+        if (result) {
+          resolve(result)
+        } else {
+          notification.showError(error)
+        }
+      },
+    })
+  })
 }

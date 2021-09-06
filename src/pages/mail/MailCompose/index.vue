@@ -1007,6 +1007,7 @@ export default {
       if (typesUtils.isNonEmptyArray(aAttachments)) {
         let aHashes = []
         _.each(aAttachments, (oAttachData) => {
+          console.log(oAttachData, 'oAttachData')
           let oAttach = new cAttachment()
           oAttach.parseDataFromServer(oAttachData)
           this.attachments.push(oAttach)
@@ -1272,26 +1273,26 @@ export default {
       })
     },
     addAttachmentsFromFiles (files) {
-      //  vadim
-
       let attachments = []
       _.each(files, (oAttachData) => {
         let oAttach = new cAttachment()
-        oAttach.parseDataFromServer(oAttachData)
+        oAttach.parseDataFromFiles(oAttachData)
         attachments.push(oAttach)
       })
-      if (attachments[0]?.sTempName) {
-        attachments.map((attach, index) => {
-          if (attach) {
-            attach.parseDataFromServer(files[index])
+      this.attachments = this.attachments.concat(attachments)
+      this.$store.dispatch('files/saveFilesAsTempFiles', {
+        files
+      }).then(res => {
+        this.attachments.map((attach) => {
+          const foundFile = res.find(file => {
+            return file.Name === attach.sFileName
+          })
+          if (foundFile) {
+            attach.parseDataFromServer(foundFile)
             attach.onUploadComplete()
           }
-          this.commitMessageData()
         })
-      }
-      this.attachments = this.attachments.concat(attachments)
-
-      //this.continueOpeningCompose({aAttachments: files, bRemoveCurrentAttachments: false})
+      })
     },
     pickFiles () {
       this.$refs.uploader.pickFiles()

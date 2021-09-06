@@ -578,12 +578,14 @@ transition-hide="slide-down"
             <q-separator />
           </div>
           <div class="col-auto column items-center">
-            <q-btn no-wrap no-caps unelevated icon="attachment" @click="pickFiles">
-              <q-tooltip>Pick Files</q-tooltip>
-            </q-btn>
-            <q-btn no-wrap no-caps unelevated icon="cloud_download" @click="selectFiles">
-              <q-tooltip>Attach from files</q-tooltip>
-            </q-btn>
+            <div class="flex">
+              <q-btn no-wrap no-caps unelevated icon="attachment" @click="pickFiles">
+                <q-tooltip>Pick Files</q-tooltip>
+              </q-btn>
+              <q-btn no-wrap no-caps unelevated icon="cloud_download" @click="selectFiles">
+                <q-tooltip>Attach from files</q-tooltip>
+              </q-btn>
+            </div>
           </div>
           <div class="col-auto">
             <q-separator />

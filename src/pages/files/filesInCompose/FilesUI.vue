@@ -3,12 +3,14 @@
     <q-card class="popup_panel select-text-disable">
       <div class="flex panels">
         <q-card-section class="storages">
-          <q-scroll-area class="full-height ">
+          <q-scroll-area class="full-height main-background" style="border-radius: 5px;">
             <q-list>
               <div v-for="storage in storageList" :key="storage.DisplayName">
                 <q-item
-                  :class="{active: currentStorage.DisplayName === storage.DisplayName}"
-                  clickable v-ripple @click="selectStorage(storage)">
+                  :class="{'active-storage': currentStorage.DisplayName === storage.DisplayName}"
+                  clickable v-ripple @click="selectStorage(storage)"
+                  style="color: white; border-radius: 5px;"
+                >
                   <q-item-section avatar>
                     <q-icon v-if="storage.Type === 'personal'">
                       <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24">
@@ -38,33 +40,36 @@
             </q-list>
           </q-scroll-area>
         </q-card-section>
-        <q-card-section class="files" style="max-height: 445px; padding-left: 0">
+        <q-card-section class="files">
           <div style="position: sticky">
-            <q-separator></q-separator>
+            <div class="q-mr-md">
+              <q-separator></q-separator>
+            </div>
             <q-breadcrumbs class="q-px-md q-py-sm">
               <q-breadcrumbs-el class="breadcrumbs" v-for="path in currentPaths" :key="path.name" :label="path.name"  @click="changeFolder(path)"/>
             </q-breadcrumbs>
+          </div>
+          <div class="q-mr-md q-mb-md">
             <q-separator></q-separator>
           </div>
-          <q-card-section class="scroll" style="max-height: 390px; margin-left: 0">
+          <q-scroll-area class="full-height" style="max-height: 390px; margin-left: 0">
             <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="isUploadingFiles">
               Loading...
             </div>
             <div class="row" v-if="!isUploadingFiles">
               <q-card
                 flat
-                class="q-mx-sm q-mb-md select-text-disable"
-                v-for="file in filesList" :key="file.Hash" style="width: 150px; height: 175px;" align="center"
+                class="q-mx-sm q-mb-md select-text-disable file"
+                v-for="file in filesList" :key="file.Hash" align="center"
               >
-                <file :file="file" :is-checked="isChecked(file)" @selectedFile="selectedFile" :current-storage="currentStorage" @select="select"></file>
+                <file :file="file" :is-checked="isChecked(file)" @selectedFile="selectedFile"
+                      :current-storage="currentStorage" @select="select"></file>
               </q-card>
             </div>
-          </q-card-section>
+          </q-scroll-area>
         </q-card-section>
       </div>
-
-      <q-separator />
-
+      <q-separator/>
       <q-card-actions class="buttons" align="right">
         <q-btn flat :ripple="false" color="primary" @click="select"
                label="Select" />
@@ -148,18 +153,16 @@ export default {
           Path: item.Path,
           Name: item.Name,
           Id: item.Id,
-          IsEncrypted: false
+          IsEncrypted: false,
+          Hash: item.Hash,
+          Size: item.Size
         }
       })
       this.saveFilesAsTempFiles(files)
     },
     saveFilesAsTempFiles (files) {
       this.confirm = false
-      this.$store.dispatch('files/saveFilesAsTempFiles', {
-        files
-      }).then(res => {
-        this.$emit('addAttachmentsFromFiles', res)
-      })
+      this.$emit('addAttachmentsFromFiles', files)
     },
     cancel () {
       this.confirm = false
@@ -248,12 +251,19 @@ export default {
 </script>
 
 <style scoped>
+.file {
+  width: 150px;
+  height: 175px;
+}
 .select-text-disable {
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+.active-storage {
+  border: 1px solid var(--q-color-primary);
 }
 .breadcrumbs:hover {
   cursor: pointer;
@@ -263,13 +273,16 @@ export default {
   width: 30%;
 }
 .files {
+  max-height: 445px;
+  padding-left: 0;
+  padding-right: 0;
   width: 70%;
 }
 .popup_panel {
   min-width: 840px;
-  height: 500px;
+  height: 520px;
 }
 .panels {
-  height: 445px;
+  height: 465px;
 }
 </style>

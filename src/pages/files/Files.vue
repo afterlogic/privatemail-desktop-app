@@ -22,100 +22,111 @@
         >
           No shared files
         </div>
-        <div class="row q-pa-sm large" v-if="!isUploadingFiles">
-          <q-card
-            flat
-            class="q-mx-sm q-mb-md select-text-disable"
-            v-for="file in filesList" :key="file.Hash" style="width: 150px; height: 175px;" align="center"
-          >
-            <div class="file-focus file" v-if="!file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
-              <div
-                class="file-card"
-                style="height: 150px; border-radius: 3px"
-                :class="{
+          <transition-group class="row q-pa-sm large" v-if="!isUploadingFiles" name="list" tag="div" style="display: flex; flex-wrap: wrap">
+              <q-card
+                flat
+                class="q-mx-sm q-mb-md select-text-disable"
+                align="center"
+                v-for="file in filesList" :key="file.Hash || file.lastModified" style="width: 150px; height: 175px;"
+              >
+                <div class="file-focus file" v-if="!file.IsFolder"
+                     @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
+                  <div
+                    class="file-card"
+                    style="height: 150px; border-radius: 3px"
+                    :class="{
                  'file-selected': isChecked(file)
                  }"
-              >
-                <span class="display-none tooltip" style="line-height: 1.2" :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
+                  >
+                <span class="display-none tooltip" style="line-height: 1.2"
+                      :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
                   {{ getDescription(file) }}
                 </span>
-                <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile(file)">
-                  <div class="img-block">
-                    <span class="icon" :class="formatFile(file)"></span>
-                  </div>
-                </div>
-                <div class="image  q-pt-sm" v-if="getPreviewFile(file)">
-                  <div class="img-preview" :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`, 'background-size': 'contain'}" />
-                </div>
-                <div class="flex q-mt-sm q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
-                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
-                      <share-icon style="fill: white !important;" :width="20" :height="20"/>
-                  </div>
-                  <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
-                      <link-icon style="fill: white !important;" :width="20" :height="20"/>
-                  </div>
-                  <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="isEncrypted(file)" @click="openEncryptedFileDialog(file)">
-                    <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
-                  </div>
-                </div>
-                <div class="flex q-mt-sm q-mx-sm" style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
-                  <div class="q-mt-xs">
-                    <span v-if="hasProgress(file)"  class="q-mr-md text-primary">{{ getProgress(file) }}</span>
-                    <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary" @click="viewEncryptedFile(file)">View</span>
-                    <span v-else-if="hasViewAction(file) && !isEncrypted(file)" class="q-mr-md text-primary" @click="viewFile(file)">View</span>
-                    <span v-if="hasOpenAction(file) && !isEncrypted(file)" class="q-mr-md text-primary" @click="viewFile(file)">Open</span>
-                  </div>
-                  <div class="q-mt-xs">
+                    <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile(file)">
+                      <div class="img-block">
+                        <span class="icon" :class="formatFile(file)"></span>
+                      </div>
+                    </div>
+                    <div class="image  q-pt-sm" v-if="getPreviewFile(file)">
+                      <div class="img-preview"
+                           :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`, 'background-size': 'contain'}"/>
+                    </div>
+                    <div class="flex q-mt-sm q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
+                      <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
+                        <share-icon style="fill: white !important;" :width="20" :height="20"/>
+                      </div>
+                      <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
+                        <link-icon style="fill: white !important;" :width="20" :height="20"/>
+                      </div>
+                      <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="isEncrypted(file)"
+                           @click="openEncryptedFileDialog(file)">
+                        <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
+                      </div>
+                    </div>
+                    <div class="flex q-mt-sm q-mx-sm"
+                         style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
+                      <div class="q-mt-xs">
+                        <span v-if="hasProgress(file)" class="q-mr-md text-primary">{{ getProgress(file) }}</span>
+                        <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary"
+                              @click="viewEncryptedFile(file)">View</span>
+                        <span v-else-if="hasViewAction(file) && !isEncrypted(file)" class="q-mr-md text-primary"
+                              @click="viewFile(file)">View</span>
+                        <span v-if="hasOpenAction(file) && !isEncrypted(file)" class="q-mr-md text-primary"
+                              @click="viewFile(file)">Open</span>
+                      </div>
+                      <div class="q-mt-xs">
                     <span
                       v-if="hasDownloadAction(file)" class="text-primary"
                       @click="isEncrypted(file) ? downloadEncryptedFile(file) : downloadFile(file)"
                     >
                       Download
                     </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
+                    <div class="q-ml-sm">
+                      <b>{{ getShortName(file.Name || file.name) }}</b>
+                      <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+                        {{ file.Name || file.name }}
+                      </q-tooltip>
+                    </div>
+                    <div class="q-mr-sm" style="align-items: center">
+                      <span>{{ getFileSize(file) }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
-                <div class="q-ml-sm">
-                  <b>{{ getShortName(file.Name || file.name) }}</b>
-                  <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">{{file.Name || file.name}}</q-tooltip>
-                </div>
-                <div class="q-mr-sm" style="align-items: center">
-                  <span>{{ getFileSize(file) }}</span>
-                </div>
-              </div>
-            </div>
-            <div
-              class="file-focus folder"
-              v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
-              @dblclick="openFolder(file)"
-            >
-              <div class="file-focus__border" style="height: 150px; position:relative" :class="{
+                <div
+                  class="file-focus folder"
+                  v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
+                  @dblclick="openFolder(file)"
+                >
+                  <div class="file-focus__border" style="height: 150px; position:relative" :class="{
                 'folder-selected': isChecked(file) && file.IsFolder
                }">
-                <div class="image q-px-sm" style="padding-top: 28px">
-                  <div class="img-block">
-                    <span class="icon"></span>
+                    <div class="image q-px-sm" style="padding-top: 28px">
+                      <div class="img-block">
+                        <span class="icon"></span>
+                      </div>
+                    </div>
+                    <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
+                      <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
+                        <share-icon style="fill: white !important;" :width="20" :height="20"/>
+                      </div>
+                      <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
+                        <link-icon style="fill: white !important;" :width="20" :height="20"/>
+                      </div>
+                      <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
+                    </div>
+                    <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
+                      <div>
+                        {{ getShortName(file.Name || file.name) }}
+                      </div>
+                    </q-card-section>
                   </div>
                 </div>
-                <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
-                  <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
-                    <share-icon style="fill: white !important;" :width="20" :height="20"/>
-                  </div>
-                  <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
-                    <link-icon style="fill: white !important;" :width="20" :height="20"/>
-                  </div>
-                  <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
-                </div>
-                <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
-                  <div>
-                    {{ getShortName(file.Name || file.name) }}
-                  </div>
-                </q-card-section>
-              </div>
-            </div>
-          </q-card>
-        </div>
+              </q-card>
+          </transition-group>
       </q-scroll-area>
     <encrypted-file-information-dialog ref="encryptedFileInformationDialog" @downloadEncrypted="downloadFile"></encrypted-file-information-dialog>
   </div>
@@ -201,7 +212,6 @@ export default {
       return file.__progressLabel
     },
     getUploadFile (file) {
-      console.log(file?.File ? file.File : { '__progress': 'heh' }, 'file?.File ? file.File : { \'__progress\': \'heh\' }')
       return file?.File ? file.File : { '__progressLabel': 'heh' }
     },
     isImg (file) {
@@ -388,7 +398,17 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.list-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+.list-enter-active, .list-leave-active {
+  transition: all 1s;
+}
+.list-enter, .list-leave-to /* .list-leave-active до версии 2.1.8 */ {
+  opacity: 0;
+  transform: scale(0.5);
+}
 .select-text-disable {
   -webkit-user-select: none;
   -khtml-user-select: none;

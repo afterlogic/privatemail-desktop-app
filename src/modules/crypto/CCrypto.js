@@ -175,7 +175,7 @@ CCrypto.prototype.encryptChunk = async function (sUid, fOnChunkEncryptCallback, 
       //fProcessNextChunkCallback runs after previous chunk uploading
       fProcessNextChunkCallback = _.bind(function (sUid, fOnChunkEncryptCallback) {
         if (this.iCurrChunk < this.iChunkNumber) {// if it was not last chunk - read another chunk
-          this.readChunk(sUid, this.fOnChunkReadyCallback)
+          this.readChunk(sUid, callBack)
         } else {// if it was last chunk - check Queue for files awaiting upload
           this.oChunkQueue.isProcessed = false
           this.checkQueue()
@@ -268,7 +268,7 @@ CCrypto.prototype.downloadDividedFile = async function (
 	}
 }
 
-CCrypto.prototype.uploadTask = function (sUid, oFileInfo, fCallback, bSkipCompleteFunction, bUseResponce, iProgressOffset, callBack) {
+CCrypto.prototype.uploadTask = async function (sUid, oFileInfo, fCallback, bSkipCompleteFunction, bUseResponce, iProgressOffset, callBack) {
   if (!sUid || !oFileInfo || !oFileInfo['File']) {
     fCallback(null, sUid)
     return false
@@ -312,13 +312,9 @@ CCrypto.prototype.uploadTask = function (sUid, oFileInfo, fCallback, bSkipComple
     })
 
     oXhr.send(oFormData)
-    callBack()
-    setTimeout(() => {
-      store.dispatch('files/getFiles', {
-        currentStorage: store.getters['files/getCurrentStorage'].Type,
-        path: store.getters['files/getCurrentPath']
-      })
-    }, 1000)
+    oXhr.onload = () => {
+      callBack()
+    }
     return true
   } catch (error) {
     notification.showError(error)

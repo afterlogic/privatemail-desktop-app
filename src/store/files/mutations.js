@@ -11,16 +11,13 @@ export function setFilesList (state, { files, storage }) {
   state.filesTree[storage] = files
 }
 export function removeCheckedFiles (state, { checkedFiles }) {
-  let currentFiles = _.clone(state.currentFiles)
-  _.remove(currentFiles, (file) => {
-    const foundFile = checkedFiles.filter( checkedFile => {
-      return checkedFile.Hash === file.Hash
-    } )
-    if (foundFile.length) {
-      return foundFile[0].Hash === file.Hash
-    }
+  checkedFiles.map( checkedFile => {
+    state.currentFiles.map( (file, index) => {
+      if (file.Hash === checkedFile.Hash) {
+        state.currentFiles.splice(index, 1)
+      }
+    })
   })
-  state.currentFiles = currentFiles
 }
 export function setCurrentFiles (state, { files }) {
   state.currentFiles = files

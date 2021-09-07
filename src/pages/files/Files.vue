@@ -160,7 +160,6 @@ export default {
       let files = []
       let currentFiles = this.$store.getters['files/getCurrentFiles']
       if (this.downloadFiles.length) {
-        console.log(this.downloadFiles, 'this.downloadFiles')
         currentFiles = currentFiles.concat(this.downloadFiles)
       }
       currentFiles.map( file => {
@@ -383,7 +382,7 @@ export default {
     },
     isChecked(file) {
       return this.checkedList.find(checkedFile => checkedFile.Hash === file.Hash)
-    },
+    }
   }
 }
 </script>

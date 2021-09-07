@@ -115,7 +115,7 @@ export function changeCheckedItems ({ state, commit, getters, dispatch }, { chec
   commit('setCheckedItems', { checkedItems })
 }
 export function removeFiles ({ state, commit, getters, dispatch }, { type, path, items }) {
-  commit('setLoadingStatus', { status: true })
+  commit('removeCheckedFiles', { checkedFiles: items })
   ipcRenderer.send('files-remove-items', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -125,13 +125,8 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
   })
 
   ipcRenderer.once('files-remove-items', (event, { result, oError }) => {
-    if (result) {
-      dispatch('getFiles', {
-        currentStorage: type,
-        path: path
-      })
-    } else {
-      commit('setLoadingStatus', { status: false })
+    if (oError) {
+      notification.showError(oError)
     }
   })
 }

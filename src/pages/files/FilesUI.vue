@@ -102,9 +102,6 @@
               </q-breadcrumbs>
               <q-separator />
             </div>
-            <div v-for="file in downloadFiles" :key="file.Hash">
-              {{ file.__progress }}
-            </div>
             <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles" @linkDialog="linkDialog" :downloadFiles="downloadFiles"/>
           </div>
         </template>
@@ -379,7 +376,7 @@ export default {
       this.$refs.uploader.removeQueuedFiles()
       this.$refs.uploader.removeUploadedFiles()
       this.$refs.uploader.pickFiles()
-    }
+    },
   }
 }
 </script>

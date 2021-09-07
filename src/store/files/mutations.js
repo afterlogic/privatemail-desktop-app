@@ -1,4 +1,5 @@
 import typesUtils from 'src/utils/types.js'
+import _ from 'lodash'
 
 export function setStorageList (state, storageList) {
   state.storageList = typesUtils.pArray(storageList)
@@ -8,6 +9,18 @@ export function setCurrentStorage (state, currentStorage) {
 }
 export function setFilesList (state, { files, storage }) {
   state.filesTree[storage] = files
+}
+export function removeCheckedFiles (state, { checkedFiles }) {
+  let currentFiles = _.clone(state.currentFiles)
+  _.remove(currentFiles, (file) => {
+    const foundFile = checkedFiles.filter( checkedFile => {
+      return checkedFile.Hash === file.Hash
+    } )
+    if (foundFile.length) {
+      return foundFile[0].Hash === file.Hash
+    }
+  })
+  state.currentFiles = currentFiles
 }
 export function setCurrentFiles (state, { files }) {
   state.currentFiles = files

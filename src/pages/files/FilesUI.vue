@@ -44,7 +44,14 @@
               <div class="col" style="overflow: hidden;">
                 <q-scroll-area class="full-height ">
                   <q-list>
-                    <div v-for="storage in storageList" :key="storage.DisplayName">
+                    <div
+                      v-for="storage in storageList"
+                      :key="storage.DisplayName"
+                      :draggable="true"
+                      @drop="ondrop($event, storage.Type)"
+                      @dragover.prevent
+                      @dragenter.prevent
+                    >
                       <q-item
                         :class="{active: currentStorage.DisplayName === storage.DisplayName}"
                         clickable v-ripple @click="selectStorage(storage)">
@@ -95,7 +102,16 @@
                 </q-input>
               </q-toolbar>
               <q-breadcrumbs class="q-px-md q-py-sm">
-                <q-breadcrumbs-el class="breadcrumbs" v-for="path in currentPaths" :key="path.name" :label="path.name" @click="changeFolder(path)" />
+                <q-breadcrumbs-el
+                  class="breadcrumbs"
+                  v-for="path in currentPaths"
+                  :key="path.name"
+                  :label="path.name"
+                  @click="changeFolder(path)"
+                  @drop="ondrop($event, '', path.path)"
+                  @dragover.prevent
+                  @dragenter.prevent
+                />
                 <q-breadcrumbs-el label="Search results" v-if="searchProgress">
                   (&nbsp;<span class="breadcrumbs text-primary" @click="clearSearch">Clear</span>&nbsp;)
                 </q-breadcrumbs-el>
@@ -127,6 +143,7 @@ import Crypto from 'src/modules/crypto/CCrypto'
 import FileUploadTypeSelectionDialog from './FileUploadTypeSelectionDialog'
 import MailboxBusyIndicator from 'src/pages/mail/MailboxBusyIndicator'
 import store from "../../store";
+import {getCheckedItems} from "../../store/files/getters";
 export default {
   name: "FilesUI",
   components: {
@@ -174,11 +191,6 @@ export default {
       return this.files?.__progressLabel
     }
   },
-  watch: {
-    files (val) {
-      console.log(val, '__progressLabel')
-    }
-  },
   beforeDestroy () {
     this.$store.commit('files/setCurrentPaths', { path: [] })
     this.$store.commit('files/setCurrentPath', { path: '' })
@@ -188,7 +200,6 @@ export default {
       this.downloadFiles = []
     },
     test (info) {
-      console.log(info)
       this.files = info.files[0]
     },
     createShortcut () {
@@ -273,8 +284,27 @@ export default {
         }
       }
     },
+    ondrop (e, toType = '', path) {
+      let toPath = ''
+      if (!path) {
+       toPath = e.dataTransfer.getData('toPath')
+      } else {
+        toPath = path
+      }
+      const fromType = e.dataTransfer.getData('fromType')
+      const checkedList = this.$store.getters['files/getCheckedItems']
+      this.$store.commit('files/removeCheckedFiles', {
+        checkedFiles: checkedList
+      })
+      const fromPath = this.$store.getters['files/getCurrentPath']
+      this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
+      .then( res => {
+        if (!res) {
+          this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+        }
+      })
+    },
     uploadEncryptFiles () {
-      console.log('end')
       if (this.fileIndex > this.downloadFiles.length - 1) {
         this.fileIndex = 0
         this.$store.dispatch('files/getFiles', {

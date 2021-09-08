@@ -36,7 +36,10 @@
           v-for="file in filesList" :key="file.Hash || file.name" style="width: 150px; height: 175px;"
         >
           <div class="file-focus file" v-if="!file.IsFolder || file.__status === 'uploaded'"
-               @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }">
+               @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
+               :draggable="true"
+               @dragstart="onDragStart($event, file)"
+          >
             <div
               class="file-card"
               style="height: 150px; border-radius: 3px"
@@ -106,6 +109,11 @@
             class="file-focus folder"
             v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
             @dblclick="openFolder(file)"
+            :draggable="true"
+            @drop="ondrop($event, file.FullPath, file.Type)"
+            @dragstart="onDragStart($event)"
+            @dragover.prevent
+            @dragenter.prevent
           >
             <div class="file-focus__border" style="height: 150px; position:relative" :class="{
                 'folder-selected': isChecked(file) && file.IsFolder
@@ -403,6 +411,31 @@ export default {
     },
     isChecked(file) {
       return this.checkedList.find(checkedFile => (checkedFile.Hash || checkedFile.name) === (file.Hash || file.name))
+    },
+    onDragStart (e, file) {
+      let checkedList = _.clone(this.$store.getters['files/getCheckedItems'])
+      const checkedFile = checkedList.find(item => item.Hash === file.Hash)
+      if (!checkedFile) {
+        checkedList.push(file)
+      }
+      this.checkedList = checkedList
+      this.$store.dispatch('files/changeCheckedItems', {
+        checkedItems: this.checkedList
+      })
+      e.dataTransfer.setData('fromPath', file.Path)
+      e.dataTransfer.setData('fromType', file.Type)
+    },
+    ondrop (e, toPath, toType) {
+      this.$store.commit('files/removeCheckedFiles', {
+        checkedFiles: this.checkedList
+      })
+      const fromPath = this.$store.getters['files/getCurrentPath']
+      this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })
+      .then( res => {
+        if (!res) {
+          this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+        }
+      })
     }
   }
 }

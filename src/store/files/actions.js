@@ -52,38 +52,45 @@ export function updateExtendedProps ({ state, commit, getters, dispatch }, { typ
   })
 }
 
-export function getFiles ({ state, commit, getters, dispatch }, { currentStorage, path, pattern = ''}) {
+export function getFiles ({ state, commit, getters, dispatch }, {
+  currentStorage,
+  path,
+  pattern = '',
+  changeLoadingStatus = true
+}) {
   dispatch('changeCurrentFile', { currentFile: null })
+  if (changeLoadingStatus) {
     commit('setLoadingStatus', { status: true })
-    commit('setCurrentPattern', { pattern })
-    const parameters = {
-      Type: currentStorage,
-      Path: path,
-      Pattern: pattern,
-      PathRequired: false
-    }
-    webApi.sendRequest({
-      sApiHost: store.getters['main/getApiHost'],
-      sAuthToken: store.getters['user/getAuthToken'],
-      sModule: 'Files',
-      sMethod: 'GetFiles',
-      oParameters: parameters,
-      fCallback: (files, error) => {
-        if (_.isArray(files?.Items)) {
-          commit('setCheckedItems', { checkedItems: [] })
-          const currentPath = getters['getCurrentPath']
-          const storage = getters['getCurrentStorage']
-          const currentPattern = getters['getCurrentPattern']
-          if (currentStorage === storage.Type && path === currentPath && currentPattern === pattern) {
-            commit('setCurrentFiles', { files: files.Items })
-            commit('setLoadingStatus', { status: false })
-          }
+  }
+  commit('setCurrentPattern', { pattern })
+  const parameters = {
+    Type: currentStorage,
+    Path: path,
+    Pattern: pattern,
+    PathRequired: false
+  }
+  webApi.sendRequest({
+    sApiHost: store.getters['main/getApiHost'],
+    sAuthToken: store.getters['user/getAuthToken'],
+    sModule: 'Files',
+    sMethod: 'GetFiles',
+    oParameters: parameters,
+    fCallback: (files, error) => {
+      if (_.isArray(files?.Items)) {
+        commit('setCheckedItems', { checkedItems: [] })
+        const currentPath = getters['getCurrentPath']
+        const storage = getters['getCurrentStorage']
+        const currentPattern = getters['getCurrentPattern']
+        if (currentStorage === storage.Type && path === currentPath && currentPattern === pattern) {
+          commit('setCurrentFiles', { files: files.Items })
+          commit('setLoadingStatus', { status: false })
         }
-        if (files?.Quota) {
-          commit('setFilesQuota', { quota: files.Quota })
-        }
-      },
-    })
+      }
+      if (files?.Quota) {
+        commit('setFilesQuota', { quota: files.Quota })
+      }
+    },
+  })
 }
 export function changeCurrentFile ({ state, commit, getters, dispatch }, { currentFile }) {
   commit('setCurrentFile', { currentFile })
@@ -125,6 +132,18 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
   })
 
   ipcRenderer.once('files-remove-items', (event, { result, oError }) => {
+    if (result) {
+      const currentStorage = getters['getCurrentStorage'].Type
+      const currentPath = getters['getCurrentPath']
+      if (type === currentStorage && path === currentPath) {
+        dispatch('getFiles', {
+          currentStorage,
+          path: path,
+          pattern: '',
+          changeLoadingStatus: false
+        })
+      }
+    }
     if (oError) {
       notification.showError(oError)
     }
@@ -347,7 +366,6 @@ export function saveAttachmentsToFile ({ state, commit, getters, dispatch }, { a
       AccountID: accountId,
       Attachments: attachments
     }
-    console.log(oParameters, 'oParameters')
     webApi.sendRequest({
       sApiHost: store.getters['main/getApiHost'],
       sAuthToken: store.getters['user/getAuthToken'],
@@ -359,6 +377,50 @@ export function saveAttachmentsToFile ({ state, commit, getters, dispatch }, { a
           resolve(result)
         } else {
           notification.showError(error)
+        }
+      },
+    })
+  })
+}
+export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, toPath, toType, fromType, checkedList }) {
+  return new Promise( resolve => {
+    let files = checkedList.map( file => {
+      return {
+        "FromType": file.Type,
+        "FromPath": fromPath,
+        "Name": file.Name,
+        "IsFolder": file.IsFolder
+      }
+    })
+    dispatch('changeCheckedItems', {
+      checkedItems: []
+    })
+    const oParameters = {
+      FromPath: fromPath,
+      ToPath: toPath,
+      ToType: toType ? toType : fromType,
+      FromType: fromType,
+      Files: files
+    }
+    webApi.sendRequest({
+      sApiHost: store.getters['main/getApiHost'],
+      sAuthToken: store.getters['user/getAuthToken'],
+      sModule: 'Files',
+      sMethod: 'Move',
+      oParameters,
+      fCallback: (result) => {
+        if (result) {
+          const currentStorage = getters['getCurrentStorage'].Type
+          const currentPath = getters['getCurrentPath']
+          if ((toType || fromType) === currentStorage && toPath === currentPath) {
+            dispatch('getFiles', {
+              currentStorage,
+              path: toPath,
+              pattern: '',
+              changeLoadingStatus: false
+            })
+          }
+          resolve(result)
         }
       },
     })

@@ -133,16 +133,7 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
 
   ipcRenderer.once('files-remove-items', (event, { result, oError }) => {
     if (result) {
-      const currentStorage = getters['getCurrentStorage'].Type
-      const currentPath = getters['getCurrentPath']
-      if (type === currentStorage && path === currentPath) {
-        dispatch('getFiles', {
-          currentStorage,
-          path: path,
-          pattern: '',
-          changeLoadingStatus: false
-        })
-      }
+      notification.showReport('Compete')
     }
     if (oError) {
       notification.showError(oError)

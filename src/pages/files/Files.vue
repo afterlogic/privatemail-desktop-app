@@ -39,6 +39,7 @@
                @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
                :draggable="true"
                @dragstart="onDragStart($event, file)"
+               @dragend="dragend()"
           >
             <div
               class="file-card"
@@ -109,13 +110,16 @@
             class="file-focus folder"
             v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
             @dblclick="openFolder(file)"
+            @dragenter="dragEnter($event.target)"
+            @dragleave="dragLeave($event.target)"
             :draggable="true"
             @drop="ondrop($event, file.FullPath, file.Type)"
-            @dragstart="onDragStart($event)"
+            @dragend="dragend($event.target)"
+            @dragstart="onDragStart($event, file)"
             @dragover.prevent
             @dragenter.prevent
           >
-            <div class="file-focus__border" style="height: 150px; position:relative" :class="{
+            <div class="file-focus__border child-elements" style="height: 150px; position:relative" :class="{
                 'folder-selected': isChecked(file) && file.IsFolder
                }">
               <div class="image q-px-sm" style="padding-top: 28px">
@@ -178,6 +182,7 @@ export default {
       checkedList: [],
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
+      elem: null
     }
   },
   computed: {
@@ -419,6 +424,18 @@ export default {
         checkedList.push(file)
       }
       this.checkedList = checkedList
+
+      let div = document.createElement('div');
+      div.innerText = checkedList.length  +  ( checkedList.length > 1 ? ' files' : 'file')
+      div.style.position = 'fixed';
+      div.style.fontSize = '12px'
+      div.style.color = 'white'
+      div.style.background = 'black'
+      div.style.padding = '2px 20px'
+      div.style.borderRadius = '4px'
+      document.body.appendChild(div);
+      e.dataTransfer.setDragImage(div, 0, 0);
+
       this.$store.dispatch('files/changeCheckedItems', {
         checkedItems: this.checkedList
       })
@@ -436,12 +453,44 @@ export default {
           this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
         }
       })
+    },
+    dragEnter (elem) {
+      this.elem = elem
+      if (elem.classList.contains('folder')) {
+        elem.classList.add('border-drop')
+      } else {
+        this.dragEnter(elem.parentNode)
+      }
+    },
+    dragLeave (elem) {
+      if (!elem.classList.contains('large')) {
+        if (elem.classList.contains('border-drop')) {
+          elem.classList.remove('border-drop')
+        } else {
+          this.dragLeave(elem.parentNode)
+        }
+      }
+    },
+    dragend () {
+      if (this.elem) {
+        if (this.elem.classList.contains('border-drop')) {
+          this.elem.classList.remove('border-drop')
+        } else {
+          this.dragLeave(this.elem.parentNode)
+        }
+      }
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
+.child-elements {
+  pointer-events: none;
+}
+.border-drop {
+ background-color: rgba(103, 128, 159, 0.2);
+}
 .inscription {
   width: 100%;
   position: absolute;

@@ -3,7 +3,7 @@
     <q-scroll-area class="full-height">
       <transition name="inscription">
         <div class="pannel-hint non-selectable full-width inscription"
-             v-if="!isUploadingFiles && !filesList.length && !searchInProgress && currentStorage.Type !== 'shared' && isFolder"
+             v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && isFolder"
         >
           Folder is empty
         </div>
@@ -14,136 +14,47 @@
         </div>
       </transition>
       <div class="pannel-hint non-selectable full-width inscription"
-           v-if="!isUploadingFiles && !filesList.length && !searchInProgress && currentStorage.Type !== 'shared' && !isFolder"
+           v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && !isFolder"
       >
         You can drag-n-drop files from other folders or from your desktop, or click New Folder to create a folder
       </div>
       <div class="pannel-hint non-selectable full-width inscription"
-           v-else-if="!isUploadingFiles && !filesList.length && searchInProgress">
+           v-else-if="!isUploadingFiles && !fileList.length && !folderList.length && searchInProgress">
         Nothing found
       </div>
       <div class="pannel-hint non-selectable full-width inscription"
-           v-else-if="!filesList.length && currentStorage.Type === 'shared' && !searchInProgress"
+           v-else-if="!fileList.length && !folderList.length && currentStorage.Type === 'shared' && !searchInProgress"
       >
         No shared files
       </div>
       <transition-group class="row q-pa-sm large" v-if="!isUploadingFiles" name="list" tag="div"
                         style="display: flex; flex-wrap: wrap">
-        <q-card
-          flat
-          class="q-mx-sm q-mb-md select-text-disable"
-          align="center"
-          v-for="file in filesList" :key="file.Hash || file.name" style="width: 150px; height: 175px;"
-        >
-          <div class="file-focus file" v-if="!file.IsFolder || file.__status === 'uploaded'"
-               @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
-               :draggable="true"
-               @dragstart="onDragStart($event, file)"
-               @dragend="dragend()"
-          >
-            <div
-              class="file-card"
-              style="height: 150px; border-radius: 3px"
-              :class="{
-                 'file-selected': isChecked(file)
-                 }"
-            >
-                <span class="display-none tooltip" style="line-height: 1.2"
-                      :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
-                  {{ getDescription(file) }}
-                </span>
-              <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile(file)">
-                <div class="img-block">
-                  <span class="icon" :class="formatFile(file)"></span>
-                </div>
-              </div>
-              <div class="image  q-pt-sm" v-if="getPreviewFile(file)">
-                <div class="img-preview"
-                     :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`, 'background-size': 'contain'}"/>
-              </div>
-              <div class="flex q-mt-sm q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
-                <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
-                  <share-icon style="fill: white !important;" :width="20" :height="20"/>
-                </div>
-                <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
-                  <link-icon style="fill: white !important;" :width="20" :height="20"/>
-                </div>
-                <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="isEncrypted(file)"
-                     @click="openEncryptedFileDialog(file)">
-                  <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
-                </div>
-              </div>
-              <div class="flex q-mt-sm q-mx-sm"
-                   style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
-                <div class="q-mt-xs">
-                  <span v-if="hasProgress(file)" class="q-mr-md text-primary">{{ getProgress(file) }}</span>
-                  <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary"
-                        @click="viewEncryptedFile(file)">View</span>
-                  <span v-else-if="hasViewAction(file) && !isEncrypted(file)" class="q-mr-md text-primary"
-                        @click="viewFile(file)">View</span>
-                  <span v-if="hasOpenAction(file) && !isEncrypted(file)" class="q-mr-md text-primary"
-                        @click="viewFile(file)">Open</span>
-                </div>
-                <div class="q-mt-xs">
-                    <span
-                      v-if="hasDownloadAction(file)" class="text-primary"
-                      @click="isEncrypted(file) ? downloadEncryptedFile(file) : downloadFile(file)"
-                    >
-                      Download
-                    </span>
-                </div>
-              </div>
-            </div>
-            <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
-              <div class="q-ml-sm">
-                <b>{{ getShortName(file.Name || file.name) }}</b>
-                <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-                  {{ file.Name || file.name }}
-                </q-tooltip>
-              </div>
-              <div class="q-mr-sm" style="align-items: center">
-                <span>{{ getFileSize(file) }}</span>
-              </div>
-            </div>
-          </div>
-          <div
-            class="file-focus folder"
-            v-if="file.IsFolder" @click="function (oMouseEvent) { selectedFile(file, oMouseEvent) }"
-            @dblclick="openFolder(file)"
-            @dragenter="dragEnter($event.target)"
-            @dragleave="dragLeave($event.target)"
-            :draggable="true"
-            @drop="ondrop($event, file.FullPath, file.Type)"
-            @dragend="dragend($event.target)"
-            @dragstart="onDragStart($event, file)"
-            @dragover.prevent
-            @dragenter.prevent
-          >
-            <div class="file-focus__border child-elements" style="height: 150px; position:relative" :class="{
-                'folder-selected': isChecked(file) && file.IsFolder
-               }">
-              <div class="image q-px-sm" style="padding-top: 28px">
-                <div class="img-block">
-                  <span class="icon"></span>
-                </div>
-              </div>
-              <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
-                <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
-                  <share-icon style="fill: white !important;" :width="20" :height="20"/>
-                </div>
-                <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
-                  <link-icon style="fill: white !important;" :width="20" :height="20"/>
-                </div>
-                <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
-              </div>
-              <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
-                <div>
-                  {{ getShortName(file.Name || file.name) }}
-                </div>
-              </q-card-section>
-            </div>
-          </div>
-        </q-card>
+          <folder-item
+            v-for="folder in folderList" :key="folder.Hash"
+            :file="folder"
+            :selectFile="selectFile"
+            :openFolder="openFolder"
+            :dragEnter="dragEnter"
+            :dragend="dragend"
+            :onDragStart="onDragStart"
+            :isChecked="isChecked"
+            :openShareDialog="openShareDialog"
+            :openLinkDialog="openLinkDialog"
+            :checkedList="checkedList"
+            :dragLeave="dragLeave"
+          />
+        <file-item
+          v-for="file in fileList" :key="file.Hash || file.name"
+          :file="file"
+          :selectFile="selectFile"
+          :onDragStart="onDragStart"
+          :dragend="dragend"
+          :isChecked="isChecked"
+          :openLinkDialog="openLinkDialog"
+          :openEncryptedFileDialog="openEncryptedFileDialog"
+          :openShareDialog="openShareDialog"
+          :downloadFile="downloadFile"
+        />
       </transition-group>
     </q-scroll-area>
     <encrypted-file-information-dialog ref="encryptedFileInformationDialog"
@@ -152,25 +63,19 @@
 </template>
 
 <script>
-import webApi from 'src/utils/webApi'
-import ShareIcon from '../../assets/icons/ShareIcon'
-import LinkIcon from '../../assets/icons/LinkIcon'
-import EncryptedIcon from '../../assets/icons/EncryptedIcon'
-import date from '../../utils/date'
 import _ from 'lodash'
-import text from '../../utils/text'
+import webApi from '../../utils/webApi'
+
 import EncryptedFileInformationDialog from './EncryptedFileInformationDialog'
-import Crypto from 'src/modules/crypto/CCrypto'
-import OpenPgp from 'src/modules/openpgp/OpenPgp'
-import notification from '../../utils/notification'
+import FileItem from './items/FileItem'
+import FolderItem from './items/FolderItem'
 
 export default {
   name: 'Files',
   components: {
-    ShareIcon,
-    LinkIcon,
-    EncryptedIcon,
     EncryptedFileInformationDialog,
+    FileItem,
+    FolderItem
   },
   props: {
     currentStorage: Object,
@@ -186,9 +91,22 @@ export default {
     }
   },
   computed: {
-    filesList () {
-      let folders = []
+    fileList () {
       let files = []
+      let currentFiles = this.$store.getters['files/getCurrentFiles']
+      if (this.downloadFiles.length) {
+        currentFiles = currentFiles.concat(this.downloadFiles)
+        this.sortByName(currentFiles)
+      }
+      currentFiles.map( file => {
+        if (!file.IsFolder) {
+          files.push(file)
+        }
+      })
+      return files
+    },
+    folderList () {
+      let folders = []
       let currentFiles = this.$store.getters['files/getCurrentFiles']
       if (this.downloadFiles.length) {
         currentFiles = currentFiles.concat(this.downloadFiles)
@@ -197,11 +115,9 @@ export default {
       currentFiles.map( file => {
         if (file.IsFolder) {
           folders.push(file)
-        } else {
-          files.push(file)
         }
       })
-      return folders.concat(files)
+      return folders
     },
     searchInProgress () {
       const currentPattern = this.$store.getters['files/getCurrentPattern']
@@ -226,58 +142,8 @@ export default {
     }
   },
   methods: {
-    sortByName (arr) {
-      arr.sort((a, b) => (a.name || a.Name) > (b.Name || b.name) ? 1 : -1);
-    },
-    hasProgress (file) {
-      return !!file?.__progressLabel
-    },
-    getProgress (file) {
-      return file.__progressLabel
-    },
-    getUploadFile (file) {
-      return file?.File ? file.File : { '__progressLabel': 'heh' }
-    },
-    isImg (file) {
-      const formatFile = this.formatFile(file)
-      return this.imgFormats.find( format => {
-        return format === formatFile
-      })
-    },
-    getDescription (file) {
-      return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified || file.lastModified)
-    },
-    getShortName (name) {
-      if (name.length > 12) {
-        return name.substr(0, 10) + '...'
-      }
-      return name
-    },
-    getFileSize (file) {
-      return text.getFriendlySize(file.Size || file.size)
-    },
-    formatFile (file) {
-      let fileName = file.Name || file.name
-      return fileName.split('.')[fileName.split('.').length - 1]
-    },
-    openShareDialog (file) {
-      this.$emit('shareFiles', file)
-    },
-    openLinkDialog (file) {
-      this.$emit('linkDialog', file)
-    },
     openEncryptedFileDialog (file) {
       this.$refs.encryptedFileInformationDialog.openDialog(file)
-    },
-    isShared (file) {
-      const shares = file?.ExtendedProps?.Shares
-      return _.isArray(shares) && shares.length
-    },
-    isEncrypted (file) {
-      return file?.ExtendedProps?.ParanoidKey ? true : false
-    },
-    hasLink (file) {
-      return file?.ExtendedProps?.PublicLink
     },
     downloadFile (file = null) {
       let url = ''
@@ -288,55 +154,16 @@ export default {
       }
       webApi.downloadByUrl(url)
     },
-    async viewEncryptedFile (file) {
-      let iv = file?.ExtendedProps?.InitializationVector || false
-      let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
-      const aesKey = await this.getAesKey(file)
-      Crypto.viewEncryptedImage(file, iv, paranoidEncryptedKey, aesKey)
+    sortByName (arr) {
+      arr.sort((a, b) => (a.name || a.Name) > (b.Name || b.name) ? 1 : -1);
     },
-    async downloadEncryptedFile (file) {
-      let iv = file?.ExtendedProps?.InitializationVector || false
-      let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
-      const aesKey = await this.getAesKey(file)
-      Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
+    openShareDialog (file) {
+      this.$emit('shareFiles', file)
     },
-    async getAesKey (file) {
-      const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
-      const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-      let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
-      let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
-      if (privateKey) {
-        let paranoidKey = ''
-        if (this.$store.getters['files/getCurrentStorage'].Type === 'shared') {
-          paranoidKey = file?.ExtendedProps?.ParanoidKeyShared
-        } else {
-          paranoidKey = file?.ExtendedProps?.ParanoidKey
-        }
-        const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
-        if (decryptData?.sError) {
-          notification.showError(decryptData.sError)
-          return false
-        }
-        return decryptData.sDecryptedData
-      } else {
-        notification.showError('No private key found for file decryption.')
-      }
+    openLinkDialog (file) {
+      this.$emit('linkDialog', file)
     },
-    viewFile (file) {
-      const url = file.Actions?.view?.url
-      webApi.viewByUrlInNewWindow(url, file.Name || file.name)
-    },
-    getPreviewFile (file) {
-      if (!this.isEncrypted(file) && this.isImg(file)) {
-        if (file?.Actions?.view?.url) {
-          let api = this.$store.getters['main/getApiHost']
-          let link = file.Actions?.view?.url
-          return api + '/' + link
-        }
-      }
-      return null
-    },
-    selectedFile (file, oMouseEvent) {
+    selectFile (file, oMouseEvent) {
       console.log(file, 'file')
       let checkedList = _.map(this.checkedList, function (file) {
         return file
@@ -352,11 +179,15 @@ export default {
             checkedList = _.without(checkedList, file)
           }
         } else if (oMouseEvent.shiftKey) {
-          let files = _.map(this.filesList, function (file) {
+          let files = this.fileList.map( file => {
             return file
           })
-          let iLastCheckedIndex = files.indexOf(this.currentFile)
-          let iCurrCheckedIndex = files.indexOf(file)
+          let folders = this.folderList.map( folder => {
+            return folder
+          })
+          let items = folders.concat(files)
+          let iLastCheckedIndex = items.indexOf(this.currentFile)
+          let iCurrCheckedIndex = items.indexOf(file)
           if (iLastCheckedIndex !== -1 && iCurrCheckedIndex !== -1) {
             const index = checkedList.findIndex( checkedFile => {
               return checkedFile === file
@@ -386,24 +217,6 @@ export default {
        }
       this.checkedList = checkedList
       this.$store.dispatch('files/changeCheckedItems', { checkedItems: this.checkedList })
-    },
-    hasDownloadAction (file) {
-      if (file) {
-        return file?.Actions?.download
-      }
-      return false
-    },
-    hasViewAction (file) {
-      const formatFile = this.formatFile(file)
-      return this.fileFormats.find( format => {
-          return format === formatFile
-      })
-    },
-    hasOpenAction (file) {
-      if (file) {
-        return file?.Actions?.open
-      }
-      return false
     },
     openFolder(file) {
       this.$emit('openFolder', true)
@@ -442,18 +255,6 @@ export default {
       e.dataTransfer.setData('fromPath', file.Path)
       e.dataTransfer.setData('fromType', file.Type)
     },
-    ondrop (e, toPath, toType) {
-      this.$store.commit('files/removeCheckedFiles', {
-        checkedFiles: this.checkedList
-      })
-      const fromPath = this.$store.getters['files/getCurrentPath']
-      this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })
-      .then( res => {
-        if (!res) {
-          this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
-        }
-      })
-    },
     dragEnter (elem) {
       this.elem = elem
       if (elem.classList.contains('folder')) {
@@ -484,7 +285,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .child-elements {
   pointer-events: none;
 }

@@ -272,7 +272,13 @@ export default {
       return 'undefined' === typeof mValue;
     },
     onFileAdded (files) {
+      files.map( file => {
+        file.getProgressLabel = function () {
+          return this
+        }
+      })
       this.downloadFiles = files
+      console.log(this.downloadFiles, 'this.downloadFiles')
       this.fileIndex = 0
       if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
         this.$refs.fileUploadTypeSelectionDialog.openDialog()

@@ -1286,6 +1286,7 @@ export default {
             return file.Name === attach.sFileName
           })
           if (foundFile) {
+            attach.oFile.__progress = 1
             attach.parseDataFromServer(foundFile)
             attach.onUploadComplete()
           }

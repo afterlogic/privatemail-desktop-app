@@ -155,7 +155,8 @@ export default {
           Id: item.Id,
           IsEncrypted: false,
           Hash: item.Hash,
-          Size: item.Size
+          Size: item.Size,
+          __progress: 0
         }
       })
       this.saveFilesAsTempFiles(files)

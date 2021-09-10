@@ -74,6 +74,14 @@ cAttachment.prototype.getStatus = function () {
   return 'Uploading'
 }
 
+cAttachment.prototype.parseDataFromFiles = function (file) {
+  this.iSize = typesUtils.pInt(file.Size, this.iSize)
+  this.oFile = file
+  this.sFileName = typesUtils.pString(file.Name, this.sFileName)
+  this.sLocalPath = typesUtils.pString(file.Path, this.sLocalPath)
+  this.sType = typesUtils.pString(file.Type, this.sType)
+}
+
 cAttachment.prototype.parseUploaderFile = function (oFile, bLinked) {
   this.bInline = bLinked
   this.bLinked = bLinked

@@ -166,7 +166,7 @@ CViewImage.prototype.writeChunk = function (oDecryptedUint8Array)
 //  view image
 
 CCrypto.prototype.encryptChunk = async function (sUid, fOnChunkEncryptCallback, callBack) {
-  await crypto.subtle.encrypt({name: 'AES-CBC', iv: this.iv}, this.oKey, this.oChunk)
+   crypto.subtle.encrypt({name: 'AES-CBC', iv: this.iv}, this.oKey, this.oChunk)
   .then(_.bind(function (oEncryptedContent) {
     //delete padding for all chunks except last one
     oEncryptedContent = (this.iChunkNumber > 1 && this.iCurrChunk !== this.iChunkNumber) ? oEncryptedContent.slice(0, oEncryptedContent.byteLength - 16) : oEncryptedContent
@@ -298,7 +298,9 @@ CCrypto.prototype.uploadTask = async function (sUid, oFileInfo, fCallback, bSkip
     oXhr.open('POST', sAction, true)
     oXhr.setRequestHeader('Authorization', 'Bearer ' + store.getters['user/getAuthToken'])
     oXhr.setRequestHeader('X-Client', 'WebClient')
-
+    oXhr.upload.onprogress = function (event) {
+      oFileInfo.fileClass.File.__progress = event.loaded / event.total
+    }
     oFormData.append('jua-post-type', 'ajax')
     oFormData.append('jua-uploader', oFileInfo['File'], oFileInfo['fileName'])
     let getStringOrCallFunction = function (mStringOrFunction, aFunctionParams) {

@@ -32,14 +32,13 @@
                 style="max-height: initial; display: none"
                 class="col full-height full-width"
                 flat
+                auto-upload
                 ref="uploader"
                 :factory="addedFiles"
                 @added="onFileAdded"
                 @uploaded="showReport"
-                @uploading="test"
                 @finish="finishUpload"
-              >
-              </q-uploader>
+              />
             </div>
               <div class="col" style="overflow: hidden;">
                 <q-scroll-area class="full-height ">
@@ -78,7 +77,6 @@
                         <q-item-section avatar>
                           <q-item-label lines="1">{{ storage.DisplayName }}</q-item-label>
                         </q-item-section>
-                        <!-- <q-item-section side>3</q-item-section> -->
                       </q-item>
                     </div>
                   </q-list>
@@ -96,9 +94,6 @@
                   <template v-slot:prepend>
                     <q-icon name="search" @click="search"></q-icon>
                   </template>
-                  <!-- <template v-slot:after>
-                    <q-btn round dense flat icon="send" ></q-btn>
-                  </template> -->
                 </q-input>
               </q-toolbar>
               <q-breadcrumbs class="q-px-md q-py-sm">
@@ -128,6 +123,8 @@
               :fileList="fileList"
               :folderList="folderList"
             />
+
+
           </div>
         </template>
       </q-splitter>
@@ -140,22 +137,21 @@
 </style>
 
 <script>
-import Toolbar from './Toolbar'
+import File from 'src/modules/files/classes/File'
+import Folder from 'src/modules/files/classes/Folder'
+
 import notification from '../../utils/notification'
-import ShareIcon from '../../assets/icons/ShareIcon'
-import EncryptedIcon from '../../assets/icons/EncryptedIcon'
-import CreateShortcutDialog from './CreateShortcutDialog'
 import types from 'src/utils/types'
 import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings.js'
 import OpenPgp from '../../modules/openpgp/OpenPgp'
 import Crypto from 'src/modules/crypto/CCrypto'
+
 import FileUploadTypeSelectionDialog from './FileUploadTypeSelectionDialog'
 import MailboxBusyIndicator from 'src/pages/mail/MailboxBusyIndicator'
-
-import {getCheckedItems} from "../../store/files/getters";
-
-import File from 'src/modules/files/classes/File'
-import Folder from 'src/modules/files/classes/Folder'
+import Toolbar from './Toolbar'
+import ShareIcon from '../../assets/icons/ShareIcon'
+import EncryptedIcon from '../../assets/icons/EncryptedIcon'
+import CreateShortcutDialog from './CreateShortcutDialog'
 
 export default {
   name: "FilesUI",
@@ -177,7 +173,7 @@ export default {
       fileIndex: 0,
       downloadFiles: [],
       files: [],
-      counter: 0
+      counter: 0,
     }
   },
   mounted() {
@@ -195,13 +191,7 @@ export default {
         }
       })
       if (this.downloadFiles.length) {
-        this.downloadFiles.map(item => {
-          if (!item.IsFolder) {
-            const file = new File()
-            file.parseUploaderFile(item)
-            files.push(file)
-          }
-        })
+        files = files.concat(this.downloadFiles)
         this.sortByName(files)
       }
       return files
@@ -251,9 +241,6 @@ export default {
     },
     finishUpload () {
       this.downloadFiles = []
-    },
-    test (info) {
-      this.files = info.files[0]
     },
     createShortcut () {
       this.$refs.createShortcutDialog.openDialog()
@@ -325,12 +312,13 @@ export default {
       return 'undefined' === typeof mValue;
     },
     onFileAdded (files) {
-      files.map( file => {
-        file.getProgressLabel = function () {
-          return this
+      files.map(item => {
+        if (!item.IsFolder) {
+          const file = new File()
+          file.parseUploaderFile(item)
+          this.downloadFiles.push(file)
         }
       })
-      this.downloadFiles = files
       this.fileIndex = 0
       if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
         this.$refs.fileUploadTypeSelectionDialog.openDialog()
@@ -377,7 +365,8 @@ export default {
 
       } else {
         const fileInfo = {
-          file: this.downloadFiles[this.fileIndex],
+          file: this.downloadFiles[this.fileIndex].File,
+          fileClass: this.downloadFiles[this.fileIndex],
           fileName: this.downloadFiles[this.fileIndex].name,
           folder: this.$store.getters['files/getCurrentPath'],
           size: this.downloadFiles[this.fileIndex].size,
@@ -424,7 +413,7 @@ export default {
         this.counter = 0
       }
     },
-    addedFiles (files) {
+    addedFiles () {
       if (this.currentStorage.Type !== 'encrypted') {
         let url = this.$store.getters['main/getApiHost'] + '/?/Api/'
         let sAuthToken = this.$store.getters['user/getAuthToken']
@@ -432,7 +421,6 @@ export default {
         if (sAuthToken) {
           headers.push({name: 'Authorization', value: 'Bearer ' + sAuthToken})
         }
-        //this.$store.commit('files/setLoadingStatus', { status: true })
         return {
           url,
           method: 'POST',

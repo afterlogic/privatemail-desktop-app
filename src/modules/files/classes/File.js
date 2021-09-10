@@ -4,13 +4,11 @@ import _ from 'lodash'
 import typesUtils from '../../../utils/types'
 
 function File() {
-  this.ProgressPercent = 0
   this.Size = 0
   this.File = null
   this.Hash = Math.random()
   this.Name = ''
   this.Type = ''
-  this.UploadFailed = false
   this.LastModified = 0
   this.Owner = ''
   this.FullPath = ''
@@ -27,8 +25,8 @@ File.prototype.parseUploaderFile = function (file) {
   this.Size = typesUtils.pInt(file.size)
   this.File = file
   this.Hash = Math.random()
-  this.Name = typesUtils.pString(file.Name, '')
-  this.LastModified = typesUtils.pInt(file.lastModified)
+  this.Name = typesUtils.pString(file.name, '')
+  this.LastModified = typesUtils.pInt((new Date()).getTime() / 1000)
 }
 
 File.prototype.parseDataFromServer = function (file) {
@@ -53,28 +51,11 @@ File.prototype.parseDataFromServer = function (file) {
   this.InitializationVector = typesUtils.pString(file?.ExtendedProps?.InitializationVector, '')
 }
 
-File.prototype.getStatus = function () {
-  let iProgressPercent = this.getProgressPercent()
-  if (iProgressPercent === 100) {
-    if (this.UploadFailed) {
-      return 'Failed'
-    }
-    return 'Complete'
+File.prototype.getDescription = function (owner) {
+  if (this.Owner) {
+    return 'Added by ' + this.Owner + ' on ' + date.getShortDate(this.LastModified)
   }
-  if (iProgressPercent === 0 && this.File && this.File.__status === 'idle') {
-    return 'Idle'
-  }
-  return 'Uploading'
-}
-File.prototype.getProgressPercent = function () {
-  if (this.File) {
-    this.ProgressPercent = this.UploadFailed ? 100 : Math.ceil(this.File.__progress * 100)
-    return this.ProgressPercent
-  }
-  return this.ProgressPercent
-}
-File.prototype.getDescription = function () {
-  return 'Added by ' + this.Owner + ' on ' + date.getShortDate(this.LastModified)
+  return 'Added by ' + owner + ' on ' + date.getShortDate(this.LastModified)
 }
 File.prototype.hasDownloadAction = function () {
   return this.DownloadUrl
@@ -86,7 +67,7 @@ File.prototype.getShortName = function () {
   return this.Name
 }
 File.prototype.getFileSize = function () {
-  return text.getFriendlySize(this.size)
+  return text.getFriendlySize(this.Size)
 }
 File.prototype.isShared = function () {
   const shares = this.File?.ExtendedProps?.Shares

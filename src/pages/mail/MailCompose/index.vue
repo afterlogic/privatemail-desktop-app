@@ -1228,6 +1228,7 @@ export default {
           this.attachments.push(oAttach)
         })
       }
+      console.log( this.attachments, ' this.attachments')
     },
     onFileUploaded ({ files, xhr }) {
       let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null

@@ -18,7 +18,7 @@
     >
                 <span class="display-none tooltip" style="line-height: 1.2"
                       :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
-                  {{ file.getDescription(file) }}
+                  {{ file.getDescription(currentAccount) }}
                 </span>
       <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile()">
         <div class="img-block">
@@ -44,8 +44,10 @@
       <div class="flex q-mt-sm q-mx-sm"
            style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
         <div class="q-mt-xs">
-           <span v-if="file.getProgressPercent()" class="q-mr-md text-primary"
-           >{{ file.getProgressPercent() }}</span>
+           <span v-if="progressPercent && progressPercent !== 100" class="q-mr-md text-primary"
+           >{{ progressPercent }}%</span>
+          <span v-if="progressPercent === 100" class="q-mr-md" style="color: rgb(76, 175, 80);"
+          >complete</span>
           <span v-if="hasViewAction() && isImg(file) && file.isEncrypted()" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
           <span v-else-if="hasViewAction() && !file.isEncrypted()" class="q-mr-md text-primary"
@@ -71,7 +73,7 @@
         </q-tooltip>
       </div>
       <div class="q-mr-sm" style="align-items: center">
-        <span>{{ getFileSize(file) }}</span>
+        <span>{{ file.getFileSize() }}</span>
       </div>
     </div>
   </div>
@@ -108,6 +110,7 @@ export default {
     return {
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
+      progressPercent: 0
     }
   },
   components: {
@@ -115,7 +118,29 @@ export default {
     LinkIcon,
     EncryptedIcon,
   },
+  computed: {
+    currentAccount () {
+      return  this.$store.getters['mail/getCurrentAccountEmail']
+    }
+  },
+  mounted () {
+    setTimeout( () => {
+      this.getProgressPercent()
+    }, 0)
+  },
   methods: {
+    getProgressPercent () {
+      if (this.file) {
+        if (this.file.File?.__status) {
+          this.progressPercent = Math.ceil(this.file.File.__progress * 100) || 0
+          setTimeout(() => {
+            if (this.progressPercent !== 100) {
+              this.getProgressPercent()
+            }
+          }, 100)
+        }
+      }
+    },
     isImg (file) {
       const formatFile = this.formatFile(file)
       return this.imgFormats.find( format => {
@@ -137,9 +162,6 @@ export default {
       }
       return name
     },
-    getFileSize (file) {
-      return text.getFriendlySize(file.Size)
-    },
     formatFile (file) {
       let fileName = file.Name
       return fileName.split('.')[fileName.split('.').length - 1]
@@ -155,6 +177,9 @@ export default {
       return file?.ExtendedProps?.PublicLink
     },
     hasViewAction () {
+      if (this.file?.File?.__status) {
+        return false
+      }
       const formatFile = this.formatFile(this.file)
       return this.fileFormats.find( format => {
         return format === formatFile
@@ -204,8 +229,8 @@ export default {
       const url = file.ViewUrl
       webApi.viewByUrlInNewWindow(url, file.Name)
     },
-    getPreviewFile (file) {
-      if (!this.isEncrypted(file) && this.isImg(this.file)) {
+    getPreviewFile () {
+      if (!this.file.isEncrypted() && this.isImg(this.file)) {
         if (this.file.DownloadUrl) {
           let api = this.$store.getters['main/getApiHost']
           let link = this.file.DownloadUrl

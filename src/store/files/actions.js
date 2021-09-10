@@ -133,6 +133,9 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
 
   ipcRenderer.once('files-remove-items', (event, { result, oError }) => {
     if (result) {
+      commit('setCheckedItems', {
+        checkedItems: []
+      })
       notification.showReport('Compete')
     }
     if (oError) {

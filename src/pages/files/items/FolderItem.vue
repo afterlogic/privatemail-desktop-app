@@ -19,7 +19,7 @@
     @dragenter.prevent
   >
     <div class="file-focus__border child-elements" style="height: 150px; position:relative" :class="{
-                'folder-selected': isChecked(file) && file.IsFolder
+                'folder-selected': isChecked(file)
                }">
       <div class="image q-px-sm" style="padding-top: 28px">
         <div class="img-block">
@@ -27,17 +27,17 @@
         </div>
       </div>
       <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
-        <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
+        <div class="q-mr-xs q-mb-xs file-icon" v-if="file.isShared()" @click="openShareDialog(file)">
           <share-icon style="fill: white !important;" :width="20" :height="20"/>
         </div>
-        <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
+        <div class="q-mr-xs q-mb-xs file-icon" v-if="file.hasLink()" @click="openLinkDialog(file)">
           <link-icon style="fill: white !important;" :width="20" :height="20"/>
         </div>
-        <div v-if="!hasLink(file) && !isShared(file)" style="height: 26px"></div>
+        <div v-if="!file.hasLink() && !file.isShared()" style="height: 26px"></div>
       </div>
       <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
         <div>
-          {{ getShortName(file.Name || file.name) }}
+          {{ file.getShortName() }}
         </div>
       </q-card-section>
     </div>
@@ -64,7 +64,8 @@ export default {
     openShareDialog: Function,
     openLinkDialog: Function,
     dragLeave: Function,
-    checkedList: Array
+    checkedList: Array,
+    ondrop: Function
   },
   components: {
     ShareIcon,
@@ -82,21 +83,6 @@ export default {
         return name.substr(0, 10) + '...'
       }
       return name
-    },
-    ondrop (e, toPath, toType, file) {
-      const dropFile = this.checkedList.find( elem => elem.Hash === file.Hash)
-      if (!dropFile) {
-        this.$store.commit('files/removeCheckedFiles', {
-          checkedFiles: this.checkedList
-        })
-        const fromPath = this.$store.getters['files/getCurrentPath']
-        this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })
-        .then( res => {
-          if (!res) {
-            this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
-          }
-        })
-      }
     },
     isShared (file) {
       const shares = file?.ExtendedProps?.Shares

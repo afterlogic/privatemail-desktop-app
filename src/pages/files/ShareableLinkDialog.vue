@@ -1,7 +1,7 @@
 <template>
   <q-dialog v-model="confirm" persistent>
     <q-card class="q-dialog-size" style="min-width: 350px">
-      <div v-if="(!isEncrypted || publicLink) && !showEncryptedLink">
+      <div v-if="(file && !file.isEncrypted() || publicLink) && !showEncryptedLink">
         <div v-if="!publicLink">
           <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
           <q-item>
@@ -132,7 +132,7 @@
         </div>
       </div>
       <q-card-actions align="right">
-        <div v-if="isEncrypted && !publicLink && !showEncryptedLink">
+        <div v-if="file && file.isEncrypted() && !publicLink && !showEncryptedLink">
           <q-btn :disable="removing || !recipient" flat :ripple="false" color="primary" @click="askOpenPgpKeyPasswordForEncrypt"
                  :label="removing ? 'Removing link' : 'Encrypt'" />
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
@@ -381,9 +381,9 @@ export default {
       this.recipient = null
       this.file = file
       this.hasLinkPassword = false
-      const publicLink = file?.ExtendedProps?.PublicLink
+      const publicLink = file.hasLink()
       this.publicLink = publicLink ? this.$store.getters['main/getApiHost'] + '/' + publicLink : ''
-      this.passwordForSharing = file?.ExtendedProps?.PasswordForSharing || ''
+      this.passwordForSharing = file.File?.ExtendedProps?.PasswordForSharing || ''
       this.lifetime = {
         value: 0,
         label: 'Eternal'

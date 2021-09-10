@@ -128,7 +128,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles" />
+    <delete-items-dialog ref="deleteItemDialog" :items="checkedItems" @removeItems="removeFiles" :currentFile="currentFile"/>
     <rename-item-dialog ref="renameItemDialog" @renameItem="renameItem" />
     <share-with-teammates-dialog ref="shareWithTeammatesDialog"></share-with-teammates-dialog>
     <shareable-link-dialog ref="shareableLinkDialog" :file="currentFile"/>
@@ -152,6 +152,11 @@ export default {
     ShareWithTeammatesDialog,
     ShareableLinkDialog
   },
+  props: {
+    currentFile: Object,
+    files: Array,
+    folders: Array
+  },
   data () {
     return {
       createFolderDialog: false,
@@ -168,7 +173,11 @@ export default {
   },
   computed: {
     checkedItems () {
-      return this.$store.getters['files/getCheckedItems']
+      const currentFiles = this.folders.concat(this.files)
+      const hashes = this.$store.getters['files/getCheckedItems']
+      return  hashes.map( hash => {
+        return currentFiles.find( file => file.Hash === hash )
+      })
     },
     hasRecipients () {
       return !!this.recipients.length
@@ -177,11 +186,7 @@ export default {
       return this.$store.getters['files/getCopiedFiles']
     },
     isFolder () {
-      const file = this.$store.getters['files/getCurrentFile']
-      return file?.IsFolder
-    },
-    currentFile () {
-      return this.$store.getters['files/getCurrentFile']
+      return this.currentFile ? this.currentFile.IsFolder : false
     },
     currentStorage () {
       return this.$store.getters['files/getCurrentStorage']

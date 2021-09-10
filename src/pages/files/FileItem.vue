@@ -19,7 +19,6 @@ export default {
     file: {
       handler() {
         this.innerFile = this.file
-        console.log('file')
       },
       deep: true
     }

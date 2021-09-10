@@ -21,7 +21,8 @@ export default {
     items: {
       Type: Array,
       Default: []
-    }
+    },
+   currentFile: Object
   },
   data () {
     return {
@@ -38,9 +39,6 @@ export default {
       }
       return 'Delete selected file permanently?'
     },
-    currentFile () {
-      return this.$store.getters['files/getCurrentFile']
-    }
   },
   methods: {
     openDialog () {

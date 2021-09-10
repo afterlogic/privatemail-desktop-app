@@ -77,7 +77,10 @@ export default {
       return this.file ? this.file.Name : ''
     },
     initializationVector () {
-      return this.file ? this.file?.ExtendedProps?.InitializationVector : ''
+      if (this.file) {
+        return this.file.InitializationVector
+      }
+      return ''
     }
   },
   methods: {
@@ -99,9 +102,9 @@ export default {
       if (privateKey) {
        let paranoidKey = ''
         if (this.$store.getters['files/getCurrentStorage'].Type === 'shared') {
-          paranoidKey = this.file?.ExtendedProps?.ParanoidKeyShared
+          paranoidKey = this.file.File?.ExtendedProps?.ParanoidKeyShared
         } else {
-          paranoidKey = this.file?.ExtendedProps?.ParanoidKey
+          paranoidKey = this.file.ParanoidKey
         }
        const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
         if (decryptData?.sDecryptedData) {

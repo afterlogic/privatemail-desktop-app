@@ -90,7 +90,7 @@
         <template v-slot:after>
           <div class="column no-wrap full-height bg-white text-grey-8 panel-rounded" style="overflow: hidden">
             <div class="col-auto">
-              <toolbar ref="toolbar" :currentFile="currentFile" @downloadFile="$refs.files.downloadFile()"/>
+              <toolbar ref="toolbar" :currentFile="currentFile" @downloadFile="$refs.files.downloadFile()" :files="fileList" :folders="folderList"/>
               <q-toolbar style="width: 100%; background: #eee;">
                 <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
                   <template v-slot:prepend>
@@ -118,7 +118,16 @@
               </q-breadcrumbs>
               <q-separator />
             </div>
-            <router-view :currentStorage="currentStorage" @openFolder="clearSearchData()" ref="files" @shareFiles="shareFiles" @linkDialog="linkDialog" :downloadFiles="downloadFiles"/>
+            <router-view
+              :currentStorage="currentStorage"
+              @openFolder="clearSearchData()"
+              ref="files"
+              @shareFiles="shareFiles"
+              @linkDialog="linkDialog"
+              :downloadFiles="downloadFiles"
+              :fileList="fileList"
+              :folderList="folderList"
+            />
           </div>
         </template>
       </q-splitter>
@@ -142,8 +151,12 @@ import OpenPgp from '../../modules/openpgp/OpenPgp'
 import Crypto from 'src/modules/crypto/CCrypto'
 import FileUploadTypeSelectionDialog from './FileUploadTypeSelectionDialog'
 import MailboxBusyIndicator from 'src/pages/mail/MailboxBusyIndicator'
-import store from "../../store";
+
 import {getCheckedItems} from "../../store/files/getters";
+
+import File from 'src/modules/files/classes/File'
+import Folder from 'src/modules/files/classes/Folder'
+
 export default {
   name: "FilesUI",
   components: {
@@ -160,11 +173,10 @@ export default {
       splitterMessageModel: 50,
       checkboxVal: false,
       searchText: '',
-      currentFile: null,
       searchProgress: false,
       fileIndex: 0,
       downloadFiles: [],
-      files: null,
+      files: [],
       counter: 0
     }
   },
@@ -172,6 +184,40 @@ export default {
     this.populate()
   },
   computed: {
+    fileList () {
+      let files = []
+      const itemList = this.$store.getters['files/getCurrentFiles']
+      itemList.map( item => {
+        if (!item.IsFolder) {
+          const file = new File()
+          file.parseDataFromServer(item)
+          files.push(file)
+        }
+      })
+      if (this.downloadFiles.length) {
+        this.downloadFiles.map(item => {
+          if (!item.IsFolder) {
+            const file = new File()
+            file.parseUploaderFile(item)
+            files.push(file)
+          }
+        })
+        this.sortByName(files)
+      }
+      return files
+    },
+    folderList () {
+      const itemList = this.$store.getters['files/getCurrentFiles']
+      let folders = []
+      itemList.map( item => {
+        if (item.IsFolder) {
+          const folder = new Folder()
+          folder.parseDataFromServer(item)
+          folders.push(folder)
+        }
+      })
+      return folders
+    },
     isUploadingFiles () {
       return this.$store.getters['files/getLoadingStatus']
     },
@@ -189,6 +235,10 @@ export default {
     },
     progressLabel () {
       return this.files?.__progressLabel
+    },
+    currentFile () {
+      const hash = this.$store.getters['files/getCurrentFile']
+      return this.fileList.find( file => file.Hash === hash) || this.folderList.find( file => file.Hash === hash)
     }
   },
   beforeDestroy () {
@@ -196,6 +246,9 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    sortByName (arr) {
+      arr.sort((a, b) => (a.name || a.Name) > (b.Name || b.name) ? 1 : -1);
+    },
     finishUpload () {
       this.downloadFiles = []
     },
@@ -278,7 +331,6 @@ export default {
         }
       })
       this.downloadFiles = files
-      console.log(this.downloadFiles, 'this.downloadFiles')
       this.fileIndex = 0
       if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
         this.$refs.fileUploadTypeSelectionDialog.openDialog()
@@ -298,7 +350,11 @@ export default {
         toPath = path
       }
       const fromType = e.dataTransfer.getData('fromType')
-      const checkedList = this.$store.getters['files/getCheckedItems']
+      const hashes = this.$store.getters['files/getCheckedItems']
+      const fileList = this.$store.getters['files/getCurrentFiles']
+      const checkedList = hashes.map( hash => {
+        return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
+      })
       this.$store.commit('files/removeCheckedFiles', {
         checkedFiles: checkedList
       })
@@ -394,6 +450,7 @@ export default {
     populate () {
       this.$store.commit('files/setLoadingStatus', { status: true })
       this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: '' })
+      this.files = this.$store.getters['files/getCurrentFiles']
       const path = {
         path: '',
         name: this.currentStorage.DisplayName,

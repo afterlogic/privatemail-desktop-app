@@ -58,7 +58,7 @@ export function getFiles ({ state, commit, getters, dispatch }, {
   pattern = '',
   changeLoadingStatus = true
 }) {
-  dispatch('changeCurrentFile', { currentFile: null })
+  dispatch('changeCurrentFile', { currentFile: '' })
   if (changeLoadingStatus) {
     commit('setLoadingStatus', { status: true })
   }
@@ -93,7 +93,7 @@ export function getFiles ({ state, commit, getters, dispatch }, {
   })
 }
 export function changeCurrentFile ({ state, commit, getters, dispatch }, { currentFile }) {
-  commit('setCurrentFile', { currentFile })
+  commit('setCurrentFile', { currentFile: currentFile })
 }
 export function createFolder ({ state, commit, getters, dispatch }, { type, path, folderName }) {
   ipcRenderer.send('files-create-folder', {
@@ -119,7 +119,7 @@ export function changeCurrentPaths ({ state, commit, getters, dispatch }, { path
   commit('changeCurrentPath', { index, path, lastStorage })
 }
 export function changeCheckedItems ({ state, commit, getters, dispatch }, { checkedItems }) {
-  commit('setCheckedItems', { checkedItems })
+  commit('setCheckedItems', { checkedItems: checkedItems })
 }
 export function removeFiles ({ state, commit, getters, dispatch }, { type, path, items }) {
   commit('removeCheckedFiles', { checkedFiles: items })

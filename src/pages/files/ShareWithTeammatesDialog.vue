@@ -114,7 +114,7 @@ export default {
     openDialog (file) {
       this.saving = false
       this.file = file
-      const shares = this.file?.ExtendedProps?.Shares
+      const shares = this.file.Shares
       if (shares) {
         shares.map( contact => {
           if (contact.Access === 2) {
@@ -212,7 +212,7 @@ export default {
     },
     updateShare () {
       this.principalsEmails = this.getPrincipalsEmails()
-      if (this.file.ExtendedProps.ParanoidKey) {
+      if (this.file.ParanoidKey) {
         let keylessContacts = []
         this.principalsEmails.map( contact => {
           if (!OpenPgp.getPublicKeyByEmail(contact)) {

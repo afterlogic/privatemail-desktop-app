@@ -42,9 +42,10 @@
             :openLinkDialog="openLinkDialog"
             :checkedList="checkedList"
             :dragLeave="dragLeave"
+            :ondrop="ondrop"
           />
         <file-item
-          v-for="file in fileList" :key="file.Hash || file.name"
+          v-for="file in fileList" :key="file.Hash"
           :file="file"
           :selectFile="selectFile"
           :onDragStart="onDragStart"
@@ -79,7 +80,9 @@ export default {
   },
   props: {
     currentStorage: Object,
-    downloadFiles: Array
+    downloadFiles: Array,
+    fileList: Array,
+    folderList: Array
   },
   data() {
     return {
@@ -91,34 +94,10 @@ export default {
     }
   },
   computed: {
-    fileList () {
-      let files = []
-      let currentFiles = this.$store.getters['files/getCurrentFiles']
-      if (this.downloadFiles.length) {
-        currentFiles = currentFiles.concat(this.downloadFiles)
-        this.sortByName(currentFiles)
-      }
-      currentFiles.map( file => {
-        if (!file.IsFolder) {
-          files.push(file)
-        }
-      })
-      return files
+    currentFiles () {
+      return this.$store.getters['files/getCurrentFiles']
     },
-    folderList () {
-      let folders = []
-      let currentFiles = this.$store.getters['files/getCurrentFiles']
-      if (this.downloadFiles.length) {
-        currentFiles = currentFiles.concat(this.downloadFiles)
-        this.sortByName(currentFiles)
-      }
-      currentFiles.map( file => {
-        if (file.IsFolder) {
-          folders.push(file)
-        }
-      })
-      return folders
-    },
+
     searchInProgress () {
       const currentPattern = this.$store.getters['files/getCurrentPattern']
       return !!currentPattern
@@ -132,6 +111,12 @@ export default {
     }
   },
   watch: {
+    fileList (val) {
+      this.$emit('addFileList', val)
+    },
+    folderList (val) {
+      this.$emit('addFolderList', val)
+    },
     $route () {
       this.currentFile = null
     },
@@ -148,14 +133,11 @@ export default {
     downloadFile (file = null) {
       let url = ''
       if (file) {
-        url = file?.Actions.download.url
+        url = file.DownloadUrl
       } else {
-        url = this.currentFile.Actions.download.url
+        url = this.currentFile.DownloadUrl
       }
       webApi.downloadByUrl(url)
-    },
-    sortByName (arr) {
-      arr.sort((a, b) => (a.name || a.Name) > (b.Name || b.name) ? 1 : -1);
     },
     openShareDialog (file) {
       this.$emit('shareFiles', file)
@@ -165,8 +147,10 @@ export default {
     },
     selectFile (file, oMouseEvent) {
       console.log(file, 'file')
-      let checkedList = _.map(this.checkedList, function (file) {
-        return file
+      const hashes = this.$store.getters['files/getCheckedItems']
+      const fileList = this.$store.getters['files/getCurrentFiles']
+      let checkedList = hashes.map( hash => {
+        return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
       })
        if (oMouseEvent) {
         if (oMouseEvent.ctrlKey) {
@@ -213,10 +197,13 @@ export default {
         }
        }
        if (checkedList.length === 1) {
-         this.$store.dispatch('files/changeCurrentFile', { currentFile: file })
+         this.$store.dispatch('files/changeCurrentFile', { currentFile: file.Hash })
        }
       this.checkedList = checkedList
-      this.$store.dispatch('files/changeCheckedItems', { checkedItems: this.checkedList })
+      const itemsHashes = this.checkedList.map( file => {
+        return file.Hash
+      })
+      this.$store.dispatch('files/changeCheckedItems', { checkedItems: itemsHashes })
     },
     openFolder(file) {
       this.$emit('openFolder', true)
@@ -228,10 +215,13 @@ export default {
       this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: file.FullPath, isFolder: true })
     },
     isChecked(file) {
-      return this.checkedList.find(checkedFile => (checkedFile.Hash || checkedFile.name) === (file.Hash || file.name))
+      return this.checkedList.find(checkedFile => checkedFile.Hash === file.Hash)
     },
     onDragStart (e, file) {
-      let checkedList = _.clone(this.$store.getters['files/getCheckedItems'])
+      let checkedListHashes = this.$store.getters['files/getCheckedItems']
+      let checkedList = checkedListHashes.map( hash => {
+        return this.currentFiles.find( file => file.Hash === hash) || this.downloadFiles.find( file => file.Hash === hash)
+      })
       const checkedFile = checkedList.find(item => item.Hash === file.Hash)
       if (!checkedFile) {
         checkedList.push(file)
@@ -248,9 +238,11 @@ export default {
       div.style.borderRadius = '4px'
       document.body.appendChild(div);
       e.dataTransfer.setDragImage(div, 0, 0);
-
+      checkedListHashes = this.checkedList.map( file => {
+        return file.Hash
+      })
       this.$store.dispatch('files/changeCheckedItems', {
-        checkedItems: this.checkedList
+        checkedItems: checkedListHashes
       })
       e.dataTransfer.setData('fromPath', file.Path)
       e.dataTransfer.setData('fromType', file.Type)
@@ -270,6 +262,21 @@ export default {
         } else {
           this.dragLeave(elem.parentNode)
         }
+      }
+    },
+    ondrop (e, toPath, toType, file) {
+      const dropFile = this.checkedList.find( elem => elem.Hash === file.Hash)
+      if (!dropFile) {
+        this.$store.commit('files/removeCheckedFiles', {
+          checkedFiles: this.checkedList
+        })
+        const fromPath = this.$store.getters['files/getCurrentPath']
+        this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })
+        .then( res => {
+          if (!res) {
+            this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+          }
+        })
       }
     },
     dragend () {

@@ -425,7 +425,6 @@ export default {
       ipcRenderer.once('contacts-get-frequently-used-contacts', (oEvent, { aContacts }) => {
         let iExactlySearchIndex = -1
         let aOptions = []
-        console.log(aContacts, 'aContacts')
         _.each(aContacts, (oContactData, iIndex) => {
           let oContact = new cContact(oContactData)
           if (sSearch === oContact.getFull()) {
@@ -1007,7 +1006,6 @@ export default {
       if (typesUtils.isNonEmptyArray(aAttachments)) {
         let aHashes = []
         _.each(aAttachments, (oAttachData) => {
-          console.log(oAttachData, 'oAttachData')
           let oAttach = new cAttachment()
           oAttach.parseDataFromServer(oAttachData)
           this.attachments.push(oAttach)
@@ -1223,7 +1221,6 @@ export default {
       }
     },
     onFileAdded (files) {
-      console.log(files, 'files')
       if (typesUtils.isNonEmptyArray(files)) {
         _.each(files, (oFile) => {
           let oAttach = new cAttachment()

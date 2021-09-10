@@ -5,7 +5,7 @@
     align="center"
     style="width: 150px; height: 175px;"
   >
-  <div class="file-focus file" v-if="!file.IsFolder || file.__status === 'uploaded'"
+  <div class="file-focus file" v-if="!file.IsFolder || file.getStats() === 'Uploaded'"
        @click="function (oMouseEvent) { selectFile(file, oMouseEvent) }"
        :draggable="true"
        @dragstart="onDragStart($event, file)"
@@ -14,31 +14,29 @@
     <div
       class="file-card"
       style="height: 150px; border-radius: 3px"
-      :class="{
-                 'file-selected': isChecked(file)
-                 }"
+      :class="{ 'file-selected': isChecked(file) }"
     >
                 <span class="display-none tooltip" style="line-height: 1.2"
                       :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
-                  {{ getDescription(file) }}
+                  {{ file.getDescription(file) }}
                 </span>
-      <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile(file)">
+      <div class="image q-px-sm" style="padding-top: 28px; height: 113px;" v-if="!getPreviewFile()">
         <div class="img-block">
           <span class="icon" :class="formatFile(file)"></span>
         </div>
       </div>
-      <div class="image  q-pt-sm" v-if="getPreviewFile(file)">
+      <div class="image  q-pt-sm" v-if="getPreviewFile()">
         <div class="img-preview"
-             :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`, 'background-size': 'contain'}"/>
+             :style="{'background': `url(${getPreviewFile()}) no-repeat center`, 'background-size': 'contain'}"/>
       </div>
       <div class="flex q-mt-sm q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
-        <div class="q-mr-xs q-mb-xs file-icon" v-if="isShared(file)" @click="openShareDialog(file)">
+        <div class="q-mr-xs q-mb-xs file-icon" v-if="file.isShared()" @click="openShareDialog(file)">
           <share-icon style="fill: white !important;" :width="20" :height="20"/>
         </div>
-        <div class="q-mr-xs q-mb-xs file-icon" v-if="hasLink(file)" @click="openLinkDialog(file)">
+        <div class="q-mr-xs q-mb-xs file-icon" v-if="file.hasLink()" @click="openLinkDialog(file)">
           <link-icon style="fill: white !important;" :width="20" :height="20"/>
         </div>
-        <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="isEncrypted(file)"
+        <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="file.isEncrypted()"
              @click="openEncryptedFileDialog(file)">
           <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
         </div>
@@ -46,17 +44,19 @@
       <div class="flex q-mt-sm q-mx-sm"
            style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
         <div class="q-mt-xs">
-          <span v-if="hasViewAction(file) && isImg(file) && isEncrypted(file)" class="q-mr-md text-primary"
+           <span v-if="file.getProgressPercent()" class="q-mr-md text-primary"
+           >{{ file.getProgressPercent() }}</span>
+          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted()" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
-          <span v-else-if="hasViewAction(file) && !isEncrypted(file)" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted()" class="q-mr-md text-primary"
                 @click="viewFile(file)">View</span>
-          <span v-if="hasOpenAction(file) && !isEncrypted(file)" class="q-mr-md text-primary"
+          <span v-if="file.hasOpenAction() && !file.isEncrypted()" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
         </div>
         <div class="q-mt-xs">
                     <span
-                      v-if="hasDownloadAction(file)" class="text-primary"
-                      @click="isEncrypted(file) ? downloadEncryptedFile(file) : downloadFile(file)"
+                      v-if="file.hasDownloadAction()" class="text-primary"
+                      @click="file.isEncrypted() ? downloadEncryptedFile(file) : downloadFile(file)"
                     >
                       Download
                     </span>
@@ -65,9 +65,9 @@
     </div>
     <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
       <div class="q-ml-sm">
-        <b>{{ getShortName(file.Name || file.name) }}</b>
+        <b>{{ getShortName(file.Name) }}</b>
         <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
-          {{ file.Name || file.name }}
+          {{ file.Name }}
         </q-tooltip>
       </div>
       <div class="q-mr-sm" style="align-items: center">
@@ -123,7 +123,7 @@ export default {
       })
     },
     getDescription (file) {
-      return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified || file.lastModified)
+      return 'Added by ' + file.Owner + ' on ' + date.getShortDate(file.LastModified)
     },
     hasDownloadAction (file) {
       if (file) {
@@ -138,10 +138,10 @@ export default {
       return name
     },
     getFileSize (file) {
-      return text.getFriendlySize(file.Size || file.size)
+      return text.getFriendlySize(file.Size)
     },
     formatFile (file) {
-      let fileName = file.Name || file.name
+      let fileName = file.Name
       return fileName.split('.')[fileName.split('.').length - 1]
     },
     isShared (file) {
@@ -154,8 +154,8 @@ export default {
     hasLink (file) {
       return file?.ExtendedProps?.PublicLink
     },
-    hasViewAction (file) {
-      const formatFile = this.formatFile(file)
+    hasViewAction () {
+      const formatFile = this.formatFile(this.file)
       return this.fileFormats.find( format => {
         return format === formatFile
       })
@@ -167,14 +167,14 @@ export default {
       return false
     },
     async viewEncryptedFile (file) {
-      let iv = file?.ExtendedProps?.InitializationVector || false
-      let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
+      let iv = file.InitializationVector || false
+      let paranoidEncryptedKey = file.ParanoidKey || false
       const aesKey = await this.getAesKey(file)
       Crypto.viewEncryptedImage(file, iv, paranoidEncryptedKey, aesKey)
     },
     async downloadEncryptedFile (file) {
-      let iv = file?.ExtendedProps?.InitializationVector || false
-      let paranoidEncryptedKey = file?.ExtendedProps?.ParanoidKey || false
+      let iv = file.InitializationVector || false
+      let paranoidEncryptedKey = file.ParanoidKey || false
       const aesKey = await this.getAesKey(file)
       Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
     },
@@ -186,9 +186,9 @@ export default {
       if (privateKey) {
         let paranoidKey = ''
         if (this.$store.getters['files/getCurrentStorage'].Type === 'shared') {
-          paranoidKey = file?.ExtendedProps?.ParanoidKeyShared
+          paranoidKey = file.File?.ExtendedProps?.ParanoidKeyShared
         } else {
-          paranoidKey = file?.ExtendedProps?.ParanoidKey
+          paranoidKey = file.ParanoidKey
         }
         const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
         if (decryptData?.sError) {
@@ -201,14 +201,14 @@ export default {
       }
     },
     viewFile (file) {
-      const url = file.Actions?.view?.url
-      webApi.viewByUrlInNewWindow(url, file.Name || file.name)
+      const url = file.ViewUrl
+      webApi.viewByUrlInNewWindow(url, file.Name)
     },
     getPreviewFile (file) {
-      if (!this.isEncrypted(file) && this.isImg(file)) {
-        if (file?.Actions?.view?.url) {
+      if (!this.isEncrypted(file) && this.isImg(this.file)) {
+        if (this.file.DownloadUrl) {
           let api = this.$store.getters['main/getApiHost']
-          let link = file.Actions?.view?.url
+          let link = this.file.DownloadUrl
           return api + '/' + link
         }
       }

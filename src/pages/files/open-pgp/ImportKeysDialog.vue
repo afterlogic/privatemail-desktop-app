@@ -63,8 +63,12 @@
           </q-item>
         </q-list>
       </q-card-section>
+      <q-card-section v-if="!keysChecked">
+        <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" style="width: 100%; height: 300px;" />
+      </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />
+        <q-btn flat label="Check" color="primary" @click="checkKey" v-if="!keysChecked" />
         <q-btn flat label="Cancel" color="grey-6" v-close-popup />
       </q-card-actions>
     </q-card>
@@ -118,6 +122,7 @@ export default {
   },
   methods: {
     openDialog (keys) {
+      this.keysChecked = false
       this.keysArmorToImport = keys
       this.importKeyDialog = true
       this.checkKey()

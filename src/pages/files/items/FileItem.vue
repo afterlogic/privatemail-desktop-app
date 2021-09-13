@@ -54,7 +54,7 @@
                 @click="viewFile(file)">View</span>
           <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
-          <span v-if="hasImportAction()" class="q-mr-md text-primary"
+          <span v-if="hasImportAction() && progressPercent === 0" class="q-mr-md text-primary"
                 @click="importKeys()">Import</span>
         </div>
         <div class="q-mt-xs">

@@ -101,19 +101,13 @@ export default {
       keysChecked: false,
     }
   },
-  watch: {
-    importKeyDialog (val) {
-      if (val) {
-        ipcRenderer.on('openpgp-save-settings', this.onOpenpgpSaveSettings)
-        ipcRenderer.on('contacts-remove-external-key', this.onContactsRemoveExternalKey)
-        ipcRenderer.on('contacts-add-external-keys', this.onContactsAddExternalKey)
-      }
+  importKeyDialog (val) {
+    if (!val) {
+      this.removeListeners()
     }
   },
   beforeDestroy () {
-    ipcRenderer.removeListener('openpgp-save-settings', this.onOpenpgpSaveSettings)
-    ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
-    ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
+   this.removeListeners()
   },
   computed: {
     openPgpExternalKeys () {
@@ -121,7 +115,18 @@ export default {
     },
   },
   methods: {
+    removeListeners () {
+      ipcRenderer.removeListener('openpgp-save-settings', this.onOpenpgpSaveSettings)
+      ipcRenderer.removeListener('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+      ipcRenderer.removeListener('contacts-add-external-keys', this.onContactsAddExternalKey)
+    },
+    addListeners () {
+      ipcRenderer.once('openpgp-save-settings', this.onOpenpgpSaveSettings)
+      ipcRenderer.once('contacts-remove-external-key', this.onContactsRemoveExternalKey)
+      ipcRenderer.once('contacts-add-external-keys', this.onContactsAddExternalKey)
+    },
     openDialog (keys) {
+      this.addListeners()
       this.keysChecked = false
       this.keysArmorToImport = keys
       this.importKeyDialog = true

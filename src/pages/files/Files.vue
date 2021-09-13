@@ -55,6 +55,7 @@
           :openEncryptedFileDialog="openEncryptedFileDialog"
           :openShareDialog="openShareDialog"
           :downloadFile="downloadFile"
+          @openFolder="openFolder(file)"
         />
       </transition-group>
     </q-scroll-area>

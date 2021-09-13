@@ -237,7 +237,7 @@ export default {
   },
   methods: {
     sortByName (arr) {
-      arr.sort((a, b) => (a.name || a.Name) > (b.Name || b.name) ? 1 : -1);
+      arr.sort((a, b) => a.Name > b.Name ? 1 : -1);
     },
     finishUpload () {
       this.downloadFiles = []

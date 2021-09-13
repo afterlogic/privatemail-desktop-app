@@ -88,13 +88,16 @@ export default {
   },
   viewByUrlInNewWindow: function (sViewUrl, sFileName) {
     let url = store.getters['main/getApiHost'] + '/' + sViewUrl
+    const electron = require('electron')
+    const BrowserWindow = electron.remote.BrowserWindow
 
-    const electron = require('electron');
-    const BrowserWindow = electron.remote.BrowserWindow;
 
     const window = new BrowserWindow({
       width: 1200,
       height: 600,
+      webPreferences: {
+        webSecurity: false
+      }
     })
     window.loadURL(url)
     window.removeMenu()

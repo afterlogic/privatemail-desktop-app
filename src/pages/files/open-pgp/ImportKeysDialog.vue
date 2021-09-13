@@ -69,7 +69,7 @@
       <q-card-actions align="right">
         <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />
         <q-btn flat label="Check" color="primary" @click="checkKey" v-if="!keysChecked" />
-        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        <q-btn flat label="Cancel" color="grey-6" @click="cancel" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -124,6 +124,10 @@ export default {
       ipcRenderer.once('openpgp-save-settings', this.onOpenpgpSaveSettings)
       ipcRenderer.once('contacts-remove-external-key', this.onContactsRemoveExternalKey)
       ipcRenderer.once('contacts-add-external-keys', this.onContactsAddExternalKey)
+    },
+    cancel () {
+      this.removeListeners()
+      this.importKeyDialog = false
     },
     openDialog (keys) {
       this.addListeners()

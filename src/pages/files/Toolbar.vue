@@ -291,6 +291,7 @@ export default {
         isLink: 0,
         isFolder: this.currentFile.IsFolder
       })
+      this.currentFile.ChangeName(name)
     },
     openRemoveItemsDialog () {
       this.$refs.deleteItemDialog.openDialog()

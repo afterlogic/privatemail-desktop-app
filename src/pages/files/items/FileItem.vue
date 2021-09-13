@@ -10,6 +10,7 @@
        :draggable="true"
        @dragstart="onDragStart($event, file)"
        @dragend="dragend()"
+       @dblclick="isArchive() ? openArchive() : false"
   >
     <div
       class="file-card"
@@ -50,8 +51,12 @@
           >complete</span>
           <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl" class="q-mr-md text-primary"
                 @click="viewFile(file)">View</span>
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl" class="q-mr-md text-primary"
+                @click="editFile(file)">Edit</span>
+          <span v-else-if="isArchive()" class="q-mr-md text-primary"
+                @click="openArchive">View</span>
           <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
           <span v-if="hasImportAction() && progressPercent === 0" class="q-mr-md text-primary"
@@ -134,6 +139,13 @@ export default {
     }, 0)
   },
   methods: {
+    openArchive () {
+      this.$emit('openFolder')
+    },
+    isArchive () {
+      const formatFile = this.formatFile(this.file)
+      return formatFile === 'zip'
+    },
     importKeys () {
       this.$refs.importKeysDialog.openDialog(this.file.Content)
     },
@@ -238,6 +250,10 @@ export default {
     },
     viewFile (file) {
       const url = file.ViewUrl
+      webApi.viewByUrlInNewWindow(url, file.Name)
+    },
+    editFile (file) {
+      const url = file.EditUrl
       webApi.viewByUrlInNewWindow(url, file.Name)
     },
     getPreviewFile () {

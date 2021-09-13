@@ -72,6 +72,7 @@ export default {
         IsLink: isLink,
         IsFolder: isFolder
       }
+      console.log(oParameters, 'oParameters')
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -79,6 +80,7 @@ export default {
         sMethod: 'Rename',
         oParameters,
         fCallback: (result, error) => {
+          console.log(result, 'result')
           if (result) {
             oEvent.sender.send('files-rename-item', { result })
           } else {

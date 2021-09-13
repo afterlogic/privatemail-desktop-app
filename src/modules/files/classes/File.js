@@ -15,6 +15,7 @@ function File() {
   this.Path = ''
   this.IsFolder = false
   this.DownloadUrl = ''
+  this.EditUrl = ''
   this.ViewUrl = ''
   this.OpenUrl = ''
   this.ParanoidKey = ''
@@ -47,6 +48,7 @@ File.prototype.parseDataFromServer = function (file) {
   this.Shares = typesUtils.pArray(file?.ExtendedProps?.Shares)
   this.PublicLink = typesUtils.pArray(file?.ExtendedProps?.PublicLink)
   this.DownloadUrl = typesUtils.pString(file?.Actions?.download?.url, '')
+  this.EditUrl = typesUtils.pString(file?.Actions?.edit?.url, '')
   this.ViewUrl = typesUtils.pString(file?.Actions?.view?.url, '')
   this.OpenUrl = typesUtils.pString(file?.Actions?.open?.url, '')
   this.ParanoidKey = typesUtils.pString(file?.ExtendedProps?.ParanoidKey, '')
@@ -84,5 +86,7 @@ File.prototype.hasLink = function () {
 File.prototype.hasOpenAction = function () {
   return this.OpenUrl
 }
-
+File.prototype.ChangeName = function (name) {
+  this.Name = name
+}
 export default File

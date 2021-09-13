@@ -48,12 +48,14 @@
            >{{ progressPercent }}%</span>
           <span v-if="progressPercent === 100" class="q-mr-md" style="color: rgb(76, 175, 80);"
           >complete</span>
-          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted()" class="q-mr-md text-primary"
+          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted()" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewFile(file)">View</span>
-          <span v-if="file.hasOpenAction() && !file.isEncrypted()" class="q-mr-md text-primary"
+          <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
+          <span v-if="hasImportAction()" class="q-mr-md text-primary"
+                @click="importKeys()">Import</span>
         </div>
         <div class="q-mt-xs">
                     <span
@@ -64,6 +66,7 @@
                     </span>
         </div>
       </div>
+      <import-keys-dialog ref="importKeysDialog"></import-keys-dialog>
     </div>
     <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
       <div class="q-ml-sm">
@@ -84,8 +87,9 @@
 import ShareIcon from '../../../assets/icons/ShareIcon'
 import LinkIcon from '../../../assets/icons/LinkIcon'
 import EncryptedIcon from '../../../assets/icons/EncryptedIcon'
+import ImportKeysDialog from '../open-pgp/ImportKeysDialog'
+
 import date from '../../../utils/date'
-import text from '../../../utils/text'
 import _ from 'lodash'
 import webApi from '../../../utils/webApi'
 import Crypto from '../../../modules/crypto/CCrypto'
@@ -117,6 +121,7 @@ export default {
     ShareIcon,
     LinkIcon,
     EncryptedIcon,
+    ImportKeysDialog
   },
   computed: {
     currentAccount () {
@@ -129,6 +134,9 @@ export default {
     }, 0)
   },
   methods: {
+    importKeys () {
+      this.$refs.importKeysDialog.openDialog(this.file.Content)
+    },
     getProgressPercent () {
       if (this.file) {
         if (this.file.File?.__status) {
@@ -184,6 +192,9 @@ export default {
       return this.fileFormats.find( format => {
         return format === formatFile
       })
+    },
+    hasImportAction () {
+      return this.formatFile(this.file) === 'asc'
     },
     hasOpenAction (file) {
       if (file) {

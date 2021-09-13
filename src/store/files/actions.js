@@ -86,6 +86,10 @@ export function getFiles ({ state, commit, getters, dispatch }, {
           commit('setLoadingStatus', { status: false })
         }
       }
+     if (error) {
+       notification.showError(error.ErrorMessage)
+       commit('setLoadingStatus', { status: false })
+     }
       if (files?.Quota) {
         commit('setFilesQuota', { quota: files.Quota })
       }

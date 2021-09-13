@@ -6,7 +6,7 @@
     style="width: 150px; height: 175px;"
   >
   <div
-    class="file-focus folder"
+    class="folder file-focus"
     @click="function (oMouseEvent) { selectFile(file, oMouseEvent) }"
     @dblclick="openFolder(file)"
     @dragenter="dragEnter($event.target)"
@@ -18,7 +18,7 @@
     @dragover.prevent
     @dragenter.prevent
   >
-    <div class="file-focus__border child-elements" style="height: 150px; position:relative" :class="{
+    <div class="child-elements file-focus__border" style="height: 150px; position:relative" :class="{
                 'folder-selected': isChecked(file)
                }">
       <div class="image q-px-sm" style="padding-top: 28px">
@@ -96,5 +96,7 @@ export default {
 </script>
 
 <style scoped>
-
+.file-focus__border:hover {
+  border: 1px solid #c9c9c9 !important;
+}
 </style>

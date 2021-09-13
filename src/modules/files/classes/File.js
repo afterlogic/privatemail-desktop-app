@@ -19,6 +19,7 @@ function File() {
   this.OpenUrl = ''
   this.ParanoidKey = ''
   this.InitializationVector = ''
+  this.Content = ''
 }
 
 File.prototype.parseUploaderFile = function (file) {
@@ -30,6 +31,7 @@ File.prototype.parseUploaderFile = function (file) {
 }
 
 File.prototype.parseDataFromServer = function (file) {
+  this.Content = typesUtils.pString(file.Content, '')
   this.Size = typesUtils.pInt(file.Size)
   this.File = file
   this.Hash = typesUtils.pString(file.Hash, '')

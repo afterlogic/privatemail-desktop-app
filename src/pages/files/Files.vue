@@ -379,9 +379,7 @@ export default {
 .file-card {
   box-shadow: 0 2px 6px #ccc;
 }
-.file-focus__border:hover {
-  border: 1px solid #c9c9c9;
-}
+
 .file-focus__border {
   border: 1px solid white;
   border-radius: 4px;

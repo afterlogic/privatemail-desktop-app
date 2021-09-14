@@ -301,6 +301,7 @@ export default {
         isFolder: this.currentFile.IsFolder
       })
       this.currentFile.ChangeName(name)
+      this.$emit('sort')
     },
     openRemoveItemsDialog () {
       this.$refs.deleteItemDialog.openDialog()

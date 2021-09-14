@@ -88,7 +88,7 @@
         <template v-slot:after>
           <div class="column no-wrap full-height bg-white text-grey-8 panel-rounded" style="overflow: hidden">
             <div class="col-auto">
-              <toolbar ref="toolbar" :currentFile="currentFile" @downloadFile="$refs.files.downloadFile()" :files="fileList" :folders="folderList"/>
+              <toolbar ref="toolbar" :currentFile="currentFile" @downloadFile="$refs.files.downloadFile()" :files="fileList" :folders="folderList" @sort="sort"/>
               <q-toolbar style="width: 100%; background: #eee;">
                 <q-input outlined rounded dense bg-color="white" class="search-field" v-model="searchText" v-on:keyup.enter="search" style="width: 100%;">
                   <template v-slot:prepend>
@@ -123,8 +123,6 @@
               :fileList="fileList"
               :folderList="folderList"
             />
-
-
           </div>
         </template>
       </q-splitter>
@@ -174,13 +172,45 @@ export default {
       downloadFiles: [],
       files: [],
       counter: 0,
+      fileList: [],
+      folderList: []
     }
   },
   mounted() {
     this.populate()
   },
+  watch: {
+    itemList () {
+      let files = []
+      const itemList = this.$store.getters['files/getCurrentFiles']
+      itemList.map( item => {
+        if (!item.IsFolder) {
+          const file = new File()
+          file.parseDataFromServer(item)
+          files.push(file)
+        }
+      })
+      if (this.downloadFiles.length) {
+        files = files.concat(this.downloadFiles)
+        this.sortByName(files)
+      }
+      this.fileList = files
+      let folders = []
+      itemList.map( item => {
+        if (item.IsFolder) {
+          const folder = new Folder()
+          folder.parseDataFromServer(item)
+          folders.push(folder)
+        }
+      })
+      this.folderList = folders
+    }
+  },
   computed: {
-    fileList () {
+    itemList () {
+      return this.$store.getters['files/getCurrentFiles']
+    },
+    /*fileList () {
       let files = []
       const itemList = this.$store.getters['files/getCurrentFiles']
       itemList.map( item => {
@@ -207,7 +237,7 @@ export default {
         }
       })
       return folders
-    },
+    },*/
     isUploadingFiles () {
       return this.$store.getters['files/getLoadingStatus']
     },
@@ -236,6 +266,11 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    sort () {
+      console.log(1)
+      this.sortByName(this.fileList)
+      this.sortByName(this.folderList)
+    },
     sortByName (arr) {
       arr.sort((a, b) => a.Name > b.Name ? 1 : -1);
     },

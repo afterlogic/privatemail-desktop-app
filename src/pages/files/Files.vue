@@ -182,7 +182,7 @@ export default {
               let iEndIndex = Math.max(iLastCheckedIndex, iCurrCheckedIndex)
               let aUidsToCheck = items.slice(iStartIndex, iEndIndex + 1)
               if (aUidsToCheck.length > 0) {
-                checkedList = _.union(checkedList, aUidsToCheck)
+                checkedList = aUidsToCheck
               }
             } else {
               if (index > iLastCheckedIndex) {

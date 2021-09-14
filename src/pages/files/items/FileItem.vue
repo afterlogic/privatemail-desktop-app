@@ -53,7 +53,7 @@
                 @click="viewFile(file)">View</span>
           <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl" class="q-mr-md text-primary"
                 @click="editFile(file)">Edit</span>
-          <span v-else-if="isArchive()" class="q-mr-md text-primary"
+          <span v-else-if="isArchive() && !file.Loading" class="q-mr-md text-primary"
                 @click="openArchive">View</span>
           <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
@@ -186,8 +186,8 @@ export default {
       return false
     },
     getShortName (name) {
-      if (name.length > 12) {
-        return name.substr(0, 10) + '...'
+      if (name.length > 10) {
+        return name.substr(0, 8) + '...'
       }
       return name
     },

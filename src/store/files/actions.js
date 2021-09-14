@@ -159,16 +159,9 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
     isFolder
   })
 
-  ipcRenderer.once('files-rename-item', (event, { result, oError }) => {
-    if (result) {
-      dispatch('getFiles', {
-        currentStorage: type,
-        path: path,
-        pattern: '',
-        changeLoadingStatus: false
-      })
-    } else {
-      commit('setLoadingStatus', { status: false })
+  ipcRenderer.once('files-rename-item', (event, { result, error }) => {
+    if (error) {
+      notification.showError(error)
     }
   })
 }

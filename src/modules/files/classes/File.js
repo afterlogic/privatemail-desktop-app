@@ -16,6 +16,7 @@ function File() {
   this.IsFolder = false
   this.DownloadUrl = ''
   this.EditUrl = ''
+  this.Loading = false
   this.ViewUrl = ''
   this.OpenUrl = ''
   this.ParanoidKey = ''
@@ -29,9 +30,11 @@ File.prototype.parseUploaderFile = function (file) {
   this.Hash = Math.random()
   this.Name = typesUtils.pString(file.name, '')
   this.LastModified = typesUtils.pInt((new Date()).getTime() / 1000)
+  this.Loading = true
 }
 
 File.prototype.parseDataFromServer = function (file) {
+  this.Loading = false
   this.Content = typesUtils.pString(file.Content, '')
   this.Size = typesUtils.pInt(file.Size)
   this.File = file

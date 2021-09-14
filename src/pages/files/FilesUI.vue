@@ -268,7 +268,8 @@ export default {
       this.$store.dispatch('files/getFiles', {
         currentStorage: currentStorage,
         path: path,
-        pattern: pattern })
+        pattern: pattern
+      })
     },
     search () {
       this.searchProgress = true

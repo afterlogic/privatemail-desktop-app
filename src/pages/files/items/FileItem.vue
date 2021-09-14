@@ -4,6 +4,7 @@
     class="q-mx-sm q-mb-md select-text-disable"
     align="center"
     style="width: 150px; height: 175px;"
+    :class="{ 'loading': file.Loading }"
   >
   <div class="file-focus file" v-if="!file.IsFolder || file.getStats() === 'Uploaded'"
        @click="function (oMouseEvent) { selectFile(file, oMouseEvent) }"
@@ -43,12 +44,9 @@
         </div>
       </div>
       <div class="flex q-mt-sm q-mx-sm"
-           style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;">
+           style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;"
+      >
         <div class="q-mt-xs">
-           <span v-if="progressPercent && progressPercent !== 100" class="q-mr-md text-primary"
-           >{{ progressPercent }}%</span>
-          <span v-if="progressPercent === 100" class="q-mr-md" style="color: rgb(76, 175, 80);"
-          >complete</span>
           <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
           <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl" class="q-mr-md text-primary"
@@ -69,6 +67,17 @@
                     >
                       Download
                     </span>
+        </div>
+      </div>
+      <div v-if="file.Loading" class="flex" style="flex-direction: column">
+        <div class="flex q-px-sm" style="width: 100%">
+          <div class="progress-bar-line" :style="{width: `${progressPercent}%`}" ></div>
+        </div>
+        <div style="font-size: 12px">
+          <span v-if="progressPercent !== 100"
+          >{{ progressPercent }}%</span>
+          <span v-if="progressPercent === 100" style="color: rgb(76, 175, 80);"
+          >complete</span>
         </div>
       </div>
       <import-keys-dialog ref="importKeysDialog"></import-keys-dialog>
@@ -271,5 +280,17 @@ export default {
 </script>
 
 <style scoped>
-
+.loading {
+  opacity: 0.5;
+}
+.progress-bar-line {
+  overflow:hidden;
+  width: 0;
+  height: 3px;
+  background: #ef4a4a;
+}
+.progress-bar-prompt {
+  text-align: center;
+  font-size: 12px
+}
 </style>

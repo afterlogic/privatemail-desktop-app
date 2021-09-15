@@ -236,7 +236,7 @@ export default {
     sendFile () {
       let hasEncryptFile = false
       let files = this.checkedItems.map( item => {
-        if (item?.ExtendedProps?.ParanoidKey) {
+        if (item.isEncrypted()) {
           hasEncryptFile = true
         }
         return {

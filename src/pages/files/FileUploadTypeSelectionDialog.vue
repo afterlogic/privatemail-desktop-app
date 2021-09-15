@@ -3,7 +3,7 @@
     <q-card class="q-dialog-size" style="min-width: 300px">
       <div>
         <ul>
-          <li v-for="file in files" :key="file.lastModified">{{file.name}}</li>
+          <li v-for="file in files" :key="file.LastModified">{{file.Name}}</li>
         </ul>
       </div>
       <q-card-actions align="right">

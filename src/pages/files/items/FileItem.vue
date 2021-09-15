@@ -47,15 +47,15 @@
            style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;"
       >
         <div class="q-mt-xs">
-          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
+          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction() && !file.Loading" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl && !file.Loading" class="q-mr-md text-primary"
                 @click="viewFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading" class="q-mr-md text-primary"
                 @click="editFile(file)">Edit</span>
           <span v-else-if="isArchive() && !file.Loading" class="q-mr-md text-primary"
                 @click="openArchive">View</span>
-          <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction()" class="q-mr-md text-primary"
+          <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
           <span v-if="hasImportAction() && progressPercent === 0" class="q-mr-md text-primary"
                 @click="importKeys()">Import</span>

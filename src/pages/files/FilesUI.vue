@@ -32,7 +32,6 @@
                 style="max-height: initial; display: none"
                 class="col full-height full-width"
                 flat
-                auto-upload
                 ref="uploader"
                 :factory="addedFiles"
                 @added="onFileAdded"
@@ -319,9 +318,11 @@ export default {
         }
       })
       this.fileIndex = 0
-      if (encryptionSettings.enableInPersonalStorage && this.currentStorage.Type === 'personal') {
+      if (encryptionSettings.enableInPersonalStorage && encryptionSettings.enableParanoidEncryption && this.currentStorage.Type === 'personal') {
         this.$refs.fileUploadTypeSelectionDialog.openDialog()
+        console.log(1)
       } else {
+        console.log(2)
         if (this.currentStorage.Type === 'encrypted') {
           this.uploadEncryptFiles()
         } else {

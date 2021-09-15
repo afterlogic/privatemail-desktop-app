@@ -32,10 +32,13 @@ Folder.prototype.getShortName = function () {
   return this.Name
 }
 Folder.prototype.isShared = function () {
-  const shares = this.File.Shares
+  const shares = this.File?.ExtendedProps?.Shares
   return _.isArray(shares) && shares.length
 }
 Folder.prototype.hasLink = function () {
-  return this.File.PublicLink
+  return this.File?.ExtendedProps?.PublicLink
+}
+Folder.prototype.isEncrypted = function () {
+  return false
 }
 export default Folder

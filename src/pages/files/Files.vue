@@ -402,7 +402,6 @@ export default {
   height: 32px;
   width: 32px;
 }
-
 .folder .icon {
   background-image: url('../../assets/sprites.png');
   background-repeat: no-repeat;

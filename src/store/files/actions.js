@@ -140,7 +140,6 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
       commit('setCheckedItems', {
         checkedItems: []
       })
-      notification.showReport('Compete')
     }
     if (oError) {
       notification.showError(oError)

@@ -84,7 +84,7 @@
     </div>
     <q-dialog v-model="createFolderDialog" persistent>
       <q-card class="q-dialog-size q-pt-md q-ml-md q-mr-md" style="min-width: 400px">
-        <q-item class="q-mt-md">
+        <q-item>
           <q-item-section>
             <q-item-label>New folder</q-item-label>
           </q-item-section>
@@ -301,7 +301,6 @@ export default {
         isFolder: this.currentFile.IsFolder
       })
       this.currentFile.ChangeName(name)
-      this.$emit('sort')
     },
     openRemoveItemsDialog () {
       this.$refs.deleteItemDialog.openDialog()

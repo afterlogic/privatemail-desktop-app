@@ -88,6 +88,7 @@ export default {
   },
   viewByUrlInNewWindow: function (sViewUrl, sFileName) {
     let url = store.getters['main/getApiHost'] + '/' + sViewUrl
+    console.log(url, 'url')
     const electron = require('electron')
     const BrowserWindow = electron.remote.BrowserWindow
 
@@ -99,9 +100,9 @@ export default {
         webSecurity: false
       }
     })
-    window.loadURL(url)
     window.removeMenu()
     window.setTitle(sFileName)
+    window.loadURL(url, { "extraHeaders" : "pragma: no-cache" })
   },
 
   downloadByUrl: function (sDownloadUrl, sFileName) {

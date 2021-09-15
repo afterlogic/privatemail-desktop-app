@@ -11,7 +11,7 @@
        :draggable="true"
        @dragstart="onDragStart($event, file)"
        @dragend="dragend()"
-       @dblclick="isArchive() ? openArchive() : false"
+       @dblclick="openFile()"
   >
     <div
       class="file-card"
@@ -148,6 +148,23 @@ export default {
     }, 0)
   },
   methods: {
+    openFile () {
+      if (this.hasViewAction() && this.isImg() && this.file.isEncrypted() && !this.hasImportAction()) {
+        this.viewEncryptedFile()
+      } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && !this.file.EditUrl) {
+        this.viewFile()
+      } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && this.file.EditUrl) {
+        this.editFile()
+      } else if (this.isArchive() && !this.file.Loading) {
+        this.openArchive()
+      } else if (this.file.hasOpenAction() && !this.file.isEncrypted() && !this.hasImportAction()) {
+        this.viewFile()
+      } else if (this.hasImportAction() && this.progressPercent === 0) {
+        this.importKeys()
+      } else if (this.isArchive()) {
+        this.openArchive()
+      }
+    },
     openArchive () {
       this.$emit('openFolder')
     },
@@ -170,8 +187,8 @@ export default {
         }
       }
     },
-    isImg (file) {
-      const formatFile = this.formatFile(file)
+    isImg () {
+      const formatFile = this.formatFile(this.file)
       return this.imgFormats.find( format => {
         return format === formatFile
       })
@@ -217,17 +234,11 @@ export default {
     hasImportAction () {
       return this.formatFile(this.file) === 'asc'
     },
-    hasOpenAction (file) {
-      if (file) {
-        return file?.Actions?.open
-      }
-      return false
-    },
-    async viewEncryptedFile (file) {
-      let iv = file.InitializationVector || false
-      let paranoidEncryptedKey = file.ParanoidKey || false
-      const aesKey = await this.getAesKey(file)
-      Crypto.viewEncryptedImage(file, iv, paranoidEncryptedKey, aesKey)
+    async viewEncryptedFile () {
+      let iv = this.file.InitializationVector || false
+      let paranoidEncryptedKey = this.file.ParanoidKey || false
+      const aesKey = await this.getAesKey(this.file)
+      Crypto.viewEncryptedImage(this.file, iv, paranoidEncryptedKey, aesKey)
     },
     async downloadEncryptedFile (file) {
       let iv = file.InitializationVector || false
@@ -257,13 +268,13 @@ export default {
         notification.showError('No private key found for file decryption.')
       }
     },
-    viewFile (file) {
-      const url = file.ViewUrl
-      webApi.viewByUrlInNewWindow(url, file.Name)
+    viewFile () {
+      const url = this.file.ViewUrl
+      webApi.viewByUrlInNewWindow(url, this.file.Name)
     },
-    editFile (file) {
-      const url = file.EditUrl
-      webApi.viewByUrlInNewWindow(url, file.Name)
+    editFile () {
+      const url = this.file.EditUrl
+      webApi.viewByUrlInNewWindow(url, this.file.Name)
     },
     getPreviewFile () {
       if (!this.file.isEncrypted() && this.isImg(this.file)) {

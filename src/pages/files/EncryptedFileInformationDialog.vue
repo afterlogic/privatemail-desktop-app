@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="confirm" persistent>
+    <q-dialog v-model="confirm" @escape-key="cancel">
       <q-card class="q-dialog-size" style="width: 600px">
         <div class="q-ml-md q-mt-md" style="font-size: 13pt"><b>{{ fileName }}</b></div>
         <q-item class="q-pb-xs">
@@ -34,7 +34,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="showAes" persistent>
+    <q-dialog v-model="showAes">
       <q-card class="q-dialog-size" style="width: 600px">
         <div class="q-ml-md q-mt-md" style="font-size: 13pt"><b>AES key</b></div>
         <q-item class="q-pt-xs">

@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="confirm" persistent>
+  <q-dialog v-model="confirm" @escape-key="cancel">
     <q-card class="q-dialog-size">
       <q-card-section>
         <span>{{ title }}</span>
@@ -41,14 +41,23 @@ export default {
     },
   },
   methods: {
+    listener(event) {
+      if (event.keyCode === 13) {
+        this.deleteItems()
+      }
+    },
     openDialog () {
+      console.log(1)
+      window.addEventListener('keyup', this.listener, false)
       this.confirm = true
     },
     deleteItems () {
+      window.removeEventListener('keyup', this.listener, false)
       this.$emit('removeItems')
       this.confirm = false
     },
     cancel () {
+      window.removeEventListener('keyup', this.listener, false)
       this.confirm = false
     }
   }

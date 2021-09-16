@@ -82,25 +82,25 @@
       <q-btn flat color="primary" icon="sync" @click="syncFiles"/>
       <!-- <q-btn flat color="primary" label="Flat" /> -->
     </div>
-    <q-dialog v-model="createFolderDialog" persistent>
+    <q-dialog v-model="createFolderDialog" @escape-key="cancelDialog">
       <q-card class="q-dialog-size q-pt-md q-ml-md q-mr-md" style="min-width: 400px">
         <q-item>
           <q-item-section>
             <q-item-label>New folder</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense v-model="folderName" style="width: 250px"/>
+            <q-input outlined dense v-model="folderName" style="width: 250px" @keyup.enter="createNewFolder"/>
           </q-item-section>
         </q-item>
         <q-card-actions align="right">
           <q-btn flat :ripple="false" color="primary" @click="createNewFolder"
-                 label="Save" />
+                 label="Create" />
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
                  label="Cancel" />
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="confirmCopyDialog" persistent>
+    <q-dialog v-model="confirmCopyDialog">
       <q-card class="q-dialog-size" style="min-width: 300px">
         <q-item class="q-mt-md">
           <q-item-section>
@@ -113,7 +113,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="confirmWarningDialog" persistent>
+    <q-dialog v-model="confirmWarningDialog">
       <q-card class="q-dialog-size" style="min-width: 300px">
         <q-item class="q-mt-md">
           <q-item-section>

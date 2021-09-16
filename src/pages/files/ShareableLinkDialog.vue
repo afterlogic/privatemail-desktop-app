@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="confirm" persistent>
+  <q-dialog v-model="confirm" @escape-key="cancelDialog">
     <q-card class="q-dialog-size" style="min-width: 350px">
       <div v-if="(file && !file.isEncrypted() || publicLink) && !showEncryptedLink">
         <div v-if="!publicLink">

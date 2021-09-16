@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="confirm" persistent>
+    <q-dialog v-model="confirm" @escape-key="cancel">
       <q-card class="q-dialog-size" style="min-width: 300px">
         <div class="q-mx-sm q-mt-md q-pl-xs" style="font-size: 13pt"><b>Share with teammates</b></div>
         <q-item class="q-mt-md">

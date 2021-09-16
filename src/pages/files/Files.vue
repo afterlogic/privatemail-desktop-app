@@ -134,6 +134,7 @@ export default {
     downloadFile (file = null) {
       let url = ''
       const currentFile = file || this.currentFile
+      currentFile.changePercentLoading(0)
       if (currentFile && !currentFile.DownloadingStatus) {
         url = currentFile.DownloadUrl
         currentFile.changeDownloadingStatus(true)

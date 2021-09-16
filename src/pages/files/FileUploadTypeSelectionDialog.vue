@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="confirm" persistent>
+  <q-dialog v-model="confirm" @escape-key="cancel">
     <q-card class="q-dialog-size" style="min-width: 300px">
       <div>
         <ul>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="confirm" >
+    <q-dialog v-model="confirm" @escape-key="cancel">
         <q-card class="q-dialog-size" style="min-width: 820px">
           <h6 class="q-mx-md q-my-md">{{ title }}</h6>
           <div class="q-mx-md" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px; font-size: 10pt">
@@ -47,7 +47,7 @@
           </q-card-actions>
         </q-card>
     </q-dialog>
-    <q-dialog v-model="confirmClearDialog" persistent>
+    <q-dialog v-model="confirmClearDialog">
       <q-card class="q-dialog-size" style="min-width: 300px">
         <q-item class="q-mt-md">
           <q-item-section>

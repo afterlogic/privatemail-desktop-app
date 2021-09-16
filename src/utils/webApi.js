@@ -105,37 +105,66 @@ export default {
     window.loadURL(url, { "extraHeaders" : "pragma: no-cache" })
   },
 
-  downloadByUrl: function (sDownloadUrl, sFileName, file = null) {
+  downloadByUrl: async function (sDownloadUrl, sFileName, file = null) {
     let sUrl = store.getters['main/getApiHost'] + '/' + sDownloadUrl
-    console.log(sUrl, 'sUrl')
+    let newUrl = ''
      let sAuthToken = store.getters['user/getAuthToken']
      let oHeaders = {
-       'Content-Type': 'multipart/form-data'
+       'Content-Type': 'multipart/form-data',
      }
      if (sAuthToken) {
        oHeaders['Authorization'] = 'Bearer ' + sAuthToken
      }
-     axios({
-       method: 'get',
-       url: sUrl,
-       headers: oHeaders,
-       responseType: 'blob',
-       onDownloadProgress: function(progressEvent) {
-         if (file) {
-           console.log(progressEvent, 'progressEvent')
-           let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
-           console.log(percentCompleted, 'percentCompleted')
-           file.changePercentLoading(percentCompleted)
-         }
-       }
-     })
-       .then((response) => {
-         saveAs(new Blob([response.data],{type:response.data.type}),sFileName);
-         file.changeDownloadingStatus(false)
-       })
-    .catch( err => {
-      console.log(err.response)
+    await axios({
+      method: 'get',
+      url: sUrl,
+      headers: oHeaders,
+      responseType: 'blob',
+      onDownloadProgress: function (progressEvent) {
+        if (file) {
+          let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
+          console.log(percentCompleted, 'percentCompleted')
+          file.changePercentLoading(percentCompleted)
+        }
+      }
     })
+    .then((response) => {
+      saveAs(new Blob([response.data], {type: response.data.type}), sFileName);
+      file.changeDownloadingStatus(false)
+    })
+    .catch(err => {
+      newUrl = err?.request?.responseURL
+    })
+
+    if (newUrl) {
+      axios({
+        method: 'get',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        url: newUrl,
+        responseType: 'blob',
+        onDownloadProgress: function (progressEvent) {
+          if (file) {
+            console.log(file.Size, 'file.Size')
+            console.log(progressEvent.loaded, 'progressEvent.loaded')
+            let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
+            console.log(percentCompleted, 'percentCompleted')
+            file.changePercentLoading(percentCompleted)
+          }
+        }
+      })
+      .then(response => {
+        saveAs(new Blob([response.data], {type: response.data.type}), sFileName);
+        file.changeDownloadingStatus(false)
+      })
+      .catch( response => {
+
+      })
+    }
+
   },
   downloadExportFile: function (oParameters, oFileName) {
     let oHeaders = {

@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
 import axios from "axios";
+import https from 'https'
 
 export default {
   initSubscriptions: function () {
@@ -72,6 +73,8 @@ export default {
         IsLink: isLink,
         IsFolder: isFolder
       }
+
+      console.log(oParameters, 'oParameters')
       webApi.sendRequest({
         sApiHost,
         sAuthToken,
@@ -80,8 +83,10 @@ export default {
         oParameters,
         fCallback: (result, error) => {
           if (result) {
+            console.log(result, 'result')
             oEvent.sender.send('files-rename-item', { result })
           } else {
+            console.log(error, 'error')
             oEvent.sender.send('files-rename-item', { error })
           }
         },
@@ -218,6 +223,39 @@ export default {
           oEvent.sender.send('files-decrypt-chunk', { err })
         })
       })
+    })
+    ipcMain.on('download-file', (event, { headers, url, onDownloadProgress, apiHost }) => {
+      /*axios({
+        method: 'get',
+        url: url,
+        headers: headers,
+        responseType: 'blob',
+        progress: function (progressEvent) {
+          onDownloadProgress(progressEvent)
+        }
+      })
+      .then((response) => {
+        event.sender.send('download-file', { response })
+      })
+      .catch( err => {
+        console.log(err.message, 'err')
+      })*/
+      https.request({
+        url: url,
+        headers: headers,
+        responseType: 'blob',
+        method: 'GET'
+      }, (res) => {
+        console.log('statusCode:', res.statusCode);
+        console.log('headers:', res.headers);
+        event.sender.send('download-file', { res })
+        res.on('data', (d) => {
+          process.stdout.write(d);
+        });
+
+      }).on('error', (e) => {
+        console.error(e);
+      });
     })
   }
 }

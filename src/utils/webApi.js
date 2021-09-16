@@ -105,35 +105,37 @@ export default {
     window.loadURL(url, { "extraHeaders" : "pragma: no-cache" })
   },
 
-  downloadByUrl: function (sDownloadUrl, sFileName) {
+  downloadByUrl: function (sDownloadUrl, sFileName, file = null) {
     let sUrl = store.getters['main/getApiHost'] + '/' + sDownloadUrl
-
-    // Use this part if cookie is set
-    let oIframe = document.createElement('iframe')
-    oIframe.setAttribute('style', 'display: none;')
-    document.body.appendChild(oIframe)
-    oIframe.setAttribute('src', sUrl);
-
-    setTimeout(function () {
-      oIframe.parentNode.removeChild(oIframe)
-    }, 60000)
-
-    // // Use this part if cookie is NOT set
-    // let sAuthToken = store.getters['user/getAuthToken']
-    // let oHeaders = {}
-    // if (sAuthToken) {
-    //   oHeaders['Authorization'] = 'Bearer ' + sAuthToken
-    // }
-
-    // axios({
-    //   method: 'get',
-    //   url: sUrl,
-    //   headers: oHeaders,
-    //   responseType: 'blob',
-    // })
-    //   .then((oResponse) => {
-    //     saveAs(oResponse.data, sFileName)
-    //   })
+    console.log(sUrl, 'sUrl')
+     let sAuthToken = store.getters['user/getAuthToken']
+     let oHeaders = {
+       'Content-Type': 'multipart/form-data'
+     }
+     if (sAuthToken) {
+       oHeaders['Authorization'] = 'Bearer ' + sAuthToken
+     }
+     axios({
+       method: 'get',
+       url: sUrl,
+       headers: oHeaders,
+       responseType: 'blob',
+       onDownloadProgress: function(progressEvent) {
+         if (file) {
+           console.log(progressEvent, 'progressEvent')
+           let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
+           console.log(percentCompleted, 'percentCompleted')
+           file.changePercentLoading(percentCompleted)
+         }
+       }
+     })
+       .then((response) => {
+         saveAs(new Blob([response.data],{type:response.data.type}),sFileName);
+         file.changeDownloadingStatus(false)
+       })
+    .catch( err => {
+      console.log(err.response)
+    })
   },
   downloadExportFile: function (oParameters, oFileName) {
     let oHeaders = {

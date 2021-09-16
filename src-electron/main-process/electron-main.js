@@ -111,6 +111,7 @@ function createWindow () {
     useContentSize: true,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false
     },
     focusable: true,
   })

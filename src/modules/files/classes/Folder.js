@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import typesUtils from "../../../utils/types";
+import typesUtils from '../../../utils/types'
 
 function Folder() {
   this.File = null
@@ -37,6 +37,9 @@ Folder.prototype.isShared = function () {
 }
 Folder.prototype.hasLink = function () {
   return this.File?.ExtendedProps?.PublicLink
+}
+Folder.prototype.ChangeName = function (name) {
+  this.Name = name
 }
 Folder.prototype.isEncrypted = function () {
   return false

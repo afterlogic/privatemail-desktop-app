@@ -133,12 +133,12 @@ export default {
     },
     downloadFile (file = null) {
       let url = ''
-      if (file) {
-        url = file.DownloadUrl
-      } else {
-        url = this.currentFile.DownloadUrl
+      const currentFile = file || this.currentFile
+      if (currentFile && !currentFile.DownloadingStatus) {
+        url = currentFile.DownloadUrl
+        currentFile.changeDownloadingStatus(true)
+        webApi.downloadByUrl(url, currentFile.Name, currentFile)
       }
-      webApi.downloadByUrl(url)
     },
     openShareDialog (file) {
       this.$emit('shareFiles', file)

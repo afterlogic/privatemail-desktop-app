@@ -22,6 +22,8 @@ function File() {
   this.ParanoidKey = ''
   this.InitializationVector = ''
   this.Content = ''
+  this.Downloading = false
+  this.PercentDownloading = 0
 }
 
 File.prototype.parseUploaderFile = function (file) {
@@ -91,5 +93,11 @@ File.prototype.hasOpenAction = function () {
 }
 File.prototype.ChangeName = function (name) {
   this.Name = name
+}
+File.prototype.changeDownloadingStatus = function (status) {
+  this.Downloading = status
+}
+File.prototype.changePercentLoading = function (percentLoading) {
+  this.PercentDownloading = percentLoading
 }
 export default File

@@ -47,22 +47,22 @@
            style="justify-content: space-between; font-size: 9pt; border-top: 1px solid #dedede;"
       >
         <div class="q-mt-xs">
-          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction() && !file.Loading" class="q-mr-md text-primary"
+          <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl && !file.Loading" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="viewFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading" class="q-mr-md text-primary"
+          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="editFile(file)">Edit</span>
-          <span v-else-if="isArchive() && !file.Loading" class="q-mr-md text-primary"
+          <span v-else-if="isArchive() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="openArchive">View</span>
-          <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading" class="q-mr-md text-primary"
+          <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="viewFile(file)">Open</span>
-          <span v-if="hasImportAction() && progressPercent === 0" class="q-mr-md text-primary"
+          <span v-if="hasImportAction() && progressPercent === 0 && !file.Downloading" class="q-mr-md text-primary"
                 @click="importKeys()">Import</span>
         </div>
         <div class="q-mt-xs">
                     <span
-                      v-if="file.hasDownloadAction()" class="text-primary"
+                      v-if="file.hasDownloadAction() && !file.Downloading" class="text-primary"
                       @click="file.isEncrypted() ? downloadEncryptedFile(file) : downloadFile(file)"
                     >
                       Download
@@ -71,12 +71,23 @@
       </div>
       <div v-if="file.Loading" class="flex" style="flex-direction: column">
         <div class="flex q-px-sm" style="width: 100%">
-          <div class="progress-bar-line" :style="{width: `${progressPercent}%`}" ></div>
+          <div class="progress-bar-line" style="background: #ef4a4a;" :style="{width: `${progressPercent}%`}" ></div>
         </div>
         <div style="font-size: 12px">
           <span v-if="progressPercent !== 100"
           >{{ progressPercent }}%</span>
           <span v-if="progressPercent === 100" style="color: rgb(76, 175, 80);"
+          >complete</span>
+        </div>
+      </div>
+      <div v-if="file.Downloading" class="flex" style="flex-direction: column">
+        <div class="flex q-px-sm" style="width: 100%">
+          <div class="progress-bar-line" style="background: #6bb856;" :style="{width: `${file.PercentDownloading}%`}" ></div>
+        </div>
+        <div style="font-size: 12px">
+          <span v-if="file.PercentDownloading !== 100"
+          >{{ file.PercentDownloading }}%</span>
+          <span v-if="file.PercentDownloading === 100" style="color: rgb(76, 175, 80);"
           >complete</span>
         </div>
       </div>
@@ -298,7 +309,7 @@ export default {
   overflow:hidden;
   width: 0;
   height: 3px;
-  background: #ef4a4a;
+  border-radius: 100px;
 }
 .progress-bar-prompt {
   text-align: center;

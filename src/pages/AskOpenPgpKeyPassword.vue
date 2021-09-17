@@ -17,7 +17,7 @@
       </q-item>
       <q-card-actions align="right">
         <q-btn flat label="Ok" color="primary" @click="setOpenPgpKeyPassword" />
-        <q-btn flat label="Cancel" color="grey-6" v-close-popup />
+        <q-btn flat label="Cancel" color="grey-6" @click="cancel" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -52,6 +52,10 @@ export default {
       }
       this.enterOpenPgpKeyPassword = false
     },
+    cancel () {
+      this.enterOpenPgpKeyPassword = false
+      this.openPgpKeyCallback(null)
+    }
   },
 }
 </script>

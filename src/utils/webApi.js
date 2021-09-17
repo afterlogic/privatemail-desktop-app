@@ -102,7 +102,7 @@ export default {
     })
     window.removeMenu()
     window.setTitle(sFileName)
-    window.loadURL(url, { "extraHeaders" : "pragma: no-cache" })
+    window.loadURL(url)
   },
 
   downloadByUrl: async function (sDownloadUrl, sFileName, file = null) {

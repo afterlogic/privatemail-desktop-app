@@ -320,9 +320,7 @@ export default {
       this.fileIndex = 0
       if (encryptionSettings.enableInPersonalStorage && encryptionSettings.enableParanoidEncryption && this.currentStorage.Type === 'personal') {
         this.$refs.fileUploadTypeSelectionDialog.openDialog()
-        console.log(1)
       } else {
-        console.log(2)
         if (this.currentStorage.Type === 'encrypted') {
           this.uploadEncryptFiles()
         } else {
@@ -364,12 +362,13 @@ export default {
         this.downloadFiles = []
 
       } else {
+        console.log(this.downloadFiles, 'this.downloadFiles')
         const fileInfo = {
           file: this.downloadFiles[this.fileIndex].File,
           fileClass: this.downloadFiles[this.fileIndex],
-          fileName: this.downloadFiles[this.fileIndex].name,
+          fileName: this.downloadFiles[this.fileIndex].Name,
           folder: this.$store.getters['files/getCurrentPath'],
-          size: this.downloadFiles[this.fileIndex].size,
+          size: this.downloadFiles[this.fileIndex].Size,
           type: ''
         }
         this.fileIndex++
@@ -393,7 +392,7 @@ export default {
           params.fileInfo,
           params.uid,
           null,
-          null,
+          this.finishUploadingFiles,
           privateKey,
           publicKey,
           currentAccountEmail,
@@ -402,10 +401,15 @@ export default {
           params.fileIndexUp
         )
       } else {
+        this.downloadFiles = []
         notification.showError(`No private key found for ${currentAccountEmail} user.`)
       }
     },
-    showReport (file) {
+    finishUploadingFiles () {
+      console.log('finish')
+      this.downloadFiles = []
+    },
+    showReport () {
       this.counter++
       if (this.counter === this.downloadFiles.length) {
         notification.showReport('Complete')

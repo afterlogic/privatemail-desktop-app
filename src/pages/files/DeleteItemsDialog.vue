@@ -47,17 +47,17 @@ export default {
       }
     },
     openDialog () {
-      console.log(1)
-      window.addEventListener('keyup', this.listener, false)
+      console.log('delete dialog')
+      //window.addEventListener('keyup', this.listener, false)
       this.confirm = true
     },
     deleteItems () {
-      window.removeEventListener('keyup', this.listener, false)
+      //window.removeEventListener('keyup', this.listener, false)
       this.$emit('removeItems')
       this.confirm = false
     },
     cancel () {
-      window.removeEventListener('keyup', this.listener, false)
+      //window.removeEventListener('keyup', this.listener, false)
       this.confirm = false
     }
   }

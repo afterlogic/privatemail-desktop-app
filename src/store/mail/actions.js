@@ -89,6 +89,7 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
 
   ipcRenderer.once('core-get-appdata', (event, {oResult, oError}) => {
     if (oResult) {
+      console.log(oResult, 'oResult')
       if (oResult['User']) {
         store.commit('user/setUserData', oResult['User'])
       }

@@ -100,4 +100,7 @@ File.prototype.changeDownloadingStatus = function (status) {
 File.prototype.changePercentLoading = function (percentLoading) {
   this.PercentDownloading = percentLoading
 }
+File.prototype.isArchive = function () {
+  return this.File?.Actions?.list
+}
 export default File

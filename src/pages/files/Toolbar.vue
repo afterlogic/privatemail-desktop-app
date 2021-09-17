@@ -206,6 +206,9 @@ export default {
     },
   },
   methods: {
+    test () {
+      console.log('stop')
+    },
     cancelDialog () {
       this.createFolderDialog = false
     },
@@ -302,8 +305,12 @@ export default {
       })
       this.currentFile.ChangeName(name)
     },
-    openRemoveItemsDialog () {
-      this.$refs.deleteItemDialog.openDialog()
+    openRemoveItemsDialog (oMouseEvent) {
+
+      // if (oMouseEvent.isTrusted) {
+        console.log('toolbar', arguments)
+        this.$refs.deleteItemDialog.openDialog()
+      // }
     },
     removeFiles () {
       this.$store.dispatch('files/removeFiles', {

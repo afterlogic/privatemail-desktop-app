@@ -166,13 +166,13 @@ export default {
         this.viewFile()
       } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && this.file.EditUrl) {
         this.editFile()
-      } else if (this.isArchive() && !this.file.Loading) {
+      } else if (this.file.isArchive() && !this.file.Loading) {
         this.openArchive()
       } else if (this.file.hasOpenAction() && !this.file.isEncrypted() && !this.hasImportAction()) {
         this.viewFile()
       } else if (this.hasImportAction() && this.progressPercent === 0) {
         this.importKeys()
-      } else if (this.isArchive()) {
+      } else if (this.file.isArchive()) {
         this.openArchive()
       }
     },

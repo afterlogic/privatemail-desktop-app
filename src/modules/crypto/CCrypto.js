@@ -8,6 +8,8 @@ import types from 'src/utils/types'
 import notification from '../../utils/notification'
 import electron from 'electron'
 import { ipcRenderer } from 'electron'
+import {log} from "electron-log";
+import axios from "axios";
 
 
 /**
@@ -464,48 +466,84 @@ CDownloadFile.prototype.writeChunk = function (oDecryptedUint8Array) {
   }
 }
 
-CDownloadFile.prototype.decryptChunk = function () {
+CDownloadFile.prototype.decryptChunk = async function () {
   let sAuthToken = store.getters['user/getAuthToken']
-  ipcRenderer.send('files-decrypt-chunk', {
-    sAuthToken: sAuthToken,
-    chunkLink: this.getChunkLink(),
+  const file = this.oFile
+  let newUrl = ''
+  let oHeaders = {
+ 'Access-Control-Allow-Origin': '*',
+  'X-Client': 'WebClient',
+  'jua-post-type': 'ajax'
+  }
+  if (sAuthToken) {
+    oHeaders['Authorization'] = 'Bearer ' + sAuthToken
+  }
+  await axios({
+    method: 'get',
+    url: this.getChunkLink(),
+    headers: oHeaders,
+    responseType: 'arraybuffer',
+    onDownloadProgress: function (progressEvent) {
+      if (file) {
+        let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
+        file.changePercentLoading(percentCompleted)
+      }
+    }
   })
-  ipcRenderer.once('files-decrypt-chunk', (event, {res, err, chunkLink}) => {
-    if (res) {
-      let oArrayBuffer = res.data
-      let oDataWithPadding = {}
-      if (res.status === 200 && oArrayBuffer) {
-        oDataWithPadding = new Uint8Array(oArrayBuffer.byteLength + 16)
-        oDataWithPadding.set(new Uint8Array(oArrayBuffer), 0)
-        if (this.iCurrChunk !== this.iChunkNumber) {// for all chunk except last - add padding
-          crypto.subtle.encrypt(
-            {
-              name: 'AES-CBC',
-              iv: new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
-            },
-            this.key,
-            (new Uint8Array([16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16])).buffer // generate padding for chunk
-          ).then(_.bind(function (oEncryptedContent) {
-              // add generated padding to data
-              oDataWithPadding.set(new Uint8Array(new Uint8Array(oEncryptedContent.slice(0, 16))), oArrayBuffer.byteLength)
-              // decrypt data
-              crypto.subtle.decrypt({name: 'AES-CBC', iv: this.iv}, this.key, oDataWithPadding.buffer)
-              .then(_.bind(function (oDecryptedArrayBuffer) {
-                var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
-                // use last 16 byte of current chunk as initial vector for next chunk
-                this.iv = new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
-                this.writeChunk(oDecryptedUint8Array)
-              }, this))
-              .catch(_.bind(function (err) {
-                if (_.isFunction(this.fProcessBlobErrorCallback)) {
-                  this.fProcessBlobErrorCallback()
-                }
-                notification.showError('Error decryption: ' + err)
-              }, this))
-            }, this)
-          )
-        } else { //for last chunk just decrypt data
-          crypto.subtle.decrypt({name: 'AES-CBC', iv: this.iv}, this.key, oArrayBuffer)
+  .then((response) => {
+    this.onload(response)
+    file.changeDownloadingStatus(false)
+  })
+  .catch(err => {
+    newUrl = err?.request?.responseURL
+  })
+
+  if (newUrl) {
+    axios({
+      method: 'get',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      url: newUrl,
+      responseType: 'arraybuffer',
+      onDownloadProgress: function (progressEvent) {
+        if (file) {
+          let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
+          file.changePercentLoading(percentCompleted)
+        }
+      }
+    })
+    .then(response => {
+      this.onload(response)
+      file.changeDownloadingStatus(false)
+    })
+    .catch( response => {
+
+    })
+  }
+}
+
+CDownloadFile.prototype.onload = function (oReq) {
+  let oArrayBuffer = oReq.data
+  let oDataWithPadding = {}
+  if (oReq.status === 200 && oArrayBuffer) {
+    oDataWithPadding = new Uint8Array(oArrayBuffer.byteLength + 16)
+    oDataWithPadding.set(new Uint8Array(oArrayBuffer), 0)
+    if (this.iCurrChunk !== this.iChunkNumber) {// for all chunk except last - add padding
+      crypto.subtle.encrypt(
+        {
+          name: 'AES-CBC',
+          iv: new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
+        },
+        this.key,
+        (new Uint8Array([16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16])).buffer // generate padding for chunk
+      ).then(_.bind(function (oEncryptedContent) {
+          // add generated padding to data
+          oDataWithPadding.set(new Uint8Array(new Uint8Array(oEncryptedContent.slice(0, 16))), oArrayBuffer.byteLength)
+          // decrypt data
+          crypto.subtle.decrypt({name: 'AES-CBC', iv: this.iv}, this.key, oDataWithPadding.buffer)
           .then(_.bind(function (oDecryptedArrayBuffer) {
             var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
             // use last 16 byte of current chunk as initial vector for next chunk
@@ -518,10 +556,24 @@ CDownloadFile.prototype.decryptChunk = function () {
             }
             notification.showError('Error decryption: ' + err)
           }, this))
+        }, this)
+      )
+    } else { //for last chunk just decrypt data
+      crypto.subtle.decrypt({name: 'AES-CBC', iv: this.iv}, this.key, oArrayBuffer)
+      .then(_.bind(function (oDecryptedArrayBuffer) {
+        var oDecryptedUint8Array = new Uint8Array(oDecryptedArrayBuffer)
+        // use last 16 byte of current chunk as initial vector for next chunk
+        this.iv = new Uint8Array(oArrayBuffer.slice(oArrayBuffer.byteLength - 16))
+        this.writeChunk(oDecryptedUint8Array)
+      }, this))
+      .catch(_.bind(function (err) {
+        if (_.isFunction(this.fProcessBlobErrorCallback)) {
+          this.fProcessBlobErrorCallback()
         }
-      }
+        notification.showError('Error decryption: ' + err)
+      }, this))
     }
-  })
+  }
 }
 
 /**

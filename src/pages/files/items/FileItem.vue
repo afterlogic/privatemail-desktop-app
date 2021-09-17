@@ -252,6 +252,8 @@ export default {
       Crypto.viewEncryptedImage(this.file, iv, paranoidEncryptedKey, aesKey)
     },
     async downloadEncryptedFile (file) {
+      file.changePercentLoading(0)
+      file.changeDownloadingStatus(true)
       let iv = file.InitializationVector || false
       let paranoidEncryptedKey = file.ParanoidKey || false
       const aesKey = await this.getAesKey(file)

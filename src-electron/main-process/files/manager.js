@@ -246,8 +246,6 @@ export default {
         responseType: 'blob',
         method: 'GET'
       }, (res) => {
-        console.log('statusCode:', res.statusCode);
-        console.log('headers:', res.headers);
         event.sender.send('download-file', { res })
         res.on('data', (d) => {
           process.stdout.write(d);

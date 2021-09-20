@@ -18,7 +18,7 @@
         </div>
         <div class="col" @keydown="onKeydown">
           <q-scroll-area ref="contactListScrollArea" class="full-height">
-            <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange"/>
+            <contacts-list v-bind:allChecked="allChecked" @allCheckChanged="onCheckChange" @clearSearch="searchInputText = ''"/>
           </q-scroll-area>
         </div>
         <div class="col-auto">

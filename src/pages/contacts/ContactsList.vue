@@ -239,6 +239,7 @@ export default {
       return this.aCheckedList.indexOf(sUUID) !== -1
     },
     clearSearch () {
+      this.$emit('clearSearch')
       this.$store.commit('contacts/setSearchText', '')
     },
   },

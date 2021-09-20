@@ -68,9 +68,8 @@
           Create secure link
         </q-tooltip>
       </span>
-      <span v-if="hasRecipients">
+      <span v-if="enableSharedFiles && currentStorage.Type !== 'shared'">
         <q-btn
-          v-if="currentStorage.Type !== 'shared'"
           :disable="!currentFile || (currentStorage.Type === 'encrypted' && isFolder) || currentStorage.Type === 'corporate' || loadingProgress()"
           flat color="primary" icon="share" @click="share(null)"
         />
@@ -142,7 +141,9 @@ import DeleteItemsDialog from './DeleteItemsDialog'
 import RenameItemDialog from './RenameItemDialog'
 import ShareWithTeammatesDialog from './ShareWithTeammatesDialog'
 import ShareableLinkDialog from './ShareableLinkDialog'
+
 import { ipcRenderer } from 'electron'
+import filesSettings from 'src/modules/files/settings'
 
 export default {
   name: 'Toolbar',
@@ -172,6 +173,9 @@ export default {
     this.getRecipients()
   },
   computed: {
+    enableSharedFiles () {
+      return filesSettings.enableSharedFiles
+    },
     checkedItems () {
       const currentFiles = this.folders.concat(this.files)
       const hashes = this.$store.getters['files/getCheckedItems']
@@ -206,9 +210,6 @@ export default {
     },
   },
   methods: {
-    test () {
-      console.log('stop')
-    },
     cancelDialog () {
       this.createFolderDialog = false
     },
@@ -306,11 +307,7 @@ export default {
       this.currentFile.ChangeName(name)
     },
     openRemoveItemsDialog (oMouseEvent) {
-
-      // if (oMouseEvent.isTrusted) {
-        console.log('toolbar', arguments)
         this.$refs.deleteItemDialog.openDialog()
-      // }
     },
     removeFiles () {
       this.$store.dispatch('files/removeFiles', {

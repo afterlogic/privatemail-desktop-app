@@ -50,19 +50,16 @@ CCrypto.prototype.start = async function (oFileInfo, ParanoidKey = '') {
 
 CCrypto.prototype.startUpload = async function (oFileInfo, sUid, fOnChunkEncryptCallback, fCancelCallback, privateKey, publicKeys, currentAccountEmail, askOpenPgpKeyPassword, callBack) {
   this.oChunkQueue.isProcessed = true
-  console.log(111111111)
   this.oKey = await this.generateKey()
   const sKeyData = await this.convertKeyToString(this.oKey)
   if (privateKey && sKeyData) {
     const CurrentUserPublicKey = publicKeys
     if (CurrentUserPublicKey) {
       const sEncryptedKey = await this.encryptParanoidKey(sKeyData, [CurrentUserPublicKey], '', privateKey, currentAccountEmail, askOpenPgpKeyPassword)
-      console.log(sEncryptedKey, 'sEncryptedKey')
       if (sEncryptedKey.data) {
         await this.start(oFileInfo, sEncryptedKey.data)
         await this.readChunk(sUid, this.fOnChunkReadyCallback, callBack)
       } else if (_.isFunction(fCancelCallback)) {
-        console.log('cancel')
         fCancelCallback()
       }
     } else if (_.isFunction(fCancelCallback)) {

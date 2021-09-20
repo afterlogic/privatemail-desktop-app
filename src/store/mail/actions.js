@@ -17,6 +17,7 @@ import mailSettings from 'src/modules/mail/settings.js'
 import contactsSettings from 'src/modules/contacts/settings.js'
 import openpgpSettings from 'src/modules/openpgp/settings.js'
 import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings'
+import filesSettings from 'src/modules/files/settings'
 
 let oAllStartedOperations = {}
 
@@ -108,6 +109,9 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
       }
       if (oResult['CoreParanoidEncryptionWebclientPlugin']) {
         encryptionSettings.parse(oResult['CoreParanoidEncryptionWebclientPlugin'])
+      }
+      if (oResult['Core']) {
+        filesSettings.parse(oResult['Core'])
       }
     }
   })

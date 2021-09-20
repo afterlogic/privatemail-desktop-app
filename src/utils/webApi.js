@@ -88,21 +88,17 @@ export default {
   },
   viewByUrlInNewWindow: function (sViewUrl, sFileName) {
     let url = store.getters['main/getApiHost'] + '/' + sViewUrl
-    console.log(url, 'url')
     const electron = require('electron')
     const BrowserWindow = electron.remote.BrowserWindow
 
 
     const window = new BrowserWindow({
       width: 1200,
-      height: 600,
-      webPreferences: {
-        webSecurity: false
-      }
+      height: 600
     })
+    window.loadURL(url)
     window.removeMenu()
     window.setTitle(sFileName)
-    window.loadURL(url)
   },
 
   downloadByUrl: async function (sDownloadUrl, sFileName, file = null) {
@@ -123,7 +119,6 @@ export default {
       onDownloadProgress: function (progressEvent) {
         if (file) {
           let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
-          console.log(percentCompleted, 'percentCompleted')
           file.changePercentLoading(percentCompleted)
         }
       }
@@ -148,10 +143,7 @@ export default {
         responseType: 'blob',
         onDownloadProgress: function (progressEvent) {
           if (file) {
-            console.log(file.Size, 'file.Size')
-            console.log(progressEvent.loaded, 'progressEvent.loaded')
             let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
-            console.log(percentCompleted, 'percentCompleted')
             file.changePercentLoading(percentCompleted)
           }
         }

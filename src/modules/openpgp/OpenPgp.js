@@ -349,7 +349,6 @@ COpenPgp.prototype.decryptAndVerifyTextWithPassphrase = async function (sData, o
         return { sError: 'An error occurred during decrypting the message.' }
       }
     } catch (oError) {
-      console.log(oError.message, 'oErrors')
       return { sError: 'An error occurred during decrypting the message (' + oError.message + ').' }
     }
   } else {

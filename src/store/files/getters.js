@@ -36,3 +36,9 @@ export function getCopiedFiles (state) {
 export function getFilesQuota (state) {
   return state.quota
 }
+export function getFiles (state) {
+  return state.files
+}
+export function getFolders (state) {
+  return state.folders
+}

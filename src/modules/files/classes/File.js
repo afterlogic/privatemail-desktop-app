@@ -24,6 +24,8 @@ function File() {
   this.Content = ''
   this.Downloading = false
   this.PercentDownloading = 0
+  this.ThumbnailUrl = ''
+  this.Deleted = false
 }
 
 File.prototype.parseUploaderFile = function (file) {
@@ -58,6 +60,7 @@ File.prototype.parseDataFromServer = function (file) {
   this.OpenUrl = typesUtils.pString(file?.Actions?.open?.url, '')
   this.ParanoidKey = typesUtils.pString(file?.ExtendedProps?.ParanoidKey, '')
   this.InitializationVector = typesUtils.pString(file?.ExtendedProps?.InitializationVector, '')
+  this.ThumbnailUrl = typesUtils.pString(file?.ThumbnailUrl, '')
 }
 
 File.prototype.getDescription = function (owner) {
@@ -102,5 +105,8 @@ File.prototype.changePercentLoading = function (percentLoading) {
 }
 File.prototype.isArchive = function () {
   return this.File?.Actions?.list
+}
+File.prototype.changeDeleteStatus = function (status) {
+  this.Deleted = status
 }
 export default File

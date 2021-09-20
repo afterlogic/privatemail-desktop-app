@@ -3,6 +3,8 @@ import store from 'src/store'
 import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
 import notification from '../../utils/notification'
+import File from '../../modules/files/classes/File'
+import Folder from "../../modules/files/classes/Folder";
 
 export function asyncGetStorages ({ state, commit, getters, dispatch }) {
   ipcRenderer.send('files-get-storages', {
@@ -75,14 +77,34 @@ export function getFiles ({ state, commit, getters, dispatch }, {
     sModule: 'Files',
     sMethod: 'GetFiles',
     oParameters: parameters,
-    fCallback: (files, error) => {
-      if (_.isArray(files?.Items)) {
+    fCallback: (filesFromServer, error) => {
+      if (_.isArray(filesFromServer?.Items)) {
         commit('setCheckedItems', { checkedItems: [] })
         const currentPath = getters['getCurrentPath']
         const storage = getters['getCurrentStorage']
         const currentPattern = getters['getCurrentPattern']
         if (currentStorage === storage.Type && path === currentPath && currentPattern === pattern) {
-          commit('setCurrentFiles', { files: files.Items })
+          let files = []
+          filesFromServer.Items.map( item => {
+            if (!item.IsFolder) {
+              const file = new File()
+              file.parseDataFromServer(item)
+              files.push(file)
+            }
+          })
+          commit('setFiles', { files })
+
+          let folders = []
+          filesFromServer.Items.map( item => {
+            if (item.IsFolder) {
+              const folder = new Folder()
+              folder.parseDataFromServer(item)
+              folders.push(folder)
+            }
+          })
+          commit('setFolders', { folders })
+
+          commit('setCurrentFiles', { files: filesFromServer.Items })
           commit('setLoadingStatus', { status: false })
         }
       }
@@ -90,8 +112,8 @@ export function getFiles ({ state, commit, getters, dispatch }, {
        notification.showError(error.ErrorMessage)
        commit('setLoadingStatus', { status: false })
      }
-      if (files?.Quota) {
-        commit('setFilesQuota', { quota: files.Quota })
+      if (filesFromServer?.Quota) {
+        commit('setFilesQuota', { quota: filesFromServer.Quota })
       }
     },
   })
@@ -137,6 +159,7 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
 
   ipcRenderer.once('files-remove-items', (event, { result, oError }) => {
     if (result) {
+      console.log(result, 'result')
       commit('setCheckedItems', {
         checkedItems: []
       })

@@ -1,18 +1,14 @@
 <template>
   <div class="col panel-rounded" style="box-sizing: border-box;">
     <q-scroll-area class="full-height">
-      <transition name="inscription">
         <div class="pannel-hint non-selectable full-width inscription"
              v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && isFolder"
         >
           Folder is empty
         </div>
-      </transition>
-      <transition name="inscription">
         <div class="pannel-hint non-selectable full-width inscription" v-if="isUploadingFiles">
           Loading...
         </div>
-      </transition>
       <div class="pannel-hint non-selectable full-width inscription"
            v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && !isFolder"
       >
@@ -27,8 +23,8 @@
       >
         No shared files
       </div>
-      <transition-group class="row q-pa-sm large" v-if="!isUploadingFiles" name="list" tag="div"
-                        style="display: flex; flex-wrap: wrap">
+      <div v-if="!isUploadingFiles" class="row q-pa-sm large" style="display: flex; flex-wrap: wrap">
+
           <folder-item
             v-for="folder in folderList" :key="folder.Hash"
             :file="folder"
@@ -57,7 +53,7 @@
           :downloadFile="downloadFile"
           @openFolder="openFolder(file)"
         />
-      </transition-group>
+      </div>
     </q-scroll-area>
     <encrypted-file-information-dialog ref="encryptedFileInformationDialog"
                                        @downloadEncrypted="downloadFile"></encrypted-file-information-dialog>
@@ -307,25 +303,17 @@ export default {
   top: 0;
   left: 0;
 }
-.inscription-enter-active {
-  transition: all 3s;
-}
-.inscription-leave-active {
-  transition: all 1s;
-}
-.inscription-enter, .inscription-leave-to {
-  opacity: 0;
-}
-.list-item {
+.fade-item {
   display: inline-block;
   margin-right: 10px;
 }
-.list-enter-active, .list-leave-active {
+.fade-enter-active, .fade-leave-active {
   transition: all 1s;
-}
-.list-enter, .list-leave-to /* .list-leave-active до версии 2.1.8 */ {
   opacity: 0;
   transform: scale(0.5);
+}
+.none-enter-active, .none-leave-active {
+  display: none;
 }
 .select-text-disable {
   -webkit-user-select: none;

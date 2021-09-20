@@ -198,18 +198,23 @@
           </q-item-section>
           <q-item-section top side class="actions-section">
             <div class="q-gutter-xs">
-              <q-btn flat icon="visibility" color="primary"
+              <span class="text-primary mail-link q-mt-md" @click="importKeys(attach)">
+              Import
+            </span>
+              <span
                 v-if="attach.sViewLink"
                 @click="viewAttach(attach.sViewLink, attach.sFileName)"
-                >
-                <q-tooltip>View</q-tooltip>
-              </q-btn>
-              <q-btn flat icon="get_app" color="primary"
+                class="text-primary mail-link q-mt-md q-mx-md"
+              >
+              View
+            </span>
+              <span
+                class="text-primary mail-link q-mt-md q-mr-md"
                 v-if="attach.sDownloadLink"
                 @click="downloadAttach(attach.sDownloadLink, attach.sFileName)"
-                >
-                <q-tooltip>Download</q-tooltip>
-              </q-btn>
+              >
+              Import
+            </span>
             </div>
           </q-item-section>
           <q-separator />
@@ -256,6 +261,7 @@
     </q-dialog>
 
     <PrintMessageView v-if="message !== null" v-bind:message="message" ref="PrintMessageView"></PrintMessageView>
+    <import-keys-dialog ref="importKeysDialog"></import-keys-dialog>
 
   </div>
 </template>
@@ -345,6 +351,7 @@ import ContactCard from 'src/pages/contacts/ContactCard.vue'
 
 import OpenPgp from 'src/modules/openpgp/OpenPgp.js'
 import PrintMessageView from "./PrintMessageView";
+import ImportKeysDialog from 'src/pages/files/open-pgp/ImportKeysDialog'
 import message from "src/modules/mail/utils/message.js";
 
 
@@ -381,7 +388,8 @@ export default {
 
   components: {
     ContactCard,
-    PrintMessageView
+    PrintMessageView,
+    ImportKeysDialog
   },
   props: {
     message: Object
@@ -795,7 +803,10 @@ export default {
       this.$store.dispatch('files/saveAttachmentsToFile', { attachments }).then( res => {
         notification.showReport('Complete')
       })
-    }
+    },
+    importKeys (attach) {
+      this.$refs.importKeysDialog.openDialog(attach.sContent)
+    },
   }
 }
 </script>

@@ -12,9 +12,14 @@ export function setFilesList (state, { files, storage }) {
 }
 export function removeCheckedFiles (state, { checkedFiles }) {
   checkedFiles.map( checkedFile => {
-    state.currentFiles.map( (file, index) => {
+    state.files.map( file => {
       if (file.Hash === checkedFile.Hash) {
-        state.currentFiles.splice(index, 1)
+        file.changeDeleteStatus(true)
+      }
+    })
+    state.folders.map( folder => {
+      if (folder.Hash === checkedFile.Hash) {
+        folder.changeDeleteStatus(true)
       }
     })
   })
@@ -60,4 +65,10 @@ export function setCopiedFiles (state, { fromType, fromPath, isCut, files }) {
 export function setFilesQuota (state, { quota }) {
   state.quota.Limit = quota.Limit
   state.quota.Used = quota.Used
+}
+export function setFiles (state, { files }) {
+  state.files = files
+}
+export function setFolders (state, { folders }) {
+  state.folders = folders
 }

@@ -4,6 +4,7 @@
     class="q-mx-sm q-mb-md select-text-disable"
     align="center"
     style="width: 150px; height: 175px;"
+    v-if="!file.Deleted"
   >
   <div
     class="folder file-focus"

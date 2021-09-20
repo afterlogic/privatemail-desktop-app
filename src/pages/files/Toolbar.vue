@@ -2,7 +2,7 @@
   <div>
     <div class="row q-pa-sm items-center">
       <span>
-        <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1 || loadingProgress()" flat color="primary" icon="file_download"
+        <q-btn :disable="!currentFile || isFolder || checkedItems.length > 1 || loadingProgress() || !checkedItems.length" flat color="primary" icon="file_download"
                @click="downloadFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Download file
@@ -17,7 +17,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!currentFile || currentStorage.Type === 'shared' || loadingProgress()" flat color="primary" icon="edit" @click="editFile"
+          :disable="!currentFile || currentStorage.Type === 'shared' || loadingProgress() || !checkedItems.length" flat color="primary" icon="edit" @click="editFile"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Rename

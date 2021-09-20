@@ -12,6 +12,7 @@ function Folder() {
   this.IsFolder = false
   this.Shares = []
   this.PublicLink = ''
+  this.Deleted = false
 }
 Folder.prototype.parseDataFromServer = function (folder) {
   this.File = folder
@@ -43,5 +44,8 @@ Folder.prototype.ChangeName = function (name) {
 }
 Folder.prototype.isEncrypted = function () {
   return false
+}
+Folder.prototype.changeDeleteStatus = function (status) {
+  this.Deleted = status
 }
 export default Folder

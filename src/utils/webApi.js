@@ -86,11 +86,14 @@ export default {
     oCallbacks[iRequestId] = fCallback
     ipcRenderer.send('core-send-web-api-request', { iRequestId, sApiHost, sAuthToken, sModule, sMethod, oParameters })
   },
-  viewByUrlInNewWindow: function (sViewUrl, sFileName) {
-    let url = store.getters['main/getApiHost'] + '/' + sViewUrl
+  viewByUrlInNewWindow: function (sUrl, sFileName, isOpenAction) {
+    let url = sUrl
+    if (!isOpenAction) {
+      url = store.getters['main/getApiHost'] + '/' + url
+    }
+    console.log(url, 'url')
     const electron = require('electron')
     const BrowserWindow = electron.remote.BrowserWindow
-
 
     const window = new BrowserWindow({
       width: 1200,

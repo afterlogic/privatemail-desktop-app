@@ -49,14 +49,14 @@
         <div class="q-mt-xs">
           <span v-if="hasViewAction() && isImg(file) && file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="viewEncryptedFile(file)">View</span>
-          <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && !file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
-                @click="viewFile(file)">View</span>
+          <span v-else-if="hasViewAction() && !file.OpenUrl && !file.isEncrypted() && !hasImportAction() && !file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
+                @click="viewFile(file.ViewUrl, false)">View</span>
           <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="editFile(file)">Edit</span>
           <span v-else-if="isArchive() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                 @click="openArchive">View</span>
           <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
-                @click="viewFile(file)">Open</span>
+                @click="viewFile(file.OpenUrl, true)">Open</span>
           <span v-if="hasImportAction() && progressPercent === 0 && !file.Downloading" class="q-mr-md text-primary"
                 @click="importKeys()">Import</span>
         </div>
@@ -163,13 +163,13 @@ export default {
       if (this.hasViewAction() && this.isImg() && this.file.isEncrypted() && !this.hasImportAction()) {
         this.viewEncryptedFile()
       } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && !this.file.EditUrl) {
-        this.viewFile()
+        this.viewFile(this.file.ViewUrl, false)
       } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && this.file.EditUrl) {
         this.editFile()
       } else if (this.file.isArchive() && !this.file.Loading) {
         this.openArchive()
       } else if (this.file.hasOpenAction() && !this.file.isEncrypted() && !this.hasImportAction()) {
-        this.viewFile()
+        this.viewFile(this.file.OpenUrl, true)
       } else if (this.hasImportAction() && this.progressPercent === 0) {
         this.importKeys()
       } else if (this.file.isArchive()) {
@@ -237,10 +237,7 @@ export default {
       if (this.file?.File?.__status) {
         return false
       }
-      const formatFile = this.formatFile(this.file)
-      return this.fileFormats.find( format => {
-        return format === formatFile
-      })
+      return !!this.file.ViewUrl
     },
     hasImportAction () {
       return this.formatFile(this.file) === 'asc'
@@ -281,9 +278,8 @@ export default {
         notification.showError('No private key found for file decryption.')
       }
     },
-    viewFile () {
-      const url = this.file.ViewUrl
-      webApi.viewByUrlInNewWindow(url, this.file.Name)
+    viewFile (url, isOpenAction) {
+      webApi.viewByUrlInNewWindow(url, this.file.Name, isOpenAction)
     },
     editFile () {
       const url = this.file.EditUrl

@@ -127,6 +127,9 @@ export function changeCheckedItems ({ state, commit, getters, dispatch }, { chec
 }
 export function removeFiles ({ state, commit, getters, dispatch }, { type, path, items, currentFiles }) {
   commit('removeCheckedFiles', { checkedFiles: items, currentFiles })
+  commit('setCheckedItems', {
+    checkedItems: []
+  })
   ipcRenderer.send('files-remove-items', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -135,15 +138,10 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
     items
   })
 
-  ipcRenderer.once('files-remove-items', (event, { result, oError }) => {
-    if (result) {
-      console.log(result, 'result')
-      commit('setCheckedItems', {
-        checkedItems: []
-      })
-    }
-    if (oError) {
-      notification.showError(oError)
+  ipcRenderer.once('files-remove-items', (event, { result, error }) => {
+    if (error) {
+      notification.showError('Some error occurs while deleting a folder.')
+      dispatch('getFiles', { currentStorage: type, path })
     }
   })
 }

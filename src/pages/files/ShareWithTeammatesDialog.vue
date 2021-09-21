@@ -17,6 +17,7 @@
               multiple
               :options="toAddrOptions"
               use-chips
+              use-input
               stack-label
               @filter="getContactsSeeOptions"
             >
@@ -41,13 +42,14 @@
             <q-select
               ref="whoCanEdit"
               dense
+              input-debounce="0"
               outlined
               style="width: 350px"
               v-model="whoCanEdit"
               multiple
               :options="toAddrOptions"
               use-chips
-              stack-label
+              use-input
               @filter="getContactsEditOptions"
             >
               <template v-slot:option="scope">
@@ -86,6 +88,7 @@ import ShowHistoryDialog from './ShowHistoryDialog'
 import OpenPgp from '../../modules/openpgp/OpenPgp'
 import CCrypto from '../../modules/crypto/CCrypto'
 import notification from "../../utils/notification";
+import typesUtils from "../../utils/types";
 
 export default {
   name: 'ShareWithTeammatesDialog',
@@ -101,6 +104,22 @@ export default {
       file: null,
       saving: false,
       principalsEmails: []
+    }
+  },
+  watch: {
+    whoCanEdit (aAddr, aPrevAddr) {
+      aAddr = typesUtils.pArray(aAddr)
+      aPrevAddr = typesUtils.pArray(aPrevAddr)
+      if (aAddr.length > aPrevAddr.length && this.$refs.whoCanEdit) {
+        this.$refs.whoCanEdit.updateInputValue('')
+      }
+    },
+    whoCanSee (aAddr, aPrevAddr) {
+      aAddr = typesUtils.pArray(aAddr)
+      aPrevAddr = typesUtils.pArray(aPrevAddr)
+      if (aAddr.length > aPrevAddr.length && this.$refs.whoCanSee) {
+        this.$refs.whoCanSee.updateInputValue('')
+      }
     }
   },
   methods: {

@@ -42,7 +42,6 @@
             </q-item-section>
             <q-item-section side>
               <q-select
-
                 dense outlined class="recipients-select"
                 use-input use-chips input-debounce="0"
                 ref="whoCanSee"

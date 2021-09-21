@@ -138,7 +138,6 @@ export default {
         IsDir: isDir,
         Shares: shares
       }
-      console.log(oParameters, 'oParameters')
       webApi.sendRequest({
         sApiHost,
         sAuthToken,

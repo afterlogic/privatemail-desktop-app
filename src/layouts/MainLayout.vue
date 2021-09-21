@@ -45,11 +45,14 @@
 </template>
 
 <script>
+import coreSettings from "../modules/core/settings";
+
 export default {
   name: 'MainLayout',
   data () {
     return {
-      unreadMessages: ''
+      unreadMessages: '',
+      iRefreshTimer: 0
     }
   },
   mounted () {
@@ -62,6 +65,12 @@ export default {
   },
 
   computed: {
+    foldersSyncing () {
+      return this.$store.getters['mail/getFoldersSyncing']
+    },
+    mailSyncing () {
+      return this.$store.getters['mail/getFoldersSyncing'] || this.$store.getters['mail/getMessagesSyncing']
+    },
     isAuthorized () {
       return this.$store.getters['user/isAuthorized']
     },
@@ -96,8 +105,23 @@ export default {
       }
     }
   },
-
+  watch: {
+    foldersSyncing () {
+      if (coreSettings.iAutoRefreshIntervalMinutes > 0) {
+        clearTimeout(this.iRefreshTimer)
+        if (!this.foldersSyncing) {
+          this.iRefreshTimer = setTimeout(this.sync, coreSettings.iAutoRefreshIntervalMinutes * 60000)
+        }
+      }
+    },
+  },
   methods: {
+    sync () {
+      clearTimeout(this.iRefreshTimer)
+      if (!this.mailSyncing) {
+        this.$store.dispatch('mail/asyncRefresh')
+      }
+    },
     logIn () {
       this.$store.dispatch('login')
     },

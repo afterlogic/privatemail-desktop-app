@@ -157,14 +157,6 @@ export default {
     isAuthorized () {
       clearTimeout(this.iRefreshTimer)
     },
-    foldersSyncing () {
-      if (coreSettings.iAutoRefreshIntervalMinutes > 0) {
-        clearTimeout(this.iRefreshTimer)
-        if (!this.foldersSyncing) {
-          this.iRefreshTimer = setTimeout(this.sync, coreSettings.iAutoRefreshIntervalMinutes * 60000)
-        }
-      }
-    },
   },
 
   methods: {
@@ -227,18 +219,11 @@ export default {
         })
       }
     },
-    sync () {
-      clearTimeout(this.iRefreshTimer)
-      if (!this.mailSyncing) {
-        this.$store.dispatch('mail/asyncRefresh')
-      }
-    },
     fullSync () {
       if (this.$store.getters['mail/getHasChanges']) {
         this.$store.commit('mail/setSelectedItem', {fullSync: 'sync'})
         this.$store.commit('mail/setTriggerChangesDialogue', true)
       } else {
-        clearTimeout(this.iRefreshTimer)
         this.$store.dispatch('mail/asyncRefresh', true)
       }
     },

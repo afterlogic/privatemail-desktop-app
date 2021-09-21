@@ -90,7 +90,6 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
 
   ipcRenderer.once('core-get-appdata', (event, {oResult, oError}) => {
     if (oResult) {
-      console.log(oResult, 'oResult')
       if (oResult['User']) {
         store.commit('user/setUserData', oResult['User'])
       }
@@ -259,6 +258,7 @@ ipcRenderer.on('mail-refresh', (event, { bHasChanges, bHasChangesInCurrentFolder
 })
 
 export function asyncRefresh ({ state, commit, dispatch, getters }, bAllFolders) {
+
   let oCurrentAccount = getters.getCurrentAccount
   if (store.getters['user/isAuthorized'] && oCurrentAccount) {
     commit('setFoldersSyncing', true)

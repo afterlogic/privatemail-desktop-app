@@ -106,7 +106,7 @@ export default {
       return this.folder.Count > 0 && (this.folder.Type === mailEnums.FolderType.Drafts || this.folder.Type === mailEnums.FolderType.Scheduled)
     },
     showUnseenCount () {
-      return this.folder.UnseenCount > 0 && this.folder.Type !== mailEnums.FolderType.Scheduled
+      return this.folder.UnseenCount > 0 && this.folder.Type !== mailEnums.FolderType.Scheduled && this.folder.Type !== mailEnums.FolderType.Drafts
     },
     showStarred () {
       return this.folder.Type === mailEnums.FolderType.Inbox

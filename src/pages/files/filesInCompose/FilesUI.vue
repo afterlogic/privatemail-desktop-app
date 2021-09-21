@@ -1,8 +1,8 @@
 <template>
   <q-dialog v-model="confirm" persistent>
     <q-card class="popup_panel select-text-disable">
-      <div class="flex panels">
-        <q-card-section class="storages">
+      <div class="flex panels q-px-md q-pt-md">
+        <q-card-section class="storages" style="padding: 0">
           <q-scroll-area class="full-height main-background" style="border-radius: 5px;">
             <q-list>
               <div v-for="storage in storageList" :key="storage.DisplayName">
@@ -40,36 +40,32 @@
             </q-list>
           </q-scroll-area>
         </q-card-section>
-        <q-card-section class="files">
+        <q-card-section class="files" style="padding: 0;  border: 1px solid rgba(0,0,0,0.12); border-radius: 5px;">
           <div style="position: sticky">
-            <div class="q-mr-md">
-              <q-separator></q-separator>
-            </div>
             <q-breadcrumbs class="q-px-md q-py-sm">
               <q-breadcrumbs-el class="breadcrumbs" v-for="path in currentPaths" :key="path.name" :label="path.name"  @click="changeFolder(path)"/>
             </q-breadcrumbs>
           </div>
-          <div class="q-mr-md q-mb-md">
+          <div>
             <q-separator></q-separator>
           </div>
-          <q-scroll-area class="full-height" style="max-height: 390px; margin-left: 0">
+          <q-scroll-area class="full-height" style="max-height: 405px; margin-left: 0">
             <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="isUploadingFiles">
               Loading...
             </div>
             <div class="row" v-if="!isUploadingFiles">
               <q-card
                 flat
-                class="q-mx-sm q-mb-md select-text-disable file"
+                class="q-mx-sm q-my-sm select-text-disable file"
                 v-for="file in filesList" :key="file.Hash" align="center"
               >
                 <file :file="file" :is-checked="isChecked(file)" @selectedFile="selectedFile"
-                      :current-storage="currentStorage" @select="select"></file>
+                      :current-storage="currentStorage" @select="select" @openFolder="openFolder"></file>
               </q-card>
             </div>
           </q-scroll-area>
         </q-card-section>
       </div>
-      <q-separator/>
       <q-card-actions class="buttons" align="right">
         <q-btn flat :ripple="false" color="primary" @click="select"
                label="Select" />
@@ -129,7 +125,9 @@ export default {
     },
   },
   methods: {
-
+    openFolder () {
+      this.checkedList = []
+    },
     populate () {
       this.$store.commit('files/setLoadingStatus', { status: true })
       this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: '' })
@@ -274,7 +272,7 @@ export default {
   width: 30%;
 }
 .files {
-  max-height: 445px;
+  max-height: 449px;
   padding-left: 0;
   padding-right: 0;
   width: 70%;

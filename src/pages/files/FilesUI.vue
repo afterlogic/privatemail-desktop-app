@@ -287,7 +287,10 @@ export default {
       }
     },
     cancelUploading () {
-
+      console.log(1)
+      this.downloadFiles = []
+      this.$refs.uploader.removeQueuedFiles()
+      this.$refs.uploader.removeUploadedFiles()
     },
     getNewUid () {
       return 'jua-uid-' + this.fakeMd5(16) + '-' + (new Date()).getTime().toString();

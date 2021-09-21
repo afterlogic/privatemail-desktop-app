@@ -178,7 +178,15 @@ export default {
   },
   computed: {
     fileList () {
-      let files = this.$store.getters['files/getFiles']
+      const filesFromServer = this.$store.getters['files/getCurrentFiles']
+      let files = []
+      filesFromServer.map(item => {
+        if (!item.IsFolder) {
+          const file = new File()
+          file.parseDataFromServer(item)
+          files.push(file)
+        }
+      })
       if (this.downloadFiles.length) {
         files = files.concat(this.downloadFiles)
         this.sortByName(files)
@@ -186,7 +194,16 @@ export default {
       return files
     },
     folderList () {
-      return this.$store.getters['files/getFolders']
+      let folders = []
+      const filesFromServer = this.$store.getters['files/getCurrentFiles']
+      filesFromServer.map( item => {
+        if (item.IsFolder) {
+          const folder = new Folder()
+          folder.parseDataFromServer(item)
+          folders.push(folder)
+        }
+      })
+      return folders
     },
     isUploadingFiles () {
       return this.$store.getters['files/getLoadingStatus']
@@ -202,9 +219,6 @@ export default {
     },
     currentFilePath () {
       return this.$store.getters['files/getCurrentPath']
-    },
-    progressLabel () {
-      return this.files?.__progressLabel
     },
     currentFile () {
       const hash = this.$store.getters['files/getCurrentFile']

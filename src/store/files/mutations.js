@@ -10,14 +10,14 @@ export function setCurrentStorage (state, currentStorage) {
 export function setFilesList (state, { files, storage }) {
   state.filesTree[storage] = files
 }
-export function removeCheckedFiles (state, { checkedFiles }) {
+export function removeCheckedFiles (state, { checkedFiles, currentFiles }) {
   checkedFiles.map( checkedFile => {
-    state.files.map( file => {
+    currentFiles.files.map( file => {
       if (file.Hash === checkedFile.Hash) {
         file.changeDeleteStatus(true)
       }
     })
-    state.folders.map( folder => {
+    currentFiles.folders.map( folder => {
       if (folder.Hash === checkedFile.Hash) {
         folder.changeDeleteStatus(true)
       }

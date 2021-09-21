@@ -313,7 +313,11 @@ export default {
       this.$store.dispatch('files/removeFiles', {
         type: this.currentStorage.Type,
         path: this.currentFolderPath,
-        items: this.checkedItems
+        items: this.checkedItems,
+        currentFiles: {
+          files: this.files,
+          folders: this.folders
+        }
       })
     },
     cutFile () {

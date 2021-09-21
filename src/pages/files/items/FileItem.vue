@@ -19,10 +19,10 @@
         >
           <div
             class="file-card"
-            style="height: 150px; border-radius: 3px"
+            style="height: 150px; border-radius: 3px;"
             :class="{ 'file-selected': isChecked(file) }"
           >
-                <span class="display-none tooltip" style="line-height: 1.2"
+                <span class="display-none tooltip" style="line-height: 1.2; overflow: hidden; width: 146px;"
                       :class="{ 'display-block': isChecked(file), 'tooltip-checked': isChecked(file) }">
                   {{ file.getDescription(currentAccount) }}
                 </span>
@@ -36,15 +36,15 @@
                    :style="{'background': `url(${getPreviewFile()}) no-repeat center`, 'background-size': 'contain'}"/>
             </div>
             <div class="flex q-mt-sm q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
+              <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="file.isEncrypted()"
+                   @click="openEncryptedFileDialog(file)">
+                <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
+              </div>
               <div class="q-mr-xs q-mb-xs file-icon" v-if="file.isShared()" @click="openShareDialog(file)">
                 <share-icon style="fill: white !important;" :width="20" :height="20"/>
               </div>
               <div class="q-mr-xs q-mb-xs file-icon" v-if="file.hasLink()" @click="openLinkDialog(file)">
                 <link-icon style="fill: white !important;" :width="20" :height="20"/>
-              </div>
-              <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="file.isEncrypted()"
-                   @click="openEncryptedFileDialog(file)">
-                <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
               </div>
             </div>
             <div class="flex q-mt-sm q-mx-sm"
@@ -282,10 +282,12 @@ export default {
         const decryptData = await OpenPgp.decryptAndVerifyText(paranoidKey, privateKey, aPublicKeys, this.askOpenPgpKeyPassword)
         if (decryptData?.sError) {
           notification.showError(decryptData.sError)
+          file.changeDownloadingStatus(false)
           return false
         }
         return decryptData.sDecryptedData
       } else {
+        file.changeDownloadingStatus(false)
         notification.showError('No private key found for file decryption.')
       }
     },

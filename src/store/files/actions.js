@@ -84,25 +84,25 @@ export function getFiles ({ state, commit, getters, dispatch }, {
         const storage = getters['getCurrentStorage']
         const currentPattern = getters['getCurrentPattern']
         if (currentStorage === storage.Type && path === currentPath && currentPattern === pattern) {
-          let files = []
+          /*let files = []
           filesFromServer.Items.map( item => {
             if (!item.IsFolder) {
               const file = new File()
               file.parseDataFromServer(item)
               files.push(file)
             }
-          })
-          commit('setFiles', { files })
+          })*/
+          //commit('setFiles', { files })
 
-          let folders = []
+          /*let folders = []
           filesFromServer.Items.map( item => {
             if (item.IsFolder) {
               const folder = new Folder()
               folder.parseDataFromServer(item)
               folders.push(folder)
             }
-          })
-          commit('setFolders', { folders })
+          })*/
+          //commit('setFolders', { folders })
 
           commit('setCurrentFiles', { files: filesFromServer.Items })
           commit('setLoadingStatus', { status: false })
@@ -147,8 +147,8 @@ export function changeCurrentPaths ({ state, commit, getters, dispatch }, { path
 export function changeCheckedItems ({ state, commit, getters, dispatch }, { checkedItems }) {
   commit('setCheckedItems', { checkedItems: checkedItems })
 }
-export function removeFiles ({ state, commit, getters, dispatch }, { type, path, items }) {
-  commit('removeCheckedFiles', { checkedFiles: items })
+export function removeFiles ({ state, commit, getters, dispatch }, { type, path, items, currentFiles }) {
+  commit('removeCheckedFiles', { checkedFiles: items, currentFiles })
   ipcRenderer.send('files-remove-items', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],

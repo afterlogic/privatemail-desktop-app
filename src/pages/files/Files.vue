@@ -266,7 +266,11 @@ export default {
       const dropFile = this.checkedList.find( elem => elem.Hash === file.Hash)
       if (!dropFile) {
         this.$store.commit('files/removeCheckedFiles', {
-          checkedFiles: this.checkedList
+          checkedFiles: this.checkedList,
+          currentFiles: {
+            files: this.fileList,
+            folders: this.folderList
+          }
         })
         const fromPath = this.$store.getters['files/getCurrentPath']
         this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })

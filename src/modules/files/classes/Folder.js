@@ -27,8 +27,8 @@ Folder.prototype.parseDataFromServer = function (folder) {
   this.PublicLink = typesUtils.pArray(folder?.ExtendedProps?.PublicLink)
 }
 Folder.prototype.getShortName = function () {
-  if (this.Name.length > 12) {
-    return this.Name.substr(0, 10) + '...'
+  if (this.Name.length > 36) {
+    return this.Name.substr(0, 36)
   }
   return this.Name
 }

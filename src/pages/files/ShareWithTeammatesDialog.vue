@@ -221,14 +221,18 @@ export default {
           }
         })
         if (!keylessContacts.length) {
-          this.saving = true
           const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
           const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
-          let sPassphrase = privateKey.getPassphrase()
-          if (sPassphrase) {
-            this.updateExtendedProps(sPassphrase)
+          if (privateKey) {
+            let sPassphrase = privateKey?.getPassphrase()
+            if (sPassphrase) {
+              this.updateExtendedProps(sPassphrase)
+            } else {
+              this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+            }
           } else {
-            this.askOpenPgpKeyPassword(currentAccountEmail, this.updateExtendedProps)
+            notification.showError(`No private key found for file decryption.`)
+            this.saving = false
           }
         }
       } else {

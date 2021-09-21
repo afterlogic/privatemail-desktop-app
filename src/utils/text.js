@@ -91,4 +91,8 @@ export default {
       }
     })
   },
+  validateFileOrFolderName (sName) {
+    sName = _.trim(sName);
+    return '' !== sName && !/["\/\\*?<>|:]/.test(sName);
+  }
 }

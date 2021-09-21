@@ -144,6 +144,8 @@ import ShareableLinkDialog from './ShareableLinkDialog'
 
 import { ipcRenderer } from 'electron'
 import filesSettings from 'src/modules/files/settings'
+import text from "../../utils/text";
+import notification from "../../utils/notification";
 
 export default {
   name: 'Toolbar',
@@ -214,13 +216,17 @@ export default {
       this.createFolderDialog = false
     },
     createNewFolder () {
-      this.$store.dispatch('files/createFolder', {
-        type: this.currentStorage.Type,
-        path: this.currentFolderPath,
-        folderName: this.folderName
-      })
-      this.createFolderDialog = false
-      this.folderName = ''
+      if (text.validateFileOrFolderName(this.folderName)) {
+        this.$store.dispatch('files/createFolder', {
+          type: this.currentStorage.Type,
+          path: this.currentFolderPath,
+          folderName: this.folderName
+        })
+        this.createFolderDialog = false
+        this.folderName = ''
+      } else {
+        notification.showError('Invalid folder name')
+      }
     },
     showCreateNewFolderDialog () {
       this.createFolderDialog = true

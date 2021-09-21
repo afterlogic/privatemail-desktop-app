@@ -287,7 +287,6 @@ export default {
       }
     },
     cancelUploading () {
-      console.log(1)
       this.downloadFiles = []
       this.$refs.uploader.removeQueuedFiles()
       this.$refs.uploader.removeUploadedFiles()
@@ -342,7 +341,11 @@ export default {
         return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
       })
       this.$store.commit('files/removeCheckedFiles', {
-        checkedFiles: checkedList
+        checkedFiles: checkedList,
+        currentFiles: {
+          files: this.fileList,
+          folders: this.folderList
+        }
       })
       const fromPath = this.$store.getters['files/getCurrentPath']
       this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })

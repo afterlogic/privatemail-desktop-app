@@ -25,7 +25,7 @@
               <q-item-label>Protected shareable link</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense v-model="publicLink"  style="width: 300px"/>
+              <q-input outlined dense v-model="publicLink"  style="width: 400px"/>
             </q-item-section>
           </q-item>
           <q-item class="q-mt-md" v-if="passwordForSharing">
@@ -33,7 +33,7 @@
               <q-item-label>Password</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-input outlined dense v-model="passwordForSharing"  style="width: 300px"/>
+              <q-input outlined dense v-model="passwordForSharing"  style="width: 400px"/>
             </q-item-section>
           </q-item>
           <q-item class="q-mt-md">
@@ -42,15 +42,25 @@
             </q-item-section>
             <q-item-section side>
               <q-select
+
+                dense outlined class="recipients-select"
+                use-input use-chips input-debounce="0"
                 ref="whoCanSee"
-                dense
-                outlined
-                style="width: 300px"
-                v-model="recipient"
-                :options="recipientOptions"
-                stack-label
+                v-model="recipient" :options="recipientOptions"
                 @filter="getContactsOptions"
-              />
+                style="width: 400px"
+              >
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                    <q-item-section class="non-selectable">
+                      <q-item-label>
+                        {{ scope.opt.label }}
+                        <q-icon v-if="hasPgpKeyy(scope)" name="vpn_key" />
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
             </q-item-section>
           </q-item>
         </div>
@@ -59,31 +69,27 @@
         <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
         <q-item class="q-mt-md q-ml-sm">
           <q-item-section>
-            <q-item-label>Recipient</q-item-label>
+            <q-item-label style="width: 104px">Recipient</q-item-label>
           </q-item-section>
-          <q-item-section side>
             <q-select
+              dense outlined class="recipients-select"
+              use-input use-chips input-debounce="0"
               ref="whoCanSee"
-              dense
-              outlined
-              style="min-width: 300px"
-              v-model="recipient"
-              :options="recipientOptions"
-              stack-label
+              v-model="recipient" :options="recipientOptions"
               @filter="getContactsOptions"
+              style="width: 368px"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
                     <q-item-label>
                       {{ scope.opt.label }}
-                      <q-icon v-if="hasPublicKey(scope)" name="vpn_key" />
+                      <q-icon v-if="hasPgpKeyy(scope)" name="vpn_key" />
                     </q-item-label>
                   </q-item-section>
                 </q-item>
               </template>
             </q-select>
-          </q-item-section>
         </q-item>
         <div v-if="showEncryptedLink">
           <q-item dense class="q-ml-sm">
@@ -136,7 +142,7 @@
           <q-btn :disable="removing || !recipient" flat :ripple="false" color="primary" @click="askOpenPgpKeyPasswordForEncrypt"
                  :label="removing ? 'Removing link' : 'Encrypt'" />
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
-                 label="Cancel" />
+                 label="Close" />
         </div>
         <div v-else-if="showEncryptedLink">
           <q-btn v-if="hasPgpKey" :disable="!recipient || removing" flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
@@ -144,7 +150,7 @@
           <q-btn v-else flat :disable="!recipient || removing" :ripple="false" color="primary"
                  label="Send via email" @click="sendViaEmail"/>
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
-                 label="Cancel" />
+                 label="Close" />
         </div>
         <div v-else>
           <q-btn :disable="creating" v-if="!publicLink" flat :ripple="false" color="primary" @click="createPublicLink"
@@ -156,7 +162,7 @@
           <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
                  :label="removing ? 'Removing link' : 'Remove link'" />
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
-                 label="Cancel" />
+                 label="Close" />
         </div>
       </q-card-actions>
     </q-card>
@@ -281,6 +287,14 @@ export default {
   methods: {
     hasPublicKey (scope) {
       return OpenPgp.getPublicKeyByEmail(scope.opt.email)
+    },
+    hasPgpKeyy (scope) {
+      return OpenPgp.getPublicKeyByEmail(scope.opt.email)
+    },
+    removeSelectedToAddr (sValue) {
+      this.selectedToAddr = _.filter(this.selectedToAddr, function (oAddr) {
+        return oAddr.value !== sValue
+      })
     },
     async sendViaEncryptedEmail () {
       const linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'

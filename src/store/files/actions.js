@@ -3,8 +3,6 @@ import store from 'src/store'
 import _ from 'lodash'
 import webApi from 'src/utils/webApi.js'
 import notification from '../../utils/notification'
-import File from '../../modules/files/classes/File'
-import Folder from "../../modules/files/classes/Folder";
 
 export function asyncGetStorages ({ state, commit, getters, dispatch }) {
   ipcRenderer.send('files-get-storages', {
@@ -84,26 +82,6 @@ export function getFiles ({ state, commit, getters, dispatch }, {
         const storage = getters['getCurrentStorage']
         const currentPattern = getters['getCurrentPattern']
         if (currentStorage === storage.Type && path === currentPath && currentPattern === pattern) {
-          /*let files = []
-          filesFromServer.Items.map( item => {
-            if (!item.IsFolder) {
-              const file = new File()
-              file.parseDataFromServer(item)
-              files.push(file)
-            }
-          })*/
-          //commit('setFiles', { files })
-
-          /*let folders = []
-          filesFromServer.Items.map( item => {
-            if (item.IsFolder) {
-              const folder = new Folder()
-              folder.parseDataFromServer(item)
-              folders.push(folder)
-            }
-          })*/
-          //commit('setFolders', { folders })
-
           commit('setCurrentFiles', { files: filesFromServer.Items })
           commit('setLoadingStatus', { status: false })
         }

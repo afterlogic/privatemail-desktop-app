@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="confirm" @escape-key="cancelDialog" @keyup.enter="renameItem">
+  <q-dialog v-model="confirm" @escape-key="cancelDialog">
     <q-card class="q-dialog-size" style="min-width: 300px">
       <q-item class="q-mt-md">
         <q-item-section>
@@ -21,7 +21,7 @@
 
 <script>
 import notification from '../../utils/notification'
-
+import text from '../../utils/text'
 export default {
   name: 'RenameItemDialog',
   data () {
@@ -36,7 +36,7 @@ export default {
       this.itemName = name
     },
     renameItem () {
-      if (this.itemName.length) {
+      if (this.itemName.length && text.validateFileOrFolderName(this.itemName)) {
         this.$emit('renameItem', this.itemName)
         this.confirm = false
       } else {

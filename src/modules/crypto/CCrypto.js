@@ -75,24 +75,24 @@ CCrypto.prototype.getAesKey = async function (file, passphrase) {
   let oPublicFromKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
   let aPublicKeys = oPublicFromKey ? [oPublicFromKey] : []
   if (privateKey) {
-    return await OpenPgp.decryptAndVerifyTextWithPassphrase(file?.ExtendedProps?.ParanoidKey, privateKey, passphrase, aPublicKeys)
+    return await OpenPgp.decryptAndVerifyTextWithPassphrase(file.ParanoidKey, privateKey, passphrase, aPublicKeys)
   } else {
     return { sError: 'No private key found for file decryption.' }
   }
 }
 CCrypto.prototype.getEncryptedKey = async function ( file, privateKey, publicKey, currentAccountEmail,passphrase, cancelCallback, bPasswordBasedEncryption = false, aPrincipalsEmails = []) {
-  const sKeyData = await this.getAesKey(file, passphrase)
-  if (sKeyData?.sError) {
-    return sKeyData
-  }
-  if (privateKey && sKeyData.sDecryptedData) {
-    if (publicKey) {
-      const encryptedKey = await this.encryptParanoidKeyWithPassphrase(sKeyData.sDecryptedData, [publicKey], '', privateKey, currentAccountEmail, passphrase, bPasswordBasedEncryption, aPrincipalsEmails)
-      if (encryptedKey) {
-       return encryptedKey
+    const sKeyData = await this.getAesKey(file, passphrase)
+    if (sKeyData?.sError) {
+      return sKeyData
+    }
+    if (privateKey && sKeyData.sDecryptedData) {
+      if (publicKey) {
+        const encryptedKey = await this.encryptParanoidKeyWithPassphrase(sKeyData.sDecryptedData, [publicKey], '', privateKey, currentAccountEmail, passphrase, bPasswordBasedEncryption, aPrincipalsEmails)
+        if (encryptedKey) {
+          return encryptedKey
+        }
       }
     }
-  }
 }
 
 CCrypto.prototype.readChunk = async function (sUid, fOnChunkEncryptCallback, callBack) {

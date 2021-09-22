@@ -88,7 +88,7 @@
             <q-item-label>New folder</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-input outlined dense v-model="folderName" style="width: 250px" @keyup.enter="createNewFolder"/>
+            <q-input outlined dense v-model="folderName" style="width: 250px" @keyup.enter.prevent="createNewFolder"/>
           </q-item-section>
         </q-item>
         <q-card-actions align="right">

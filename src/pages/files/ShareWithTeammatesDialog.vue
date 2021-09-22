@@ -273,7 +273,8 @@ export default {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       const publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
-      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false, this.principalsEmails).then( encryptKey => {
+      CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, false, this.principalsEmails)
+        .then( encryptKey => {
         if (encryptKey?.sError) {
           notification.showError(encryptKey.sError)
           this.saving = false
@@ -292,6 +293,9 @@ export default {
         } else {
           this.saving = false
         }
+      })
+      .catch( err => {
+        console.log(err, 'err')
       })
     },
     nextUpdateShare () {

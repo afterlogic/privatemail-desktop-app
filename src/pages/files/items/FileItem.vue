@@ -196,7 +196,9 @@ export default {
       }
     },
     openArchive () {
-      this.$emit('openFolder')
+      if (!this.file.Downloading) {
+        this.$emit('openFolder')
+      }
     },
     importKeys () {
       this.$refs.importKeysDialog.openDialog(this.file.Content)
@@ -260,18 +262,22 @@ export default {
       return this.formatFile(this.file) === 'asc'
     },
     async viewEncryptedFile () {
-      let iv = this.file.InitializationVector || false
-      let paranoidEncryptedKey = this.file.ParanoidKey || false
-      const aesKey = await this.getAesKey(this.file)
-      Crypto.viewEncryptedImage(this.file, iv, paranoidEncryptedKey, aesKey)
+      if (!this.file.Downloading) {
+        let iv = this.file.InitializationVector || false
+        let paranoidEncryptedKey = this.file.ParanoidKey || false
+        const aesKey = await this.getAesKey(this.file)
+        Crypto.viewEncryptedImage(this.file, iv, paranoidEncryptedKey, aesKey)
+      }
     },
-    async downloadEncryptedFile (file) {
-      file.changePercentLoading(0)
-      file.changeDownloadingStatus(true)
-      let iv = file.InitializationVector || false
-      let paranoidEncryptedKey = file.ParanoidKey || false
-      const aesKey = await this.getAesKey(file)
-      Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
+    async downloadEncryptedFile(file) {
+      if (!this.file.Downloading) {
+        file.changePercentLoading(0)
+        file.changeDownloadingStatus(true)
+        let iv = file.InitializationVector || false
+        let paranoidEncryptedKey = file.ParanoidKey || false
+        const aesKey = await this.getAesKey(file)
+        Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
+      }
     },
     async getAesKey (file) {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
@@ -298,11 +304,15 @@ export default {
       }
     },
     viewFile (url, isOpenAction) {
-      webApi.viewByUrlInNewWindow(url, this.file.Name, isOpenAction)
+      if (!this.file.Downloading) {
+        webApi.viewByUrlInNewWindow(url, this.file.Name, isOpenAction)
+      }
     },
     editFile () {
-      const url = this.file.EditUrl
-      webApi.viewByUrlInNewWindow(url, this.file.Name)
+      if (!this.file.Downloading) {
+        const url = this.file.EditUrl
+        webApi.viewByUrlInNewWindow(url, this.file.Name)
+      }
     },
     getPreviewFile () {
       if (!this.file.isEncrypted() && this.isImg(this.file)) {

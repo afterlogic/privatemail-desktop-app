@@ -62,6 +62,21 @@
               </q-select>
             </q-item-section>
           </q-item>
+          <div v-if="!file.isEncrypted() && passwordForSharing">
+            <q-item dense class="q-my-sm">
+              <q-item-section>
+                <q-item-label caption>{{ recipientLabel }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <div style="margin-left: 16px" class="q-mt-sm">
+              <q-checkbox :disable="!hasPgpKey" dense v-model="digitalSignature" label="Add digital signature" />
+            </div>
+            <q-item dense class="q-my-sm">
+              <q-item-section>
+                <q-item-label caption>{{ signatureLabel }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </div>
         </div>
       </div>
       <div v-else class="q-mr-sm">
@@ -156,8 +171,10 @@
                  :label="creating ? 'Creating shareable link' : 'Create shareable link'" />
           <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="showHistory"
                  label="Show history" />
-          <q-btn v-if="publicLink" flat :disable="!recipient || removing" :ripple="false" color="primary"
+          <q-btn v-if="publicLink && !hasPgpKey" flat :disable="!recipient || removing" :ripple="false" color="primary"
                  label="Send via email" @click="sendViaEmail"/>
+          <q-btn v-if="hasPgpKey && publicLink" :disable="!recipient || removing" flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
+                 label="Send via encrypted email" />
           <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
                  :label="removing ? 'Removing link' : 'Remove link'" />
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
@@ -239,19 +256,36 @@ export default {
     },
     hasPgpKey () {
       if (this.recipient) {
-        return OpenPgp.getPublicKeyByEmail(this.recipient.email)
+        return OpenPgp.getPublicKeyByEmail(this.recipient?.email)
       }
       return false
     },
     recipientLabel () {
-      if (this.recipient) {
-        if (OpenPgp.getPublicKeyByEmail(this.recipient.email)) {
-          return 'Selected recipient has PGP public key. The file can be encrypted using this key.'
+      if (this.file?.isEncrypted()) {
+        if (this.recipient) {
+          if (OpenPgp.getPublicKeyByEmail(this.recipient.email)) {
+            return 'Selected recipient has PGP public key. The file can be encrypted using this key.'
+          } else {
+            return 'Selected recipient has no PGP public key. The Key-based encryption is not allowed.'
+          }
         } else {
-          return 'Selected recipient has no PGP public key. The Key-based encryption is not allowed.'
+          return 'Without selected recipient, only Password-based encryption is allowed.'
         }
       } else {
-        return 'Without selected recipient, only Password-based encryption is allowed.'
+        if (this.recipient) {
+          if (OpenPgp.getPublicKeyByEmail(this.recipient.email)) {
+            if (this.digitalSignature) {
+              return 'You can send the link and the password via digitally signed encrypted email.'
+            } else {
+              return 'You can send the link and the password via encrypted email.'
+            }
+          } else {
+            return 'You can send the link via email. The password must be sent using a different channel.' +
+              'You will be able to retrieve the password when need.'
+          }
+        } else {
+          return ''
+        }
       }
     },
     labelEncryptionType () {
@@ -262,6 +296,13 @@ export default {
         return 'The Key-based encryption will be used.'
       }
       return 'The Password-based encryption will be used.'
+    },
+    signatureLabel () {
+      if (this.digitalSignature) {
+        return 'The email will be signed using your private key.'
+      } else {
+        return 'The email will not be signed.'
+      }
     },
     availabilityLabel () {
       if (this.encryptionType === 'password') {
@@ -281,6 +322,16 @@ export default {
       if (val === 'key') {
         this.digitalSignature = true
       }
+    },
+    recipient (val) {
+      if (!this.file.isEncrypted()) {
+        if (val) {
+          const publicKey = OpenPgp.getPublicKeyByEmail(val.email)
+          this.digitalSignature = !!publicKey
+        } else {
+          this.digitalSignature = false
+        }
+      }
     }
   },
   methods: {
@@ -295,20 +346,40 @@ export default {
         return oAddr.value !== sValue
       })
     },
+    openComposeWithPassphrase (passphrase) {
+      if ((this.encryptionType === 'key' || this.passwordForSharing) && this.digitalSignature) {
+          const linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+          let passText = ''
+          if (this.passwordForSharing) {
+            passText = '<br>File encrypted with password: ' + this.passwordForSharing
+          }
+          this.openCompose({
+            aToContacts: [this.recipient],
+            sText: linkText + passText,
+            sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
+            needToSignEncrypt: true,
+            sPassphrase: passphrase
+          })
+      }
+    },
     async sendViaEncryptedEmail () {
       const linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
       let passText = ''
       if (this.passwordForSharing) {
          passText = '<br>File encrypted with password: ' + this.passwordForSharing
       }
-      if (this.encryptionType === 'key' && this.digitalSignature) {
-        this.openCompose({
-          aToContacts: [this.recipient],
-          sText: linkText + passText,
-          sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
-          needToSignEncrypt: true,
-          sPassphrase: this.passphrase
-        })
+      if ((this.encryptionType === 'key' || this.passwordForSharing) && this.digitalSignature) {
+        if (this.passphrase) {
+          this.openCompose({
+            aToContacts: [this.recipient],
+            sText: linkText + passText,
+            sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
+            needToSignEncrypt: true,
+            sPassphrase: this.passphrase
+          })
+        } else {
+          this.askOpenPgpKeyPassword(this.recipient.email, this.openComposeWithPassphrase)
+        }
       } else {
         this.openCompose({
           aToContacts: [this.recipient],
@@ -461,7 +532,6 @@ export default {
           if (index !== -1) {
             aOptions.splice(index, 1)
           }
-          console.log(aOptions, 'aOptions')
           this[sOptionsName] = aOptions
         })
       })

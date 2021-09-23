@@ -88,8 +88,12 @@ export function getFiles ({ state, commit, getters, dispatch }, {
         }
       }
      if (error) {
+       const paths = getters['getCurrentPaths']
+       dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
+
+       console.log(paths, 'paths')
+       dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
        notification.showError(error.ErrorMessage)
-       commit('setLoadingStatus', { status: false })
      }
       if (filesFromServer?.Quota) {
         commit('setFilesQuota', { quota: filesFromServer.Quota })

@@ -57,17 +57,17 @@
                       @click="viewFile(file.ViewUrl, false)">View</span>
                 <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="editFile(file)">Edit</span>
-                <span v-else-if="isArchive() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
+                <span v-else-if="file.isArchive() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="openArchive">View</span>
                 <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="viewFile(file.OpenUrl, true)">Open</span>
-                <span v-if="hasImportAction() && progressPercent === 0 && !file.Downloading" class="q-mr-md text-primary"
+                <span v-if="hasImportAction() && progressPercent === 0 && !file.Downloading && !file.Loading" class="q-mr-md text-primary"
                       @click="importKeys()">Import</span>
               </div>
               <div class="q-mt-xs">
                     <span
                       v-if="file.hasDownloadAction() && !file.Downloading" class="text-primary"
-                      @click="file.isEncrypted() ? downloadEncryptedFile(file) : downloadFile(file)"
+                      @click.prevent="file.isEncrypted() ? downloadEncryptedFile(file) : downloadFile(file)"
                     >
                       Download
                     </span>
@@ -118,6 +118,7 @@ import ShareIcon from '../../../assets/icons/ShareIcon'
 import LinkIcon from '../../../assets/icons/LinkIcon'
 import EncryptedIcon from '../../../assets/icons/EncryptedIcon'
 import ImportKeysDialog from '../open-pgp/ImportKeysDialog'
+import filesSettings from '../../../modules/files/settings'
 
 import date from '../../../utils/date'
 import _ from 'lodash'
@@ -143,6 +144,13 @@ export default {
   data() {
     return {
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
+      viewMimeTypes: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+        'text/html', 'text/plain', 'text/css',
+        'text/rfc822-headers', 'message/delivery-status',
+        'application/x-httpd-php', 'application/javascript',
+        'application/pdf', 'application/x-pdf'
+      ],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
       progressPercent: 0
     }
@@ -189,10 +197,6 @@ export default {
     },
     openArchive () {
       this.$emit('openFolder')
-    },
-    isArchive () {
-      const formatFile = this.formatFile(this.file)
-      return formatFile === 'zip'
     },
     importKeys () {
       this.$refs.importKeysDialog.openDialog(this.file.Content)
@@ -248,7 +252,9 @@ export default {
       if (this.file?.File?.__status) {
         return false
       }
-      return !!this.file.ViewUrl
+      const viewDoc = filesSettings.extensionsToView.find( type => type === this.formatFile(this.file))
+      const viewFIle = this.viewMimeTypes.find( type => type === this.file.ContentType)
+      return this.file.ViewUrl && (viewFIle || viewDoc)
     },
     hasImportAction () {
       return this.formatFile(this.file) === 'asc'

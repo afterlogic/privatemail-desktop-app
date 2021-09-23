@@ -38,7 +38,7 @@
           <div v-if="!file.hasLink() && !file.isShared()" style="height: 26px"></div>
         </div>
         <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
-          <div>
+          <div style="word-wrap: break-word;">
             {{ file.getShortName() }}
           </div>
         </q-card-section>

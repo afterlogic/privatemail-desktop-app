@@ -110,7 +110,10 @@ export function asyncGetSettings ({ state, commit, dispatch, getters }, fGetSett
         encryptionSettings.parse(oResult['CoreParanoidEncryptionWebclientPlugin'])
       }
       if (oResult['Core']) {
-        filesSettings.parse(oResult['Core'])
+        filesSettings.parseCoreModule(oResult['Core'])
+      }
+      if (oResult['OfficeDocumentViewer']) {
+        filesSettings.parseOfficeDocumentViewerModule(oResult['OfficeDocumentViewer'])
       }
     }
   })

@@ -28,7 +28,7 @@ Folder.prototype.parseDataFromServer = function (folder) {
 }
 Folder.prototype.getShortName = function () {
   if (this.Name.length > 36) {
-    return this.Name.substr(0, 36)
+    return this.Name.substr(0, 30)
   }
   return this.Name
 }
@@ -47,5 +47,10 @@ Folder.prototype.isEncrypted = function () {
 }
 Folder.prototype.changeDeleteStatus = function (status) {
   this.Deleted = status
+}
+Folder.prototype.ChangeFullPath = function (name) {
+  let array = this.FullPath.split('/')
+  array[array.length - 1] = name
+  this.FullPath = array.join('/')
 }
 export default Folder

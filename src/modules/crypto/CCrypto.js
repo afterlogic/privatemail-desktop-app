@@ -52,6 +52,7 @@ CCrypto.prototype.startUpload = async function (oFileInfo, sUid, fOnChunkEncrypt
   this.oChunkQueue.isProcessed = true
   this.oKey = await this.generateKey()
   const sKeyData = await this.convertKeyToString(this.oKey)
+  console.log(sKeyData, 'sKeyData')
   if (privateKey && sKeyData) {
     const CurrentUserPublicKey = publicKeys
     if (CurrentUserPublicKey) {

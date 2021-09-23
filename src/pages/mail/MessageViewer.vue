@@ -198,7 +198,7 @@
           </q-item-section>
           <q-item-section top side class="actions-section">
             <div class="q-gutter-xs">
-              <span class="text-primary mail-link q-mt-md" @click="importKeys(attach)">
+              <span v-if="attach.sContent" class="text-primary mail-link q-mt-md" @click="importKeys(attach)">
               Import
             </span>
               <span
@@ -213,7 +213,7 @@
                 v-if="attach.sDownloadLink"
                 @click="downloadAttach(attach.sDownloadLink, attach.sFileName)"
               >
-              Import
+              Download
             </span>
             </div>
           </q-item-section>

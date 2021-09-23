@@ -365,7 +365,6 @@ export default {
         this.downloadFiles = []
 
       } else {
-        console.log(this.downloadFiles, 'this.downloadFiles')
         const fileInfo = {
           file: this.downloadFiles[this.fileIndex].File,
           fileClass: this.downloadFiles[this.fileIndex],
@@ -390,7 +389,7 @@ export default {
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       let publicKey = OpenPgp.getPublicKeyByEmail(currentAccountEmail)
-      if (privateKey) {
+      if (privateKey && publicKey) {
         await Crypto.startUpload(
           params.fileInfo,
           params.uid,
@@ -405,7 +404,7 @@ export default {
         )
       } else {
         this.downloadFiles = []
-        notification.showError(`No private key found for ${currentAccountEmail} user.`)
+        notification.showError(`PGP key for ${currentAccountEmail} user is missing. Both public and private PGP keys are required.`)
       }
     },
     finishUploadingFiles () {
@@ -415,7 +414,12 @@ export default {
     showReport () {
       this.counter++
       if (this.counter === this.downloadFiles.length) {
-        notification.showReport('Complete')
+        if (this.downloadFiles.length === 1) {
+          notification.showReport('File uploaded successfully')
+        }
+        if (this.downloadFiles.length > 1) {
+          notification.showReport('Files uploaded successfully')
+        }
         this.getFiles(this.currentStorage.Type, this.currentFilePath, '')
         this.counter = 0
       }

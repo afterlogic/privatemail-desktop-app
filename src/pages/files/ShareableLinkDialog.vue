@@ -239,13 +239,13 @@ export default {
     },
     hasPgpKey () {
       if (this.recipient) {
-        return this.recipient.hasPgpKey
+        return OpenPgp.getPublicKeyByEmail(this.recipient.email)
       }
       return false
     },
     recipientLabel () {
       if (this.recipient) {
-        if (this.recipient.hasPgpKey) {
+        if (OpenPgp.getPublicKeyByEmail(this.recipient.email)) {
           return 'Selected recipient has PGP public key. The file can be encrypted using this key.'
         } else {
           return 'Selected recipient has no PGP public key. The Key-based encryption is not allowed.'
@@ -461,6 +461,7 @@ export default {
           if (index !== -1) {
             aOptions.splice(index, 1)
           }
+          console.log(aOptions, 'aOptions')
           this[sOptionsName] = aOptions
         })
       })

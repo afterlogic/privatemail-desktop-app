@@ -67,7 +67,7 @@
         </q-card-section>
       </div>
       <q-card-actions class="buttons" align="right">
-        <q-btn flat :ripple="false" color="primary" @click="select"
+        <q-btn :disable="!isFileSelected" flat :ripple="false" color="primary" @click="select"
                label="Select" />
         <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
                label="Cancel" />
@@ -123,12 +123,21 @@ export default {
       })
       return folders.concat(files)
     },
+    isFileSelected () {
+      if(this.checkedList.length === 1) {
+        return !this.checkedList[0].IsFolder
+      } else if (this.checkedList.length > 1) {
+        return true
+      }
+      return false
+    }
   },
   methods: {
     openFolder () {
       this.checkedList = []
     },
     populate () {
+      this.checkedList = []
       this.$store.commit('files/setLoadingStatus', { status: true })
       this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: '' })
       const path = {
@@ -145,16 +154,19 @@ export default {
       this.confirm = true
     },
     select () {
-      let files = this.checkedList.map(item => {
-        return {
-          Storage: item.Type,
-          Path: item.Path,
-          Name: item.Name,
-          Id: item.Id,
-          IsEncrypted: false,
-          Hash: item.Hash,
-          Size: item.Size,
-          __progress: 0
+      let files = []
+      this.checkedList.forEach(item => {
+        if (!item.IsFolder) {
+          files.push({
+            Storage: item.Type,
+            Path: item.Path,
+            Name: item.Name,
+            Id: item.Id,
+            IsEncrypted: false,
+            Hash: item.Hash,
+            Size: item.Size,
+            __progress: 0
+          })
         }
       })
       this.saveFilesAsTempFiles(files)

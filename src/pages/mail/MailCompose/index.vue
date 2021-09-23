@@ -1270,26 +1270,40 @@ export default {
       })
     },
     addAttachmentsFromFiles (files) {
+
+      let notFoundFiles = []
+
+      notFoundFiles = files.filter( file => {
+        let foundFile = this.attachments.find( attach => file.Name === attach.sFileName)
+        if (!foundFile) {
+          return file
+        }
+      })
+      console.log(notFoundFiles, 'notFoundFiles')
+      console.log(files, 'files')
       let attachments = []
-      _.each(files, (oAttachData) => {
+      _.each(notFoundFiles, (oAttachData) => {
         let oAttach = new cAttachment()
         oAttach.parseDataFromFiles(oAttachData)
         attachments.push(oAttach)
       })
       this.attachments = this.attachments.concat(attachments)
       this.$store.dispatch('files/saveFilesAsTempFiles', {
-        files
+        files: notFoundFiles
       }).then(res => {
-        this.attachments.map((attach) => {
-          const foundFile = res.find(file => {
-            return file.Name === attach.sFileName
+        console.log(res, 'res')
+        if(res) {
+          this.attachments.map((attach) => {
+            const foundFile = res.find(file => {
+              return file.Name === attach.sFileName
+            })
+            if (foundFile) {
+              attach.oFile.__progress = 1
+              attach.parseDataFromServer(foundFile)
+              attach.onUploadComplete()
+            }
           })
-          if (foundFile) {
-            attach.oFile.__progress = 1
-            attach.parseDataFromServer(foundFile)
-            attach.onUploadComplete()
-          }
-        })
+        }
       })
     },
     pickFiles () {

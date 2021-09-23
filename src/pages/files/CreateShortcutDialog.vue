@@ -36,7 +36,7 @@
           <span>External document URL</span>
         </div>
         <q-item-section style="width: 100%">
-          <q-input outlined dense v-model="url" @input="throttledSave"/>
+          <q-input outlined autofocus dense v-model="url" @input="throttledSave"/>
         </q-item-section>
       </q-item>
       <q-item>

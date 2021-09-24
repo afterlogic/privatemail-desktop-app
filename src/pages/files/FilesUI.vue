@@ -415,10 +415,10 @@ export default {
       this.counter++
       if (this.counter === this.downloadFiles.length) {
         if (this.downloadFiles.length === 1) {
-          notification.showReport('File uploaded successfully')
+          notification.showReport('File was uploaded successfully')
         }
         if (this.downloadFiles.length > 1) {
-          notification.showReport('Files uploaded successfully')
+          notification.showReport('Files was uploaded successfully')
         }
         this.getFiles(this.currentStorage.Type, this.currentFilePath, '')
         this.counter = 0

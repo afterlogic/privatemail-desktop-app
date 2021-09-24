@@ -53,6 +53,16 @@
             <div class="pannel-hint non-selectable full-width" style="width: 100%" v-if="isUploadingFiles">
               Loading...
             </div>
+            <div class="pannel-hint non-selectable full-width inscription"
+                 v-if="!isUploadingFiles && !filesList.length && currentStorage.Type !== 'shared'"
+            >
+              Folder is empty
+            </div>
+            <div class="pannel-hint non-selectable full-width inscription"
+                 v-if="!filesList.length && currentStorage.Type === 'shared' && !isUploadingFiles && !isFolder"
+            >
+              No shared files
+            </div>
             <div class="row" v-if="!isUploadingFiles">
               <q-card
                 flat
@@ -109,6 +119,10 @@ export default {
     },
     isUploadingFiles () {
       return this.$store.getters['files/getLoadingStatus']
+    },
+    isFolder () {
+      const currentPath = this.$store.getters['files/getCurrentPath']
+      return !!currentPath
     },
     filesList () {
       let folders = []

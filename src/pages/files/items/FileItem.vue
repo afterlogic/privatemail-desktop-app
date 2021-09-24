@@ -91,6 +91,12 @@
               <div style="font-size: 12px">
           <span v-if="file.PercentDownloading !== 100"
           >{{ file.PercentDownloading }}%</span>
+                <span
+                  class="text-primary" style="position: absolute; right: 10px"
+                  @click.prevent="file.cancelDownloading()"
+                >
+                      Cancel
+                    </span>
                 <span v-if="file.PercentDownloading === 100" style="color: rgb(76, 175, 80);"
                 >complete</span>
               </div>
@@ -139,7 +145,7 @@ export default {
     openLinkDialog: Function,
     openEncryptedFileDialog: Function,
     openShareDialog: Function,
-    downloadFile: Function
+    downloadFile: Function,
   },
   data() {
     return {
@@ -152,7 +158,7 @@ export default {
         'application/pdf', 'application/x-pdf'
       ],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
-      progressPercent: 0
+      progressPercent: 0,
     }
   },
   components: {

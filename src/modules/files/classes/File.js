@@ -2,6 +2,7 @@ import date from '../../../utils/date'
 import text from '../../../utils/text'
 import _ from 'lodash'
 import typesUtils from '../../../utils/types'
+import webApi from "../../../utils/webApi";
 
 function File() {
   this.Size = 0
@@ -27,6 +28,7 @@ function File() {
   this.ThumbnailUrl = ''
   this.Deleted = false
   this.ContentType = ''
+  this.cancelToken = null
 }
 
 File.prototype.parseUploaderFile = function (file) {
@@ -63,6 +65,7 @@ File.prototype.parseDataFromServer = function (file) {
   this.InitializationVector = typesUtils.pString(file?.ExtendedProps?.InitializationVector, '')
   this.ThumbnailUrl = typesUtils.pString(file?.ThumbnailUrl, '')
   this.ContentType = typesUtils.pString(file.ContentType, '')
+  this.cancelToken = null
 }
 
 File.prototype.getDescription = function (owner) {
@@ -115,5 +118,24 @@ File.prototype.ChangeFullPath = function (name) {
   let array = this.FullPath.split('/')
   array[array.length - 1] = name
   this.FullPath = array.join('/')
+}
+File.prototype.getCancelCallback = function (c) {
+  this.cancelToken = c
+}
+File.prototype.cancelDownloading = function () {
+  if (this.cancelToken) {
+    this.cancelToken()
+  }
+}
+File.prototype.downloadFile = function () {
+  let url = ''
+  if (!this.Downloading) {
+    this.changePercentLoading(0)
+    if (this && !this.DownloadingStatus) {
+      url = this.DownloadUrl
+      this.changeDownloadingStatus(true)
+      webApi.downloadByUrl(url, this.Name, this, (c) => this.getCancelCallback(c))
+    }
+  }
 }
 export default File

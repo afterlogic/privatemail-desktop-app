@@ -90,8 +90,6 @@ export function getFiles ({ state, commit, getters, dispatch }, {
      if (error) {
        const paths = getters['getCurrentPaths']
        dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
-
-       console.log(paths, 'paths')
        dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
        notification.showError(error.ErrorMessage)
      }
@@ -124,7 +122,7 @@ export function changeCurrentPaths ({ state, commit, getters, dispatch }, { path
   let index = currentPaths.findIndex( elem => {
    return  elem?.path === path?.path
   })
-  commit('setCurrentPath', { path: path.path })
+  commit('setCurrentPath', { path: path?.path })
   commit('changeCurrentPath', { index, path, lastStorage })
 }
 export function changeCheckedItems ({ state, commit, getters, dispatch }, { checkedItems }) {

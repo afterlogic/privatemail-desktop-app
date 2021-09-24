@@ -21,6 +21,18 @@
               stack-label
               @filter="getContactsSeeOptions"
             >
+              <template v-slot:selected>
+                      <span v-if="toAddrOptions">
+                        <q-chip flat v-for="oAddr in whoCanSee" :key="oAddr.value" removable @remove="removeSelectedToAddr(oAddr.value)">
+                          <div>
+                            {{ oAddr.label }}
+                          </div>
+                          <div>
+                            <q-icon v-if="hasPgpKey(oAddr.email)" color="green" name="vpn_key"/>
+                          </div>
+                        </q-chip>
+                      </span>
+              </template>
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
@@ -52,6 +64,18 @@
               use-input
               @filter="getContactsEditOptions"
             >
+              <template v-slot:selected>
+                      <span v-if="toAddrOptions">
+                        <q-chip flat v-for="oAddr in whoCanEdit" :key="oAddr.value" removable @remove="removeSelectedToAddrEdit(oAddr.value)">
+                          <div>
+                            {{ oAddr.label }}
+                          </div>
+                          <div>
+                            <q-icon v-if="hasPgpKey(oAddr.email)" color="green" name="vpn_key"/>
+                          </div>
+                        </q-chip>
+                      </span>
+              </template>
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
@@ -123,8 +147,19 @@ export default {
     }
   },
   methods: {
-    hasPgpKey (scope) {
-      return OpenPgp.getPublicKeyByEmail(scope.opt.email)
+    hasPgpKey (email = '') {
+      return OpenPgp.getPublicKeyByEmail(email || scope.opt.email)
+    },
+    removeSelectedToAddr (sValue) {
+      console.log(this.whoCanSee, 'whoCanSee')
+      this.whoCanSee = _.filter(this.whoCanSee, function (oAddr) {
+        return oAddr.value !== sValue
+      })
+    },
+    removeSelectedToAddrEdit (sValue) {
+      this.whoCanEdit = _.filter(this.whoCanEdit, function (oAddr) {
+        return oAddr.value !== sValue
+      })
     },
     showHistory () {
       const title = 'Shared file activity history'

@@ -138,7 +138,7 @@
             <q-item-label>{{ publicLink }}</q-item-label>
           </q-item>
           <q-item dense class="q-ml-sm" v-if="!passwordForSharing">
-            <q-item-label caption>The file is encrypted using vadim's PGP public key. You can send the link via encrypted email.</q-item-label>
+            <q-item-label caption>The file is encrypted using recipient's PGP public key. You can send the link via encrypted email.</q-item-label>
           </q-item>
           <div v-if="passwordForSharing">
             <q-item dense class="q-ml-sm">

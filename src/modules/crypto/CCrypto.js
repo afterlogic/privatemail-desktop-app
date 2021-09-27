@@ -134,8 +134,6 @@ CCrypto.prototype.readChunk = async function (sUid, fOnChunkEncryptCallback, cal
   }
 }
 
-//  vadim view
-
 function CViewImage(oFile, iv, iChunkSize, sParanoidEncryptedKey = '')
 {
   this.oWriter = null

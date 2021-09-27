@@ -73,7 +73,7 @@
                     </span>
               </div>
             </div>
-            <div v-if="file.Loading" class="flex" style="flex-direction: column">
+            <div v-if="file.Loading" class="flex" style="flex-direction: column; margin-top: -3px">
               <div class="flex q-px-sm" style="width: 100%">
                 <div class="progress-bar-line" style="background: #ef4a4a;" :style="{width: `${progressPercent}%`}" ></div>
               </div>
@@ -333,7 +333,10 @@ export default {
           return  api + link
         }
       }
-      return this.file.ThumbnailUrl
+      if (!this.file.isEncrypted() && this.formatFile(this.file) === 'url') {
+        return this.file.ThumbnailUrl
+      }
+      return ''
     },
   }
 }

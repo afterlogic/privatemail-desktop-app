@@ -79,7 +79,7 @@
       <q-card-actions class="buttons" align="right">
         <q-btn :disable="!isFileSelected" flat :ripple="false" color="primary" @click="select"
                label="Select" />
-        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+        <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancel"
                label="Cancel" />
       </q-card-actions>
     </q-card>

@@ -46,7 +46,7 @@
       <q-card-actions align="right">
         <q-btn flat :disable="!shortcut || creating" :ripple="false" color="primary" @click="addShortcut"
                label="Add shortcut" />
-        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+        <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                label="Cancel" />
       </q-card-actions>
     </q-card>

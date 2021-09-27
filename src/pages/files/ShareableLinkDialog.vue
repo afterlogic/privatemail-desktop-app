@@ -180,7 +180,7 @@
         <div v-if="file && file.isEncrypted() && !publicLink && !showEncryptedLink">
           <q-btn :disable="removing || !recipient" flat :ripple="false" color="primary" @click="askOpenPgpKeyPasswordForEncrypt"
                  :label="removing ? 'Removing link' : 'Encrypt'" />
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn :disable="creating || removing" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Close" />
         </div>
         <div v-else-if="showEncryptedLink">
@@ -188,7 +188,7 @@
                  label="Send via encrypted email" />
           <q-btn v-else flat :disable="!recipient || removing" :ripple="false" color="primary"
                  label="Send via email" @click="sendViaEmail"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn :disable="creating || removing" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Close" />
         </div>
         <div v-else>
@@ -202,7 +202,7 @@
                  label="Send via encrypted email" />
           <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
                  :label="removing ? 'Removing link' : 'Remove link'" />
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn :disable="creating || removing" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Close" />
         </div>
       </q-card-actions>
@@ -429,6 +429,7 @@ export default {
       }
     },
     askOpenPgpKeyPasswordForEncrypt () {
+      this.creating = true
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       if (privateKey) {
@@ -484,6 +485,7 @@ export default {
          const apiHost = this.$store.getters['main/getApiHost']
           this.showEncryptedLink = true
           this.publicLink = apiHost + res.link
+          this.creating = false
         }
       })
     },
@@ -610,6 +612,7 @@ export default {
       }
       this.$store.dispatch('files/createPublicLink', parameters).then( result => {
         if (result) {
+          this.creating = false
           this.publicLink = this.$store.getters['main/getApiHost'] + result.link
           this.$store.dispatch('files/getFiles', {
             currentStorage: this.file.Type,

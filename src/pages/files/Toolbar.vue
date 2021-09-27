@@ -94,7 +94,7 @@
         <q-card-actions align="right">
           <q-btn flat :ripple="false" color="primary" @click="createNewFolder"
                  label="Create" />
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Cancel" />
         </q-card-actions>
       </q-card>
@@ -122,7 +122,7 @@
         <q-card-actions align="right">
           <q-btn flat class="q-px-sm" :ripple="false" color="primary"
                  label="Ok" @click="saveFilesAsTempFiles(filesForSending)"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" v-close-popup
+          <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" v-close-popup
                  label="Cancel" />
         </q-card-actions>
       </q-card>

@@ -42,7 +42,7 @@
           <q-card-actions align="right">
             <q-btn :disable="!historyList.length" flat :ripple="false" color="primary"
                    label="Clear" @click="openClearDialog"/>
-            <q-btn flat class="q-px-sm" :ripple="false" color="primary"
+            <q-btn flat class="q-px-sm" :ripple="false" color="grey-6"
                    label="Cancel" @click="cancel"/>
           </q-card-actions>
         </q-card>

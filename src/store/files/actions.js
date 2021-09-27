@@ -73,7 +73,6 @@ export function getFiles ({ state, commit, getters, dispatch }, {
     Pattern: pattern,
     PathRequired: false
   }
-  console.log(parameters, 'parameters')
   webApi.sendRequest({
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],

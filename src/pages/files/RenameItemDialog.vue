@@ -12,7 +12,7 @@
       <q-card-actions align="right">
         <q-btn flat :ripple="false" color="primary" @click="renameItem"
                label="Save" />
-        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+        <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                label="Cancel" />
       </q-card-actions>
     </q-card>

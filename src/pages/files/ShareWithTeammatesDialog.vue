@@ -94,7 +94,7 @@
                  label="Show history" @click="showHistory"/>
           <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="primary"
                  :label="saving ? 'Saving...' : 'Save'" @click="updateShare"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+          <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancel"
                  label="Cancel"/>
         </q-card-actions>
       </q-card>
@@ -151,7 +151,6 @@ export default {
       return OpenPgp.getPublicKeyByEmail(email || scope.opt.email)
     },
     removeSelectedToAddr (sValue) {
-      console.log(this.whoCanSee, 'whoCanSee')
       this.whoCanSee = _.filter(this.whoCanSee, function (oAddr) {
         return oAddr.value !== sValue
       })
@@ -266,6 +265,7 @@ export default {
     },
     updateShare () {
       this.principalsEmails = this.getPrincipalsEmails()
+      this.saving = true
       if (this.file.ParanoidKey) {
         let keylessContacts = []
         this.principalsEmails.map( contact => {
@@ -290,7 +290,6 @@ export default {
           }
         }
       } else {
-        this.saving = true
         this.nextUpdateShare()
       }
     },
@@ -330,7 +329,7 @@ export default {
         }
       })
       .catch( err => {
-        console.log(err, 'err')
+
       })
     },
     nextUpdateShare () {

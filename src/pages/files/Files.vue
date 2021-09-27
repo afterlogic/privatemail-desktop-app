@@ -492,6 +492,7 @@ export default {
 .large .file .icon.youtube {
   background-position: -1360px -400px;
 }
+
 .large .folder .icon {
   background-position: -880px -400px;
   height: 65px;

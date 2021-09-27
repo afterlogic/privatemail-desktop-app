@@ -29,7 +29,7 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
   })
 }
 export function setCurrentStorage ({ state, commit, getters, dispatch }, { currentStorage }) {
-  store.commit('setCurrentStorage', currentStorage)
+  commit('setCurrentStorage', currentStorage)
 }
 export function updateExtendedProps ({ state, commit, getters, dispatch }, { type, path, name, paranoidKey, callback } ) {
   const parameters = {

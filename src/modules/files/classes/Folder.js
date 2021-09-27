@@ -53,4 +53,7 @@ Folder.prototype.ChangeFullPath = function (name) {
   array[array.length - 1] = name
   this.FullPath = array.join('/')
 }
+Folder.prototype.getPublicLink = function () {
+  return this.File?.ExtendedProps?.PublicLink
+}
 export default Folder

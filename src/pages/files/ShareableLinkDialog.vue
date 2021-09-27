@@ -395,10 +395,18 @@ export default {
       }
     },
     async sendViaEncryptedEmail () {
-      const linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+      let linkText = ''
       let passText = ''
-      if (this.passwordForSharing) {
-         passText = '<br>File encrypted with password: ' + this.passwordForSharing
+      if (this.file.isEncrypted()) {
+        linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+        if (this.passwordForSharing) {
+          passText = '<br>File encrypted with password: ' + this.passwordForSharing
+        }
+      } else {
+        linkText = 'Hi, you can get the file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+        if (this.passwordForSharing) {
+          passText = '<br>File with password: ' + this.passwordForSharing
+        }
       }
       let subject = ''
       if (this.file.isEncrypted()) {
@@ -439,6 +447,7 @@ export default {
           this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
         }
       } else {
+        this.creating = false
         notification.showError('No private key found for message decryption.')
       }
 
@@ -451,6 +460,7 @@ export default {
       const passwordBasedEncryption = this.encryptionType === 'password'
       CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, passwordBasedEncryption).then(encryptKey => {
         if (encryptKey?.sError) {
+          this.creating = false
           notification.showError(encryptKey.sError)
         } else if (encryptKey) {
           this.passwordForSharing = encryptKey.password
@@ -514,9 +524,15 @@ export default {
       }
     },
     sendViaEmail () {
+      let sText = ''
+      if (this.file.isEncrypted()) {
+        sText = 'Hello, <br> You can download the encrypted file at: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+      } else {
+        sText = 'Hello, <br> You can download the file at: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+      }
       this.openCompose({
         aToContacts: [this.recipient],
-        sText: 'Hello, <br> You can download the file at: ' + '<a class="text-primary">' + this.publicLink + '</a>',
+        sText: sText,
         sSubject: `The ${this.file.IsFolder ? 'folder' : 'file'} was shared with you: '${this.file.Name}'`
       })
     },

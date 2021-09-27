@@ -251,6 +251,7 @@ export default {
     sendFile () {
       let hasEncryptFile = false
       let files = this.checkedItems.map( item => {
+        console.log(item, 'item')
         if (item.isEncrypted()) {
           hasEncryptFile = true
         }
@@ -258,7 +259,7 @@ export default {
           Storage: item.Type,
           Path: item.Path,
           Name: item.Name,
-          Id: item.Id,
+          Id: item.Name,
           IsEncrypted: false
         }
       })
@@ -276,6 +277,7 @@ export default {
       ipcRenderer.send('contacts-get-frequently-used-contacts', {sSearch: '', storage: 'team'})
     },
     saveFilesAsTempFiles (files) {
+      console.log(files, 'files')
       this.confirmWarningDialog = false
       this.$store.dispatch('files/saveFilesAsTempFiles', {
         files

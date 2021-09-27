@@ -69,7 +69,6 @@ export function getFiles ({ state, commit, getters, dispatch }, {
   pattern = '',
   changeLoadingStatus = true
 }) {
-  console.log(1)
   dispatch('changeCurrentFile', { currentFile: '' })
   if (changeLoadingStatus) {
     commit('setLoadingStatus', { status: true })

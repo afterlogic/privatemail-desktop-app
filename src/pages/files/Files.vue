@@ -130,7 +130,6 @@ export default {
       this.$refs.encryptedFileInformationDialog.openDialog(file)
     },
     downloadFile (file = null) {
-      console.log('download')
       const currentFile = file || this.currentFile
       if (!currentFile.Downloading) {
         currentFile.downloadFile()

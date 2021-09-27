@@ -47,7 +47,6 @@ export default {
       }
     },
     openDialog () {
-      console.log('delete dialog')
       window.addEventListener('keyup', this.listener, false)
       this.confirm = true
     },

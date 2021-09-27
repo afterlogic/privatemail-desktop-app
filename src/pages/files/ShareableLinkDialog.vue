@@ -20,7 +20,7 @@
           </div>
         </div>
         <div v-if="publicLink">
-          <q-item class="q-mt-md">
+          <q-item class="q-mt-sm">
             <q-item-section class="q-mr-md">
               <q-item-label>Protected shareable link</q-item-label>
             </q-item-section>
@@ -28,7 +28,7 @@
               <q-input outlined dense v-model="publicLink"  style="width: 400px"/>
             </q-item-section>
           </q-item>
-          <q-item class="q-mt-md" v-if="passwordForSharing">
+          <q-item class="q-mt-sm" v-if="passwordForSharing">
             <q-item-section class="q-mr-md">
               <q-item-label>Password</q-item-label>
             </q-item-section>
@@ -36,7 +36,7 @@
               <q-input outlined dense v-model="passwordForSharing"  style="width: 400px"/>
             </q-item-section>
           </q-item>
-          <q-item class="q-mt-md">
+          <q-item class="q-mt-sm">
             <q-item-section>
               <q-item-label>Recipient</q-item-label>
             </q-item-section>
@@ -47,7 +47,7 @@
                 ref="whoCanSee"
                 v-model="recipient" :options="recipientOptions"
                 @filter="getContactsOptions"
-                style="width: 400px"
+                style="width: 400px;"
               >
                 <template v-if="recipient" v-slot:selected>
                       <span>
@@ -356,7 +356,6 @@ export default {
       }
     },
     recipient (val) {
-      console.log(val)
       if (!this.file.isEncrypted()) {
         if (val) {
           if (this.hasPrivateKey) {

@@ -463,6 +463,7 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
       FromType: fromType,
       Files: files
     }
+    console.log(oParameters, 'oParameters')
     webApi.sendRequest({
       sApiHost: store.getters['main/getApiHost'],
       sAuthToken: store.getters['user/getAuthToken'],

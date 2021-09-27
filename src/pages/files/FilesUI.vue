@@ -332,32 +332,34 @@ export default {
       }
     },
     ondrop (e, toType = '', path) {
-      let toPath = ''
-      if (!path) {
-       toPath = e.dataTransfer.getData('toPath')
-      } else {
-        toPath = path
+      if (toType !== 'encrypted' && toType !== 'shared') {
+        let toPath = ''
+        if (!path) {
+          toPath = e.dataTransfer.getData('toPath')
+        } else {
+          toPath = path
+        }
+        const fromType = e.dataTransfer.getData('fromType')
+        const hashes = this.$store.getters['files/getCheckedItems']
+        const fileList = this.$store.getters['files/getCurrentFiles']
+        const checkedList = hashes.map( hash => {
+          return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
+        })
+        this.$store.commit('files/removeCheckedFiles', {
+          checkedFiles: checkedList,
+          currentFiles: {
+            files: this.fileList,
+            folders: this.folderList
+          }
+        })
+        const fromPath = this.$store.getters['files/getCurrentPath']
+        this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
+        .then( res => {
+          if (!res) {
+            this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+          }
+        })
       }
-      const fromType = e.dataTransfer.getData('fromType')
-      const hashes = this.$store.getters['files/getCheckedItems']
-      const fileList = this.$store.getters['files/getCurrentFiles']
-      const checkedList = hashes.map( hash => {
-        return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
-      })
-      this.$store.commit('files/removeCheckedFiles', {
-        checkedFiles: checkedList,
-        currentFiles: {
-          files: this.fileList,
-          folders: this.folderList
-        }
-      })
-      const fromPath = this.$store.getters['files/getCurrentPath']
-      this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
-      .then( res => {
-        if (!res) {
-          this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
-        }
-      })
     },
     uploadEncryptFiles () {
       if (this.fileIndex > this.downloadFiles.length - 1) {
@@ -412,7 +414,6 @@ export default {
       }
     },
     finishUploadingFiles () {
-      console.log('finish')
       this.downloadFiles = []
     },
     showReport () {

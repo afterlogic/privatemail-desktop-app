@@ -69,6 +69,7 @@ export function getFiles ({ state, commit, getters, dispatch }, {
   pattern = '',
   changeLoadingStatus = true
 }) {
+  console.log(1)
   dispatch('changeCurrentFile', { currentFile: '' })
   if (changeLoadingStatus) {
     commit('setLoadingStatus', { status: true })
@@ -99,8 +100,10 @@ export function getFiles ({ state, commit, getters, dispatch }, {
       }
      if (error) {
        const paths = getters['getCurrentPaths']
-       dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
-       dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
+       if (paths && paths[paths.length - 1]?.path) {
+         dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
+         dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
+       }
        if (error?.ErrorMessage) {
          notification.showError(error.ErrorMessage)
        } else {

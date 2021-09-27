@@ -57,7 +57,7 @@
                       @click="viewFile(file.ViewUrl, false)">View</span>
                 <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="editFile(file)">Edit</span>
-                <span v-else-if="file.isArchive() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
+                <span v-else-if="file.isArchive() && !file.Loading && !file.Downloading && !file.isEncrypted()" class="q-mr-md text-primary"
                       @click="openArchive">View</span>
                 <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="viewFile(file.OpenUrl, true)">Open</span>
@@ -191,13 +191,13 @@ export default {
         this.viewFile(this.file.ViewUrl, false)
       } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && this.file.EditUrl) {
         this.editFile()
-      } else if (this.file.isArchive() && !this.file.Loading) {
+      } else if (this.file.isArchive() && !this.file.Loading && !this.file.isEncrypted()) {
         this.openArchive()
       } else if (this.file.hasOpenAction() && !this.file.isEncrypted() && !this.hasImportAction()) {
         this.viewFile(this.file.OpenUrl, true)
       } else if (this.hasImportAction() && this.progressPercent === 0) {
         this.importKeys()
-      } else if (this.file.isArchive()) {
+      } else if (this.file.isArchive() && !this.file.isEncrypted()) {
         this.openArchive()
       }
     },

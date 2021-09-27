@@ -139,7 +139,7 @@ import Folder from 'src/modules/files/classes/Folder'
 
 import notification from '../../utils/notification'
 import types from 'src/utils/types'
-import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings.js'
+import encryptionSettings from 'src/modules/core-paranoid-encryption/settings.js'
 import OpenPgp from '../../modules/openpgp/OpenPgp'
 import Crypto from 'src/modules/crypto/CCrypto'
 

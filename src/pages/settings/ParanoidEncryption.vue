@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings.js'
+import encryptionSettings from 'src/modules/core-paranoid-encryption/settings.js'
 import webApi from '../../utils/webApi'
 export default {
   name: 'ParanoidEncryption',

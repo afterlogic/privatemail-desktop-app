@@ -9,7 +9,7 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
   })
-  ipcRenderer.once('files-get-storages', (event, {storageList, oError}) => {
+  ipcRenderer.once('files-get-storages', (event, { storageList, error }) => {
     if (storageList) {
       commit('setStorageList', storageList)
       commit('setCurrentStorage', storageList[0])
@@ -19,10 +19,17 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
       }
       commit('changeCurrentPath', { index: -1, path, lastStorage: true })
     }
+    if (error) {
+      if (error.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
+    }
   })
 }
 export function setCurrentStorage ({ state, commit, getters, dispatch }, { currentStorage }) {
-  store.commit('files/setCurrentStorage', currentStorage)
+  store.commit('setCurrentStorage', currentStorage)
 }
 export function updateExtendedProps ({ state, commit, getters, dispatch }, { type, path, name, paranoidKey, callback } ) {
   const parameters = {
@@ -155,7 +162,7 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
     items
   })
 
-  ipcRenderer.once('files-remove-items', (event, { result, error }) => {
+  ipcRenderer.once('files-remove-items', (event, { error }) => {
     if (error) {
       notification.showError('Some error occurs while deleting a folder.')
       dispatch('getFiles', { currentStorage: type, path })
@@ -174,7 +181,7 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
     isFolder
   })
 
-  ipcRenderer.once('files-rename-item', (event, { result, error }) => {
+  ipcRenderer.once('files-rename-item', (event, { error }) => {
     if (error) {
       if (error?.ErrorMessage) {
         notification.showError(error.ErrorMessage)
@@ -198,8 +205,8 @@ export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPat
     copiedFiles
   })
 
-  ipcRenderer.once('files-past-files', (event, { result, oError }) => {
-    if (!oError) {
+  ipcRenderer.once('files-past-files', (event, { result, error }) => {
+    if (result) {
       dispatch('getFiles', {
         currentStorage: toType,
         path: toPath
@@ -213,6 +220,13 @@ export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPat
     } else {
       commit('setLoadingStatus', { status: false })
     }
+    if (error) {
+      if (error.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
+    }
   })
 }
 export function saveFilesAsTempFiles ({ state, commit, getters, dispatch }, { files }) {
@@ -223,8 +237,15 @@ export function saveFilesAsTempFiles ({ state, commit, getters, dispatch }, { fi
       files
     })
 
-    ipcRenderer.once('files-save-temp', (event, { result, oError }) => {
+    ipcRenderer.once('files-save-temp', (event, { result, error }) => {
       resolve(result)
+      if (error) {
+        if (error.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
+      }
     })
   })
 }
@@ -240,15 +261,20 @@ export function updateShare ({ state, commit, getters, dispatch }, { storage, pa
       shares
     })
 
-    ipcRenderer.once('files-update-share', (event, { result, oError }) => {
+    ipcRenderer.once('files-update-share', (event, { result, error }) => {
       if (result) {
         notification.showReport('Sharing status updated')
         dispatch('getFiles', {
           currentStorage: storage,
           path: path
         })
-      } else {
-        notification.showError('Unknown error')
+      }
+      if (error) {
+        if (error.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
       }
       resolve(result)
     })
@@ -463,7 +489,6 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
       FromType: fromType,
       Files: files
     }
-    console.log(oParameters, 'oParameters')
     webApi.sendRequest({
       sApiHost: store.getters['main/getApiHost'],
       sAuthToken: store.getters['user/getAuthToken'],

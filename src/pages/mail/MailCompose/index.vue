@@ -26,7 +26,7 @@ import openpgpSettings from 'src/modules/openpgp/settings.js'
 import cContact from 'src/modules/contacts/classes/CContact.js'
 
 import ScheduleSendingDialog from "../ScheduleSendingDialog.vue"
-import FilesUI from 'src/pages/files/filesInCompose/FilesUI'
+import FilesUI from 'src/pages/files/files-in-compose/FilesUI'
 
 export default {
   name: 'MailCompose',

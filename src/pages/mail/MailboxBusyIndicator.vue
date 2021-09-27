@@ -63,7 +63,7 @@ export default {
         return 0
       }
       if (this.page === 'files') {
-        return this.$store.getters['files/getFilesQuota'].Limit
+        return this.$store.getters['files/getFilesQuota'].limit
       }
       return 0
     },
@@ -79,7 +79,7 @@ export default {
         return 0
       }
      if (this.page === 'files') {
-       return this.$store.getters['files/getFilesQuota'].Used
+       return this.$store.getters['files/getFilesQuota'].used
      }
      return 0
     },

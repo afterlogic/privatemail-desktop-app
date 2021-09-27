@@ -261,8 +261,8 @@ export default {
         return false
       }
       const viewDoc = filesSettings.extensionsToView.find( type => type === this.formatFile(this.file))
-      const viewFIle = this.viewMimeTypes.find( type => type === this.file.ContentType)
-      return this.file.ViewUrl && (viewFIle || viewDoc)
+      const viewFile = this.viewMimeTypes.find( type => type === this.file.ContentType)
+      return this.file.ViewUrl && (viewFile || viewDoc)
     },
     hasImportAction () {
       return this.formatFile(this.file) === 'asc'

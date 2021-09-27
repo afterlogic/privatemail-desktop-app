@@ -148,7 +148,7 @@ export default {
   },
   methods: {
     hasPgpKey (email = '') {
-      return OpenPgp.getPublicKeyByEmail(email || scope.opt.email)
+      return OpenPgp.getPublicKeyByEmail(email?.opt?.email || email)
     },
     removeSelectedToAddr (sValue) {
       this.whoCanSee = _.filter(this.whoCanSee, function (oAddr) {
@@ -272,6 +272,7 @@ export default {
           if (!OpenPgp.getPublicKeyByEmail(contact)) {
             keylessContacts.push(contact)
             notification.showError(`No public key found for ${contact} user.`)
+            this.saving = false
           }
         })
         if (!keylessContacts.length) {

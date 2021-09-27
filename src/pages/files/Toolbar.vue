@@ -9,7 +9,7 @@
         </q-tooltip>
       </span>
       <span>
-        <q-btn :disable="!checkedItems.length || isFolder || loadingProgress()" flat color="primary"
+        <q-btn :disable="!checkedItems.length || isFolder || loadingProgress() || isArchive()" flat color="primary"
                icon="alternate_email" @click="sendFile"/>
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Send file
@@ -17,7 +17,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!currentFile || currentStorage.Type === 'shared' || loadingProgress() || !checkedItems.length" flat color="primary" icon="edit" @click="editFile"
+          :disable="!currentFile || currentStorage.Type === 'shared' || loadingProgress() || !checkedItems.length || isArchive()" flat color="primary" icon="edit" @click="editFile"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Rename
@@ -25,7 +25,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!checkedItems.length || currentStorage.Type === 'shared' || loadingProgress()" flat color="primary" icon="delete_outline"
+          :disable="!checkedItems.length || currentStorage.Type === 'shared' || loadingProgress() || isArchive()" flat color="primary" icon="delete_outline"
           :label="checkedItems.length > 0 ? checkedItems.length : ''" @click="openRemoveItemsDialog"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
@@ -34,7 +34,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!checkedItems.length || currentStorage.Type === 'shared' || loadingProgress()" flat color="primary" icon="content_cut" @click="cutFile"
+          :disable="!checkedItems.length || currentStorage.Type === 'shared' || loadingProgress() || isArchive()" flat color="primary" icon="content_cut" @click="cutFile"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Cut
@@ -42,7 +42,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!checkedItems.length || currentStorage.Type === 'shared' || loadingProgress()" flat color="primary" icon="file_copy" @click="copyFile"
+          :disable="!checkedItems.length || currentStorage.Type === 'shared' || loadingProgress() || isArchive()" flat color="primary" icon="file_copy" @click="copyFile"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
           Copy
@@ -50,7 +50,7 @@
       </span>
       <span>
         <q-btn
-          :disable="availabilityPastAction || loadingProgress()"
+          :disable="availabilityPastAction || loadingProgress() || isArchive()"
           flat color="primary" icon="content_paste"
           :label="copiedFiles.files.length > 0 ? copiedFiles.files.length : ''" @click="pastFile"
         />
@@ -61,7 +61,7 @@
       </span>
       <span>
         <q-btn
-          :disable="!currentFile || currentStorage.Type === 'shared' || (currentStorage.Type === 'encrypted' && isFolder) || loadingProgress()"
+          :disable="!currentFile || currentStorage.Type === 'shared' || (currentStorage.Type === 'encrypted' && isFolder) || loadingProgress() || isArchive()"
           flat color="primary" icon="link" @click="linkDialog(null)"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
@@ -70,7 +70,7 @@
       </span>
       <span v-if="enableSharedFiles && currentStorage.Type !== 'shared'">
         <q-btn
-          :disable="!currentFile || (currentStorage.Type === 'encrypted' && isFolder) || currentStorage.Type === 'corporate' || loadingProgress()"
+          :disable="!currentFile || (currentStorage.Type === 'encrypted' && isFolder) || currentStorage.Type === 'corporate' || loadingProgress() || isArchive()"
           flat color="primary" icon="share" @click="share(null)"
         />
            <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
@@ -212,6 +212,10 @@ export default {
     },
   },
   methods: {
+    isArchive () {
+      let currentPath = this.$store.getters['files/getCurrentPath']
+      return currentPath.split('.')[currentPath.split('.').length - 1] === 'zip'
+    },
     cancelDialog () {
       this.createFolderDialog = false
     },
@@ -229,6 +233,7 @@ export default {
       }
     },
     showCreateNewFolderDialog () {
+      this.folderName = ''
       this.createFolderDialog = true
     },
     downloadFile () {

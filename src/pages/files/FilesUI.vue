@@ -6,7 +6,7 @@
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
 <!--              <q-btn flat no-caps no-wrap @click="uploadFiles" label="Upload files" size=18px color="primary" class="full-width big-button" />-->
-             <q-btn-dropdown :disable="currentStorage.Type === 'shared'" size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
+             <q-btn-dropdown :disable="currentStorage.Type === 'shared' || isArchive()" size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
                <q-list class="bg-primary" style="font-size: 17px; color: white">
                  <q-item clickable v-close-popup @click="uploadFiles">
                    <q-item-section>
@@ -230,6 +230,10 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    isArchive () {
+      let currentPath = this.$store.getters['files/getCurrentPath']
+      return currentPath.split('.')[currentPath.split('.').length - 1] === 'zip'
+    },
     sortByName (arr) {
       arr.sort((a, b) => a.Name > b.Name ? 1 : -1);
     },

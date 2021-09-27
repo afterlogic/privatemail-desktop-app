@@ -104,6 +104,7 @@
               v-model="recipient" :options="recipientOptions"
               @filter="getContactsOptions"
               style="width: 368px"
+              :disable="showEncryptedLink"
             >
               <template v-if="recipient" v-slot:selected>
                       <span>
@@ -503,8 +504,8 @@ export default {
       this.recipient = null
       this.file = file
       this.hasLinkPassword = false
-      const publicLink = file.hasLink()
-      this.publicLink = publicLink ? this.$store.getters['main/getApiHost'] + '/' + publicLink : ''
+      const publicLink = file.getPublicLink()
+      this.publicLink = publicLink ? this.$store.getters['main/getApiHost'] + publicLink : ''
       this.passwordForSharing = file.File?.ExtendedProps?.PasswordForSharing || ''
       this.lifetime = {
         value: 0,
@@ -609,7 +610,7 @@ export default {
       }
       this.$store.dispatch('files/createPublicLink', parameters).then( result => {
         if (result) {
-          this.publicLink = this.$store.getters['main/getApiHost'] + '/' + result.link
+          this.publicLink = this.$store.getters['main/getApiHost'] + result.link
           this.$store.dispatch('files/getFiles', {
             currentStorage: this.file.Type,
             path: this.file.Path })

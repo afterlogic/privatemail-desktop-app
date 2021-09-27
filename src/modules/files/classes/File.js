@@ -96,6 +96,9 @@ File.prototype.isEncrypted = function () {
 File.prototype.hasLink = function () {
   return this.File?.ExtendedProps?.PublicLink
 }
+File.prototype.getPublicLink = function () {
+  return this.File?.ExtendedProps?.PublicLink
+}
 File.prototype.hasOpenAction = function () {
   return this.OpenUrl
 }

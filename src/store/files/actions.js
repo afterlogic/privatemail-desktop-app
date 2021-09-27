@@ -46,7 +46,11 @@ export function updateExtendedProps ({ state, commit, getters, dispatch }, { typ
         })
         callback(type, path, name)
       } else {
-        notification.showError(error)
+        if (error?.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
       }
     },
   })
@@ -91,7 +95,11 @@ export function getFiles ({ state, commit, getters, dispatch }, {
        const paths = getters['getCurrentPaths']
        dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
        dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
-       notification.showError(error.ErrorMessage)
+       if (error?.ErrorMessage) {
+         notification.showError(error.ErrorMessage)
+       } else {
+         notification.showError('Unknown error')
+       }
      }
       if (filesFromServer?.Quota) {
         commit('setFilesQuota', { quota: filesFromServer.Quota })
@@ -111,9 +119,16 @@ export function createFolder ({ state, commit, getters, dispatch }, { type, path
     folderName
   })
 
-  ipcRenderer.once('files-create-folder', (event, { result, oError }) => {
+  ipcRenderer.once('files-create-folder', (event, { result, error }) => {
     if (result) {
       dispatch('getFiles', { currentStorage: type, path })
+    }
+    if(error) {
+      if (error?.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
     }
   })
 }
@@ -162,7 +177,11 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
 
   ipcRenderer.once('files-rename-item', (event, { result, error }) => {
     if (error) {
-      notification.showError(error)
+      if (error?.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
     }
   })
 }
@@ -247,8 +266,17 @@ export function getHistory ({ state, commit, getters, dispatch }, { resourceType
       limit
     })
 
-    ipcRenderer.once('files-get-history', (event, { result, oError }) => {
-      resolve(result)
+    ipcRenderer.once('files-get-history', (event, { result, error }) => {
+      if (result) {
+        resolve(result)
+      }
+      if (error) {
+        if (error?.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
+      }
     })
   })
 }
@@ -261,11 +289,18 @@ export function clearHistory ({ state, commit, getters, dispatch }, { resourceTy
       resourceId,
     })
 
-    ipcRenderer.once('files-clear-history', (event, { result, oError }) => {
+    ipcRenderer.once('files-clear-history', (event, { result, error }) => {
       if (result) {
         notification.showReport('Activity history has been cleared')
+        resolve(result)
       }
-      resolve(result)
+      if (error) {
+        if (error?.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
+      }
     })
   })
 }
@@ -292,6 +327,13 @@ export function createPublicLink ({ state, commit, getters, dispatch }, paramete
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       },
     })
   })
@@ -311,6 +353,13 @@ export function removeLink ({ state, commit, getters, dispatch }, { type, path, 
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       },
     })
   })
@@ -328,6 +377,13 @@ export function checkUrl ({ state, commit, getters, dispatch }, { url }) {
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       },
     })
   }))
@@ -348,6 +404,13 @@ export function createLink ({ state, commit, getters, dispatch }, { type, path, 
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       }
     })
   }))
@@ -369,7 +432,13 @@ export function saveAttachmentsToFile ({ state, commit, getters, dispatch }, { a
         if (result) {
           resolve(result)
         } else {
-          notification.showError(error)
+          if (error) {
+            if (error?.ErrorMessage) {
+              notification.showError(error.ErrorMessage)
+            } else {
+              notification.showError('Unknown error')
+            }
+          }
         }
       },
     })
@@ -401,7 +470,7 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
       sModule: 'Files',
       sMethod: 'Move',
       oParameters,
-      fCallback: (result) => {
+      fCallback: (result, error) => {
         if (result) {
           const currentStorage = getters['getCurrentStorage'].Type
           const currentPath = getters['getCurrentPath']
@@ -414,6 +483,13 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
             })
           }
           resolve(result)
+        }
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
         }
       },
     })

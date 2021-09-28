@@ -19,7 +19,7 @@
         Nothing found
       </div>
       <div class="pannel-hint non-selectable full-width inscription"
-           v-else-if="!fileList.length && !folderList.length && currentStorage.Type === 'shared' && !searchInProgress"
+           v-else-if="!fileList.length && !folderList.length && currentStorage.Type === 'shared' && !searchInProgress && !isUploadingFiles"
       >
         No shared files
       </div>
@@ -63,6 +63,7 @@
 <script>
 import _ from 'lodash'
 import webApi from '../../utils/webApi'
+import axios from 'axios'
 
 import EncryptedFileInformationDialog from './EncryptedFileInformationDialog'
 import FileItem from './items/FileItem'
@@ -87,7 +88,8 @@ export default {
       checkedList: [],
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
-      elem: null
+      elem: null,
+      cancelToken: null
     }
   },
   computed: {
@@ -128,15 +130,9 @@ export default {
       this.$refs.encryptedFileInformationDialog.openDialog(file)
     },
     downloadFile (file = null) {
-      let url = ''
       const currentFile = file || this.currentFile
       if (!currentFile.Downloading) {
-        currentFile.changePercentLoading(0)
-        if (currentFile && !currentFile.DownloadingStatus) {
-          url = currentFile.DownloadUrl
-          currentFile.changeDownloadingStatus(true)
-          webApi.downloadByUrl(url, currentFile.Name, currentFile)
-        }
+        currentFile.downloadFile()
       }
     },
     openShareDialog (file) {
@@ -495,9 +491,7 @@ export default {
 .large .file .icon.youtube {
   background-position: -1360px -400px;
 }
-.large .file .icon.url {
-  background-position: -1440px -400px;
-}
+
 .large .folder .icon {
   background-position: -880px -400px;
   height: 65px;

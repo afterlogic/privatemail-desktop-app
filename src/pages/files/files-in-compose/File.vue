@@ -23,6 +23,11 @@
                :style="{'background': `url(${getPreviewFile(file)}) no-repeat center`, 'background-size': 'contain'}"/>
         </div>
       </div>
+      <div class="flex q-mt-md q-ml-sm" style="position: absolute; top: 90px; width: 100%;">
+        <div class="q-mr-xs q-mb-xs file-icon__encrypt" v-if="isEncrypted(file)">
+          <encrypted-icon style="fill: white !important;" :width="20" :height="20"></encrypted-icon>
+        </div>
+      </div>
       <div class="flex q-mt-xs" style="justify-content: space-between;font-size: 10pt;">
         <div class="q-ml-sm">
           <b>{{ getShortName(file.Name) }}</b>
@@ -47,7 +52,7 @@
           </div>
         </div>
         <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
-          <div>
+          <div style="word-wrap: break-word;">
             {{ getShortName(file.Name) }}
           </div>
         </q-card-section>
@@ -59,6 +64,8 @@
 <script>
 import text from '../../../utils/text'
 import date from '../../../utils/date'
+
+import EncryptedIcon from '../../../assets/icons/EncryptedIcon'
 
 export default {
   name: 'File',
@@ -76,9 +83,11 @@ export default {
       Default: {}
     }
   },
+  components: {
+    EncryptedIcon
+  },
   data () {
     return {
-      fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
     }
   },
@@ -112,6 +121,12 @@ export default {
       this.$store.dispatch('files/getFiles', { currentStorage: this.currentStorage.Type, path: file.FullPath, isFolder: true })
     },
     getShortName (name) {
+      if (this.file.IsFolder) {
+        if (name.length > 36) {
+          return name.substr(0, 30)
+        }
+        return name
+      }
       if (name.length > 12) {
         return name.substr(0, 10) + '...'
       }

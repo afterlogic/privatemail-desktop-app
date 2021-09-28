@@ -9,7 +9,7 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
   })
-  ipcRenderer.once('files-get-storages', (event, {storageList, oError}) => {
+  ipcRenderer.once('files-get-storages', (event, { storageList, error }) => {
     if (storageList) {
       commit('setStorageList', storageList)
       commit('setCurrentStorage', storageList[0])
@@ -19,10 +19,17 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
       }
       commit('changeCurrentPath', { index: -1, path, lastStorage: true })
     }
+    if (error) {
+      if (error.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
+    }
   })
 }
 export function setCurrentStorage ({ state, commit, getters, dispatch }, { currentStorage }) {
-  store.commit('files/setCurrentStorage', currentStorage)
+  commit('setCurrentStorage', currentStorage)
 }
 export function updateExtendedProps ({ state, commit, getters, dispatch }, { type, path, name, paranoidKey, callback } ) {
   const parameters = {
@@ -46,7 +53,11 @@ export function updateExtendedProps ({ state, commit, getters, dispatch }, { typ
         })
         callback(type, path, name)
       } else {
-        notification.showError(error)
+        if (error?.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
       }
     },
   })
@@ -69,7 +80,6 @@ export function getFiles ({ state, commit, getters, dispatch }, {
     Pattern: pattern,
     PathRequired: false
   }
-  console.log(parameters, 'parameters')
   webApi.sendRequest({
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -89,11 +99,15 @@ export function getFiles ({ state, commit, getters, dispatch }, {
       }
      if (error) {
        const paths = getters['getCurrentPaths']
-       dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
-
-       console.log(paths, 'paths')
-       dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
-       notification.showError(error.ErrorMessage)
+       if (paths && paths[paths.length - 1]?.path) {
+         dispatch('changeCurrentPaths', { path: paths[paths.length - 2] })
+         dispatch('getFiles', { currentStorage: currentStorage, path: paths[paths.length - 1]?.path || '', isFolder: true })
+       }
+       if (error?.ErrorMessage) {
+         notification.showError(error.ErrorMessage)
+       } else {
+         notification.showError('Unknown error')
+       }
      }
       if (filesFromServer?.Quota) {
         commit('setFilesQuota', { quota: filesFromServer.Quota })
@@ -113,9 +127,16 @@ export function createFolder ({ state, commit, getters, dispatch }, { type, path
     folderName
   })
 
-  ipcRenderer.once('files-create-folder', (event, { result, oError }) => {
+  ipcRenderer.once('files-create-folder', (event, { result, error }) => {
     if (result) {
       dispatch('getFiles', { currentStorage: type, path })
+    }
+    if(error) {
+      if (error?.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
     }
   })
 }
@@ -124,7 +145,7 @@ export function changeCurrentPaths ({ state, commit, getters, dispatch }, { path
   let index = currentPaths.findIndex( elem => {
    return  elem?.path === path?.path
   })
-  commit('setCurrentPath', { path: path.path })
+  commit('setCurrentPath', { path: path?.path })
   commit('changeCurrentPath', { index, path, lastStorage })
 }
 export function changeCheckedItems ({ state, commit, getters, dispatch }, { checkedItems }) {
@@ -143,7 +164,7 @@ export function removeFiles ({ state, commit, getters, dispatch }, { type, path,
     items
   })
 
-  ipcRenderer.once('files-remove-items', (event, { result, error }) => {
+  ipcRenderer.once('files-remove-items', (event, { error }) => {
     if (error) {
       notification.showError('Some error occurs while deleting a folder.')
       dispatch('getFiles', { currentStorage: type, path })
@@ -162,9 +183,13 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
     isFolder
   })
 
-  ipcRenderer.once('files-rename-item', (event, { result, error }) => {
+  ipcRenderer.once('files-rename-item', (event, { error }) => {
     if (error) {
-      notification.showError(error)
+      if (error?.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
     }
   })
 }
@@ -182,8 +207,8 @@ export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPat
     copiedFiles
   })
 
-  ipcRenderer.once('files-past-files', (event, { result, oError }) => {
-    if (!oError) {
+  ipcRenderer.once('files-past-files', (event, { result, error }) => {
+    if (result) {
       dispatch('getFiles', {
         currentStorage: toType,
         path: toPath
@@ -197,6 +222,13 @@ export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPat
     } else {
       commit('setLoadingStatus', { status: false })
     }
+    if (error) {
+      if (error.ErrorMessage) {
+        notification.showError(error.ErrorMessage)
+      } else {
+        notification.showError('Unknown error')
+      }
+    }
   })
 }
 export function saveFilesAsTempFiles ({ state, commit, getters, dispatch }, { files }) {
@@ -207,8 +239,15 @@ export function saveFilesAsTempFiles ({ state, commit, getters, dispatch }, { fi
       files
     })
 
-    ipcRenderer.once('files-save-temp', (event, { result, oError }) => {
+    ipcRenderer.once('files-save-temp', (event, { result, error }) => {
       resolve(result)
+      if (error) {
+        if (error.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
+      }
     })
   })
 }
@@ -224,15 +263,20 @@ export function updateShare ({ state, commit, getters, dispatch }, { storage, pa
       shares
     })
 
-    ipcRenderer.once('files-update-share', (event, { result, oError }) => {
+    ipcRenderer.once('files-update-share', (event, { result, error }) => {
       if (result) {
         notification.showReport('Sharing status updated')
         dispatch('getFiles', {
           currentStorage: storage,
           path: path
         })
-      } else {
-        notification.showError('Unknown error')
+      }
+      if (error) {
+        if (error.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
       }
       resolve(result)
     })
@@ -249,8 +293,17 @@ export function getHistory ({ state, commit, getters, dispatch }, { resourceType
       limit
     })
 
-    ipcRenderer.once('files-get-history', (event, { result, oError }) => {
-      resolve(result)
+    ipcRenderer.once('files-get-history', (event, { result, error }) => {
+      if (result) {
+        resolve(result)
+      }
+      if (error) {
+        if (error?.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
+      }
     })
   })
 }
@@ -263,11 +316,18 @@ export function clearHistory ({ state, commit, getters, dispatch }, { resourceTy
       resourceId,
     })
 
-    ipcRenderer.once('files-clear-history', (event, { result, oError }) => {
+    ipcRenderer.once('files-clear-history', (event, { result, error }) => {
       if (result) {
         notification.showReport('Activity history has been cleared')
+        resolve(result)
       }
-      resolve(result)
+      if (error) {
+        if (error?.ErrorMessage) {
+          notification.showError(error.ErrorMessage)
+        } else {
+          notification.showError('Unknown error')
+        }
+      }
     })
   })
 }
@@ -294,6 +354,13 @@ export function createPublicLink ({ state, commit, getters, dispatch }, paramete
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       },
     })
   })
@@ -313,6 +380,13 @@ export function removeLink ({ state, commit, getters, dispatch }, { type, path, 
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       },
     })
   })
@@ -330,6 +404,13 @@ export function checkUrl ({ state, commit, getters, dispatch }, { url }) {
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       },
     })
   }))
@@ -350,6 +431,13 @@ export function createLink ({ state, commit, getters, dispatch }, { type, path, 
       oParameters,
       fCallback: (result, error) => {
         resolve(result)
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
+        }
       }
     })
   }))
@@ -371,7 +459,13 @@ export function saveAttachmentsToFile ({ state, commit, getters, dispatch }, { a
         if (result) {
           resolve(result)
         } else {
-          notification.showError(error)
+          if (error) {
+            if (error?.ErrorMessage) {
+              notification.showError(error.ErrorMessage)
+            } else {
+              notification.showError('Unknown error')
+            }
+          }
         }
       },
     })
@@ -403,7 +497,7 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
       sModule: 'Files',
       sMethod: 'Move',
       oParameters,
-      fCallback: (result) => {
+      fCallback: (result, error) => {
         if (result) {
           const currentStorage = getters['getCurrentStorage'].Type
           const currentPath = getters['getCurrentPath']
@@ -416,6 +510,13 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
             })
           }
           resolve(result)
+        }
+        if (error) {
+          if (error?.ErrorMessage) {
+            notification.showError(error.ErrorMessage)
+          } else {
+            notification.showError('Unknown error')
+          }
         }
       },
     })

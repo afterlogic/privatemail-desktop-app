@@ -1,8 +1,6 @@
 import { ipcMain } from 'electron'
 import typesUtils from '../../../src/utils/types.js'
 import webApi from '../webApi.js'
-import axios from "axios";
-import https from 'https'
 
 export default {
   initSubscriptions: function () {

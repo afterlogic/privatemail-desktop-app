@@ -57,7 +57,7 @@
                       @click="viewFile(file.ViewUrl, false)">View</span>
                 <span v-else-if="hasViewAction() && !file.isEncrypted() && !hasImportAction() && file.EditUrl && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="editFile(file)">Edit</span>
-                <span v-else-if="file.isArchive() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
+                <span v-else-if="file.isArchive() && !file.Loading && !file.Downloading && !file.isEncrypted()" class="q-mr-md text-primary"
                       @click="openArchive">View</span>
                 <span v-if="file.hasOpenAction() && !file.isEncrypted() && !hasImportAction() && !file.Loading && !file.Downloading" class="q-mr-md text-primary"
                       @click="viewFile(file.OpenUrl, true)">Open</span>
@@ -73,7 +73,7 @@
                     </span>
               </div>
             </div>
-            <div v-if="file.Loading" class="flex" style="flex-direction: column">
+            <div v-if="file.Loading" class="flex" style="flex-direction: column; margin-top: -3px">
               <div class="flex q-px-sm" style="width: 100%">
                 <div class="progress-bar-line" style="background: #ef4a4a;" :style="{width: `${progressPercent}%`}" ></div>
               </div>
@@ -84,13 +84,19 @@
                 >complete</span>
               </div>
             </div>
-            <div v-if="file.Downloading" class="flex" style="flex-direction: column">
+            <div v-if="file.Downloading" class="flex" style="flex-direction: column; margin-top: -3px">
               <div class="flex q-px-sm" style="width: 100%">
                 <div class="progress-bar-line" style="background: #6bb856;" :style="{width: `${file.PercentDownloading}%`}" ></div>
               </div>
               <div style="font-size: 12px">
-          <span v-if="file.PercentDownloading !== 100"
+          <span v-if="file.PercentDownloading !== 100" style="font-size: 12px"
           >{{ file.PercentDownloading }}%</span>
+                <span
+                  class="text-primary" style="position: absolute; right: 10px"
+                  @click.prevent="file.cancelDownloading()"
+                >
+                      Cancel
+                    </span>
                 <span v-if="file.PercentDownloading === 100" style="color: rgb(76, 175, 80);"
                 >complete</span>
               </div>
@@ -139,7 +145,7 @@ export default {
     openLinkDialog: Function,
     openEncryptedFileDialog: Function,
     openShareDialog: Function,
-    downloadFile: Function
+    downloadFile: Function,
   },
   data() {
     return {
@@ -152,7 +158,7 @@ export default {
         'application/pdf', 'application/x-pdf'
       ],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
-      progressPercent: 0
+      progressPercent: 0,
     }
   },
   components: {
@@ -185,13 +191,13 @@ export default {
         this.viewFile(this.file.ViewUrl, false)
       } else if (this.hasViewAction() && !this.file.isEncrypted() && !this.hasImportAction() && this.file.EditUrl) {
         this.editFile()
-      } else if (this.file.isArchive() && !this.file.Loading) {
+      } else if (this.file.isArchive() && !this.file.Loading && !this.file.isEncrypted()) {
         this.openArchive()
       } else if (this.file.hasOpenAction() && !this.file.isEncrypted() && !this.hasImportAction()) {
         this.viewFile(this.file.OpenUrl, true)
       } else if (this.hasImportAction() && this.progressPercent === 0) {
         this.importKeys()
-      } else if (this.file.isArchive()) {
+      } else if (this.file.isArchive() && !this.file.isEncrypted()) {
         this.openArchive()
       }
     },
@@ -255,8 +261,8 @@ export default {
         return false
       }
       const viewDoc = filesSettings.extensionsToView.find( type => type === this.formatFile(this.file))
-      const viewFIle = this.viewMimeTypes.find( type => type === this.file.ContentType)
-      return this.file.ViewUrl && (viewFIle || viewDoc)
+      const viewFile = this.viewMimeTypes.find( type => type === this.file.ContentType)
+      return this.file.ViewUrl && (viewFile || viewDoc)
     },
     hasImportAction () {
       return this.formatFile(this.file) === 'asc'
@@ -327,7 +333,10 @@ export default {
           return  api + link
         }
       }
-      return this.file.ThumbnailUrl
+      if (!this.file.isEncrypted() && this.formatFile(this.file) === 'url') {
+        return this.file.ThumbnailUrl
+      }
+      return ''
     },
   }
 }

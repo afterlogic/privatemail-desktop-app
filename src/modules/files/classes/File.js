@@ -2,6 +2,7 @@ import date from '../../../utils/date'
 import text from '../../../utils/text'
 import _ from 'lodash'
 import typesUtils from '../../../utils/types'
+import webApi from '../../../utils/webApi'
 
 function File() {
   this.Size = 0
@@ -27,6 +28,7 @@ function File() {
   this.ThumbnailUrl = ''
   this.Deleted = false
   this.ContentType = ''
+  this.CancelToken = null
 }
 
 File.prototype.parseUploaderFile = function (file) {
@@ -40,29 +42,30 @@ File.prototype.parseUploaderFile = function (file) {
 
 File.prototype.parseDataFromServer = function (file) {
   this.Loading = false
-  this.Content = typesUtils.pString(file.Content, '')
+  this.Content = typesUtils.pString(file.Content)
   this.Size = typesUtils.pInt(file.Size)
   this.File = file
-  this.Hash = typesUtils.pString(file.Hash, '')
-  this.Name = typesUtils.pString(file.Name, '')
-  this.Type = typesUtils.pString(file.Type, '')
+  this.Hash = typesUtils.pString(file.Hash)
+  this.Name = typesUtils.pString(file.Name)
+  this.Type = typesUtils.pString(file.Type)
   this.LastModified = typesUtils.pInt(file.LastModified)
-  this.Owner = typesUtils.pString(file.Owner, '')
-  this.FullPath = typesUtils.pString(file.FullPath, '')
-  this.Path = typesUtils.pString(file.Path, '')
+  this.Owner = typesUtils.pString(file.Owner)
+  this.FullPath = typesUtils.pString(file.FullPath)
+  this.Path = typesUtils.pString(file.Path)
   this.IsFolder = typesUtils.pBool(file.IsFolder)
   this.Shares = []
   this.PublicLink = ''
   this.Shares = typesUtils.pArray(file?.ExtendedProps?.Shares)
   this.PublicLink = typesUtils.pArray(file?.ExtendedProps?.PublicLink)
-  this.DownloadUrl = typesUtils.pString(file?.Actions?.download?.url, '')
-  this.EditUrl = typesUtils.pString(file?.Actions?.edit?.url, '')
-  this.ViewUrl = typesUtils.pString(file?.Actions?.view?.url, '')
-  this.OpenUrl = typesUtils.pString(file?.Actions?.open?.url, '')
-  this.ParanoidKey = typesUtils.pString(file?.ExtendedProps?.ParanoidKey, '')
-  this.InitializationVector = typesUtils.pString(file?.ExtendedProps?.InitializationVector, '')
-  this.ThumbnailUrl = typesUtils.pString(file?.ThumbnailUrl, '')
-  this.ContentType = typesUtils.pString(file.ContentType, '')
+  this.DownloadUrl = typesUtils.pString(file?.Actions?.download?.url)
+  this.EditUrl = typesUtils.pString(file?.Actions?.edit?.url)
+  this.ViewUrl = typesUtils.pString(file?.Actions?.view?.url)
+  this.OpenUrl = typesUtils.pString(file?.Actions?.open?.url)
+  this.ParanoidKey = typesUtils.pString(file?.ExtendedProps?.ParanoidKey)
+  this.InitializationVector = typesUtils.pString(file?.ExtendedProps?.InitializationVector)
+  this.ThumbnailUrl = typesUtils.pString(file?.ThumbnailUrl)
+  this.ContentType = typesUtils.pString(file.ContentType)
+  this.CancelToken = null
 }
 
 File.prototype.getDescription = function (owner) {
@@ -93,6 +96,9 @@ File.prototype.isEncrypted = function () {
 File.prototype.hasLink = function () {
   return this.File?.ExtendedProps?.PublicLink
 }
+File.prototype.getPublicLink = function () {
+  return this.File?.ExtendedProps?.PublicLink
+}
 File.prototype.hasOpenAction = function () {
   return this.OpenUrl
 }
@@ -115,5 +121,24 @@ File.prototype.ChangeFullPath = function (name) {
   let array = this.FullPath.split('/')
   array[array.length - 1] = name
   this.FullPath = array.join('/')
+}
+File.prototype.getCancelCallback = function (c) {
+  this.CancelToken = c
+}
+File.prototype.cancelDownloading = function () {
+  if (this.CancelToken) {
+    this.CancelToken()
+  }
+}
+File.prototype.downloadFile = function () {
+  let url = ''
+  if (!this.Downloading) {
+    this.changePercentLoading(0)
+    if (this && !this.DownloadingStatus) {
+      url = this.DownloadUrl
+      this.changeDownloadingStatus(true)
+      webApi.downloadByUrl(url, this.Name, this, (c) => this.getCancelCallback(c))
+    }
+  }
 }
 export default File

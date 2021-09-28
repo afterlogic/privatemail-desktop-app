@@ -20,7 +20,7 @@
           </div>
         </div>
         <div v-if="publicLink">
-          <q-item class="q-mt-md">
+          <q-item class="q-mt-sm">
             <q-item-section class="q-mr-md">
               <q-item-label>Protected shareable link</q-item-label>
             </q-item-section>
@@ -28,7 +28,7 @@
               <q-input outlined dense v-model="publicLink"  style="width: 400px"/>
             </q-item-section>
           </q-item>
-          <q-item class="q-mt-md" v-if="passwordForSharing">
+          <q-item class="q-mt-sm" v-if="passwordForSharing">
             <q-item-section class="q-mr-md">
               <q-item-label>Password</q-item-label>
             </q-item-section>
@@ -36,7 +36,7 @@
               <q-input outlined dense v-model="passwordForSharing"  style="width: 400px"/>
             </q-item-section>
           </q-item>
-          <q-item class="q-mt-md">
+          <q-item class="q-mt-sm">
             <q-item-section>
               <q-item-label>Recipient</q-item-label>
             </q-item-section>
@@ -47,8 +47,20 @@
                 ref="whoCanSee"
                 v-model="recipient" :options="recipientOptions"
                 @filter="getContactsOptions"
-                style="width: 400px"
+                style="width: 400px;"
               >
+                <template v-if="recipient" v-slot:selected>
+                      <span>
+                        <q-chip flat removable @remove="removeSelectedToAddr()">
+                          <div>
+                            {{ recipient.short }}
+                          </div>
+                          <div>
+                            <q-icon v-if="hasPgpKey" color="green" name="vpn_key"/>
+                          </div>
+                        </q-chip>
+                      </span>
+                </template>
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                     <q-item-section class="non-selectable">
@@ -69,7 +81,7 @@
               </q-item-section>
             </q-item>
             <div style="margin-left: 16px" class="q-mt-sm">
-              <q-checkbox :disable="!hasPgpKey" dense v-model="digitalSignature" label="Add digital signature" />
+              <q-checkbox :disable="!hasPgpKey || !hasPrivateKey" dense v-model="digitalSignature" label="Add digital signature" />
             </div>
             <q-item dense class="q-my-sm">
               <q-item-section>
@@ -92,7 +104,20 @@
               v-model="recipient" :options="recipientOptions"
               @filter="getContactsOptions"
               style="width: 368px"
+              :disable="showEncryptedLink"
             >
+              <template v-if="recipient" v-slot:selected>
+                      <span>
+                        <q-chip flat removable @remove="removeSelectedToAddr()">
+                          <div>
+                            {{ recipient.short }}
+                          </div>
+                          <div>
+                            <q-icon v-if="hasPgpKey" color="green" name="vpn_key"/>
+                          </div>
+                        </q-chip>
+                      </span>
+              </template>
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
@@ -113,7 +138,7 @@
             <q-item-label>{{ publicLink }}</q-item-label>
           </q-item>
           <q-item dense class="q-ml-sm" v-if="!passwordForSharing">
-            <q-item-label caption>The file is encrypted using vadim's PGP public key. You can send the link via encrypted email.</q-item-label>
+            <q-item-label caption>The file is encrypted using recipient's PGP public key. You can send the link via encrypted email.</q-item-label>
           </q-item>
           <div v-if="passwordForSharing">
             <q-item dense class="q-ml-sm">
@@ -155,7 +180,7 @@
         <div v-if="file && file.isEncrypted() && !publicLink && !showEncryptedLink">
           <q-btn :disable="removing || !recipient" flat :ripple="false" color="primary" @click="askOpenPgpKeyPasswordForEncrypt"
                  :label="removing ? 'Removing link' : 'Encrypt'" />
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn :disable="creating || removing" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Close" />
         </div>
         <div v-else-if="showEncryptedLink">
@@ -163,7 +188,7 @@
                  label="Send via encrypted email" />
           <q-btn v-else flat :disable="!recipient || removing" :ripple="false" color="primary"
                  label="Send via email" @click="sendViaEmail"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn :disable="creating || removing" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Close" />
         </div>
         <div v-else>
@@ -171,13 +196,13 @@
                  :label="creating ? 'Creating shareable link' : 'Create shareable link'" />
           <q-btn v-if="publicLink" flat :ripple="false" color="primary" @click="showHistory"
                  label="Show history" />
-          <q-btn v-if="publicLink && !hasPgpKey" flat :disable="!recipient || removing" :ripple="false" color="primary"
+          <q-btn v-if="publicLink && (!hasPgpKey || !passwordForSharing)" flat :disable="!recipient || removing" :ripple="false" color="primary"
                  label="Send via email" @click="sendViaEmail"/>
-          <q-btn v-if="hasPgpKey && publicLink" :disable="!recipient || removing" flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
+          <q-btn v-if="hasPgpKey && passwordForSharing && publicLink" :disable="!recipient || removing" flat :ripple="false" color="primary" @click="sendViaEncryptedEmail"
                  label="Send via encrypted email" />
           <q-btn :disable="removing" v-if="publicLink" flat :ripple="false" color="primary" @click="removeLink"
                  :label="removing ? 'Removing link' : 'Remove link'" />
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancelDialog"
+          <q-btn :disable="creating || removing" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancelDialog"
                  label="Close" />
         </div>
       </q-card-actions>
@@ -260,6 +285,10 @@ export default {
       }
       return false
     },
+    hasPrivateKey () {
+      let email = this.$store.getters['mail/getCurrentAccountEmail']
+      return OpenPgp.getPrivateKeyByEmail(email)
+    },
     recipientLabel () {
       if (this.file?.isEncrypted()) {
         if (this.recipient) {
@@ -301,6 +330,9 @@ export default {
       if (this.digitalSignature) {
         return 'The email will be signed using your private key.'
       } else {
+        if (!this.hasPrivateKey) {
+          return 'The email will not be signed. Requires your PGP private key in Settings.'
+        }
         return 'The email will not be signed.'
       }
     },
@@ -326,8 +358,10 @@ export default {
     recipient (val) {
       if (!this.file.isEncrypted()) {
         if (val) {
-          const publicKey = OpenPgp.getPublicKeyByEmail(val.email)
-          this.digitalSignature = !!publicKey
+          if (this.hasPrivateKey) {
+            const publicKey = OpenPgp.getPublicKeyByEmail(val.email)
+            this.digitalSignature = !!publicKey
+          }
         } else {
           this.digitalSignature = false
         }
@@ -341,10 +375,8 @@ export default {
     hasPgpKeyy (scope) {
       return OpenPgp.getPublicKeyByEmail(scope.opt.email)
     },
-    removeSelectedToAddr (sValue) {
-      this.selectedToAddr = _.filter(this.selectedToAddr, function (oAddr) {
-        return oAddr.value !== sValue
-      })
+    removeSelectedToAddr () {
+      this.recipient = null
     },
     openComposeWithPassphrase (passphrase) {
       if ((this.encryptionType === 'key' || this.passwordForSharing) && this.digitalSignature) {
@@ -363,33 +395,48 @@ export default {
       }
     },
     async sendViaEncryptedEmail () {
-      const linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+      let linkText = ''
       let passText = ''
-      if (this.passwordForSharing) {
-         passText = '<br>File encrypted with password: ' + this.passwordForSharing
+      if (this.file.isEncrypted()) {
+        linkText = 'Hi, you can get the encrypted file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+        if (this.passwordForSharing) {
+          passText = '<br>File encrypted with password: ' + this.passwordForSharing
+        }
+      } else {
+        linkText = 'Hi, you can get the file here: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+        if (this.passwordForSharing) {
+          passText = '<br>File with password: ' + this.passwordForSharing
+        }
+      }
+      let subject = ''
+      if (this.file.isEncrypted()) {
+        subject = `The encrypted file was shared with you: '${this.file.Name}'`
+      } else {
+        subject = `The file was shared with you: '${this.file.Name}'`
       }
       if ((this.encryptionType === 'key' || this.passwordForSharing) && this.digitalSignature) {
-        if (this.passphrase) {
+        let email = this.$store.getters['mail/getCurrentAccountEmail']
+        let pgpKey = await OpenPgp.getPrivateOwnKeyAndPassphrase(email, this.askOpenPgpKeyPassword)
+        if (pgpKey.oPrivateKey) {
           this.openCompose({
             aToContacts: [this.recipient],
             sText: linkText + passText,
-            sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
+            sSubject: subject,
             needToSignEncrypt: true,
-            sPassphrase: this.passphrase
+            sPassphrase: pgpKey.sPassphrase
           })
-        } else {
-          this.askOpenPgpKeyPassword(this.recipient.email, this.openComposeWithPassphrase)
         }
       } else {
         this.openCompose({
           aToContacts: [this.recipient],
           sText: linkText + passText,
-          sSubject: `The encrypted file was shared with you: '${this.file.Name}'`,
+          sSubject: subject,
           needToEncrypt: true,
         })
       }
     },
     askOpenPgpKeyPasswordForEncrypt () {
+      this.creating = true
       const currentAccountEmail = this.$store.getters['mail/getCurrentAccountEmail']
       const privateKey = OpenPgp.getPrivateKeyByEmail(currentAccountEmail)
       if (privateKey) {
@@ -400,6 +447,7 @@ export default {
           this.askOpenPgpKeyPassword(currentAccountEmail, this.encryptLink)
         }
       } else {
+        this.creating = false
         notification.showError('No private key found for message decryption.')
       }
 
@@ -412,6 +460,7 @@ export default {
       const passwordBasedEncryption = this.encryptionType === 'password'
       CCrypto.getEncryptedKey(this.file, privateKey, publicKey, currentAccountEmail, passPassphrase, null, passwordBasedEncryption).then(encryptKey => {
         if (encryptKey?.sError) {
+          this.creating = false
           notification.showError(encryptKey.sError)
         } else if (encryptKey) {
           this.passwordForSharing = encryptKey.password
@@ -445,10 +494,11 @@ export default {
          const apiHost = this.$store.getters['main/getApiHost']
           this.showEncryptedLink = true
           this.publicLink = apiHost + res.link
+          this.creating = false
         }
       })
     },
-    showHistory () {
+    async showHistory () {
       const title = 'Shareable link activity history'
       this.$refs.showHistoryDialog.openDialog(this.file, title)
     },
@@ -465,8 +515,8 @@ export default {
       this.recipient = null
       this.file = file
       this.hasLinkPassword = false
-      const publicLink = file.hasLink()
-      this.publicLink = publicLink ? this.$store.getters['main/getApiHost'] + '/' + publicLink : ''
+      const publicLink = file.getPublicLink()
+      this.publicLink = publicLink ? this.$store.getters['main/getApiHost'] + publicLink : ''
       this.passwordForSharing = file.File?.ExtendedProps?.PasswordForSharing || ''
       this.lifetime = {
         value: 0,
@@ -474,9 +524,15 @@ export default {
       }
     },
     sendViaEmail () {
+      let sText = ''
+      if (this.file.isEncrypted()) {
+        sText = 'Hello, <br> You can download the encrypted file at: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+      } else {
+        sText = 'Hello, <br> You can download the file at: ' + '<a class="text-primary">' + this.publicLink + '</a>'
+      }
       this.openCompose({
         aToContacts: [this.recipient],
-        sText: 'Hello, <br> You can download the file at: ' + '<a class="text-primary">' + this.publicLink + '</a>',
+        sText: sText,
         sSubject: `The ${this.file.IsFolder ? 'folder' : 'file'} was shared with you: '${this.file.Name}'`
       })
     },
@@ -571,7 +627,8 @@ export default {
       }
       this.$store.dispatch('files/createPublicLink', parameters).then( result => {
         if (result) {
-          this.publicLink = this.$store.getters['main/getApiHost'] + '/' + result.link
+          this.creating = false
+          this.publicLink = this.$store.getters['main/getApiHost'] + result.link
           this.$store.dispatch('files/getFiles', {
             currentStorage: this.file.Type,
             path: this.file.Path })

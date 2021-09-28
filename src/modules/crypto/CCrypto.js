@@ -1,14 +1,12 @@
-import HexUtils from 'src/utils/Hex'
-import coreParanoidSettings from 'src/modules/core-Paranoid-encryption/settings'
+import HexUtils from 'src/utils/hex'
+import coreParanoidSettings from 'src/modules/core-paranoid-encryption/settings'
 import OpenPgp from 'src/modules/openpgp/OpenPgp'
 import _ from 'lodash'
 import store from 'src/store'
-import FileSaver from 'src/utils/FileSaver'
+import { saveAs } from 'file-saver'
 import types from 'src/utils/types'
 import notification from '../../utils/notification'
 import electron from 'electron'
-import { ipcRenderer } from 'electron'
-import {log} from "electron-log";
 import axios from "axios";
 
 
@@ -133,8 +131,6 @@ CCrypto.prototype.readChunk = async function (sUid, fOnChunkEncryptCallback, cal
     }
   }
 }
-
-//  vadim view
 
 function CViewImage(oFile, iv, iChunkSize, sParanoidEncryptedKey = '')
 {
@@ -608,7 +604,7 @@ CWriter.prototype.close = function () {
   if (typeof this.fProcessBlobCallback !== 'undefined') {
     this.fProcessBlobCallback(file)
   } else {
-    FileSaver.saveAs(file, this.sName)
+    saveAs(file, this.sName)
   }
   file = null
 }

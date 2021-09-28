@@ -6,7 +6,7 @@
           <div class="column full-height">
             <div class="col-auto q-px-md q-pb-md">
 <!--              <q-btn flat no-caps no-wrap @click="uploadFiles" label="Upload files" size=18px color="primary" class="full-width big-button" />-->
-             <q-btn-dropdown :disable="currentStorage.Type === 'shared'" size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
+             <q-btn-dropdown :disable="currentStorage.Type === 'shared' || isArchive()" size=18px type="button" class="full-width big-button" flat no-caps no-wrap color="primary" label="New" >
                <q-list class="bg-primary" style="font-size: 17px; color: white">
                  <q-item clickable v-close-popup @click="uploadFiles">
                    <q-item-section>
@@ -139,7 +139,7 @@ import Folder from 'src/modules/files/classes/Folder'
 
 import notification from '../../utils/notification'
 import types from 'src/utils/types'
-import encryptionSettings from 'src/modules/core-Paranoid-encryption/settings.js'
+import encryptionSettings from 'src/modules/core-paranoid-encryption/settings.js'
 import OpenPgp from '../../modules/openpgp/OpenPgp'
 import Crypto from 'src/modules/crypto/CCrypto'
 
@@ -230,6 +230,10 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    isArchive () {
+      let currentPath = this.$store.getters['files/getCurrentPath']
+      return currentPath.split('.')[currentPath.split('.').length - 1] === 'zip'
+    },
     sortByName (arr) {
       arr.sort((a, b) => a.Name > b.Name ? 1 : -1);
     },
@@ -328,32 +332,34 @@ export default {
       }
     },
     ondrop (e, toType = '', path) {
-      let toPath = ''
-      if (!path) {
-       toPath = e.dataTransfer.getData('toPath')
-      } else {
-        toPath = path
+      if (toType !== 'encrypted' && toType !== 'shared') {
+        let toPath = ''
+        if (!path) {
+          toPath = e.dataTransfer.getData('toPath')
+        } else {
+          toPath = path
+        }
+        const fromType = e.dataTransfer.getData('fromType')
+        const hashes = this.$store.getters['files/getCheckedItems']
+        const fileList = this.$store.getters['files/getCurrentFiles']
+        const checkedList = hashes.map( hash => {
+          return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
+        })
+        this.$store.commit('files/removeCheckedFiles', {
+          checkedFiles: checkedList,
+          currentFiles: {
+            files: this.fileList,
+            folders: this.folderList
+          }
+        })
+        const fromPath = this.$store.getters['files/getCurrentPath']
+        this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
+        .then( res => {
+          if (!res) {
+            this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+          }
+        })
       }
-      const fromType = e.dataTransfer.getData('fromType')
-      const hashes = this.$store.getters['files/getCheckedItems']
-      const fileList = this.$store.getters['files/getCurrentFiles']
-      const checkedList = hashes.map( hash => {
-        return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
-      })
-      this.$store.commit('files/removeCheckedFiles', {
-        checkedFiles: checkedList,
-        currentFiles: {
-          files: this.fileList,
-          folders: this.folderList
-        }
-      })
-      const fromPath = this.$store.getters['files/getCurrentPath']
-      this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
-      .then( res => {
-        if (!res) {
-          this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
-        }
-      })
     },
     uploadEncryptFiles () {
       if (this.fileIndex > this.downloadFiles.length - 1) {
@@ -408,17 +414,16 @@ export default {
       }
     },
     finishUploadingFiles () {
-      console.log('finish')
       this.downloadFiles = []
     },
     showReport () {
       this.counter++
       if (this.counter === this.downloadFiles.length) {
         if (this.downloadFiles.length === 1) {
-          notification.showReport('File uploaded successfully')
+          notification.showReport('File was uploaded successfully')
         }
         if (this.downloadFiles.length > 1) {
-          notification.showReport('Files uploaded successfully')
+          notification.showReport('Files was uploaded successfully')
         }
         this.getFiles(this.currentStorage.Type, this.currentFilePath, '')
         this.counter = 0

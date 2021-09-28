@@ -16,8 +16,8 @@ export default {
     files: []
   },
   quota: {
-    Limit: 0,
-    Used: 0
+    limit: 0,
+    used: 0
   },
   files: [],
   folders: []

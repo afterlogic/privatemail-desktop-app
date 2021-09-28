@@ -7,7 +7,7 @@
       <q-card-actions align="right">
         <q-btn flat :ripple="false" color="primary" @click="deleteItems"
                label="Delete" />
-        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+        <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancel"
                label="Cancel" />
       </q-card-actions>
     </q-card>
@@ -47,7 +47,6 @@ export default {
       }
     },
     openDialog () {
-      console.log('delete dialog')
       window.addEventListener('keyup', this.listener, false)
       this.confirm = true
     },

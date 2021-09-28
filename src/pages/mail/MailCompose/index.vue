@@ -26,7 +26,7 @@ import openpgpSettings from 'src/modules/openpgp/settings.js'
 import cContact from 'src/modules/contacts/classes/CContact.js'
 
 import ScheduleSendingDialog from "../ScheduleSendingDialog.vue"
-import FilesUI from 'src/pages/files/filesInCompose/FilesUI'
+import FilesUI from 'src/pages/files/files-in-compose/FilesUI'
 
 export default {
   name: 'MailCompose',
@@ -1279,8 +1279,6 @@ export default {
           return file
         }
       })
-      console.log(notFoundFiles, 'notFoundFiles')
-      console.log(files, 'files')
       let attachments = []
       _.each(notFoundFiles, (oAttachData) => {
         let oAttach = new cAttachment()
@@ -1291,8 +1289,12 @@ export default {
       this.$store.dispatch('files/saveFilesAsTempFiles', {
         files: notFoundFiles
       }).then(res => {
-        console.log(res, 'res')
         if(res) {
+          if (notFoundFiles.length === 1) {
+            notification.showReport('Attachment were saved to Files')
+          } else if (notFoundFiles.length > 1) {
+            notification.showReport('Attachments were saved to Files')
+          }
           this.attachments.map((attach) => {
             const foundFile = res.find(file => {
               return file.Name === attach.sFileName

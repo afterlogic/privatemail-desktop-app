@@ -3,7 +3,7 @@
     <q-dialog v-model="confirm" @escape-key="cancel">
       <q-card class="q-dialog-size" style="min-width: 300px">
         <div class="q-mx-sm q-mt-md q-pl-xs" style="font-size: 13pt"><b>Share with teammates</b></div>
-        <q-item class="q-mt-md">
+        <q-item class="q-mt-sm">
           <q-item-section>
             <q-item-label>Who can see</q-item-label>
           </q-item-section>
@@ -21,6 +21,18 @@
               stack-label
               @filter="getContactsSeeOptions"
             >
+              <template v-slot:selected>
+                      <span v-if="toAddrOptions">
+                        <q-chip flat v-for="oAddr in whoCanSee" :key="oAddr.value" removable @remove="removeSelectedToAddr(oAddr.value)">
+                          <div>
+                            {{ oAddr.label }}
+                          </div>
+                          <div>
+                            <q-icon v-if="hasPgpKey(oAddr.email)" color="green" name="vpn_key"/>
+                          </div>
+                        </q-chip>
+                      </span>
+              </template>
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
@@ -34,7 +46,7 @@
             </q-select>
           </q-item-section>
         </q-item>
-        <q-item class="q-mt-md">
+        <q-item class="q-mt-sm">
           <q-item-section>
             <q-item-label>Who can edit</q-item-label>
           </q-item-section>
@@ -52,6 +64,18 @@
               use-input
               @filter="getContactsEditOptions"
             >
+              <template v-slot:selected>
+                      <span v-if="toAddrOptions">
+                        <q-chip flat v-for="oAddr in whoCanEdit" :key="oAddr.value" removable @remove="removeSelectedToAddrEdit(oAddr.value)">
+                          <div>
+                            {{ oAddr.label }}
+                          </div>
+                          <div>
+                            <q-icon v-if="hasPgpKey(oAddr.email)" color="green" name="vpn_key"/>
+                          </div>
+                        </q-chip>
+                      </span>
+              </template>
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
                   <q-item-section class="non-selectable">
@@ -70,7 +94,7 @@
                  label="Show history" @click="showHistory"/>
           <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="primary"
                  :label="saving ? 'Saving...' : 'Save'" @click="updateShare"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+          <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancel"
                  label="Cancel"/>
         </q-card-actions>
       </q-card>
@@ -123,8 +147,18 @@ export default {
     }
   },
   methods: {
-    hasPgpKey (scope) {
-      return OpenPgp.getPublicKeyByEmail(scope.opt.email)
+    hasPgpKey (email = '') {
+      return OpenPgp.getPublicKeyByEmail(email?.opt?.email || email)
+    },
+    removeSelectedToAddr (sValue) {
+      this.whoCanSee = _.filter(this.whoCanSee, function (oAddr) {
+        return oAddr.value !== sValue
+      })
+    },
+    removeSelectedToAddrEdit (sValue) {
+      this.whoCanEdit = _.filter(this.whoCanEdit, function (oAddr) {
+        return oAddr.value !== sValue
+      })
     },
     showHistory () {
       const title = 'Shared file activity history'
@@ -231,12 +265,14 @@ export default {
     },
     updateShare () {
       this.principalsEmails = this.getPrincipalsEmails()
+      this.saving = true
       if (this.file.ParanoidKey) {
         let keylessContacts = []
         this.principalsEmails.map( contact => {
           if (!OpenPgp.getPublicKeyByEmail(contact)) {
             keylessContacts.push(contact)
             notification.showError(`No public key found for ${contact} user.`)
+            this.saving = false
           }
         })
         if (!keylessContacts.length) {
@@ -255,7 +291,6 @@ export default {
           }
         }
       } else {
-        this.saving = true
         this.nextUpdateShare()
       }
     },
@@ -295,7 +330,7 @@ export default {
         }
       })
       .catch( err => {
-        console.log(err, 'err')
+
       })
     },
     nextUpdateShare () {

@@ -64,7 +64,7 @@
         </q-list>
       </q-card-section>
       <q-card-section v-if="!keysChecked">
-        <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" input-style="resize: none; height: 300px;" style="width: 100%; height: 300px;" />
+        <q-input type="textarea" v-model="keysArmorToImport" outlined rows="100" input-style="resize: none; height: 300px;" style="width: 100%; height: 305px;" />
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Import selected keys" color="primary" @click="importSelectedKeys" v-if="keysToImport.length > 0" v-close-popup />

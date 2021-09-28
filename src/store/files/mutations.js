@@ -63,8 +63,8 @@ export function setCopiedFiles (state, { fromType, fromPath, isCut, files }) {
   state.copiedFiles.files = files
 }
 export function setFilesQuota (state, { quota }) {
-  state.quota.Limit = quota.Limit
-  state.quota.Used = quota.Used
+  state.quota.limit = quota.Limit
+  state.quota.used = quota.Used
 }
 export function setFiles (state, { files }) {
   state.files = files

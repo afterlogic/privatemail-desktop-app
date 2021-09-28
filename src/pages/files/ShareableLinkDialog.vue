@@ -1,9 +1,9 @@
 <template>
   <q-dialog v-model="confirm" @escape-key="cancelDialog">
-    <q-card class="q-dialog-size" style="min-width: 350px">
+    <q-card class="q-dialog-size q-px-sm" style="min-width: 350px">
       <div v-if="(file && !file.isEncrypted() || publicLink) && !showEncryptedLink">
         <div v-if="!publicLink">
-          <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
+          <div class="q-px-md q-py-md text-h6"><b>Create shareable link</b></div>
           <q-item>
             <q-checkbox v-model="hasLinkPassword" :disable="isFolder" label="Protect link with password" />
           </q-item>
@@ -28,7 +28,7 @@
               <q-input outlined dense v-model="publicLink"  style="width: 400px"/>
             </q-item-section>
           </q-item>
-          <q-item class="q-mt-sm" v-if="passwordForSharing">
+          <q-item v-if="passwordForSharing">
             <q-item-section class="q-mr-md">
               <q-item-label>Password</q-item-label>
             </q-item-section>
@@ -36,7 +36,7 @@
               <q-input outlined dense v-model="passwordForSharing"  style="width: 400px"/>
             </q-item-section>
           </q-item>
-          <q-item class="q-mt-sm">
+          <q-item>
             <q-item-section>
               <q-item-label>Recipient</q-item-label>
             </q-item-section>
@@ -75,7 +75,7 @@
             </q-item-section>
           </q-item>
           <div v-if="!file.isEncrypted() && passwordForSharing">
-            <q-item dense class="q-my-sm">
+            <q-item dense>
               <q-item-section>
                 <q-item-label caption>{{ recipientLabel }}</q-item-label>
               </q-item-section>
@@ -91,9 +91,9 @@
           </div>
         </div>
       </div>
-      <div v-else class="q-mr-sm">
-        <div class="q-mx-md q-mt-md q-pl-sm" style="font-size: 13pt"><b>Create shareable link</b></div>
-        <q-item class="q-mt-md q-ml-sm">
+      <div v-else>
+        <div class="q-px-md q-py-md text-h6"><b>Create shareable link</b></div>
+        <q-item>
           <q-item-section>
             <q-item-label style="width: 104px">Recipient</q-item-label>
           </q-item-section>
@@ -131,45 +131,45 @@
             </q-select>
         </q-item>
         <div v-if="showEncryptedLink">
-          <q-item dense class="q-ml-sm">
+          <q-item dense>
             <q-item-label caption>Encrypted file shareable link</q-item-label>
           </q-item>
-          <q-item class="q-ml-sm">
+          <q-item>
             <q-item-label>{{ publicLink }}</q-item-label>
           </q-item>
-          <q-item dense class="q-ml-sm" v-if="!passwordForSharing">
+          <q-item dense v-if="!passwordForSharing">
             <q-item-label caption>The file is encrypted using recipient's PGP public key. You can send the link via encrypted email.</q-item-label>
           </q-item>
           <div v-if="passwordForSharing">
-            <q-item dense class="q-ml-sm">
+            <q-item dense>
               <q-item-label caption>Encrypted file password</q-item-label>
             </q-item>
-            <q-item class="q-ml-sm">
+            <q-item>
               <q-item-label>{{ passwordForSharing }}</q-item-label>
             </q-item>
-            <q-item dense class="q-ml-sm">
+            <q-item dense>
               <q-item-label caption>If you don't send email now, store the password somewhere. You will not be able to recover it otherwise</q-item-label>
             </q-item>
           </div>
         </div>
         <div v-else>
-          <q-item class="q-ml-sm">
+          <q-item>
             <q-item-label caption>{{ recipientLabel }}</q-item-label>
           </q-item>
-          <q-item class="q-ml-sm">
+          <q-item>
             <q-item-section>Encryption type</q-item-section>
             <div class="q-gutter-sm">
               <q-radio :disable="!hasPgpKey" v-model="encryptionType" val="key" label="Key-based"/>
               <q-radio v-model="encryptionType" val="password" label="Password-based"/>
             </div>
           </q-item>
-          <q-item dense class="q-ml-sm">
+          <q-item dense>
             <q-item-label caption>{{ labelEncryptionType }}</q-item-label>
           </q-item>
-          <div style="margin-left: 24px">
+          <div class="q-pl-md q-py-xs">
             <q-checkbox :disable="!hasPgpKey || encryptionType === 'password'" dense v-model="digitalSignature" label="Add digital signature" />
           </div>
-          <q-item dense class="q-ml-sm q-mt-sm">
+          <q-item dense class="q-pt-sm">
             <q-item-section>
               <q-item-label caption>{{ availabilityLabel }}</q-item-label>
             </q-item-section>

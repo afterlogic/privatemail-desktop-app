@@ -332,7 +332,7 @@ export default {
       }
     },
     ondrop (e, toType = '', path) {
-      if (toType !== 'encrypted' && toType !== 'shared') {
+      if (toType !== 'encrypted' && toType !== 'shared' && this.currentStorage.Type !== 'encrypted') {
         let toPath = ''
         if (!path) {
           toPath = e.dataTransfer.getData('toPath')

@@ -245,18 +245,22 @@ export default {
     },
     dragEnter (elem) {
       this.elem = elem
-      if (elem.classList.contains('folder')) {
+      if (elem?.classList.contains('folder')) {
         elem.classList.add('border-drop')
       } else {
-        this.dragEnter(elem.parentNode)
+        if (elem?.parentNode) {
+          this.dragEnter(elem?.parentNode)
+        }
       }
     },
     dragLeave (elem) {
-      if (!elem.classList.contains('large')) {
-        if (elem.classList.contains('border-drop')) {
+      if (!elem?.classList.contains('large')) {
+        if (elem?.classList.contains('border-drop')) {
           elem.classList.remove('border-drop')
         } else {
-          this.dragLeave(elem.parentNode)
+          if (elem?.parentNode) {
+            this.dragLeave(elem?.parentNode)
+          }
         }
       }
     },
@@ -281,10 +285,12 @@ export default {
     },
     dragend () {
       if (this.elem) {
-        if (this.elem.classList.contains('border-drop')) {
+        if (this.elem?.classList.contains('border-drop')) {
           this.elem.classList.remove('border-drop')
         } else {
-          this.dragLeave(this.elem.parentNode)
+          if (this.elem?.parentNode) {
+            this.dragLeave(this.elem?.parentNode)
+          }
         }
       }
     }

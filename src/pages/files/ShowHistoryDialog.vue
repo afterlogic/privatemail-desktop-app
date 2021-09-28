@@ -1,9 +1,9 @@
 <template>
   <div>
     <q-dialog v-model="confirm" @escape-key="cancel">
-        <q-card class="q-dialog-size" style="min-width: 820px">
+        <q-card class="q-dialog-size q-px-sm" style="min-width: 820px">
           <h6 class="q-mx-md q-my-md">{{ title }}</h6>
-          <div class="q-mx-md" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px; font-size: 10pt">
+          <div class="q-mx-md q-mt-sm" style=" border-color: #d5d9dc; border-style: solid; border-width: 1px 1px 0 1px; border-radius: 3px; font-size: 10pt">
             <q-item class="bg-grey-4" style="border-bottom: 1px solid #d5d9dc;" dense>
               <q-item-section>
                 <q-item-label><b>Date</b></q-item-label>
@@ -57,7 +57,7 @@
         <q-card-actions align="right">
           <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="clearHistory"
                  label="Ok" />
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" v-close-popup
+          <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" v-close-popup
                  label="Cancel" />
         </q-card-actions>
       </q-card>

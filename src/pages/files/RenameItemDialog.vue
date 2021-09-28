@@ -1,12 +1,12 @@
 <template>
   <q-dialog v-model="confirm" @escape-key="cancelDialog">
-    <q-card class="q-dialog-size" style="min-width: 300px">
-      <q-item class="q-mt-md">
+    <q-card class="q-dialog-size q-pt-md q-px-sm" style="min-width: 400px">
+      <q-item>
         <q-item-section>
           <q-item-label>Name</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-input autofocus outlined dense v-model="itemName" @keyup.enter="renameItem"/>
+          <q-input outlined autofocus dense v-model="itemName" style="width: 250px" @keyup.enter="renameItem"/>
         </q-item-section>
       </q-item>
       <q-card-actions align="right">

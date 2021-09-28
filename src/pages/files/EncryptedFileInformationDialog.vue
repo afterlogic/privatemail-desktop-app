@@ -1,8 +1,8 @@
 <template>
   <div>
     <q-dialog v-model="confirm" @escape-key="cancel">
-      <q-card class="q-dialog-size" style="width: 600px">
-        <div class="q-ml-md q-mt-md" style="font-size: 13pt"><b>{{ fileName }}</b></div>
+      <q-card class="q-dialog-size q-px-sm" style="width: 600px">
+        <div class="q-px-md q-py-md text-h6" style="width: 552px; word-wrap: break-word;"><b>{{ fileName }}</b></div>
         <q-item class="q-pb-xs">
           <q-item-section>
             <q-item-label caption>This file is encrypted.</q-item-label>
@@ -29,13 +29,13 @@
                  label="Download encrypted" @click="downloadEncrypted"/>
           <q-btn :disable="saving" flat class="q-px-sm" :ripple="false" color="primary"
                  label="Get AES key" @click="getAesKey"/>
-          <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+          <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancel"
                  label="Close"/>
         </q-card-actions>
       </q-card>
     </q-dialog>
     <q-dialog v-model="showAes">
-      <q-card class="q-dialog-size" style="width: 600px">
+      <q-card class="q-dialog-size q-px-sm" style="width: 600px">
         <div class="q-ml-md q-mt-md" style="font-size: 13pt"><b>AES key</b></div>
         <q-item class="q-pt-xs">
           <q-item-section>

@@ -92,6 +92,7 @@
           <span v-if="file.PercentDownloading !== 100" style="font-size: 12px"
           >{{ file.PercentDownloading }}%</span>
                 <span
+                  v-if="file.PercentDownloading !== 100"
                   class="text-primary" style="position: absolute; right: 10px"
                   @click.prevent="file.cancelDownloading()"
                 >
@@ -282,7 +283,7 @@ export default {
         let iv = file.InitializationVector || false
         let paranoidEncryptedKey = file.ParanoidKey || false
         const aesKey = await this.getAesKey(file)
-        Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey)
+        Crypto.downloadDividedFile(file, iv, null, null, paranoidEncryptedKey, aesKey )
       }
     },
     async getAesKey (file) {

@@ -1,9 +1,9 @@
 <template>
   <div>
     <q-dialog v-model="confirm" @escape-key="cancel">
-      <q-card class="q-dialog-size" style="min-width: 300px">
-        <div class="q-mx-sm q-mt-md q-pl-xs" style="font-size: 13pt"><b>Share with teammates</b></div>
-        <q-item class="q-mt-sm">
+      <q-card class="q-dialog-size q-px-sm" style="min-width: 300px">
+        <div class="q-px-md q-py-md text-h6"><b>Share with teammates</b></div>
+        <q-item>
           <q-item-section>
             <q-item-label>Who can see</q-item-label>
           </q-item-section>
@@ -46,7 +46,7 @@
             </q-select>
           </q-item-section>
         </q-item>
-        <q-item class="q-mt-sm">
+        <q-item>
           <q-item-section>
             <q-item-label>Who can edit</q-item-label>
           </q-item-section>

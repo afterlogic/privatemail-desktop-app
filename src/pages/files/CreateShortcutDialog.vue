@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="confirm" @escape-key="cancelDialog" @keyup.enter.prevent="addShortcut">
-    <q-card class="q-dialog-size" style="min-width: 300px">
+    <q-card class="q-dialog-size q-px-sm" style="min-width: 300px">
         <q-card
           v-if="shortcut"
           flat

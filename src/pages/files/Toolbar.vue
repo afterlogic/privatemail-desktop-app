@@ -82,7 +82,7 @@
       <!-- <q-btn flat color="primary" label="Flat" /> -->
     </div>
     <q-dialog v-model="createFolderDialog" @escape-key="cancelDialog">
-      <q-card class="q-dialog-size q-pt-md q-ml-md q-mr-md" style="min-width: 400px">
+      <q-card class="q-dialog-size q-pt-md q-px-sm" style="min-width: 400px">
         <q-item>
           <q-item-section>
             <q-item-label>New folder</q-item-label>
@@ -100,8 +100,8 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="confirmCopyDialog">
-      <q-card class="q-dialog-size" style="min-width: 300px">
-        <q-item class="q-mt-md">
+      <q-card class="q-dialog-size q-pt-md q-px-sm" style="min-width: 300px">
+        <q-item class="q-mt-m">
           <q-item-section>
             <q-item-label>{{ titleAfterCopying }}</q-item-label>
           </q-item-section>
@@ -113,7 +113,7 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="confirmWarningDialog">
-      <q-card class="q-dialog-size" style="min-width: 300px">
+      <q-card class="q-dialog-size q-px-sm" style="min-width: 300px">
         <q-item class="q-mt-md">
           <q-item-section>
             <q-item-label>Some of the files you send are encrypted. To decrypt them, recipient will need Initialization Vector (IV) and AES key.</q-item-label>
@@ -251,7 +251,6 @@ export default {
     sendFile () {
       let hasEncryptFile = false
       let files = this.checkedItems.map( item => {
-        console.log(item, 'item')
         if (item.isEncrypted()) {
           hasEncryptFile = true
         }
@@ -277,7 +276,6 @@ export default {
       ipcRenderer.send('contacts-get-frequently-used-contacts', {sSearch: '', storage: 'team'})
     },
     saveFilesAsTempFiles (files) {
-      console.log(files, 'files')
       this.confirmWarningDialog = false
       this.$store.dispatch('files/saveFilesAsTempFiles', {
         files

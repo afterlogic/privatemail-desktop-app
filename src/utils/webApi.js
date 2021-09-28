@@ -131,13 +131,10 @@ export default {
       }
     })
     .then((response) => {
-      console.log(response, 'response')
       saveAs(new Blob([response.data], {type: response.data.type}), sFileName);
       file.changeDownloadingStatus(false)
     })
     .catch(response => {
-      console.log(response, 'response')
-        file.changeDownloadingStatus(false)
         file.changePercentLoading(0)
       newUrl = response?.request?.responseURL
     })
@@ -152,7 +149,9 @@ export default {
         },
         url: newUrl,
         responseType: 'blob',
-        cancelToken : cancelToken.token,
+        cancelToken : new CancelToken( function (c) {
+          getCancelCallback(c)
+        }),
         onDownloadProgress: function (progressEvent) {
           if (file) {
             let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
@@ -168,6 +167,9 @@ export default {
           file.changeDownloadingStatus(false)
           file.changePercentLoading(0)
       })
+    } else {
+      file.changeDownloadingStatus(false)
+      file.changePercentLoading(0)
     }
 
   },

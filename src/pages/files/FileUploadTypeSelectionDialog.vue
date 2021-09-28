@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="confirm" @escape-key="cancel">
-    <q-card class="q-dialog-size" style="min-width: 300px">
+    <q-card class="q-dialog-size q-px-sm" style="min-width: 300px">
       <div class="q-mx-md q-mt-md" style="color: #929292; font-size: 10pt">
         <div v-if="files.length > 1">
           <div class="q-mb-md">
@@ -19,7 +19,7 @@
                label="Encrypt" @click="encrypt(true)"/>
         <q-btn flat :ripple="false" color="primary" @click="encrypt(false)"
                label="Do not Encrypt" />
-        <q-btn flat class="q-px-sm" :ripple="false" color="primary" @click="cancel"
+        <q-btn flat class="q-px-sm" :ripple="false" color="grey-6" @click="cancel"
                label="Cancel" />
       </q-card-actions>
     </q-card>

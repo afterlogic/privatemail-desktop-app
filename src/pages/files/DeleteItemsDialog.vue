@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="confirm" @escape-key="cancel">
-    <q-card class="q-dialog-size">
+    <q-card class="q-dialog-size q-px-sm">
       <q-card-section>
         <span>{{ title }}</span>
       </q-card-section>

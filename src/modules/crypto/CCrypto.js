@@ -260,7 +260,8 @@ CCrypto.prototype.downloadDividedFile = async function (
   fProcessBlobCallback,
   fProcessBlobErrorCallback,
   sParanoidEncryptedKey = '',
-  aesKey = '')
+  aesKey = '',
+  )
 {
 	if (aesKey !== false) {
 		new CDownloadFile(oFile, iv, oFile.Size, fProcessBlobCallback, fProcessBlobErrorCallback, aesKey)
@@ -392,7 +393,7 @@ function CDownloadFile (oFile, iv, iChunkSize, fProcessBlobCallback, fProcessBlo
   this.init(oFile, iv, iChunkSize, fProcessBlobErrorCallback, sKey)
 }
 
-CDownloadFile.prototype.init = async function (oFile, iv, iChunkSize, fProcessBlobErrorCallback, sKey) {
+CDownloadFile.prototype.init = async function (oFile, iv, iChunkSize, fProcessBlobErrorCallback, sKey ) {
   this.sHash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   this.oFile = oFile
   this.sFileName = oFile.Name
@@ -464,6 +465,7 @@ CDownloadFile.prototype.writeChunk = function (oDecryptedUint8Array) {
 }
 
 CDownloadFile.prototype.decryptChunk = async function () {
+  const CancelToken = axios.CancelToken
   let sAuthToken = store.getters['user/getAuthToken']
   const file = this.oFile
   let newUrl = ''
@@ -480,6 +482,9 @@ CDownloadFile.prototype.decryptChunk = async function () {
     url: this.getChunkLink(),
     headers: oHeaders,
     responseType: 'arraybuffer',
+    cancelToken : new CancelToken( function (c) {
+      file.getCancelCallback(c)
+    }),
     onDownloadProgress: function (progressEvent) {
       if (file) {
         let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
@@ -505,6 +510,9 @@ CDownloadFile.prototype.decryptChunk = async function () {
       },
       url: newUrl,
       responseType: 'arraybuffer',
+      cancelToken : new CancelToken( function (c) {
+        file.getCancelCallback(c)
+      }),
       onDownloadProgress: function (progressEvent) {
         if (file) {
           let percentCompleted = Math.round((progressEvent.loaded * 100) / file.Size)
@@ -517,8 +525,10 @@ CDownloadFile.prototype.decryptChunk = async function () {
       file.changeDownloadingStatus(false)
     })
     .catch( response => {
-
+      file.changeDownloadingStatus(false)
     })
+  } else {
+    file.changeDownloadingStatus(false)
   }
 }
 

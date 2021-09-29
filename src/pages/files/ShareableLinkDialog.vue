@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="confirm" @escape-key="cancelDialog">
-    <q-card class="q-dialog-size q-px-sm" style="min-width: 350px">
+    <q-card class="q-dialog-size q-px-sm" style="min-width: 580px">
       <div v-if="(file && !file.isEncrypted() || publicLink) && !showEncryptedLink">
         <div v-if="!publicLink">
           <div class="q-px-md q-py-md text-h6"><b>Create shareable link</b></div>

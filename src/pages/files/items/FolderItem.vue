@@ -1,51 +1,57 @@
 <template>
-  <q-card
-    flat
-    class="q-mx-sm q-mb-md select-text-disable"
-    align="center"
-    style="width: 150px; height: 175px;"
-    v-if="!file.Deleted"
+  <transition
+    name="fade"
   >
-  <div
-    class="folder file-focus"
-    @click="function (oMouseEvent) { selectFile(file, oMouseEvent) }"
-    @dblclick="openFolder(file)"
-    @dragenter="dragEnter($event.target)"
-    @dragleave="dragLeave($event.target)"
-    :draggable="true"
-    @drop="ondrop($event, file.FullPath, file.Type, file)"
-    @dragend="dragend($event.target)"
-    @dragstart="onDragStart($event, file)"
-    @dragover.prevent
-    @dragenter.prevent
-  >
-    <div class="file-focus__border"  :class="{
+    <q-card
+      flat
+      class="q-mx-sm q-mb-md select-text-disable"
+      align="center"
+      style="width: 150px; height: 175px;"
+      v-show="!file.Deleted"
+    >
+      <div
+        class="folder file-focus"
+        @click="function (oMouseEvent) { selectFile(file, oMouseEvent) }"
+        @dblclick="openFolder(file)"
+        @dragenter="dragEnter($event.target)"
+        @dragleave="dragLeave($event.target)"
+        :draggable="true"
+        @drop="ondrop($event, file.FullPath, file.Type, file)"
+        @dragend="dragend($event.target)"
+        @dragstart="onDragStart($event, file)"
+        @dragover.prevent
+        @dragenter.prevent
+      >
+        <div class="file-focus__border" :class="{
                 'folder-selected': isChecked(file)
                }">
-      <div class="child-elements" style="height: 148px; position:relative">
-        <div class="image q-px-sm" style="padding-top: 28px">
-          <div class="img-block">
-            <span class="icon"></span>
+          <div class="child-elements" style="height: 148px; position:relative">
+            <div class="image q-px-sm" style="padding-top: 28px">
+              <div class="img-block">
+                <span class="icon"></span>
+              </div>
+            </div>
+            <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
+              <div class="q-mr-xs q-mb-xs file-icon pointer-events-all" v-if="file.isShared()"
+                   @click="openShareDialog(file)">
+                <share-icon style="fill: white !important;" :width="20" :height="20"/>
+              </div>
+              <div class="q-mr-xs q-mb-xs file-icon pointer-events-all" v-if="file.hasLink()"
+                   @click="openLinkDialog(file)">
+                <link-icon style="fill: white !important;" :width="20" :height="20"/>
+              </div>
+              <div v-if="!file.hasLink() && !file.isShared()" style="height: 26px"></div>
+            </div>
+            <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
+              <div style="word-wrap: break-word;">
+                {{ file.getShortName() }}
+              </div>
+            </q-card-section>
           </div>
         </div>
-        <div class="flex q-pr-xs" style="position: absolute; top: 67px; width: 100%; padding-left: 33px">
-          <div class="q-mr-xs q-mb-xs file-icon pointer-events-all" v-if="file.isShared()" @click="openShareDialog(file)">
-            <share-icon style="fill: white !important;" :width="20" :height="20"/>
-          </div>
-          <div class="q-mr-xs q-mb-xs file-icon pointer-events-all" v-if="file.hasLink()" @click="openLinkDialog(file)">
-            <link-icon style="fill: white !important;" :width="20" :height="20"/>
-          </div>
-          <div v-if="!file.hasLink() && !file.isShared()" style="height: 26px"></div>
-        </div>
-        <q-card-section tag="span" style="padding: 0; font-size: 10pt;">
-          <div style="word-wrap: break-word;">
-            {{ file.getShortName() }}
-          </div>
-        </q-card-section>
       </div>
-    </div>
-  </div>
-  </q-card>
+    </q-card>
+  </transition>
 </template>
 
 <script>

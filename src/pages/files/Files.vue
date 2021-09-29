@@ -107,7 +107,10 @@ export default {
     isFolder () {
       const currentPath = this.$store.getters['files/getCurrentPath']
       return !!currentPath
-    }
+    },
+    currentFolderPath () {
+      return this.$store.getters['files/getCurrentPath']
+    },
   },
   watch: {
     fileList (val) {
@@ -214,6 +217,7 @@ export default {
       return this.checkedList.find(checkedFile => checkedFile.Hash === file.Hash)
     },
     onDragStart (e, file) {
+      console.log(e, 'event')
       let checkedListHashes = this.$store.getters['files/getCheckedItems']
       let checkedList = checkedListHashes.map( hash => {
         return this.currentFiles.find( file => file.Hash === hash) || this.downloadFiles.find( file => file.Hash === hash)
@@ -223,9 +227,19 @@ export default {
         checkedList.push(file)
       }
       this.checkedList = checkedList
+      const hasFolder = checkedList.find( item => item.IsFolder === true)
+      const hasFile = checkedList.find( item => item.IsFolder === false)
 
+      let inscription = ''
+      if (hasFolder && hasFile) {
+        inscription = (e.ctrlKey ? '+ ': '') + checkedList.length + ' items'
+      } else if (hasFile && !hasFolder) {
+        inscription = (e.ctrlKey ? '+ ': '') + checkedList.length  +  ( checkedList.length > 1 ? ' files' : ' file')
+      } else if (hasFolder && !hasFile) {
+        inscription = (e.ctrlKey ? '+ ': '') + checkedList.length  +  ( checkedList.length > 1 ? ' folders' : ' folder')
+      }
       let div = document.createElement('div');
-      div.innerText = checkedList.length  +  ( checkedList.length > 1 ? ' files' : 'file')
+      div.innerText = inscription
       div.style.position = 'fixed';
       div.style.fontSize = '12px'
       div.style.color = 'white'
@@ -267,20 +281,37 @@ export default {
     ondrop (e, toPath, toType, file) {
       const dropFile = this.checkedList.find( elem => elem.Hash === file.Hash)
       if (!dropFile) {
-        this.$store.commit('files/removeCheckedFiles', {
-          checkedFiles: this.checkedList,
-          currentFiles: {
-            files: this.fileList,
-            folders: this.folderList
-          }
-        })
-        const fromPath = this.$store.getters['files/getCurrentPath']
-        this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })
-        .then( res => {
-          if (!res) {
-            this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
-          }
-        })
+        if (!e.ctrlKey) {
+          this.$store.commit('files/removeCheckedFiles', {
+            checkedFiles: this.checkedList,
+            currentFiles: {
+              files: this.fileList,
+              folders: this.folderList
+            }
+          })
+          const fromPath = this.$store.getters['files/getCurrentPath']
+          this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType: toType, checkedList: this.checkedList })
+          .then( res => {
+            if (!res) {
+              this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+            }
+          })
+        } else {
+          let files = this.checkedList.map( item => {
+            return {
+              FromType: item.Type,
+              FromPath: item.Path,
+              Name: item.Name,
+              IsFolder: item.IsFolder
+            }
+          })
+          this.$store.dispatch('files/pastFiles', {
+            toType: toType,
+            toPath: toPath,
+            files: files,
+            isDraggable: true
+          })
+        }
       }
     },
     dragend () {

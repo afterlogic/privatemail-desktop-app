@@ -45,10 +45,9 @@
                     <div
                       v-for="storage in storageList"
                       :key="storage.DisplayName"
-                      :draggable="true"
                       @drop="ondrop($event, storage.Type)"
-                      @dragover.prevent
-                      @dragenter.prevent
+                      @dragover="doDragOver($event, storage.Type)"
+                      @dragenter="doDragOver($event, storage.Type)"
                     >
                       <q-item
                         :class="{active: currentStorage.DisplayName === storage.DisplayName}"
@@ -230,6 +229,11 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    doDragOver (event, storage) {
+      if (storage !== 'encrypted' && storage !== 'shared') {
+        event.preventDefault();
+      }
+    },
     isArchive () {
       let currentPath = this.$store.getters['files/getCurrentPath']
       return currentPath.split('.')[currentPath.split('.').length - 1] === 'zip'
@@ -345,20 +349,38 @@ export default {
         const checkedList = hashes.map( hash => {
           return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
         })
-        this.$store.commit('files/removeCheckedFiles', {
-          checkedFiles: checkedList,
-          currentFiles: {
-            files: this.fileList,
-            folders: this.folderList
-          }
-        })
-        const fromPath = this.$store.getters['files/getCurrentPath']
-        this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
-        .then( res => {
-          if (!res) {
-            this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
-          }
-        })
+        if (!e.ctrlKey) {
+          this.$store.commit('files/removeCheckedFiles', {
+            checkedFiles: checkedList,
+            currentFiles: {
+              files: this.fileList,
+              folders: this.folderList
+            }
+          })
+          const fromPath = this.$store.getters['files/getCurrentPath']
+          this.$store.dispatch('files/filesMove', { fromPath, toPath, toType, fromType, checkedList })
+          .then( res => {
+            if (!res) {
+              this.$store.dispatch('files/getFiles', { currentStorage: toType, path: fromPath, isFolder: true })
+            }
+          })
+        } else {
+          let files = checkedList.map( item => {
+            return {
+              FromType: item.Type,
+              FromPath: item.Path,
+              Name: item.Name,
+              IsFolder: item.IsFolder
+            }
+          })
+          console.log(files, 'files')
+          this.$store.dispatch('files/pastFiles', {
+            toType: toType || fromType,
+            toPath: toPath,
+            files: files,
+            isDraggable: true
+          })
+        }
       }
     },
     uploadEncryptFiles () {

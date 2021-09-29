@@ -196,9 +196,23 @@ export function renameItem ({ state, commit, getters, dispatch }, { type, path, 
 export function copyFiles ({ state, commit, getters, dispatch }, { fromType, fromPath, isCut, files }) {
   commit('setCopiedFiles', { fromType, fromPath, isCut, files })
 }
-export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPath }) {
-  commit('setLoadingStatus', { status: true })
-  const copiedFiles = getters['getCopiedFiles']
+export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPath, files = null, isDraggable = false }) {
+  if (!isDraggable) {
+    commit('setLoadingStatus', { status: true })
+  }
+  let copiedFiles = null
+  if (files)  {
+    copiedFiles = {
+      files: files,
+      fromPath: files[0].FromPath,
+      fromType: files[0].FromType,
+    }
+  } else {
+    copiedFiles = getters['getCopiedFiles']
+  }
+  console.log(copiedFiles, 'copiedFiles')
+  console.log(toPath, 'toPath')
+  console.log(toType, 'toType')
   ipcRenderer.send('files-past-files', {
     sApiHost: store.getters['main/getApiHost'],
     sAuthToken: store.getters['user/getAuthToken'],
@@ -209,16 +223,18 @@ export function pastFiles ({ state, commit, getters, dispatch }, { toType, toPat
 
   ipcRenderer.once('files-past-files', (event, { result, error }) => {
     if (result) {
-      dispatch('getFiles', {
-        currentStorage: toType,
-        path: toPath
-      })
-      commit('setCopiedFiles', {
-        fromType: null,
-        fromPath: null,
-        isCUt: false,
-        files: []
-      })
+      if (!isDraggable) {
+        dispatch('getFiles', {
+          currentStorage: toType,
+          path: toPath
+        })
+        commit('setCopiedFiles', {
+          fromType: null,
+          fromPath: null,
+          isCUt: false,
+          files: []
+        })
+      }
     } else {
       commit('setLoadingStatus', { status: false })
     }

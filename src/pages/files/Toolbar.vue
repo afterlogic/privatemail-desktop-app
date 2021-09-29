@@ -361,6 +361,7 @@ export default {
           IsFolder: item.IsFolder
         }
       })
+      console.log(this.currentStorage.Type, 'this.currentStorage.Type')
       this.$store.dispatch('files/copyFiles', {
         fromType: this.currentStorage.Type,
         fromPath: this.currentFolderPath,

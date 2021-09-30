@@ -1,3 +1,5 @@
+import {showDropZone} from "./actions";
+
 export default {
   storageList: [],
   filesTree: {},
@@ -20,5 +22,6 @@ export default {
     used: 0
   },
   files: [],
-  folders: []
+  folders: [],
+  showDropZone: false
 }

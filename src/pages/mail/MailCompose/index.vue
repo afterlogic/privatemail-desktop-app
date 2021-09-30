@@ -1221,6 +1221,7 @@ export default {
       }
     },
     onFileAdded (files) {
+      console.log(11111)
       if (typesUtils.isNonEmptyArray(files)) {
         _.each(files, (oFile) => {
           let oAttach = new cAttachment()
@@ -1230,6 +1231,7 @@ export default {
       }
     },
     onFileUploaded ({ files, xhr }) {
+      console.log(123)
       let oFile = typesUtils.isNonEmptyArray(files) ? files[0] : null
       let oAttach = oFile ? _.find(this.attachments, (oTmpAttach) => {
         return oTmpAttach.sLocalPath === oFile.path

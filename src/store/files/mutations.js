@@ -72,3 +72,6 @@ export function setFiles (state, { files }) {
 export function setFolders (state, { folders }) {
   state.folders = folders
 }
+export function showDropZone (state, { showDropZone }) {
+  state.showDropZone = showDropZone
+}

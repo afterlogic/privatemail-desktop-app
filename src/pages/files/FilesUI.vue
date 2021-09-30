@@ -120,6 +120,8 @@
               :downloadFiles="downloadFiles"
               :fileList="fileList"
               :folderList="folderList"
+              @onFileAdded="onFileAdded"
+              @uploadFilesFromDesktop="uploadFilesFromDesktop"
             />
           </div>
         </template>
@@ -229,6 +231,13 @@ export default {
     this.$store.commit('files/setCurrentPath', { path: '' })
   },
   methods: {
+    uploadFilesFromDesktop (files) {
+      if (!this.downloadFiles.length) {
+        this.$refs.uploader.removeQueuedFiles()
+        this.$refs.uploader.removeUploadedFiles()
+        this.$refs.uploader.addFiles(files)
+      }
+    },
     doDragOver (event, storage) {
       if (storage !== 'encrypted' && storage !== 'shared') {
         event.preventDefault();
@@ -317,6 +326,7 @@ export default {
       return 'undefined' === typeof mValue;
     },
     onFileAdded (files) {
+      console.log(files, 'filsess')
       files.map(item => {
         if (!item.IsFolder) {
           const file = new File()
@@ -373,7 +383,6 @@ export default {
               IsFolder: item.IsFolder
             }
           })
-          console.log(files, 'files')
           this.$store.dispatch('files/pastFiles', {
             toType: toType || fromType,
             toPath: toPath,

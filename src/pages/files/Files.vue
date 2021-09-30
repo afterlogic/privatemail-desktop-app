@@ -1,6 +1,12 @@
 <template>
-  <div class="col panel-rounded" style="box-sizing: border-box;">
-    <q-scroll-area class="full-height">
+  <div
+       class="col panel-rounded testVadimVadim"
+       style="box-sizing: border-box; padding: 5px"
+       @drop="dropDesktop($event)"
+       @dragover.prevent
+       @dragenter.prevent
+  >
+      <q-scroll-area class="full-height" ref="scrollArea" style="border: 3px dashed white;">
         <div class="pannel-hint non-selectable full-width inscription"
              v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && isFolder"
         >
@@ -9,21 +15,21 @@
         <div class="pannel-hint non-selectable full-width inscription" v-if="isUploadingFiles">
           Loading...
         </div>
-      <div class="pannel-hint non-selectable full-width inscription"
-           v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && !isFolder"
-      >
-        You can drag-n-drop files from other folders or from your desktop, or click New Folder to create a folder
-      </div>
-      <div class="pannel-hint non-selectable full-width inscription"
-           v-else-if="!isUploadingFiles && !fileList.length && !folderList.length && searchInProgress">
-        Nothing found
-      </div>
-      <div class="pannel-hint non-selectable full-width inscription"
-           v-else-if="!fileList.length && !folderList.length && currentStorage.Type === 'shared' && !searchInProgress && !isUploadingFiles"
-      >
-        No shared files
-      </div>
-      <div v-if="!isUploadingFiles" class="row q-pa-sm large" style="display: flex; flex-wrap: wrap">
+        <div class="pannel-hint non-selectable full-width inscription"
+             v-if="!isUploadingFiles && !fileList.length && !folderList.length && !searchInProgress && currentStorage.Type !== 'shared' && !isFolder"
+        >
+          You can drag-n-drop files from other folders or from your desktop, or click New Folder to create a folder
+        </div>
+        <div class="pannel-hint non-selectable full-width inscription"
+             v-else-if="!isUploadingFiles && !fileList.length && !folderList.length && searchInProgress">
+          Nothing found
+        </div>
+        <div class="pannel-hint non-selectable full-width inscription"
+             v-else-if="!fileList.length && !folderList.length && currentStorage.Type === 'shared' && !searchInProgress && !isUploadingFiles"
+        >
+          No shared files
+        </div>
+        <div v-if="!isUploadingFiles" class="row q-pa-sm large" style="display: flex; flex-wrap: wrap">
 
           <folder-item
             v-for="folder in folderList" :key="folder.Hash"
@@ -40,34 +46,34 @@
             :dragLeave="dragLeave"
             :ondrop="ondrop"
           />
-        <file-item
-          v-for="file in fileList" :key="file.Hash"
-          :file="file"
-          :selectFile="selectFile"
-          :onDragStart="onDragStart"
-          :dragend="dragend"
-          :isChecked="isChecked"
-          :openLinkDialog="openLinkDialog"
-          :openEncryptedFileDialog="openEncryptedFileDialog"
-          :openShareDialog="openShareDialog"
-          :downloadFile="downloadFile"
-          @openFolder="openFolder(file)"
-        />
-      </div>
-    </q-scroll-area>
+          <file-item
+            v-for="file in fileList" :key="file.Hash"
+            :file="file"
+            :selectFile="selectFile"
+            :onDragStart="onDragStart"
+            :dragend="dragend"
+            :isChecked="isChecked"
+            :openLinkDialog="openLinkDialog"
+            :openEncryptedFileDialog="openEncryptedFileDialog"
+            :openShareDialog="openShareDialog"
+            :downloadFile="downloadFile"
+            @openFolder="openFolder(file)"
+          />
+        </div>
+      </q-scroll-area>
     <encrypted-file-information-dialog ref="encryptedFileInformationDialog"
                                        @downloadEncrypted="downloadFile"></encrypted-file-information-dialog>
+
   </div>
 </template>
 
 <script>
 import _ from 'lodash'
-import webApi from '../../utils/webApi'
-import axios from 'axios'
 
 import EncryptedFileInformationDialog from './EncryptedFileInformationDialog'
 import FileItem from './items/FileItem'
 import FolderItem from './items/FolderItem'
+import {getStateDropZone} from "../../store/files/getters";
 
 export default {
   name: 'Files',
@@ -89,14 +95,22 @@ export default {
       fileFormats: ['svg', 'txt', 'jpg', 'png', 'docx', 'pdf', 'JPG', 'jpeg', 'doc'],
       imgFormats: ['jpeg', 'png', 'jpg', 'JPG', 'jpeg'],
       elem: null,
-      cancelToken: null
+      cancelToken: null,
+      isDraggable: false,
+      counter: 0
     }
   },
   computed: {
     currentFiles () {
       return this.$store.getters['files/getCurrentFiles']
     },
-
+    showDropZone () {
+      if (!this.isDraggable) {
+        return this.$store.getters['files/getStateDropZone']
+      } else {
+        return false
+      }
+    },
     searchInProgress () {
       const currentPattern = this.$store.getters['files/getCurrentPattern']
       return !!currentPattern
@@ -112,23 +126,62 @@ export default {
       return this.$store.getters['files/getCurrentPath']
     },
   },
-  watch: {
-    fileList (val) {
-      this.$emit('addFileList', val)
-    },
-    folderList (val) {
-      this.$emit('addFolderList', val)
-    },
-    $route () {
-      this.currentFile = null
-    },
-    isUploadingFiles (loading) {
-      if (loading) {
-        this.checkedList = []
-      }
-    }
-  },
   methods: {
+    /*dragEnterDesktop() {
+      if (!this.isDraggable) {
+        this.counter++
+        // droppable-zone
+        this.$refs.scrollArea.$el.classList.add('droppable-zone')
+      } else {
+
+      }
+    },
+    dragLeaveDesktop () {
+      if (!this.isDraggable) {
+        this.counter--
+        if (this.counter === 0) {
+          this.$refs.scrollArea.$el.classList.remove('droppable-zone')
+        }
+      }
+    },*/
+    dropDesktop(e) {
+      if (!this.isDraggable) {
+        this.counter = 0
+        this.$refs.scrollArea.$el.classList.remove('droppable-zone')
+        this.$emit('uploadFilesFromDesktop', e.dataTransfer.files)
+      }
+    },
+    addedFiles () {
+      if (this.currentStorage.Type !== 'encrypted') {
+        let url = this.$store.getters['main/getApiHost'] + '/?/Api/'
+        let sAuthToken = this.$store.getters['user/getAuthToken']
+        let headers = []
+        if (sAuthToken) {
+          headers.push({ name: 'Authorization', value: 'Bearer ' + sAuthToken })
+        }
+        return {
+          url,
+          method: 'POST',
+          headers,
+          fieldName: 'jua-uploader',
+          formFields: [
+            { name: 'jua-post-type', value: 'ajax' },
+            { name: 'Module', value: 'Files' },
+            { name: 'Method', value: 'UploadFile' },
+            { name: 'Parameters', value: JSON.stringify({"Type": this.currentStorage.Type, "SubPath": "", "Path": this.currentFilePath, "Overwrite": false })},
+          ],
+        }
+      }
+    },
+    onFileAdded (files) {
+      this.$emit('onFileAdded', files)
+    },
+    showReport () {
+
+    },
+    finishUpload () {
+
+    },
     openEncryptedFileDialog (file) {
       this.$refs.encryptedFileInformationDialog.openDialog(file)
     },
@@ -151,7 +204,7 @@ export default {
       let checkedList = hashes.map( hash => {
         return this.downloadFiles.find( file => file.Hash === hash) || fileList.find( file => file.Hash === hash)
       })
-       if (oMouseEvent) {
+      if (oMouseEvent) {
         if (oMouseEvent.ctrlKey) {
           const index = checkedList.findIndex( checkedFile => {
             return checkedFile === file
@@ -194,10 +247,10 @@ export default {
           checkedList = [file]
           this.currentFile = file
         }
-       }
-       if (checkedList.length === 1) {
-         this.$store.dispatch('files/changeCurrentFile', { currentFile: file.Hash })
-       }
+      }
+      if (checkedList.length === 1) {
+        this.$store.dispatch('files/changeCurrentFile', { currentFile: file.Hash })
+      }
       this.checkedList = checkedList
       const itemsHashes = this.checkedList.map( file => {
         return file.Hash
@@ -217,7 +270,7 @@ export default {
       return this.checkedList.find(checkedFile => checkedFile.Hash === file.Hash)
     },
     onDragStart (e, file) {
-      console.log(e, 'event')
+      this.isDraggable = true
       let checkedListHashes = this.$store.getters['files/getCheckedItems']
       let checkedList = checkedListHashes.map( hash => {
         return this.currentFiles.find( file => file.Hash === hash) || this.downloadFiles.find( file => file.Hash === hash)
@@ -256,6 +309,7 @@ export default {
       })
       e.dataTransfer.setData('fromPath', file.Path)
       e.dataTransfer.setData('fromType', file.Type)
+      e.dataTransfer.setData('file', 'true')
     },
     dragEnter (elem) {
       this.elem = elem
@@ -315,6 +369,7 @@ export default {
       }
     },
     dragend () {
+      this.isDraggable = false
       if (this.elem) {
         if (this.elem?.classList.contains('border-drop')) {
           this.elem.classList.remove('border-drop')
@@ -325,11 +380,39 @@ export default {
         }
       }
     }
+  },
+  watch: {
+    showDropZone (showDropZone) {
+      if (showDropZone) {
+        this.$refs.scrollArea.$el.classList.add('droppable-zone')
+      } else {
+        this.$refs.scrollArea.$el.classList.remove('droppable-zone')
+      }
+    },
+    fileList (val) {
+      this.$emit('addFileList', val)
+    },
+    folderList (val) {
+      this.$emit('addFolderList', val)
+    },
+    $route () {
+      this.currentFile = null
+    },
+    isUploadingFiles (loading) {
+      if (loading) {
+        this.checkedList = []
+      }
+    }
   }
 }
 </script>
 
 <style lang="scss">
+.droppable-zone {
+  border: 3px dashed #e2da36 !important;
+  pointer-events: none;
+  opacity: 0.8;
+}
 .child-elements {
   pointer-events: none;
 }

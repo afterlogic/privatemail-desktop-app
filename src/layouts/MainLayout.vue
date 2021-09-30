@@ -1,5 +1,14 @@
 <template>
-  <q-layout view="hHh LpR lfr" class="theme-text main-background">
+  <q-layout
+    view="hHh LpR lfr"
+    class="theme-text main-background"
+    @dragenter="dragEnterDesktop"
+    @dragleave="dragLeaveDesktop"
+    @dragend="dropEnd"
+    @drop="dropDesktop()"
+    @dragover.prevent
+    @dragenter.prevent
+  >
     <q-header bordered>
       <!-- <q-toolbar>
         <q-btn dense flat round icon="menu" @click="left = !left" />
@@ -52,7 +61,8 @@ export default {
   data () {
     return {
       unreadMessages: '',
-      iRefreshTimer: 0
+      iRefreshTimer: 0,
+      counter: 0
     }
   },
   mounted () {
@@ -116,6 +126,24 @@ export default {
     },
   },
   methods: {
+    dropEnd () {
+      this.$store.dispatch('files/showDropZone', { showDropZone: false })
+    },
+    dragEnterDesktop (e) {
+      this.counter++
+      if (this.counter) {
+        this.$store.dispatch('files/showDropZone', { showDropZone: true })
+      }
+    },
+    dragLeaveDesktop () {
+        this.counter--
+        if (this.counter === 0) {
+          this.$store.dispatch('files/showDropZone', { showDropZone: false })
+        }
+    },
+    dropDesktop () {
+      this.counter = 0
+    },
     sync () {
       clearTimeout(this.iRefreshTimer)
       if (!this.mailSyncing) {

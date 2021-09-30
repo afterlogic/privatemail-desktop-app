@@ -22,9 +22,8 @@ export function asyncGetStorages ({ state, commit, getters, dispatch }) {
     if (error) {
       if (error.ErrorMessage) {
         notification.showError(error.ErrorMessage)
-      } else {
+      } else if (error.ErrorCode !== 108)
         notification.showError('Unknown error')
-      }
     }
   })
 }
@@ -537,4 +536,7 @@ export function filesMove  ({ state, commit, getters, dispatch }, { fromPath, to
       },
     })
   })
+}
+export function showDropZone({ state, commit, getters, dispatch }, { showDropZone }) {
+  commit('showDropZone', { showDropZone })
 }

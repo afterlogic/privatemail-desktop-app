@@ -42,3 +42,6 @@ export function getFiles (state) {
 export function getFolders (state) {
   return state.folders
 }
+export function getStateDropZone (state) {
+  return state.showDropZone
+}

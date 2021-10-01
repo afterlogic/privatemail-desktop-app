@@ -127,23 +127,6 @@ export default {
     },
   },
   methods: {
-    /*dragEnterDesktop() {
-      if (!this.isDraggable) {
-        this.counter++
-        // droppable-zone
-        this.$refs.scrollArea.$el.classList.add('droppable-zone')
-      } else {
-
-      }
-    },
-    dragLeaveDesktop () {
-      if (!this.isDraggable) {
-        this.counter--
-        if (this.counter === 0) {
-          this.$refs.scrollArea.$el.classList.remove('droppable-zone')
-        }
-      }
-    },*/
     dropDesktop(e) {
       if (!this.isDraggable) {
         this.counter = 0
@@ -175,12 +158,6 @@ export default {
     },
     onFileAdded (files) {
       this.$emit('onFileAdded', files)
-    },
-    showReport () {
-
-    },
-    finishUpload () {
-
     },
     openEncryptedFileDialog (file) {
       this.$refs.encryptedFileInformationDialog.openDialog(file)

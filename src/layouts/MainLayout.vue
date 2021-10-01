@@ -6,8 +6,7 @@
     @dragleave="dragLeaveDesktop"
     @dragend="dropEnd"
     @drop="dropDesktop()"
-    @dragover.prevent
-    @dragenter.prevent
+  
   >
     <q-header bordered>
       <!-- <q-toolbar>
@@ -131,9 +130,7 @@ export default {
     },
     dragEnterDesktop (e) {
       this.counter++
-      if (this.counter) {
-        this.$store.dispatch('files/showDropZone', { showDropZone: true })
-      }
+      this.$store.dispatch('files/showDropZone', { showDropZone: true })
     },
     dragLeaveDesktop () {
         this.counter--
@@ -142,6 +139,7 @@ export default {
         }
     },
     dropDesktop () {
+      this.$store.dispatch('files/showDropZone', { showDropZone: false })
       this.counter = 0
     },
     sync () {
